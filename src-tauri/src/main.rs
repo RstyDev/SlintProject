@@ -8,8 +8,7 @@ use std::{
 use tauri::State;
 
 //---------------------------------Structs y Enums-------------------------------------
-#[derive(Debug)]
-pub struct Sistema <'a>{
+pub struct Sistema<'a> {
     productos: Vec<Producto>,
     ventas:(Venta<'a>,Venta<'a>),
     proveedores: Vec<String>,
@@ -17,7 +16,6 @@ pub struct Sistema <'a>{
     path_proveedores:String,
 }
 
-#[derive(Debug)]
 pub struct Venta<'a>{
     monto_total:f64,
     productos: Vec<&'a Producto>
@@ -32,7 +30,7 @@ impl<'a> Venta<'a>{
 
 
 
-impl<'a> Sistema <'a>{
+impl <'a>Sistema <'a>{
     pub fn new()->Sistema<'a>{
         let path_prods= String::from("Productos.json");
         let path_proveedores=String::from("Proveedores.json");
@@ -63,10 +61,11 @@ impl<'a> Sistema <'a>{
     
 }
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Producto {
+pub struct Producto{
     //falta agregar el codigo de proveedor en vec, los proveedores en vec,
     //puede ser un hashmap o un vec de tuplas con referencia a una lista de proveedores
     //algunas cosas mas tambien como familia de productos
+    proveedores: Vec<String>,
     codigo_de_barras: usize,
     precio_de_venta: f64,
     porcentaje: f64,
@@ -104,6 +103,7 @@ impl Producto {
             _ => panic!("no posible"),
         };
         Producto {
+            proveedores:Vec::new(),
             codigo_de_barras: codigo.parse().unwrap(),
             precio_de_venta: precio_de_venta.parse().unwrap(),
             porcentaje: porcentaje.parse().unwrap(),
@@ -166,7 +166,7 @@ fn leer_proveedores_file<'a>(path:String)->Vec<String>{
             if let Err(e) = a.read_to_string(&mut buf) {
                 panic!("No se pudo leer porque {}", e);
             }
-            match serde_json::from_str(&buf) {
+            match serde_json::from_str(&buf.clone()) {
                 Ok(a) => res = a,
                 Err(_) => (),
             }
