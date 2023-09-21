@@ -5,18 +5,41 @@ use std::{
     fs::OpenOptions,
     io::{Read, Write},
 };
-const PATH: &str = "Productos.json";
 use tauri::State;
 
 //---------------------------------Structs y Enums-------------------------------------
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Sistema {
+#[derive(Debug)]
+pub struct Sistema <'a>{
     productos: Vec<Producto>,
+    ventas:(Venta<'a>,Venta<'a>),
+    proveedores: Vec<String>,
+    path_prods:String,
+    path_proveedores:String,
 }
 
-impl Sistema {
-    pub fn new()->Sistema{
-        Sistema { productos: Vec::new() }
+#[derive(Debug)]
+pub struct Venta<'a>{
+    monto_total:f64,
+    productos: Vec<&'a Producto>
+
+}
+
+impl<'a> Venta<'a>{
+    pub fn new()->Venta<'a>{
+        Venta { monto_total: 0.0, productos: Vec::new() }
+    }
+}
+
+
+
+impl<'a> Sistema <'a>{
+    pub fn new()->Sistema<'a>{
+        let path_prods= String::from("Productos.json");
+        let path_proveedores=String::from("Proveedores.json");
+        let productos=leer_productos_file(path_prods.clone());
+        let proveedores=leer_proveedores_file(path_proveedores.clone());
+        Sistema { productos,ventas: (Venta::new(),Venta::new()), proveedores,
+        path_prods,path_proveedores }
     }
     pub fn imprimir(&self){
         println!("Printed from rust");
@@ -53,6 +76,7 @@ pub struct Producto {
     variedad: String,
     cantidad: Presentacion,
 }
+
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum Presentacion {
@@ -104,13 +128,13 @@ impl PartialEq for Producto {
 
 //--------------------Metodos y Main---------------------------------------------
 
-fn crear_file<'a>(escritura: &impl Serialize) {
-    // File::create(path).expect("Error");
+fn crear_file<'a>(path:String,escritura: &impl Serialize) {
+    
     let file = OpenOptions::new()
         .write(true)
         .create(true)
         .truncate(true)
-        .open(PATH);
+        .open(path);
     match file {
         Ok(mut a) => {
             if let Err(e) = writeln!(
@@ -128,14 +152,35 @@ fn crear_file<'a>(escritura: &impl Serialize) {
     }
 }
 
-pub fn push(pr: Producto) {
-    let mut prods = leer_productos_file();
+pub fn push(pr: Producto,path:String) {
+    let mut prods = leer_productos_file(path.clone());
     prods.push(pr);
-    crear_file(&prods);
+    crear_file(path.clone(),&prods);
 }
+fn leer_proveedores_file<'a>(path:String)->Vec<String>{
+    let file = OpenOptions::new().read(true).open(path.clone());
+    let mut res: Vec<String> = Vec::new();
+    match file {
+        Ok(mut a) => {
+            let mut buf = String::new();
+            if let Err(e) = a.read_to_string(&mut buf) {
+                panic!("No se pudo leer porque {}", e);
+            }
+            match serde_json::from_str(&buf) {
+                Ok(a) => res = a,
+                Err(_) => (),
+            }
 
-fn leer_productos_file<'a>() -> Vec<Producto> {
-    let file = OpenOptions::new().read(true).open(PATH);
+            res
+        }
+        Err(_) => match OpenOptions::new().write(true).create(true).open(path.clone()) {
+            Ok(_) => res,
+            Err(e) => panic!("No se pudo crear porque {}", e),
+        },
+    }
+}
+fn leer_productos_file<'a>(path:String) -> Vec<Producto> {
+    let file = OpenOptions::new().read(true).open(path.clone());
     let mut res: Vec<Producto> = Vec::new();
     match file {
         Ok(mut a) => {
@@ -150,7 +195,7 @@ fn leer_productos_file<'a>() -> Vec<Producto> {
 
             res
         }
-        Err(_) => match OpenOptions::new().write(true).create(true).open(PATH) {
+        Err(_) => match OpenOptions::new().write(true).create(true).open(path.clone()) {
             Ok(_) => res,
             Err(e) => panic!("No se pudo crear porque {}", e),
         },
@@ -179,20 +224,20 @@ fn agregar(
     marca: &str,
     variedad: &str,
     cantidad: &str,
-    presentacion: &str,
+    presentacion: &str,sistema:State<Sistema>
 ) -> Result<String, String> {
     let res: Result<String, String>;
     let mut prods: Vec<Producto>;
     let prod=Producto::new(codigo,precio_de_venta,porcentaje,precio_de_costo,
         tipo_producto,marca,variedad,cantidad,presentacion);
-    prods = leer_productos_file();
+    prods = leer_productos_file(sistema.path_prods.clone());
     if !prods.contains(&prod) {
         prods.push(prod);
         res = Ok(format!("{:#?}", prods));
     } else {
         res = Err("Este producto ya existe".to_string());
     }
-    crear_file(&prods);
+    crear_file(sistema.path_prods.clone(),&prods);
 
     res
 }
