@@ -27,7 +27,7 @@
       </a>
     </div>
 
-    
+
 
     <form class="row" id="buscador-form">
       <input id="buscador" placeholder="Buscar..." />
@@ -55,8 +55,27 @@
           <option value="Lt">Lt.</option>
         </select>
       </div>
+      <!-- proveedores: Vec<String>,
+                    codigo_de_barras: &str,
+                    precio_de_venta: &str,
+                    porcentaje: &str,
+                    precio_de_costo: &str,
+                    tipo_producto: &str,
+                    marca: &str,
+                    variedad: &str,
+                    cantidad: &str,
+                    presentacion: &str -->
+      <form>
+
+        <select name="Proveedor" id="proveedor">
+          
+        </select>
+        <input type="number" id="codigo_prov" placeholder="Codigo interno del proveedor">
+
+        <button type="button" id="agregar-proveedor">Agregar</button>
+      </form>
       <div>
-        <input type="number"  id="precio_de_costo" placeholder="Precio de costo" required />
+        <input type="number" id="precio_de_costo" placeholder="Precio de costo" required />
       </div>
       <div>
         <input type="number" id="porcentaje" placeholder="Porcentaje" value='40' required />

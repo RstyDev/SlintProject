@@ -1,7 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
 use std::{
+    collections::HashMap,
     fs::OpenOptions,
     io::{Read, Write},
 };
@@ -10,62 +12,23 @@ use tauri::State;
 //---------------------------------Structs y Enums-------------------------------------
 pub struct Sistema<'a> {
     productos: Vec<Producto>,
-    ventas:(Venta<'a>,Venta<'a>),
+    ventas: (Venta<'a>, Venta<'a>),
     proveedores: Vec<String>,
-    path_prods:String,
-    path_proveedores:String,
+    path_prods: String,
+    path_proveedores: String,
 }
 
-pub struct Venta<'a>{
-    monto_total:f64,
-    productos: Vec<&'a Producto>
-
+pub struct Venta<'a> {
+    monto_total: f64,
+    productos: Vec<&'a Producto>,
 }
 
-impl<'a> Venta<'a>{
-    pub fn new()->Venta<'a>{
-        Venta { monto_total: 0.0, productos: Vec::new() }
-    }
-}
-
-
-
-impl <'a>Sistema <'a>{
-    pub fn new()->Sistema<'a>{
-        let path_prods= String::from("Productos.json");
-        let path_proveedores=String::from("Proveedores.json");
-        let productos=leer_productos_file(path_prods.clone());
-        let proveedores=leer_proveedores_file(path_proveedores.clone());
-        Sistema { productos,ventas: (Venta::new(),Venta::new()), proveedores,
-        path_prods,path_proveedores }
-    }
-    pub fn imprimir(&self){
-        println!("Printed from rust");
-    }
-    pub fn new_producto2(
-        &mut self,
-        codigo_de_barras: &str,
-        precio_de_venta: &str,
-        porcentaje: &str,
-        precio_de_costo: &str,
-        tipo_producto: &str,
-        marca: &str,
-        variedad: &str,
-        cantidad: &str,
-        presentacion: &str,
-    ) {
-        let prod=Producto::new(codigo_de_barras,precio_de_venta,porcentaje,precio_de_costo,
-        tipo_producto,marca,variedad,cantidad,presentacion);
-        self.productos.push(prod);
-    }
-    
-}
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Producto{
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct Producto {
     //falta agregar el codigo de proveedor en vec, los proveedores en vec,
     //puede ser un hashmap o un vec de tuplas con referencia a una lista de proveedores
     //algunas cosas mas tambien como familia de productos
-    proveedores: Vec<String>,
+    proveedores_codigos: HashMap<String, Option<u128>>,
     codigo_de_barras: usize,
     precio_de_venta: f64,
     porcentaje: f64,
@@ -76,16 +39,80 @@ pub struct Producto{
     cantidad: Presentacion,
 }
 
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Presentacion {
     Grs(f64),
+
     Un(i32),
     Lt(f64),
 }
 
+//-----------------------------------Implementations---------------------------------
+
+impl<'a> Venta<'a> {
+    pub fn new() -> Venta<'a> {
+        Venta {
+            monto_total: 0.0,
+            productos: Vec::new(),
+        }
+    }
+}
+
+impl<'a> Sistema<'a> {
+    pub fn new() -> Sistema<'a> {
+        let path_prods = String::from("Productos.json");
+        let path_proveedores = String::from("Proveedores.json");
+        let productos = leer_productos_file(path_prods.clone());
+        let proveedores = leer_proveedores_file(path_proveedores.clone());
+        Sistema {
+            productos,
+            ventas: (Venta::new(), Venta::new()),
+            proveedores,
+            path_prods,
+            path_proveedores,
+        }
+    }
+    pub fn imprimir(&self) {
+        println!("Printed from rust");
+    }
+    pub fn agregar(
+        &mut self,
+        proveedores_codigos: HashMap<String, Option<u128>>,
+        codigo_de_barras: &str,
+        precio_de_venta: &str,
+        porcentaje: &str,
+        precio_de_costo: &str,
+        tipo_producto: &str,
+        marca: &str,
+        variedad: &str,
+        cantidad: &str,
+        presentacion: &str,
+    ) {
+        let prod = Producto::new(
+            proveedores_codigos,
+            codigo_de_barras,
+            precio_de_venta,
+            porcentaje,
+            precio_de_costo,
+            tipo_producto,
+            marca,
+            variedad,
+            cantidad,
+            presentacion,
+        );
+        self.productos.push(prod);
+    }
+}
+
+impl Default for Presentacion {
+    fn default() -> Self {
+        Presentacion::Un(i32::default())
+    }
+}
+
 impl Producto {
     fn new(
+        proveedores_codigos: HashMap<String, Option<u128>>,
         codigo: &str,
         precio_de_venta: &str,
         porcentaje: &str,
@@ -103,7 +130,7 @@ impl Producto {
             _ => panic!("no posible"),
         };
         Producto {
-            proveedores:Vec::new(),
+            proveedores_codigos,
             codigo_de_barras: codigo.parse().unwrap(),
             precio_de_venta: precio_de_venta.parse().unwrap(),
             porcentaje: porcentaje.parse().unwrap(),
@@ -128,8 +155,7 @@ impl PartialEq for Producto {
 
 //--------------------Metodos y Main---------------------------------------------
 
-fn crear_file<'a>(path:String,escritura: &impl Serialize) {
-    
+fn crear_file<'a>(path: String, escritura: &impl Serialize) {
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -152,12 +178,12 @@ fn crear_file<'a>(path:String,escritura: &impl Serialize) {
     }
 }
 
-pub fn push(pr: Producto,path:String) {
+pub fn push(pr: Producto, path: String) {
     let mut prods = leer_productos_file(path.clone());
     prods.push(pr);
-    crear_file(path.clone(),&prods);
+    crear_file(path.clone(), &prods);
 }
-fn leer_proveedores_file<'a>(path:String)->Vec<String>{
+fn leer_proveedores_file<'a>(path: String) -> Vec<String> {
     let file = OpenOptions::new().read(true).open(path.clone());
     let mut res: Vec<String> = Vec::new();
     match file {
@@ -173,13 +199,17 @@ fn leer_proveedores_file<'a>(path:String)->Vec<String>{
 
             res
         }
-        Err(_) => match OpenOptions::new().write(true).create(true).open(path.clone()) {
+        Err(_) => match OpenOptions::new()
+            .write(true)
+            .create(true)
+            .open(path.clone())
+        {
             Ok(_) => res,
             Err(e) => panic!("No se pudo crear porque {}", e),
         },
     }
 }
-fn leer_productos_file<'a>(path:String) -> Vec<Producto> {
+fn leer_productos_file<'a>(path: String) -> Vec<Producto> {
     let file = OpenOptions::new().read(true).open(path.clone());
     let mut res: Vec<Producto> = Vec::new();
     match file {
@@ -195,14 +225,18 @@ fn leer_productos_file<'a>(path:String) -> Vec<Producto> {
 
             res
         }
-        Err(_) => match OpenOptions::new().write(true).create(true).open(path.clone()) {
+        Err(_) => match OpenOptions::new()
+            .write(true)
+            .create(true)
+            .open(path.clone())
+        {
             Ok(_) => res,
             Err(e) => panic!("No se pudo crear porque {}", e),
         },
     }
 }
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+// -------------------------------Commands----------------------------------------------
 
 #[tauri::command]
 fn buscador(name: &str) -> String {
@@ -210,13 +244,17 @@ fn buscador(name: &str) -> String {
 }
 
 #[tauri::command]
-fn imprimir(sistema:State<Sistema>){
-    sistema.imprimir();
+fn imprimir(sistema: State<Mutex<Sistema>>) {
+    let sis = sistema.lock().unwrap();
+    sis.imprimir();
 }
 
 #[tauri::command]
 fn agregar(
-    codigo: &str,
+    sistema: State<Mutex<Sistema>>,
+    proveedores: Vec<String>,
+    codigos_prov: Vec<String>,
+    codigo_de_barras: &str,
     precio_de_venta: &str,
     porcentaje: &str,
     precio_de_costo: &str,
@@ -224,27 +262,58 @@ fn agregar(
     marca: &str,
     variedad: &str,
     cantidad: &str,
-    presentacion: &str,sistema:State<Sistema>
-) -> Result<String, String> {
-    let res: Result<String, String>;
-    let mut prods: Vec<Producto>;
-    let prod=Producto::new(codigo,precio_de_venta,porcentaje,precio_de_costo,
-        tipo_producto,marca,variedad,cantidad,presentacion);
-    prods = leer_productos_file(sistema.path_prods.clone());
-    if !prods.contains(&prod) {
-        prods.push(prod);
-        res = Ok(format!("{:#?}", prods));
-    } else {
-        res = Err("Este producto ya existe".to_string());
+    presentacion: &str,
+) -> String {
+    let mut res = HashMap::new();
+    match sistema.lock() {
+        Ok(mut sis) => {
+            for i in 0..codigos_prov.len()-1 {
+                if codigos_prov[i] == "" {
+                    res.insert(proveedores[i].clone(), None);
+                } else {
+                    res.insert(
+                        proveedores[i].clone(),
+                        Some(codigos_prov[i].parse().unwrap()),
+                    );
+                }
+            }
+            sis.agregar(
+                res,
+                codigo_de_barras,
+                precio_de_venta,
+                porcentaje,
+                precio_de_costo,
+                tipo_producto,
+                marca,
+                variedad,
+                cantidad,
+                presentacion,
+            );
+            format!("{:#?}",Some(sis.productos[sis.productos.len()-1].clone()))
+        }
+        Err(a) => {
+            format!("Error: {}" , a)
+            
+        }
     }
-    crear_file(sistema.path_prods.clone(),&prods);
-
-    res
 }
 
+#[tauri::command]
+fn get_proveedores(sistema: State<Mutex<Sistema>>) -> Vec<String> {
+    sistema.lock().unwrap().proveedores.clone()
+}
+
+//----------------------------------------main--------------------------------------------
+
 fn main() {
-    tauri::Builder::default().manage(Sistema::new())
-        .invoke_handler(tauri::generate_handler![buscador, agregar,imprimir])
+    tauri::Builder::default()
+        .manage(Mutex::new(Sistema::new()))
+        .invoke_handler(tauri::generate_handler![
+            buscador,
+            agregar,
+            imprimir,
+            get_proveedores
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
