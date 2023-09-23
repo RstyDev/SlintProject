@@ -26,7 +26,6 @@ async function agregarProducto() {
   greetMsgEl.textContent = ("Producto agregado: " + await invoke("agregar", { proveedores: proveedores_producto,codigosProv:codigosProv,codigoDeBarras: cod.value, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
   proveedores_producto=[];
   codigosProv=[];
-  invoke("imprimir",)
 }
 
 // window.addEventListener("DOMContentLoaded", () => {
