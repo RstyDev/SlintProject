@@ -1,7 +1,7 @@
 const { invoke } = window.__TAURI__.tauri;
 
 let buscadorInput;
-let greetMsgEl;
+let greetMsgEl = document.querySelector('#greet-msg');
 let tpProd;
 let mark;
 let variety;
@@ -13,8 +13,8 @@ let precio_de_costo;
 let percent;
 let timeoutId;
 let proveedores = [];
-let proveedores_producto=[];
-let codigosProv=[];
+let proveedores_producto = [];
+let codigosProv = [];
 
 
 async function buscador() {
@@ -23,9 +23,9 @@ async function buscador() {
 }
 
 async function agregarProducto() {
-  greetMsgEl.textContent = ("Producto agregado: " + await invoke("agregar", { proveedores: proveedores_producto,codigosProv:codigosProv,codigoDeBarras: cod.value, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
-  proveedores_producto=[];
-  codigosProv=[];
+  greetMsgEl.textContent = ("Producto agregado: " + await invoke("agregar", { proveedores: proveedores_producto, codigosProv: codigosProv, codigoDeBarras: cod.value, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
+  proveedores_producto = [];
+  codigosProv = [];
 }
 
 // window.addEventListener("DOMContentLoaded", () => {
@@ -100,7 +100,7 @@ window.addEventListener("DOMContentLoaded", () => {
   precio_de_venta = document.querySelector('#precio_de_venta');
   percent = document.querySelector('#porcentaje');
   precio_de_costo = document.querySelector('#precio_de_costo');
-  document.querySelector('#agregar-submit').addEventListener("click", (e) => {
+  document.querySelector('#agregar-submit').addEventListener("submit", (e) => {
     e.preventDefault();
     agregarProducto();
   })
@@ -108,26 +108,25 @@ window.addEventListener("DOMContentLoaded", () => {
 
 window.addEventListener("DOMContentLoaded", async () => {
   let provs = await invoke("get_proveedores")
-  proveedores=provs;
-  console.log(provs)
+  proveedores = provs;
+  console.log(provs);
   for (let i = 0; i < provs.length; i++) {
-    let option=document.createElement("option");
-    option.text=provs[i];
-    option.value=provs[i];
+    let option = document.createElement("option");
+    option.text = provs[i];
+    option.value = provs[i];
     document.querySelector('#proveedor').appendChild(option);
   }
 })
 window.addEventListener("DOMContentLoaded", () => {
-    document.querySelector("#agregar-proveedor").addEventListener("click", () => {
-      let res = document.querySelector('#proveedor').value;
-      let cod = document.querySelector('#codigo_prov').value;
-      if (res!=''&&!proveedores_producto.includes(res)){
-        proveedores_producto.push(res);
-        if (cod!=''){
-          codigosProv.push(cod);
-        }
-      }
-    console.log(proveedores_producto);
+  document.querySelector("#agregar-proveedor").addEventListener("submit", () => {
+    let res = document.querySelector('#proveedor').value;
+    let cod = document.querySelector('#codigo_prov').value;
+    if (res != '' && !proveedores_producto.includes(res)) {
+      proveedores_producto.push(res);
+      codigosProv.push(cod);
+
+    }
+    console.log(proveedores_producto + " y " + codigosProv);
   });
 })
 

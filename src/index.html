@@ -33,9 +33,9 @@
       <input id="buscador" placeholder="Buscar..." />
       <button type="submit">Buscar</button>
     </form>
-    <form id="nuevo-producto-form">
+    <form id="agregar-submit">
       <div>
-        <input id="codigo_de_barras" placeholder="Codigo de barras" required />
+        <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" required />
       </div>
       <div>
         <input id="tipo_producto" placeholder="Tipo de producto" required />
@@ -49,7 +49,7 @@
       <div>
         <input type="number" id="cantidad" placeholder="Cantidad" required />
         <select name="presentacion" id="presentacion" required>
-          <option value="">Elige una opción</option>
+          <option value="" selected disabled hidden>Elige una opción</option>
           <option value="Grs">Grs.</option>
           <option value="Un">Un.</option>
           <option value="Lt">Lt.</option>
@@ -65,15 +65,7 @@
                     variedad: &str,
                     cantidad: &str,
                     presentacion: &str -->
-      <form>
-
-        <select name="Proveedor" id="proveedor">
-          
-        </select>
-        <input type="number" id="codigo_prov" placeholder="Codigo interno del proveedor">
-
-        <button type="button" id="agregar-proveedor">Agregar</button>
-      </form>
+      
       <div>
         <input type="number" id="precio_de_costo" placeholder="Precio de costo" required />
       </div>
@@ -83,12 +75,22 @@
       <div>
         <input type="number" id="precio_de_venta" placeholder="Precio de venta" required />
       </div>
-      <button type="submit" id="agregar-submit">Agregar producto</button>
+      <button type="submit" >Agregar producto</button>
 
       <!-- tipo_producto: String,
         marca: String,
         variedad: String,
         cantidad: Presentacion, -->
+    </form>
+    <form id="agregar-proveedor">
+    
+      <select name="Proveedor" id="proveedor" required>
+        <option value="" selected disabled hidden>Seleccione una opción</option>
+    
+      </select>
+      <input type="number" id="codigo_prov" placeholder="Codigo interno del proveedor">
+    
+      <button type="submit" >Agregar</button>
     </form>
 
     <p id="greet-msg"></p>

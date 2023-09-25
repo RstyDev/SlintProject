@@ -1,7 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use core::panic;
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
+use std::fs::File;
+use std::sync::Mutex;
 use std::{
     collections::HashMap,
     fs::OpenOptions,
@@ -29,7 +31,7 @@ pub struct Producto {
     //puede ser un hashmap o un vec de tuplas con referencia a una lista de proveedores
     //algunas cosas mas tambien como familia de productos
     proveedores_codigos: HashMap<String, Option<u128>>,
-    codigo_de_barras: usize,
+    codigo_de_barras: u128,
     precio_de_venta: f64,
     porcentaje: f64,
     precio_de_costo: f64,
@@ -64,6 +66,7 @@ impl<'a> Sistema<'a> {
         let path_proveedores = String::from("Proveedores.json");
         let productos = leer_productos_file(path_prods.clone());
         let proveedores = leer_proveedores_file(path_proveedores.clone());
+        println!("{:?}", productos);
         Sistema {
             productos,
             ventas: (Venta::new(), Venta::new()),
@@ -101,6 +104,10 @@ impl<'a> Sistema<'a> {
             presentacion,
         );
         self.productos.push(prod);
+        match crear_file(self.path_prods.clone(), &self.productos) {
+            Ok(_) => (),
+            Err(e) => panic!("No se pudo porque {}", e),
+        }
     }
 }
 
@@ -155,85 +162,59 @@ impl PartialEq for Producto {
 
 //--------------------Metodos y Main---------------------------------------------
 
-fn crear_file<'a>(path: String, escritura: &impl Serialize) {
-    let file = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(path);
-    match file {
-        Ok(mut a) => {
-            if let Err(e) = writeln!(
-                a,
-                "{}",
-                match serde_json::to_string_pretty(escritura) {
-                    Ok(a) => a,
-                    Err(e) => e.to_string(),
-                }
-            ) {
-                println!("Error al escribir porque {}", e);
-            }
-        }
-        Err(e) => println!("No se pudo escribir porque {}", e),
-    }
+fn crear_file<'a>(path: String, escritura: &impl Serialize) -> std::io::Result<()> {
+    let mut f = File::create(path)?;
+    let buf = serde_json::to_string_pretty(escritura)?;
+    f.write_all(buf.as_bytes())?;
+    Ok(())
 }
 
 pub fn push(pr: Producto, path: String) {
     let mut prods = leer_productos_file(path.clone());
     prods.push(pr);
-    crear_file(path.clone(), &prods);
+    match crear_file(path.clone(), &prods) {
+        Ok(_) => (),
+        Err(e) => panic!("No se pudo pushear porque {}", e),
+    };
 }
-fn leer_proveedores_file<'a>(path: String) -> Vec<String> {
-    let file = OpenOptions::new().read(true).open(path.clone());
-    let mut res: Vec<String> = Vec::new();
-    match file {
-        Ok(mut a) => {
-            let mut buf = String::new();
-            if let Err(e) = a.read_to_string(&mut buf) {
-                panic!("No se pudo leer porque {}", e);
-            }
-            match serde_json::from_str(&buf.clone()) {
-                Ok(a) => res = a,
-                Err(_) => (),
-            }
-
-            res
-        }
-        Err(_) => match OpenOptions::new()
-            .write(true)
-            .create(true)
-            .open(path.clone())
-        {
-            Ok(_) => res,
-            Err(e) => panic!("No se pudo crear porque {}", e),
-        },
+fn leer_proveedores_file(path: String) -> Vec<String> {
+    let file2 = File::open(path.clone());
+    let res: Vec<String>;
+    let mut file2 = match file2 {
+        Ok(file) => file,
+        Err(e) => panic!("{:?}", e),
+    };
+    let mut buf = String::new();
+    if let Err(e) = file2.read_to_string(&mut buf) {
+        panic!("No se pudo leer porque {}", e);
     }
+    match serde_json::from_str(&buf.clone()) {
+        Ok(a) => res = a,
+        Err(e) => {
+            panic!("No se pudo porque {}", e)
+        }
+    }
+    res
 }
+
 fn leer_productos_file<'a>(path: String) -> Vec<Producto> {
-    let file = OpenOptions::new().read(true).open(path.clone());
-    let mut res: Vec<Producto> = Vec::new();
-    match file {
-        Ok(mut a) => {
-            let mut buf = String::new();
-            if let Err(e) = a.read_to_string(&mut buf) {
-                panic!("No se pudo leer porque {}", e);
-            }
-            match serde_json::from_str(&buf) {
-                Ok(a) => res = a,
-                Err(_) => (),
-            }
-
-            res
-        }
-        Err(_) => match OpenOptions::new()
-            .write(true)
-            .create(true)
-            .open(path.clone())
-        {
-            Ok(_) => res,
-            Err(e) => panic!("No se pudo crear porque {}", e),
-        },
+    let file2 = File::open(path.clone());
+    let res: Vec<Producto>;
+    let mut file2 = match file2 {
+        Ok(file) => file,
+        Err(e) => panic!("{:?}", e),
+    };
+    let mut buf = String::new();
+    if let Err(e) = file2.read_to_string(&mut buf) {
+        panic!("No se pudo leer porque {}", e);
     }
+    match serde_json::from_str(&buf.clone()) {
+        Ok(a) => res = a,
+        Err(e) => {
+            panic!("No se pudo porque {}", e)
+        }
+    }
+    res
 }
 
 // -------------------------------Commands----------------------------------------------
@@ -267,14 +248,12 @@ fn agregar(
     let mut res = HashMap::new();
     match sistema.lock() {
         Ok(mut sis) => {
-            for i in 0..codigos_prov.len()-1 {
-                if codigos_prov[i] == "" {
-                    res.insert(proveedores[i].clone(), None);
-                } else {
-                    res.insert(
-                        proveedores[i].clone(),
-                        Some(codigos_prov[i].parse().unwrap()),
-                    );
+            if codigos_prov.len() > 0 {
+                for i in 0..proveedores.len() - 1 {
+                    match codigos_prov[i].parse::<u128>() {
+                        Ok(a) => res.insert(proveedores[i].clone(), Some(a)),
+                        Err(_) => res.insert(proveedores[i].clone(), None),
+                    };
                 }
             }
             sis.agregar(
@@ -289,11 +268,11 @@ fn agregar(
                 cantidad,
                 presentacion,
             );
-            format!("{:#?}",Some(sis.productos[sis.productos.len()-1].clone()))
+
+            format!("{:#?}", sis.productos[sis.productos.len() - 1].clone())
         }
         Err(a) => {
-            format!("Error: {}" , a)
-            
+            format!("Error: {}", a)
         }
     }
 }
