@@ -1,0 +1,15 @@
+[
+  {
+    "proveedores_codigos": {},
+    "codigo_de_barras": 779134651541,
+    "precio_de_venta": 1050.0,
+    "porcentaje": 40.0,
+    "precio_de_costo": 750.0,
+    "tipo_producto": "Cigarrillos",
+    "marca": "Marlboro",
+    "variedad": "Ks",
+    "cantidad": {
+      "Un": 20
+    }
+  }
+]

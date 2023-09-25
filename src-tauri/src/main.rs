@@ -66,7 +66,10 @@ impl<'a> Sistema<'a> {
         let path_proveedores = String::from("Proveedores.json");
         let productos = leer_productos_file(path_prods.clone());
         let proveedores = leer_proveedores_file(path_proveedores.clone());
-        println!("{:?}", productos);
+        println!(
+            "A partir de aca estamos escribiendo los productos {:?}",
+            productos
+        );
         Sistema {
             productos,
             ventas: (Venta::new(), Venta::new()),
@@ -165,7 +168,7 @@ impl PartialEq for Producto {
 fn crear_file<'a>(path: String, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
     let buf = serde_json::to_string_pretty(escritura)?;
-    f.write_all(buf.as_bytes())?;
+    write!(f, "{}", format!("{}", buf))?;
     Ok(())
 }
 
@@ -199,10 +202,16 @@ fn leer_proveedores_file(path: String) -> Vec<String> {
 
 fn leer_productos_file<'a>(path: String) -> Vec<Producto> {
     let file2 = File::open(path.clone());
-    let res: Vec<Producto>;
+    let mut res: Vec<Producto>;
     let mut file2 = match file2 {
         Ok(file) => file,
-        Err(e) => panic!("{:?}", e),
+        Err(_) => {
+            res = Vec::new();
+            match crear_file(path.clone(), &res){
+                Ok(_)=>File::open(path.clone()).unwrap(),
+                Err(e)=>panic!("No se pudo porque {}",e),
+            }
+        }
     };
     let mut buf = String::new();
     if let Err(e) = file2.read_to_string(&mut buf) {
@@ -210,8 +219,12 @@ fn leer_productos_file<'a>(path: String) -> Vec<Producto> {
     }
     match serde_json::from_str(&buf.clone()) {
         Ok(a) => res = a,
-        Err(e) => {
-            panic!("No se pudo porque {}", e)
+        Err(_) => {
+            let vec: Vec<Producto> = Vec::new();
+            if let Err(e) = crear_file(path, &vec) {
+                panic!("Otro error {}", e);
+            }
+            res = vec;
         }
     }
     res
