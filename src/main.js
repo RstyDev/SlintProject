@@ -118,7 +118,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 })
 window.addEventListener("DOMContentLoaded", () => {
-  document.querySelector("#agregar-proveedor").addEventListener("submit", () => {
+  document.querySelector("#agregar-proveedor").addEventListener("submit", (e) => {
+    e.preventDefault();
     let res = document.querySelector('#proveedor').value;
     let cod = document.querySelector('#codigo_prov').value;
     if (res != '' && !proveedores_producto.includes(res)) {

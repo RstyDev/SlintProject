@@ -4,6 +4,7 @@ use core::panic;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::sync::Mutex;
+use serde::de::DeserializeOwned;
 use std::{
     collections::HashMap,
     fs::OpenOptions,
@@ -41,6 +42,13 @@ pub struct Producto {
     cantidad: Presentacion,
 }
 
+pub struct Proveedor{
+    nombre:String,
+    contacto:u64,
+}
+
+
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Presentacion {
     Grs(f64),
@@ -64,8 +72,10 @@ impl<'a> Sistema<'a> {
     pub fn new() -> Sistema<'a> {
         let path_prods = String::from("Productos.json");
         let path_proveedores = String::from("Proveedores.json");
-        let productos = leer_productos_file(path_prods.clone());
-        let proveedores = leer_proveedores_file(path_proveedores.clone());
+        let mut productos =Vec::new();
+        leer_file(&mut productos,path_prods.clone());
+        let mut proveedores = Vec::new();
+        leer_file(&mut proveedores,path_proveedores.clone());
         println!(
             "A partir de aca estamos escribiendo los productos {:?}",
             productos
@@ -172,63 +182,39 @@ fn crear_file<'a>(path: String, escritura: &impl Serialize) -> std::io::Result<(
     Ok(())
 }
 
+
+
+
 pub fn push(pr: Producto, path: String) {
-    let mut prods = leer_productos_file(path.clone());
+    let mut prods = Vec::new();
+    leer_file(&mut prods,path.clone());
     prods.push(pr);
     match crear_file(path.clone(), &prods) {
         Ok(_) => (),
         Err(e) => panic!("No se pudo pushear porque {}", e),
     };
 }
-fn leer_proveedores_file(path: String) -> Vec<String> {
+
+fn leer_file<T:DeserializeOwned+Clone>(buf: &mut T,path: String){
     let file2 = File::open(path.clone());
-    let res: Vec<String>;
     let mut file2 = match file2 {
         Ok(file) => file,
         Err(e) => panic!("{:?}", e),
     };
-    let mut buf = String::new();
-    if let Err(e) = file2.read_to_string(&mut buf) {
+    let mut buf2=String::new();
+    if let Err(e) = file2.read_to_string(&mut buf2) {
         panic!("No se pudo leer porque {}", e);
     }
-    match serde_json::from_str(&buf.clone()) {
-        Ok(a) => res = a,
+    match serde_json::from_str::<T>(&buf2.clone()) {
+        Ok(a) => *buf = a.clone(),
         Err(e) => {
             panic!("No se pudo porque {}", e)
         }
     }
-    res
+    
 }
 
-fn leer_productos_file<'a>(path: String) -> Vec<Producto> {
-    let file2 = File::open(path.clone());
-    let mut res: Vec<Producto>;
-    let mut file2 = match file2 {
-        Ok(file) => file,
-        Err(_) => {
-            res = Vec::new();
-            match crear_file(path.clone(), &res){
-                Ok(_)=>File::open(path.clone()).unwrap(),
-                Err(e)=>panic!("No se pudo porque {}",e),
-            }
-        }
-    };
-    let mut buf = String::new();
-    if let Err(e) = file2.read_to_string(&mut buf) {
-        panic!("No se pudo leer porque {}", e);
-    }
-    match serde_json::from_str(&buf.clone()) {
-        Ok(a) => res = a,
-        Err(_) => {
-            let vec: Vec<Producto> = Vec::new();
-            if let Err(e) = crear_file(path, &vec) {
-                panic!("Otro error {}", e);
-            }
-            res = vec;
-        }
-    }
-    res
-}
+
 
 // -------------------------------Commands----------------------------------------------
 
