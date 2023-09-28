@@ -15,12 +15,13 @@ pub struct Sistema<'a> {
     proveedores: Vec<String>,
     path_prods: String,
     path_proveedores: String,
+    path_relaciones: String,
     relaciones: Vec<Relacion>,
 }
-
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Relacion {
-    producto: Producto,
-    proveedor: String,
+    id_producto: usize,
+    id_proveedor: usize,
     codigo: Option<u128>,
 }
 
@@ -31,9 +32,7 @@ pub struct Venta<'a> {
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Producto {
-    //falta agregar el codigo de proveedor en vec, los proveedores en vec,
-    //puede ser un hashmap o un vec de tuplas con referencia a una lista de proveedores
-    //algunas cosas mas tambien como familia de productos
+    id: usize,
     codigo_de_barras: u128,
     precio_de_venta: f64,
     porcentaje: f64,
@@ -52,17 +51,16 @@ pub struct Proveedor {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Presentacion {
     Grs(f64),
-
     Un(i32),
     Lt(f64),
 }
 
 //-----------------------------------Implementations---------------------------------
 impl Relacion {
-    pub fn new(producto: Producto, proveedor: String, codigo: Option<u128>) -> Self {
+    pub fn new(id_producto: usize, id_proveedor: usize, codigo: Option<u128>) -> Self {
         Relacion {
-            producto,
-            proveedor,
+            id_producto,
+            id_proveedor,
             codigo,
         }
     }
@@ -81,21 +79,27 @@ impl<'a> Sistema<'a> {
     pub fn new() -> Sistema<'a> {
         let path_prods = String::from("Productos.json");
         let path_proveedores = String::from("Proveedores.json");
+        let path_relaciones = String::from("Relaciones.json");
         let mut productos = Vec::new();
-        leer_file(&mut productos, path_prods.clone());
+        if let Err(e) = leer_file(&mut productos, &path_prods) {
+            panic!("{}", e);
+        }
         let mut proveedores = Vec::new();
-        leer_file(&mut proveedores, path_proveedores.clone());
-        let relaciones = Vec::new();
-        println!(
-            "A partir de aca estamos escribiendo los productos {:?}",
-            productos
-        );
+        if let Err(e) = leer_file(&mut proveedores, &path_proveedores) {
+            panic!("{}", e);
+        }
+        let mut relaciones = Vec::new();
+        if let Err(e) = leer_file(&mut relaciones, &path_relaciones) {
+            panic!("{}", e);
+        }
+        
         Sistema {
             productos,
             ventas: (Venta::new(), Venta::new()),
             proveedores,
             path_prods,
             path_proveedores,
+            path_relaciones,
             relaciones,
         }
     }
@@ -116,8 +120,8 @@ impl<'a> Sistema<'a> {
         cantidad: &str,
         presentacion: &str,
     ) {
-        let mut relacion = Vec::new();
         let producto = Producto::new(
+            self.productos.len(),
             codigo_de_barras,
             precio_de_venta,
             porcentaje,
@@ -128,25 +132,27 @@ impl<'a> Sistema<'a> {
             cantidad,
             presentacion,
         );
-        if codigos_prov.len() > 0 {
-            for i in 0..proveedores.len() - 1 {
-                match codigos_prov[i].parse::<u128>() {
-                    Ok(a) => relacion.push(Relacion::new(
-                        producto.clone(),
-                        proveedores[i].clone(),
-                        Some(a),
-                    )),
-                    Err(_) => relacion.push(Relacion::new(
-                        producto.clone(),
-                        proveedores[i].clone(),
-                        None,
-                    )),
-                };
-            }
-        }
-        self.relaciones.extend(relacion);
         self.productos.push(producto);
-        match crear_file(self.path_prods.clone(), &self.productos) {
+        
+        for i in 0..proveedores.len()  {
+            println!("{:?}",self.productos[self.productos.len()-1]);
+            println!("{:?}",proveedores[i]);
+            println!("{:?}",codigos_prov[i]);
+            match codigos_prov[i].parse::<u128>() {
+                Ok(a) => self
+                    .relaciones
+                    .push(Relacion::new(self.productos.len() - 1, i, Some(a))),
+                Err(_) => self
+                    .relaciones
+                    .push(Relacion::new(self.productos.len() - 1, i, None)),
+            };
+        }
+
+        match crear_file(&self.path_prods, &self.productos) {
+            Ok(_) => (),
+            Err(e) => panic!("No se pudo porque {}", e),
+        }
+        match crear_file(&self.path_relaciones, &self.relaciones) {
             Ok(_) => (),
             Err(e) => panic!("No se pudo porque {}", e),
         }
@@ -161,6 +167,7 @@ impl Default for Presentacion {
 
 impl Producto {
     fn new(
+        id: usize,
         codigo: &str,
         precio_de_venta: &str,
         porcentaje: &str,
@@ -178,6 +185,7 @@ impl Producto {
             _ => panic!("no posible"),
         };
         Producto {
+            id,
             codigo_de_barras: codigo.parse().unwrap(),
             precio_de_venta: precio_de_venta.parse().unwrap(),
             porcentaje: porcentaje.parse().unwrap(),
@@ -202,39 +210,48 @@ impl PartialEq for Producto {
 
 //--------------------Metodos y Main---------------------------------------------
 
-fn crear_file<'a>(path: String, escritura: &impl Serialize) -> std::io::Result<()> {
+fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
     let buf = serde_json::to_string_pretty(escritura)?;
     write!(f, "{}", format!("{}", buf))?;
     Ok(())
 }
 
-pub fn push(pr: Producto, path: String) {
+pub fn push(pr: Producto, path: &String) {
     let mut prods = Vec::new();
-    leer_file(&mut prods, path.clone());
+    if let Err(e) = leer_file(&mut prods, path) {
+        panic!("{}", e);
+    }
     prods.push(pr);
-    match crear_file(path.clone(), &prods) {
+    match crear_file(&path, &prods) {
         Ok(_) => (),
         Err(e) => panic!("No se pudo pushear porque {}", e),
     };
 }
 
-fn leer_file<T: DeserializeOwned + Clone>(buf: &mut T, path: String) {
+fn leer_file<T: DeserializeOwned + Clone + Serialize>(
+    buf: &mut T,
+    path: &String,
+) -> std::io::Result<()> {
     let file2 = File::open(path.clone());
     let mut file2 = match file2 {
         Ok(file) => file,
-        Err(e) => panic!("{:?}", e),
+        Err(_) => {
+            let esc: Vec<String> = Vec::new();
+            crear_file(path, &esc)?;
+            File::open(path.clone())?
+        }
     };
+
     let mut buf2 = String::new();
-    if let Err(e) = file2.read_to_string(&mut buf2) {
-        panic!("No se pudo leer porque {}", e);
-    }
+    file2.read_to_string(&mut buf2)?;
     match serde_json::from_str::<T>(&buf2.clone()) {
         Ok(a) => *buf = a.clone(),
         Err(e) => {
             panic!("No se pudo porque {}", e)
         }
     }
+    Ok(())
 }
 
 // -------------------------------Commands----------------------------------------------

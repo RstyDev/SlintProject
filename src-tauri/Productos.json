@@ -1,44 +1,54 @@
 [
   {
-    "proveedores_codigos": {},
+    "id": 0,
     "codigo_de_barras": 779134651541,
-    "precio_de_venta": 1050.0,
-    "porcentaje": 40.0,
-    "precio_de_costo": 750.0,
-    "tipo_producto": "Cigarrillos",
-    "marca": "Marlboro",
-    "variedad": "Ks",
+    "precio_de_venta": 2.0,
+    "porcentaje": 100.0,
+    "precio_de_costo": 1.0,
+    "tipo_producto": "Harina",
+    "marca": "Pureza",
+    "variedad": "000",
     "cantidad": {
-      "Un": 20
+      "Grs": 2.0
     }
   },
   {
-    "proveedores_codigos": {},
-    "codigo_de_barras": 6541,
-    "precio_de_venta": 1050.0,
-    "porcentaje": 40.0,
-    "precio_de_costo": 750.0,
+    "id": 1,
+    "codigo_de_barras": 779134651541,
+    "precio_de_venta": 2.0,
+    "porcentaje": 100.0,
+    "precio_de_costo": 1.0,
     "tipo_producto": "Cigarrillos",
     "marca": "Marlboro",
     "variedad": "Ks",
     "cantidad": {
-      "Un": 20
+      "Grs": 1.0
     }
   },
   {
-    "proveedores_codigos": {
-      "Sancor": null,
-      "La Serenisima": 6541312
-    },
+    "id": 2,
     "codigo_de_barras": 779134651541,
-    "precio_de_venta": 800.0,
-    "porcentaje": 60.0,
-    "precio_de_costo": 500.0,
+    "precio_de_venta": 2.0,
+    "porcentaje": 100.0,
+    "precio_de_costo": 1.0,
+    "tipo_producto": "Cigarrillos",
+    "marca": "Marlboro",
+    "variedad": "la",
+    "cantidad": {
+      "Grs": 2.0
+    }
+  },
+  {
+    "id": 3,
+    "codigo_de_barras": 4235,
+    "precio_de_venta": 2.0,
+    "porcentaje": 100.0,
+    "precio_de_costo": 1.0,
     "tipo_producto": "Cigarrillos",
     "marca": "Marlboro",
     "variedad": "Ks",
     "cantidad": {
-      "Un": 20
+      "Grs": 2.0
     }
   }
 ]

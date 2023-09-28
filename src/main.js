@@ -117,17 +117,18 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.querySelector('#proveedor').appendChild(option);
   }
 })
+
+//Agrega relacion
 window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#agregar-proveedor").addEventListener("submit", (e) => {
     e.preventDefault();
     let res = document.querySelector('#proveedor').value;
     let cod = document.querySelector('#codigo_prov').value;
-    if (res != '' && !proveedores_producto.includes(res)) {
+    if (!proveedores_producto.includes(res)) {
       proveedores_producto.push(res);
       codigosProv.push(cod);
-
     }
-    console.log(proveedores_producto + " y " + codigosProv);
+    console.log(proveedores_producto + " y " + codigosProv + "|" );
   });
 })
 
