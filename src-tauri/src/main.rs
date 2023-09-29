@@ -92,7 +92,7 @@ impl<'a> Sistema<'a> {
         if let Err(e) = leer_file(&mut relaciones, &path_relaciones) {
             panic!("{}", e);
         }
-        
+
         Sistema {
             productos,
             ventas: (Venta::new(), Venta::new()),
@@ -106,7 +106,7 @@ impl<'a> Sistema<'a> {
     pub fn imprimir(&self) {
         println!("Printed from rust");
     }
-    pub fn agregar(
+    pub fn agregar_producto(
         &mut self,
         proveedores: Vec<String>,
         codigos_prov: Vec<String>,
@@ -133,11 +133,11 @@ impl<'a> Sistema<'a> {
             presentacion,
         );
         self.productos.push(producto);
-        
-        for i in 0..proveedores.len()  {
-            println!("{:?}",self.productos[self.productos.len()-1]);
-            println!("{:?}",proveedores[i]);
-            println!("{:?}",codigos_prov[i]);
+
+        for i in 0..proveedores.len() {
+            println!("{:?}", self.productos[self.productos.len() - 1]);
+            println!("{:?}", proveedores[i]);
+            println!("{:?}", codigos_prov[i]);
             match codigos_prov[i].parse::<u128>() {
                 Ok(a) => self
                     .relaciones
@@ -156,6 +156,9 @@ impl<'a> Sistema<'a> {
             Ok(_) => (),
             Err(e) => panic!("No se pudo porque {}", e),
         }
+    }
+    pub fn agregar_proveedor(&mut self, proveedor: &str) {
+        self.proveedores.push(proveedor.to_owned());
     }
 }
 
@@ -266,9 +269,15 @@ fn imprimir(sistema: State<Mutex<Sistema>>) {
     let sis = sistema.lock().unwrap();
     sis.imprimir();
 }
-
 #[tauri::command]
-fn agregar(
+fn agregar_proveedor(sistema: State<Mutex<Sistema>>, proveedor: &str) {
+    match sistema.lock() {
+        Ok(mut sis) => sis.agregar_proveedor(proveedor),
+        Err(e) => panic!("{}", e),
+    }
+}
+#[tauri::command]
+fn agregar_producto(
     sistema: State<Mutex<Sistema>>,
     proveedores: Vec<String>,
     codigos_prov: Vec<String>,
@@ -284,7 +293,7 @@ fn agregar(
 ) -> String {
     match sistema.lock() {
         Ok(mut sis) => {
-            sis.agregar(
+            sis.agregar_producto(
                 proveedores,
                 codigos_prov,
                 codigo_de_barras,
@@ -318,7 +327,8 @@ fn main() {
         .manage(Mutex::new(Sistema::new()))
         .invoke_handler(tauri::generate_handler![
             buscador,
-            agregar,
+            agregar_producto,
+            agregar_proveedor,
             imprimir,
             get_proveedores
         ])

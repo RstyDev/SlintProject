@@ -23,20 +23,12 @@ async function buscador() {
 }
 
 async function agregarProducto() {
-  greetMsgEl.textContent = ("Producto agregado: " + await invoke("agregar", { proveedores: proveedores_producto, codigosProv: codigosProv, codigoDeBarras: cod.value, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
+  greetMsgEl.textContent = ("Producto agregado: " + await invoke("agregarProducto", { proveedores: proveedores_producto, codigosProv: codigosProv, codigoDeBarras: cod.value, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
   proveedores_producto = [];
   codigosProv = [];
 }
 
-// window.addEventListener("DOMContentLoaded", () => {
 
-//   buscadorInput = document.querySelector("#buscador");
-//   greetMsgEl = document.querySelector("#greet-msg");
-//   document.querySelector("#agregar-submit").addEventListener("click", (e) => {
-//     e.preventDefault();
-//     buscador();
-//   });
-// });
 
 window.addEventListener("DOMContentLoaded", () => {
 
@@ -120,7 +112,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 //Agrega relacion
 window.addEventListener("DOMContentLoaded", () => {
-  document.querySelector("#agregar-proveedor").addEventListener("submit", (e) => {
+  document.querySelector("#agregar-proveedor-a-producto").addEventListener("submit", (e) => {
     e.preventDefault();
     let res = document.querySelector('#proveedor').value;
     let cod = document.querySelector('#codigo_prov').value;

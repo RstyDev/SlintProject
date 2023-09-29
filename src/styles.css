@@ -14,6 +14,32 @@
   -webkit-text-size-adjust: 100%;
 }
 
+#menu-image button {
+  display: inline-block;
+  align-self: flex-start;
+  width: 5%;
+}
+
+#menu-image button img{
+  position:relative;
+}
+
+#menu-image {
+  width: fit-content;
+  height: fit-content;
+}
+
+#agregar-producto-container {
+  width: 23%;
+  display: none;
+}
+
+#header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
 .container {
   margin: 0;
   padding-top: 10vh;
@@ -53,8 +79,13 @@ h1 {
   text-align: center;
 }
 
+header button {
+  display: contents;
+}
+
 input,
-button,select {
+button,
+select {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -66,7 +97,8 @@ button,select {
   transition: border-color 0.25s;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
-select{
+
+select {
   background-color: #1a1a1a;
   color: #7f7f7f;
 }
@@ -78,6 +110,7 @@ button {
 button:hover {
   border-color: #396cd8;
 }
+
 button:active {
   border-color: #396cd8;
   background-color: #e8e8e8;
@@ -107,20 +140,21 @@ button {
     color: #ffffff;
     background-color: #0f0f0f98;
   }
+
   button:active {
     background-color: #0f0f0f69;
   }
 
-    /* Chrome, Safari, Edge, Opera */
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-  
-    /* Firefox */
-    input[type=number] {
-      -moz-appearance: textfield;
-      appearance: none;
-    }
+  /* Chrome, Safari, Edge, Opera */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Firefox */
+  input[type=number] {
+    -moz-appearance: textfield;
+    appearance: none;
+  }
 }

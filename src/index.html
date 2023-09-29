@@ -16,7 +16,67 @@
 
 <body>
   <div class="container">
-    <h1>Welcome to Tauri!</h1>
+    <div id="header">
+      <div id="menu-image">
+        <a><img src="/assets/menu.svg" class="logo" alt="menu image"></a>
+      </div>
+      <div id="agregar-producto-container">
+        <form id="agregar-submit">
+          <div>
+            <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" required />
+          </div>
+          <div>
+            <input id="tipo_producto" placeholder="Tipo de producto" required />
+          </div>
+          <div>
+            <input id="marca" placeholder="Marca" required />
+          </div>
+          <div>
+            <input id="variedad" placeholder="Variedad" required />
+          </div>
+          <div>
+            <input type="number" id="cantidad" placeholder="Cantidad" required />
+            <select name="presentacion" id="presentacion" required>
+              <option value="" selected disabled hidden>Elige una opción</option>
+              <option value="Grs">Grs.</option>
+              <option value="Un">Un.</option>
+              <option value="Lt">Lt.</option>
+            </select>
+          </div>
+          <div>
+            <input type="number" id="precio_de_costo" placeholder="Precio de costo" required />
+          </div>
+          <div>
+            <input type="number" id="porcentaje" placeholder="Porcentaje" value='40' required />
+          </div>
+          <div>
+            <input type="number" id="precio_de_venta" placeholder="Precio de venta" required />
+          </div>
+          <button type="submit">Agregar producto</button>
+
+          <!-- tipo_producto: String,
+                  marca: String,
+                  variedad: String,
+                  cantidad: Presentacion, -->
+        </form>
+        <form id="agregar-proveedor-a-producto">
+
+          <select name="Proveedor" id="proveedor" required>
+            <option value="" selected disabled hidden>Seleccione una opción</option>
+
+          </select>
+          <input type="number" id="codigo_prov" placeholder="Codigo interno del proveedor">
+
+          <button type="submit">Agregar</button>
+        </form>
+      </div>
+      <h1>Welcome to Tauri!</h1>
+      <div>
+        <form id="algo">
+          <input type="text">
+        </form>
+      </div>
+    </div>
 
     <div class="row">
       <a href="https://tauri.app" target="_blank">
@@ -33,65 +93,7 @@
       <input id="buscador" placeholder="Buscar..." />
       <button type="submit">Buscar</button>
     </form>
-    <form id="agregar-submit">
-      <div>
-        <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" required />
-      </div>
-      <div>
-        <input id="tipo_producto" placeholder="Tipo de producto" required />
-      </div>
-      <div>
-        <input id="marca" placeholder="Marca" required />
-      </div>
-      <div>
-        <input id="variedad" placeholder="Variedad" required />
-      </div>
-      <div>
-        <input type="number" id="cantidad" placeholder="Cantidad" required />
-        <select name="presentacion" id="presentacion" required>
-          <option value="" selected disabled hidden>Elige una opción</option>
-          <option value="Grs">Grs.</option>
-          <option value="Un">Un.</option>
-          <option value="Lt">Lt.</option>
-        </select>
-      </div>
-      <!-- proveedores: Vec<String>,
-                    codigo_de_barras: &str,
-                    precio_de_venta: &str,
-                    porcentaje: &str,
-                    precio_de_costo: &str,
-                    tipo_producto: &str,
-                    marca: &str,
-                    variedad: &str,
-                    cantidad: &str,
-                    presentacion: &str -->
-      
-      <div>
-        <input type="number" id="precio_de_costo" placeholder="Precio de costo" required />
-      </div>
-      <div>
-        <input type="number" id="porcentaje" placeholder="Porcentaje" value='40' required />
-      </div>
-      <div>
-        <input type="number" id="precio_de_venta" placeholder="Precio de venta" required />
-      </div>
-      <button type="submit" >Agregar producto</button>
 
-      <!-- tipo_producto: String,
-        marca: String,
-        variedad: String,
-        cantidad: Presentacion, -->
-    </form>
-    <form id="agregar-proveedor">
-    
-      <select name="Proveedor" id="proveedor" required>
-        <option value="" selected disabled hidden>Seleccione una opción</option>
-    
-      </select>
-      <input type="number" id="codigo_prov" placeholder="Codigo interno del proveedor">
-    
-      <button type="submit" >Agregar</button>
-    </form>
 
     <p id="greet-msg"></p>
   </div>
