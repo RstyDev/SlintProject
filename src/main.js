@@ -28,7 +28,17 @@ async function agregarProducto() {
   codigosProv = [];
 }
 
-
+window.addEventListener("DOMContentLoaded",()=>{
+  
+  document.getElementById("menu-button").onclick= function(){
+    let dis = document.getElementById("agregar-producto-container");
+    if (dis.style.display=="block"){
+      dis.style.display="none";
+    }else{
+      dis.style.display = "block";
+    }
+  };
+});
 
 window.addEventListener("DOMContentLoaded", () => {
 

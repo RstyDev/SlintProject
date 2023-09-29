@@ -32,6 +32,8 @@
 #agregar-producto-container {
   width: 23%;
   display: none;
+  border-radius: 5px;
+  background-color: #0f0f0f;
 }
 
 #header {
@@ -47,6 +49,17 @@
   flex-direction: column;
   justify-content: center;
   text-align: center;
+}
+
+.boton{
+  height: 2.6em;
+  padding: 0.4em;
+  will-change: filter;
+  transition: 0.5s;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  border: 1px;
+  box-sizing: border-box;
 }
 
 .logo {
@@ -107,8 +120,9 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+button:hover,.boton:hover {
   border-color: #396cd8;
+  border-style: solid;
 }
 
 button:active {
