@@ -27,13 +27,22 @@
 #menu-image {
   width: fit-content;
   height: fit-content;
+  
 }
 
-#agregar-producto-container {
-  width: 23%;
+#agregar-producto-container,#agregar-proveedor-container{
   display: none;
+}
+
+
+
+#barra-de-opciones {
+  width: auto;
+  display: none;
+  flex-direction: column;
   border-radius: 5px;
   background-color: #0f0f0f;
+  position: absolute;
 }
 
 #header {
@@ -98,7 +107,7 @@ header button {
 
 input,
 button,
-select {
+select,.a-boton  {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -111,18 +120,39 @@ select {
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
 
-select {
+select,.a-boton {
   background-color: #1a1a1a;
   color: #7f7f7f;
+}
+.a-boton{
+  height: 20px;
+}
+label {
+  display: block;
+  padding: 10px;
+}
+#input-nombre-proveedor{
+  display: block;
+  align-self: center;
+  margin: auto;
+}
+#agregar-proveedor-container,#agregar-producto-container{
+  flex-direction: column;
+  align-items: center;
+}
+#cerrar-agregar-proveedor,#cerrar-agregar-producto{
+  align-self: flex-end;
 }
 
 button {
   cursor: pointer;
 }
 
-button:hover,.boton:hover {
+button:hover,.boton:hover,.a-boton:hover {
   border-color: #396cd8;
   border-style: solid;
+  cursor: pointer;
+  color: #7f7f7f;
 }
 
 button:active {

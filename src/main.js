@@ -21,24 +21,60 @@ async function buscador() {
   // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
   greetMsgEl.textContent = await invoke("buscador", { name: buscadorInput.value });
 }
-
+async function agregarProveedor(){
+  let prov = document.querySelector('#input-nombre-proveedor');
+  let cont = document.querySelector('#input-contacto-proveedor');
+  greetMsgEl.textContent = await invoke("agregar_proveedor", { proveedor: prov.value, contacto: cont.value });
+  prov.value='';
+  cont.value='';
+}
 async function agregarProducto() {
   greetMsgEl.textContent = ("Producto agregado: " + await invoke("agregarProducto", { proveedores: proveedores_producto, codigosProv: codigosProv, codigoDeBarras: cod.value, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
   proveedores_producto = [];
   codigosProv = [];
 }
 
-window.addEventListener("DOMContentLoaded",()=>{
-  
-  document.getElementById("menu-button").onclick= function(){
-    let dis = document.getElementById("agregar-producto-container");
-    if (dis.style.display=="block"){
-      dis.style.display="none";
-    }else{
-      dis.style.display = "block";
+window.addEventListener("DOMContentLoaded", () => {
+
+  document.getElementById("menu-button").onclick = function () {
+    let dis = document.getElementById("barra-de-opciones");
+    if (dis.style.display == "inline-flex") {
+      dis.style.display = "none";
+    } else {
+      dis.style.display = "inline-flex";
     }
   };
+  document.getElementById("agregar-producto-mostrar").onclick = function () {
+    let elemento = document.getElementsByClassName("main-screen");
+    for (let i = 0; i < elemento.length; i++) {
+      elemento[i].style.display = "none"
+    }
+    document.getElementById("agregar-producto-container").style.display = "inline-flex";
+    document.getElementById("barra-de-opciones").style.display = "none";
+  }
+  document.getElementById("cerrar-agregar-producto").onclick = function () {
+    document.getElementById("agregar-producto-container").style.display = "none";
+  }
+
+  //** */
+
+  document.getElementById("agregar-proveedor-mostrar").onclick = function () {
+    let elemento = document.getElementsByClassName("main-screen");
+    for (let i = 0; i < elemento.length; i++) {
+      elemento[i].style.display = "none"
+    }
+    document.getElementById("agregar-proveedor-container").style.display = "inline-flex";
+    document.getElementById("barra-de-opciones").style.display = "none";
+  }
+  document.getElementById("cerrar-agregar-proveedor").onclick = function () {
+    document.getElementById("agregar-proveedor-container").style.display = "none";
+  }
+
+  
 });
+
+
+
 
 window.addEventListener("DOMContentLoaded", () => {
 
@@ -88,6 +124,16 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     }, 500);
   });
+  // document.querySelector('#input-contacto-proveedor').addEventListener('input', () => {
+  //   let act=0;
+    
+  //   let valor = document.querySelector('#input-contacto-proveedor').value;
+  //   let res=valor;
+  //     if (valor.length>4&&valor[valor.length-4]!='-'){
+  //       res = valor.substring(0, valor.length - 4)+'-'+valor.substring(valor.length-3,valor.length);
+  //     }
+  //   document.querySelector('#input-contacto-proveedor').value=res
+  // })
 });
 
 
@@ -102,9 +148,13 @@ window.addEventListener("DOMContentLoaded", () => {
   precio_de_venta = document.querySelector('#precio_de_venta');
   percent = document.querySelector('#porcentaje');
   precio_de_costo = document.querySelector('#precio_de_costo');
-  document.querySelector('#agregar-submit').addEventListener("submit", (e) => {
+  document.querySelector('#agregar-producto-submit').addEventListener("submit", (e) => {
     e.preventDefault();
     agregarProducto();
+  })
+  document.querySelector('#agregar-proveedor-submit').addEventListener("submit", (e) => {
+    e.preventDefault();
+    agregarProveedor();
   })
 })
 
@@ -130,7 +180,7 @@ window.addEventListener("DOMContentLoaded", () => {
       proveedores_producto.push(res);
       codigosProv.push(cod);
     }
-    console.log(proveedores_producto + " y " + codigosProv + "|" );
+    console.log(proveedores_producto + " y " + codigosProv + "|");
   });
 })
 

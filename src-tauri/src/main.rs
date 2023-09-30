@@ -1,18 +1,19 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use core::panic;
+use core::{panic, slice};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use std::fmt::format;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{Error, State};
 
 //---------------------------------Structs y Enums-------------------------------------
 pub struct Sistema<'a> {
     productos: Vec<Producto>,
     ventas: (Venta<'a>, Venta<'a>),
-    proveedores: Vec<String>,
+    proveedores: Vec<Proveedor>,
     path_prods: String,
     path_proveedores: String,
     path_relaciones: String,
@@ -42,10 +43,10 @@ pub struct Producto {
     variedad: String,
     cantidad: Presentacion,
 }
-
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
     nombre: String,
-    contacto: u64,
+    contacto: Option<u64>,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -106,6 +107,15 @@ impl<'a> Sistema<'a> {
     pub fn imprimir(&self) {
         println!("Printed from rust");
     }
+    fn proveedor_esta(&self, proveedor: &str) -> bool {
+        let mut res = false;
+        for i in &self.proveedores {
+            if i.nombre.eq_ignore_ascii_case(proveedor) {
+                res = true;
+            }
+        }
+        res
+    }
     pub fn agregar_producto(
         &mut self,
         proveedores: Vec<String>,
@@ -157,8 +167,29 @@ impl<'a> Sistema<'a> {
             Err(e) => panic!("No se pudo porque {}", e),
         }
     }
-    pub fn agregar_proveedor(&mut self, proveedor: &str) {
-        self.proveedores.push(proveedor.to_owned());
+    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: &str) -> Result<(), String> {
+        let mut res = Ok(());
+        if self.proveedor_esta(&proveedor) {
+            res = Err("Proveedor existente".to_owned());
+        } else {
+            if contacto.len() > 0 {
+                
+                let contacto:String=contacto.chars().filter(|x|->bool{x.is_numeric()}).collect();
+                let contacto = match contacto.parse() {
+                    Ok(a) => Some(a),
+                    Err(_) => return Err("Error al convertir el numero".to_owned()),
+                };
+                self.proveedores
+                    .push(Proveedor::new(proveedor.to_owned(), contacto));
+            } else {
+                self.proveedores
+                    .push(Proveedor::new(proveedor.to_owned(), None));
+            }
+            if let Err(e) = crear_file(&self.path_proveedores, &self.proveedores) {
+                res = Err(e.to_string());
+            }
+        }
+        res
     }
 }
 
@@ -208,6 +239,12 @@ impl PartialEq for Producto {
         } else {
             false
         }
+    }
+}
+
+impl Proveedor {
+    pub fn new(nombre: String, contacto: Option<u64>) -> Self {
+        Proveedor { nombre, contacto }
     }
 }
 
@@ -270,10 +307,17 @@ fn imprimir(sistema: State<Mutex<Sistema>>) {
     sis.imprimir();
 }
 #[tauri::command]
-fn agregar_proveedor(sistema: State<Mutex<Sistema>>, proveedor: &str) {
+fn agregar_proveedor(
+    sistema: State<Mutex<Sistema>>,
+    proveedor: &str,
+    contacto: &str,
+) -> Result<(), String> {
     match sistema.lock() {
-        Ok(mut sis) => sis.agregar_proveedor(proveedor),
-        Err(e) => panic!("{}", e),
+        Ok(mut sis) => {
+            sis.agregar_proveedor(proveedor, contacto)?;
+            Ok(())
+        }
+        Err(e) => Err(e.to_string()),
     }
 }
 #[tauri::command]
@@ -316,8 +360,20 @@ fn agregar_producto(
 }
 
 #[tauri::command]
-fn get_proveedores(sistema: State<Mutex<Sistema>>) -> Vec<String> {
-    sistema.lock().unwrap().proveedores.clone()
+fn get_proveedores(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> {
+    match sistema.lock() {
+        Ok(a) => {
+            let mut res = Vec::new();
+            for i in &a.proveedores {
+                res.push(match serde_json::to_string_pretty(i) {
+                    Ok(a) => a,
+                    Err(e) => return Err(e.to_string()),
+                })
+            }
+            Ok(res)
+        }
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 //----------------------------------------main--------------------------------------------

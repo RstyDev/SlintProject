@@ -1,6 +1,18 @@
 [
-  "Sancor",
-  "La Serenisima",
-  "Milkaut",
-  "Silicaro"
+  {
+    "nombre": "Sancor",
+    "contacto": null
+  },
+  {
+    "nombre": "Alijor",
+    "contacto": 2215694708
+  },
+  {
+    "nombre": "sdgf",
+    "contacto": 6514651
+  },
+  {
+    "nombre": "nuevo",
+    "contacto": 65416351
+  }
 ]
