@@ -3,7 +3,7 @@
 use core::{panic, slice};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use std::fmt::format;
+use std::fmt::{self, format, Display};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::sync::Mutex;
@@ -33,15 +33,15 @@ pub struct Venta<'a> {
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Producto {
-    id: usize,
-    codigo_de_barras: u128,
-    precio_de_venta: f64,
-    porcentaje: f64,
-    precio_de_costo: f64,
-    tipo_producto: String,
-    marca: String,
-    variedad: String,
-    cantidad: Presentacion,
+    pub id: usize,
+    pub codigo_de_barras: u128,
+    pub precio_de_venta: f64,
+    pub porcentaje: f64,
+    pub precio_de_costo: f64,
+    pub tipo_producto: String,
+    pub marca: String,
+    pub variedad: String,
+    pub cantidad: Presentacion,
 }
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
@@ -57,6 +57,15 @@ pub enum Presentacion {
 }
 
 //-----------------------------------Implementations---------------------------------
+impl Display for Presentacion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Grs(a) => write!(f, "{} Grs", a),
+            Self::Lt(a) => write!(f, "{} Lt", a),
+            Self::Un(a) => write!(f, "{} Un", a),
+        }
+    }
+}
 impl Relacion {
     pub fn new(id_producto: usize, id_proveedor: usize, codigo: Option<u128>) -> Self {
         Relacion {
@@ -173,8 +182,10 @@ impl<'a> Sistema<'a> {
             res = Err("Proveedor existente".to_owned());
         } else {
             if contacto.len() > 0 {
-                
-                let contacto:String=contacto.chars().filter(|x|->bool{x.is_numeric()}).collect();
+                let contacto: String = contacto
+                    .chars()
+                    .filter(|x| -> bool { x.is_numeric() })
+                    .collect();
                 let contacto = match contacto.parse() {
                     Ok(a) => Some(a),
                     Err(_) => return Err("Error al convertir el numero".to_owned()),
@@ -229,6 +240,21 @@ impl Producto {
             variedad: variedad.to_string(),
             cantidad: cant,
         }
+    }
+    fn get_nombre_completo(&self) -> String {
+        format!(
+            "{} {} {} {}",
+            self.marca, self.tipo_producto, self.variedad, self.cantidad
+        )
+    }
+    fn get_vec(&self)->Vec<String>{
+        let mut res=Vec::new();
+        res.push(self.tipo_producto.clone());
+        res.push(self.marca.clone());
+        res.push(self.variedad.clone());
+        res.push(self.cantidad.to_string());
+        res.push(self.precio_de_venta.to_string());
+        res
     }
 }
 
@@ -376,6 +402,69 @@ fn get_proveedores(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String
     }
 }
 
+#[tauri::command]
+fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> {
+    let res: Result<Vec<String>, String>;
+    match sistema.lock() {
+        Ok(a) => {
+            res = Ok(a
+                .productos
+                .iter()
+                .map(|x| serde_json::to_string_pretty(&x).unwrap())
+                .collect())
+        }
+        Err(e) => res = Err(e.to_string()),
+    }
+    res
+}
+
+#[tauri::command]
+fn get_productos_filtrado2(sistema: State<Mutex<Sistema>>,
+    filtro: String,
+)->Result<Vec<Producto>,String>{
+    let res;
+    match sistema.lock(){
+        Ok(a) => {
+            res=Ok(a.productos.clone());
+        }
+        Err(e) => res=Err(e.to_string()),
+    }
+    res
+}
+
+#[tauri::command]
+fn get_productos_filtrado(
+    sistema: State<Mutex<Sistema>>,
+    filtro: String,
+) -> Result<Vec<String>, String> {
+    let res;
+
+    let filtros = filtro.split(' ').collect::<Vec<&str>>();
+    match sistema.lock() {
+        Ok(a) => {
+            res = Ok(a.productos.iter().filter_map(|x| {
+                let codigo= filtro.parse::<u128>();
+                if codigo.is_ok()&&x.codigo_de_barras.eq(&codigo.unwrap())
+                    || filtros.iter().any(|line| {
+                        if x.get_nombre_completo().to_lowercase().contains(&line.to_lowercase()) {
+                            true
+                        } else {
+                            false
+                        }
+                    })
+                {
+                    Some(serde_json::to_string_pretty(&x).unwrap())
+                } else {
+                    None
+                }
+            }).collect())
+        }
+        Err(e) => res=Err(e.to_string()),
+    }
+
+    res
+}
+
 //----------------------------------------main--------------------------------------------
 
 fn main() {
@@ -386,7 +475,10 @@ fn main() {
             agregar_producto,
             agregar_proveedor,
             imprimir,
-            get_proveedores
+            get_proveedores,
+            get_productos,
+            get_productos_filtrado,
+            get_productos_filtrado2
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

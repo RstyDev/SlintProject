@@ -21,6 +21,11 @@ async function buscador() {
   // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
   greetMsgEl.textContent = await invoke("buscador", { name: buscadorInput.value });
 }
+
+async function buscarProducto(filtrado){
+  let objetos= await invoke("get_productos_filtrado2", { filtro: filtrado });
+  greetMsgEl.textContent = objetos[0].tipo_producto.toUpperCase() + ' ' + objetos[0].marca;
+}
 async function agregarProveedor(){
   let prov = document.querySelector('#input-nombre-proveedor');
   let cont = document.querySelector('#input-contacto-proveedor');
@@ -124,16 +129,16 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     }, 500);
   });
-  // document.querySelector('#input-contacto-proveedor').addEventListener('input', () => {
-  //   let act=0;
-    
-  //   let valor = document.querySelector('#input-contacto-proveedor').value;
-  //   let res=valor;
-  //     if (valor.length>4&&valor[valor.length-4]!='-'){
-  //       res = valor.substring(0, valor.length - 4)+'-'+valor.substring(valor.length-3,valor.length);
-  //     }
-  //   document.querySelector('#input-contacto-proveedor').value=res
-  // })
+});
+
+
+window.addEventListener("DOMContentLoaded", () => {
+  document.querySelector('#buscador').addEventListener('input', () => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(function () {
+      buscarProducto(document.querySelector('#buscador').value)
+    }, 500);
+  });
 });
 
 
