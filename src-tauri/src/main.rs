@@ -247,8 +247,8 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.cantidad
         )
     }
-    fn get_vec(&self)->Vec<String>{
-        let mut res=Vec::new();
+    fn get_vec(&self) -> Vec<String> {
+        let mut res = Vec::new();
         res.push(self.tipo_producto.clone());
         res.push(self.marca.clone());
         res.push(self.variedad.clone());
@@ -271,6 +271,16 @@ impl PartialEq for Producto {
 impl Proveedor {
     pub fn new(nombre: String, contacto: Option<u64>) -> Self {
         Proveedor { nombre, contacto }
+    }
+}
+impl ToString for Proveedor {
+    fn to_string(&self) -> String {
+        let mut res = String::new();
+        match self.contacto {
+            Some(a) => res = format!("{} {}", self.nombre, a),
+            None => res = format!("{}", self.nombre),
+        }
+        res
     }
 }
 
@@ -324,7 +334,7 @@ fn leer_file<T: DeserializeOwned + Clone + Serialize>(
 
 #[tauri::command]
 fn buscador(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+    format!("Hello, {}! You've been mensaje1ed from Rust!", name)
 }
 
 #[tauri::command]
@@ -387,19 +397,22 @@ fn agregar_producto(
 
 #[tauri::command]
 fn get_proveedores(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> {
+    let res;
     match sistema.lock() {
         Ok(a) => {
-            let mut res = Vec::new();
-            for i in &a.proveedores {
-                res.push(match serde_json::to_string_pretty(i) {
-                    Ok(a) => a,
-                    Err(e) => return Err(e.to_string()),
-                })
-            }
-            Ok(res)
+            res = Ok(a.proveedores.iter().map(|x| x.to_string()).collect());
+            // let mut res = Vec::new();
+            // for i in &a.proveedores {
+            //     res.push(match serde_json::to_string_pretty(i) {
+            //         Ok(a) => a,
+            //         Err(e) => return Err(e.to_string()),
+            //     })
+            // }
+            // Ok(res)
         }
-        Err(e) => Err(e.to_string()),
+        Err(e) => res = Err(e.to_string()),
     }
+    res
 }
 
 #[tauri::command]
@@ -419,15 +432,40 @@ fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> 
 }
 
 #[tauri::command]
-fn get_productos_filtrado2(sistema: State<Mutex<Sistema>>,
+fn get_productos_filtrado2(
+    sistema: State<Mutex<Sistema>>,
     filtro: String,
-)->Result<Vec<Producto>,String>{
+) -> Result<Vec<Producto>, String> {
+    let filtros = filtro.split(' ').collect::<Vec<&str>>();
     let res;
-    match sistema.lock(){
+    match sistema.lock() {
         Ok(a) => {
-            res=Ok(a.productos.clone());
+            let b = a.productos.clone();
+            res = Ok(b
+                .into_iter()
+                .filter(|x| {
+                    let codigo = filtro.parse::<u128>();
+                    if (codigo.is_ok() && x.codigo_de_barras.eq(&codigo.unwrap()))
+                        || filtros.iter().any(|line| {
+                            if x.get_nombre_completo()
+                                .to_lowercase()
+                                .contains(&line.to_lowercase())
+                            {
+                                true
+                            } else {
+                                false
+                            }
+                        })
+                    {
+                        true
+                    } else {
+                        false
+                    }
+                })
+                .to_owned()
+                .collect());
         }
-        Err(e) => res=Err(e.to_string()),
+        Err(e) => res = Err(e.to_string()),
     }
     res
 }
@@ -442,24 +480,31 @@ fn get_productos_filtrado(
     let filtros = filtro.split(' ').collect::<Vec<&str>>();
     match sistema.lock() {
         Ok(a) => {
-            res = Ok(a.productos.iter().filter_map(|x| {
-                let codigo= filtro.parse::<u128>();
-                if codigo.is_ok()&&x.codigo_de_barras.eq(&codigo.unwrap())
-                    || filtros.iter().any(|line| {
-                        if x.get_nombre_completo().to_lowercase().contains(&line.to_lowercase()) {
-                            true
-                        } else {
-                            false
-                        }
-                    })
-                {
-                    Some(serde_json::to_string_pretty(&x).unwrap())
-                } else {
-                    None
-                }
-            }).collect())
+            res = Ok(a
+                .productos
+                .iter()
+                .filter_map(|x| {
+                    let codigo = filtro.parse::<u128>();
+                    if (codigo.is_ok() && x.codigo_de_barras.eq(&codigo.unwrap()))
+                        || filtros.iter().any(|line| {
+                            if x.get_nombre_completo()
+                                .to_lowercase()
+                                .contains(&line.to_lowercase())
+                            {
+                                true
+                            } else {
+                                false
+                            }
+                        })
+                    {
+                        Some(serde_json::to_string_pretty(&x).unwrap())
+                    } else {
+                        None
+                    }
+                })
+                .collect())
         }
-        Err(e) => res=Err(e.to_string()),
+        Err(e) => res = Err(e.to_string()),
     }
 
     res

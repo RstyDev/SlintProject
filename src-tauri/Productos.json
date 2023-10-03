@@ -9,33 +9,33 @@
     "marca": "Pureza",
     "variedad": "000",
     "cantidad": {
-      "Grs": 2.0
+      "Grs": 1000.0
     }
   },
   {
     "id": 1,
-    "codigo_de_barras": 779134651541,
+    "codigo_de_barras": 9641651615,
     "precio_de_venta": 2.0,
     "porcentaje": 100.0,
     "precio_de_costo": 1.0,
     "tipo_producto": "Cigarrillos",
     "marca": "Marlboro",
-    "variedad": "Ks",
+    "variedad": "Box",
     "cantidad": {
-      "Grs": 1.0
+      "Un": 20
     }
   },
   {
     "id": 2,
-    "codigo_de_barras": 779134651541,
+    "codigo_de_barras": 981364532,
     "precio_de_venta": 2.0,
     "porcentaje": 100.0,
     "precio_de_costo": 1.0,
     "tipo_producto": "Cigarrillos",
-    "marca": "Marlboro",
-    "variedad": "la",
+    "marca": "Philip Morris",
+    "variedad": "Ks",
     "cantidad": {
-      "Grs": 2.0
+      "Un": 20
     }
   },
   {
@@ -46,9 +46,22 @@
     "precio_de_costo": 1.0,
     "tipo_producto": "Cigarrillos",
     "marca": "Marlboro",
-    "variedad": "Ks",
+    "variedad": "Box",
     "cantidad": {
-      "Grs": 2.0
+      "Un": 12
+    }
+  },
+  {
+    "id": 4,
+    "codigo_de_barras": 9846541,
+    "precio_de_venta": 140.0,
+    "porcentaje": 40.0,
+    "precio_de_costo": 100.0,
+    "tipo_producto": "Chicles",
+    "marca": "Beldent",
+    "variedad": "Menta",
+    "cantidad": {
+      "Un": 7
     }
   }
 ]

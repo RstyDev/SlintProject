@@ -1,7 +1,7 @@
 const { invoke } = window.__TAURI__.tauri;
 
 let buscadorInput;
-let greetMsgEl = document.querySelector('#greet-msg');
+let mensaje1 = document.querySelector('#mensaje1-msg');
 let tpProd;
 let mark;
 let variety;
@@ -19,22 +19,33 @@ let codigosProv = [];
 
 async function buscador() {
   // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-  greetMsgEl.textContent = await invoke("buscador", { name: buscadorInput.value });
+  mensaje1.textContent = await invoke("buscador", { name: buscadorInput.value });
 }
 
-async function buscarProducto(filtrado){
-  let objetos= await invoke("get_productos_filtrado2", { filtro: filtrado });
-  greetMsgEl.textContent = objetos[0].tipo_producto.toUpperCase() + ' ' + objetos[0].marca;
+async function buscarProducto(filtrado) {
+  let objetos = await invoke("get_productos_filtrado2", { filtro: filtrado });
+  let prods=document.getElementsByClassName("texto-producto");
+  
+  document.querySelector('#msg-container').replaceChildren([]);
+  mensaje1.textContent = '';
+  for (let i = 0; i < objetos.length; i++) {
+    let p = document.createElement("p");
+    p.className="texto-producto";
+    p.textContent = objetos[i].tipo_producto + ' ' + objetos[i].marca;
+    document.querySelector('#msg-container').appendChild(p);
+  }
+  
+  
 }
-async function agregarProveedor(){
+async function agregarProveedor() {
   let prov = document.querySelector('#input-nombre-proveedor');
   let cont = document.querySelector('#input-contacto-proveedor');
-  greetMsgEl.textContent = await invoke("agregar_proveedor", { proveedor: prov.value, contacto: cont.value });
-  prov.value='';
-  cont.value='';
+  mensaje1.textContent = await invoke("agregar_proveedor", { proveedor: prov.value, contacto: cont.value });
+  prov.value = '';
+  cont.value = '';
 }
 async function agregarProducto() {
-  greetMsgEl.textContent = ("Producto agregado: " + await invoke("agregarProducto", { proveedores: proveedores_producto, codigosProv: codigosProv, codigoDeBarras: cod.value, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
+  mensaje1.textContent = ("Producto agregado: " + await invoke("agregar_producto", { proveedores: proveedores_producto, codigosProv: codigosProv, codigoDeBarras: cod.value, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
   proveedores_producto = [];
   codigosProv = [];
 }
@@ -75,7 +86,7 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("agregar-proveedor-container").style.display = "none";
   }
 
-  
+
 });
 
 
