@@ -275,7 +275,7 @@ impl Proveedor {
 }
 impl ToString for Proveedor {
     fn to_string(&self) -> String {
-        let mut res = String::new();
+        let res;
         match self.contacto {
             Some(a) => res = format!("{} {}", self.nombre, a),
             None => res = format!("{}", self.nombre),
@@ -285,6 +285,19 @@ impl ToString for Proveedor {
 }
 
 //--------------------Metodos y Main---------------------------------------------
+
+fn redondeo(politica: f64, numero: f64) -> f64 {
+    let mut res = numero;
+    let dif = numero % politica;
+    if dif != 0.0 {
+        if dif < politica / 2.0 {
+            res = numero - dif;
+        } else {
+            res = numero + politica - dif;
+        }
+    }
+    res
+}
 
 fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
