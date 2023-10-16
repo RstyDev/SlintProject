@@ -2,7 +2,7 @@
   {
     "id": 0,
     "codigo_de_barras": 779134651541,
-    "precio_de_venta": 2.0,
+    "precio_de_venta": 600.0,
     "porcentaje": 100.0,
     "precio_de_costo": 1.0,
     "tipo_producto": "Harina",
@@ -15,7 +15,7 @@
   {
     "id": 1,
     "codigo_de_barras": 9641651615,
-    "precio_de_venta": 2.0,
+    "precio_de_venta": 1190.0,
     "porcentaje": 100.0,
     "precio_de_costo": 1.0,
     "tipo_producto": "Cigarrillos",
@@ -28,7 +28,7 @@
   {
     "id": 2,
     "codigo_de_barras": 981364532,
-    "precio_de_venta": 2.0,
+    "precio_de_venta": 940.0,
     "porcentaje": 100.0,
     "precio_de_costo": 1.0,
     "tipo_producto": "Cigarrillos",
@@ -41,7 +41,7 @@
   {
     "id": 3,
     "codigo_de_barras": 4235,
-    "precio_de_venta": 2.0,
+    "precio_de_venta": 780.0,
     "porcentaje": 100.0,
     "precio_de_costo": 1.0,
     "tipo_producto": "Cigarrillos",
@@ -54,7 +54,7 @@
   {
     "id": 4,
     "codigo_de_barras": 9846541,
-    "precio_de_venta": 140.0,
+    "precio_de_venta": 250.0,
     "porcentaje": 40.0,
     "precio_de_costo": 100.0,
     "tipo_producto": "Chicles",

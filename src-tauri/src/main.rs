@@ -10,9 +10,9 @@ use std::sync::Mutex;
 use tauri::{Error, State};
 
 //---------------------------------Structs y Enums-------------------------------------
-pub struct Sistema<'a> {
+pub struct Sistema {
     productos: Vec<Producto>,
-    ventas: (Venta<'a>, Venta<'a>),
+    ventas: (Venta, Venta),
     proveedores: Vec<Proveedor>,
     path_prods: String,
     path_proveedores: String,
@@ -25,10 +25,10 @@ pub struct Relacion {
     id_proveedor: usize,
     codigo: Option<u128>,
 }
-
-pub struct Venta<'a> {
+#[derive(Debug, Clone, Default)]
+pub struct Venta {
     monto_total: f64,
-    productos: Vec<&'a Producto>,
+    productos: Vec<Producto>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -76,8 +76,8 @@ impl Relacion {
     }
 }
 
-impl<'a> Venta<'a> {
-    pub fn new() -> Venta<'a> {
+impl<'a> Venta {
+    pub fn new() -> Venta {
         Venta {
             monto_total: 0.0,
             productos: Vec::new(),
@@ -85,8 +85,8 @@ impl<'a> Venta<'a> {
     }
 }
 
-impl<'a> Sistema<'a> {
-    pub fn new() -> Sistema<'a> {
+impl<'a> Sistema {
+    pub fn new() -> Sistema {
         let path_prods = String::from("Productos.json");
         let path_proveedores = String::from("Proveedores.json");
         let path_relaciones = String::from("Relaciones.json");
@@ -202,6 +202,42 @@ impl<'a> Sistema<'a> {
         }
         res
     }
+    fn get_producto(&mut self, id: usize) -> Result<Producto, String> {
+        let mut res = Err("Producto no encontrado".to_string());
+        for p in &self.productos {
+            if p.id == id {
+                res = Ok(p.clone());
+            }
+        }
+        res
+    }
+    fn agregar_producto_a_venta(&mut self, id: usize, pos: usize) -> Result<(), String> {
+        let res = self.get_producto(id)?;
+        match pos {
+            0 => {
+                self.ventas.0.productos.push(res);
+                self.ventas.0.monto_total=0.0;
+                for i in 0..self.ventas.0.productos.len(){
+                    self.ventas.0.monto_total+=self.ventas.0.productos[i].precio_de_venta;
+                }
+            }
+            ,
+            1 => self.ventas.1.productos.push(res),
+            _ => return Err("Numero de venta incorrecto".to_string()),
+        }
+
+
+        Ok(())
+    }
+    fn get_venta(&self, pos: usize) -> Result<Venta, String> {
+        let res;
+        match pos {
+            0 => res = Ok(self.ventas.0.clone()),
+            1 => res = Ok(self.ventas.1.clone()),
+            _ => res = Err("Numero de venta erroneo".to_string()),
+        }
+        res
+    }
 }
 
 impl Default for Presentacion {
@@ -284,7 +320,7 @@ impl ToString for Proveedor {
     }
 }
 
-//--------------------Metodos y Main---------------------------------------------
+//--------------------Funciones y Main---------------------------------------------
 
 fn redondeo(politica: f64, numero: f64) -> f64 {
     let mut res = numero;
@@ -482,6 +518,19 @@ fn get_productos_filtrado2(
     }
     res
 }
+#[tauri::command]
+fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
+    match sistema.lock() {
+        Ok(mut a) => {
+            let pos = pos.parse().unwrap();
+            match a.agregar_producto_a_venta(id.parse().unwrap(), pos) {
+                Ok(_) => println!("{:?}", a.get_venta(pos)),
+                Err(e) => panic!("{}", e),
+            }
+        }
+        Err(e) => panic!("{}", e),
+    };
+}
 
 #[tauri::command]
 fn get_productos_filtrado(
@@ -536,7 +585,8 @@ fn main() {
             get_proveedores,
             get_productos,
             get_productos_filtrado,
-            get_productos_filtrado2
+            get_productos_filtrado2,
+            agregar_producto_a_venta
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
