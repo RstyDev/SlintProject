@@ -1,13 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use core::{panic, slice};
+use core::panic;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use std::fmt::{self, format, Display};
+use std::fmt::{self, Display};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::sync::Mutex;
-use tauri::{Error, State};
+use tauri::State;
 
 //---------------------------------Structs y Enums-------------------------------------
 pub struct Sistema {
@@ -216,16 +216,14 @@ impl<'a> Sistema {
         match pos {
             0 => {
                 self.ventas.0.productos.push(res);
-                self.ventas.0.monto_total=0.0;
-                for i in 0..self.ventas.0.productos.len(){
-                    self.ventas.0.monto_total+=self.ventas.0.productos[i].precio_de_venta;
+                self.ventas.0.monto_total = 0.0;
+                for i in 0..self.ventas.0.productos.len() {
+                    self.ventas.0.monto_total += self.ventas.0.productos[i].precio_de_venta;
                 }
             }
-            ,
             1 => self.ventas.1.productos.push(res),
             _ => return Err("Numero de venta incorrecto".to_string()),
         }
-
 
         Ok(())
     }
@@ -283,15 +281,15 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.cantidad
         )
     }
-    fn get_vec(&self) -> Vec<String> {
-        let mut res = Vec::new();
-        res.push(self.tipo_producto.clone());
-        res.push(self.marca.clone());
-        res.push(self.variedad.clone());
-        res.push(self.cantidad.to_string());
-        res.push(self.precio_de_venta.to_string());
-        res
-    }
+    // fn get_vec(&self) -> Vec<String> {
+    //     let mut res = Vec::new();
+    //     res.push(self.tipo_producto.clone());
+    //     res.push(self.marca.clone());
+    //     res.push(self.variedad.clone());
+    //     res.push(self.cantidad.to_string());
+    //     res.push(self.precio_de_venta.to_string());
+    //     res
+    // }
 }
 
 impl PartialEq for Producto {
@@ -321,19 +319,6 @@ impl ToString for Proveedor {
 }
 
 //--------------------Funciones y Main---------------------------------------------
-
-fn redondeo(politica: f64, numero: f64) -> f64 {
-    let mut res = numero;
-    let dif = numero % politica;
-    if dif != 0.0 {
-        if dif < politica / 2.0 {
-            res = numero - dif;
-        } else {
-            res = numero + politica - dif;
-        }
-    }
-    res
-}
 
 fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
@@ -571,6 +556,19 @@ fn get_productos_filtrado(
 
     res
 }
+#[tauri::command]
+fn redondeo(politica: f64, numero: f64) -> f64 {
+    let mut res = numero;
+    let dif = numero % politica;
+    if dif != 0.0 {
+        if dif < politica / 2.0 {
+            res = numero - dif;
+        } else {
+            res = numero + politica - dif;
+        }
+    }
+    res
+}
 
 //----------------------------------------main--------------------------------------------
 
@@ -586,7 +584,8 @@ fn main() {
             get_productos,
             get_productos_filtrado,
             get_productos_filtrado2,
-            agregar_producto_a_venta
+            agregar_producto_a_venta,
+            redondeo
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
