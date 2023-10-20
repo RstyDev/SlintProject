@@ -9,6 +9,35 @@ use std::io::{Read, Write};
 use std::sync::Mutex;
 use tauri::State;
 
+#[derive(Debug, Default)]
+pub struct Config {
+    politica_redondeo: f64,
+    formato_producto: Formato,
+    modo_luz: Luz,
+}
+#[derive(Debug, Default)]
+pub enum Formato {
+    #[default]
+    Tmv,
+    Mtv,
+}
+#[derive(Debug, Default)]
+pub enum Luz {
+    #[default]
+    Claro,
+    Oscuro,
+}
+#[derive(Debug, Clone, Default)]
+pub struct Pago {
+    medio_pago: String,
+    monto: f64,
+}
+impl Pago {
+    pub fn new(medio_pago: String, monto: f64) -> Pago {
+        Pago { medio_pago, monto }
+    }
+}
+
 //---------------------------------Structs y Enums-------------------------------------
 pub struct Sistema {
     productos: Vec<Producto>,
@@ -29,6 +58,7 @@ pub struct Relacion {
 pub struct Venta {
     monto_total: f64,
     productos: Vec<Producto>,
+    pagos: Vec<Pago>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -81,6 +111,22 @@ impl<'a> Venta {
         Venta {
             monto_total: 0.0,
             productos: Vec::new(),
+            pagos: Vec::new(),
+        }
+    }
+    fn agregar_pago(&mut self, medio_pago: String, monto: f64) -> f64 {
+        self.pagos.push(Pago::new(medio_pago, monto));
+        let mut pagado = 0.0;
+        for i in &self.pagos {
+            pagado += i.monto;
+        }
+        self.monto_total - pagado
+    }
+    fn agregar_producto(&mut self, producto: Producto) {
+        self.productos.push(producto);
+        self.monto_total = 0.0;
+        for i in &self.productos {
+            self.monto_total += i.precio_de_venta;
         }
     }
 }
@@ -215,13 +261,19 @@ impl<'a> Sistema {
         let res = self.get_producto(id)?;
         match pos {
             0 => {
-                self.ventas.0.productos.push(res);
+                self.ventas.0.agregar_producto(res);
                 self.ventas.0.monto_total = 0.0;
                 for i in 0..self.ventas.0.productos.len() {
                     self.ventas.0.monto_total += self.ventas.0.productos[i].precio_de_venta;
                 }
             }
-            1 => self.ventas.1.productos.push(res),
+            1 => {
+                self.ventas.1.agregar_producto(res);
+                self.ventas.0.monto_total = 0.0;
+                for i in 0..self.ventas.0.productos.len() {
+                    self.ventas.0.monto_total += self.ventas.0.productos[i].precio_de_venta;
+                }
+            }
             _ => return Err("Numero de venta incorrecto".to_string()),
         }
 
@@ -518,6 +570,26 @@ fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: Str
 }
 
 #[tauri::command]
+fn agregar_pago(
+    sistema: State<Mutex<Sistema>>,
+    medio_pago: String,
+    monto: f64,
+    pos: String,
+) -> Result<f64, String> {
+    let res;
+    let pos: usize = pos.parse().unwrap();
+    match sistema.lock() {
+        Ok(mut a) => match pos {
+            0 => res = Ok(a.ventas.0.agregar_pago(medio_pago, monto)),
+            1 => res = Ok(a.ventas.1.agregar_pago(medio_pago, monto)),
+            _ => res = Err("numero de venta incorrecto".to_string()),
+        },
+        Err(e) => res = Err(e.to_string()),
+    }
+    res
+}
+
+#[tauri::command]
 fn get_productos_filtrado(
     sistema: State<Mutex<Sistema>>,
     filtro: String,
@@ -585,7 +657,8 @@ fn main() {
             get_productos_filtrado,
             get_productos_filtrado2,
             agregar_producto_a_venta,
-            redondeo
+            redondeo,
+            agregar_pago
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
