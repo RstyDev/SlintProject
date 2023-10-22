@@ -1,10 +1,23 @@
 [
   {
     "id": 0,
-    "codigo_de_barras": 779134651541,
-    "precio_de_venta": 600.0,
-    "porcentaje": 100.0,
-    "precio_de_costo": 1.0,
+    "codigo_de_barras": 7784919681,
+    "precio_de_venta": 1120.0,
+    "porcentaje": 40.0,
+    "precio_de_costo": 800.0,
+    "tipo_producto": "Cigarrillos",
+    "marca": "Marlboro",
+    "variedad": "KS",
+    "cantidad": {
+      "Un": 20
+    }
+  },
+  {
+    "id": 1,
+    "codigo_de_barras": 7798765818674,
+    "precio_de_venta": 420.0,
+    "porcentaje": 40.0,
+    "precio_de_costo": 300.0,
     "tipo_producto": "Harina",
     "marca": "Pureza",
     "variedad": "000",
@@ -12,56 +25,17 @@
       "Grs": 1000.0
     }
   },
-  {
-    "id": 1,
-    "codigo_de_barras": 9641651615,
-    "precio_de_venta": 1190.0,
-    "porcentaje": 100.0,
-    "precio_de_costo": 1.0,
-    "tipo_producto": "Cigarrillos",
-    "marca": "Marlboro",
-    "variedad": "Box",
-    "cantidad": {
-      "Un": 20
-    }
-  },
-  {
+{
     "id": 2,
-    "codigo_de_barras": 981364532,
-    "precio_de_venta": 940.0,
-    "porcentaje": 100.0,
-    "precio_de_costo": 1.0,
-    "tipo_producto": "Cigarrillos",
-    "marca": "Philip Morris",
-    "variedad": "Ks",
-    "cantidad": {
-      "Un": 20
-    }
-  },
-  {
-    "id": 3,
-    "codigo_de_barras": 4235,
-    "precio_de_venta": 780.0,
-    "porcentaje": 100.0,
-    "precio_de_costo": 1.0,
-    "tipo_producto": "Cigarrillos",
-    "marca": "Marlboro",
-    "variedad": "Box",
-    "cantidad": {
-      "Un": 12
-    }
-  },
-  {
-    "id": 4,
-    "codigo_de_barras": 9846541,
-    "precio_de_venta": 250.0,
+    "codigo_de_barras": 98131365461,
+    "precio_de_venta": 560.0,
     "porcentaje": 40.0,
-    "precio_de_costo": 100.0,
-    "tipo_producto": "Chicles",
-    "marca": "Beldent",
-    "variedad": "Menta",
+    "precio_de_costo": 400.0,
+    "tipo_producto": "Harina",
+    "marca": "Marolio",
+    "variedad": "0000",
     "cantidad": {
-      "Un": 7
+        "Grs": 1000.0
     }
-  }
+}
 ]

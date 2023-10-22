@@ -7,7 +7,7 @@
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "first-page",
+    "productName": "FirstApp",
     "version": "0.0.0"
   },
   "tauri": {
@@ -16,19 +16,12 @@
       "shell": {
         "all": false,
         "open": true
-      },
-      "fs":{
-        "all":false,
-        "readFile": true,
-        "writeFile": true,
-        "createDir": true,
-        "exists": true
       }
     },
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.first.dev",
+      "identifier": "com.tauri.dev",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -44,7 +37,7 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "first-page",
+        "title": "FirstApp",
         "width": 800,
         "height": 600
       }

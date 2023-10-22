@@ -1,5 +1,5 @@
 const { invoke } = window.__TAURI__.tauri;
-let posicionVenta=0;
+let posicionVenta = 0;
 let buscadorInput;
 let mensaje1 = document.querySelector('#mensaje1-msg');
 let tpProd;
@@ -22,7 +22,7 @@ async function buscador() {
   mensaje1.textContent = await invoke("buscador", { name: buscadorInput.value });
 }
 
-function navigate(tr2,e) {
+function navigate(tr2, e) {
   if (e.keyCode == 38 && tr2.previousElementSibling) {
 
     tr2.previousElementSibling.focus();
@@ -31,23 +31,46 @@ function navigate(tr2,e) {
 
     tr2.nextElementSibling.focus();
 
-  }else if (e.keyCode==27){
+  } else if (e.keyCode == 27) {
     borrarBusqueda();
-  }else if (e.keyCode==13){
+  } else if (e.keyCode == 13) {
     agregarProdVentaAct(tr2);
     borrarBusqueda();
   }
 }
 
-async function agregarProdVentaAct(tr2){
-  await invoke("agregar_producto_a_venta", {id:""+tr2.children[0].innerHTML,pos:""+posicionVenta})
+async function agregarProdVentaAct(tr2) {
+  await invoke("agregar_producto_a_venta", { id: "" + tr2.children[0].innerHTML, pos: "" + posicionVenta })
 }
-function borrarBusqueda(){
-  document.getElementById('buscador').value='';
+function borrarBusqueda() {
+  document.getElementById('buscador').value = '';
   document.querySelector('#msg-container').replaceChildren([]);
 }
+async function get_filtrado(filtro, tipo_filtro) {
+  let res = await invoke("get_filtrado", { filtro: filtro, tipoFiltro: tipo_filtro });
+  let ops=document.getElementById('opciones-tipo-producto');
+  let opciones=[];
+  for (let i=0;i<res.length;i++){
+    let el = document.createElement('option');
+    el.value = res[i];
+    
+    opciones.push(el); 
+  }
+  ops.replaceChildren([]);
+  for (let i=0;i<opciones.length;i++){
+    ops.appendChild(opciones[i]);
+  }
+}
+window.addEventListener("DOMContentLoaded", () => {
+  let id = "tipo_producto"
+  document.getElementById(id).addEventListener('input', () => {
+
+    get_filtrado(document.getElementById(id).value, id);
+
+  });
+});
 async function buscarProducto(filtrado) {
-  let objetos = await invoke("get_productos_filtrado2", { filtro: filtrado });
+  let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
   let prods = document.getElementsByClassName("texto-producto");
   let container = document.querySelector('#msg-container');
   mensaje1.textContent = '';
@@ -57,7 +80,7 @@ async function buscarProducto(filtrado) {
   let tr;
 
   {
-     tr = document.createElement('tr');
+    tr = document.createElement('tr');
     {
       let th = document.createElement('th');
       th.style.width = '60%'
@@ -98,15 +121,15 @@ async function buscarProducto(filtrado) {
       precio.innerHTML = objetos[i].precio_de_venta;
       tr2.appendChild(precio);
       console.log(tr2);
-      tr2.addEventListener('keydown',(e)=>{
-        navigate(tr2,e)
+      tr2.addEventListener('keydown', (e) => {
+        navigate(tr2, e)
       });
       tabla.appendChild(tr2);
     }
 
   }
   container.appendChild(tabla);
-  if(tr.nextElementSibling){
+  if (tr.nextElementSibling) {
     tr.nextElementSibling.focus();
   }
 
@@ -160,7 +183,6 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("cerrar-agregar-proveedor").onclick = function () {
     document.getElementById("agregar-proveedor-container").style.display = "none";
   }
-
 
 });
 
