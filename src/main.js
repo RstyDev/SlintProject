@@ -46,27 +46,47 @@ function borrarBusqueda() {
   document.getElementById('buscador').value = '';
   document.querySelector('#msg-container').replaceChildren([]);
 }
-async function get_filtrado(filtro, tipo_filtro) {
+async function get_filtrado(filtro, tipo_filtro, objetivo) {
   let res = await invoke("get_filtrado", { filtro: filtro, tipoFiltro: tipo_filtro });
-  let ops=document.getElementById('opciones-tipo-producto');
-  let opciones=[];
-  for (let i=0;i<res.length;i++){
+  let ops = document.getElementById(objetivo);
+  let opciones = [];
+  let esta = false;
+  for (let i = 0; i < res.length; i++) {
+    if (filtro.toUpperCase() === res[i].toUpperCase()) {
+      esta = true;
+    }
     let el = document.createElement('option');
     el.value = res[i];
-    
-    opciones.push(el); 
+    opciones.push(el);
   }
+  if (!esta) {
+    let el = document.createElement('option');
+    el.value = filtro;
+    opciones.push(el);
+  }
+
   ops.replaceChildren([]);
-  for (let i=0;i<opciones.length;i++){
+  for (let i = 0; i < opciones.length; i++) {
     ops.appendChild(opciones[i]);
   }
 }
 window.addEventListener("DOMContentLoaded", () => {
-  let id = "tipo_producto"
+  let id = "tipo_producto";
+  let objetivo = "opciones-tipo-producto";
+  let id_marca = "marca";
+  let objetivo_marca = "opciones-marca";
   document.getElementById(id).addEventListener('input', () => {
+    get_filtrado(document.getElementById(id).value, id, objetivo);
+  });
+  document.getElementById(id).addEventListener('keydown', (e) => {
+    if (e.key == 13) {
+      document.getElementById(id).value = document.getElementById(objetivo).value;
+      document.getElementById(id_marca).focus();
+    }
+  })
 
-    get_filtrado(document.getElementById(id).value, id);
-
+  document.getElementById(id_marca).addEventListener('input', () => {
+    get_filtrado(document.getElementById(id_marca).value, id_marca, objetivo_marca);
   });
 });
 async function buscarProducto(filtrado) {

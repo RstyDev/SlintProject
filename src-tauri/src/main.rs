@@ -1,14 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use core::panic;
-use std::collections::HashSet;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{State, Window, window};
 
 #[derive(Debug, Default)]
 pub struct Config {
@@ -298,22 +297,23 @@ impl<'a> Sistema {
         }).collect();
         res.sort();
         res.dedup();
-        res;
-        todo!("hay que ver aca");
+        println!("de Rust:{:?}",res);
+        
+        res
     }
     
-    ////
-    /// falta ver aca
-    /// 
-    /// 
-    /// 
+    
     fn filtrar_tipo_producto(&self, filtro:&str)->Vec<String>{
         let iter=self.productos.iter();
-        iter.filter_map(|x|if x.tipo_producto.to_lowercase().contains(&filtro.to_lowercase()){
+        let mut res:Vec<String>=iter.filter_map(|x|if x.tipo_producto.to_lowercase().contains(&filtro.to_lowercase()){
             Some(x.tipo_producto.clone())
         }else{
             None
-        }).collect()
+        }).collect();
+        res.sort();
+        res.dedup();
+        println!("de Rust:{:?}",res);
+        res
     }
     fn filtrar_todo(&self, filtro:&str)->Vec<String>{
         let filtros = filtro.split(' ').collect::<Vec<&str>>();

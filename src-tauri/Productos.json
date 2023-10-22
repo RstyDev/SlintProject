@@ -1,41 +1,54 @@
 [
-  {
-    "id": 0,
-    "codigo_de_barras": 7784919681,
-    "precio_de_venta": 1120.0,
-    "porcentaje": 40.0,
-    "precio_de_costo": 800.0,
-    "tipo_producto": "Cigarrillos",
-    "marca": "Marlboro",
-    "variedad": "KS",
-    "cantidad": {
-      "Un": 20
+    {
+        "id": 0,
+        "codigo_de_barras": 7784919681,
+        "precio_de_venta": 1120.0,
+        "porcentaje": 40.0,
+        "precio_de_costo": 800.0,
+        "tipo_producto": "Cigarrillos",
+        "marca": "Marlboro",
+        "variedad": "KS",
+        "cantidad": {
+            "Un": 20
+        }
+    },
+    {
+        "id": 1,
+        "codigo_de_barras": 7798765818674,
+        "precio_de_venta": 420.0,
+        "porcentaje": 40.0,
+        "precio_de_costo": 300.0,
+        "tipo_producto": "Harina",
+        "marca": "Pureza",
+        "variedad": "000",
+        "cantidad": {
+            "Grs": 1000.0
+        }
+    },
+    {
+        "id": 2,
+        "codigo_de_barras": 98131365461,
+        "precio_de_venta": 560.0,
+        "porcentaje": 40.0,
+        "precio_de_costo": 400.0,
+        "tipo_producto": "Papel Higienico",
+        "marca": "Higienol",
+        "variedad": "Doble Hoja",
+        "cantidad": {
+            "Un": 1
+        }
+    },
+    {
+        "id": 3,
+        "codigo_de_barras": 965815648765,
+        "precio_de_venta": 280.0,
+        "porcentaje": 40.0,
+        "precio_de_costo": 200.0,
+        "tipo_producto": "Harina",
+        "marca": "Marolio",
+        "variedad": "000",
+        "cantidad": {
+            "Grs": 1000.0
+        }
     }
-  },
-  {
-    "id": 1,
-    "codigo_de_barras": 7798765818674,
-    "precio_de_venta": 420.0,
-    "porcentaje": 40.0,
-    "precio_de_costo": 300.0,
-    "tipo_producto": "Harina",
-    "marca": "Pureza",
-    "variedad": "000",
-    "cantidad": {
-      "Grs": 1000.0
-    }
-  },
-{
-    "id": 2,
-    "codigo_de_barras": 98131365461,
-    "precio_de_venta": 560.0,
-    "porcentaje": 40.0,
-    "precio_de_costo": 400.0,
-    "tipo_producto": "Harina",
-    "marca": "Marolio",
-    "variedad": "0000",
-    "cantidad": {
-        "Grs": 1000.0
-    }
-}
 ]
