@@ -75,7 +75,12 @@
   border: solid 2px white;
   border-radius: 3px;
 }
-
+#cuadro-venta{
+  width: 98%;
+  height: 80svh;
+  background-color: #0f0f0f98;
+  border-radius: 5px;
+}
 .logo {
   height: 6em;
   padding: 1.5em;

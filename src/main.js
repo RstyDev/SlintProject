@@ -99,7 +99,7 @@ function dibujarProductos(objetos) {
   container.replaceChildren([]);
   let tabla = document.createElement('table');
   tabla.style.width = '100%';
-  tabla.id='tabla-productos';
+  tabla.id = 'tabla-productos';
   let tr;
   tr = document.createElement('tr');
   {
@@ -152,11 +152,12 @@ function dibujarProductos(objetos) {
     focus(tr.nextElementSibling);
   }
 }
-function focus(obj){
+function focus(obj) {
   console.log(focuseado)
-  if (focuseado){
-  focuseado.classList.toggle('focuseado')}
-  focuseado=obj;
+  if (focuseado) {
+    focuseado.classList.toggle('focuseado')
+  }
+  focuseado = obj;
   focuseado.classList.toggle('focuseado');
 }
 async function buscarProducto(filtrado) {
@@ -179,12 +180,7 @@ async function agregarProducto() {
 window.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("menu-button").onclick = function () {
-    let dis = document.getElementById("barra-de-opciones");
-    if (dis.style.display == "inline-flex") {
-      dis.style.display = "none";
-    } else {
-      dis.style.display = "inline-flex";
-    }
+    document.getElementById("barra-de-opciones").classList.toggle('visible');
   };
   document.getElementById("agregar-producto-mostrar").onclick = function () {
     let elemento = document.getElementsByClassName("main-screen");
@@ -266,7 +262,27 @@ window.addEventListener("DOMContentLoaded", () => {
     }, 500);
   });
 });
+window.addEventListener("DOMContentLoaded", () => {
+  document.body.addEventListener('click', function (e) {
+    let ids = [];
+    ids.push(e.target);
+    ids.push(e.target.parentNode);
+    ids.push(e.target.parentNode.parentNode);
+    let barra=document.querySelector('#barra-de-opciones');
+    let esId = false;
+    for (const id of ids) {
+      if (id.id == 'menu-image'||id.id=='menu-button') {
+        esId = true;
+      }
+    }
+    if ((!esId && !barra.classList.contains('visible'))) {
+      barra.classList.remove('visible');
+      barra.classList.remove('para-hamburguesa');
+    } 
 
+
+  });
+})
 
 window.addEventListener("DOMContentLoaded", () => {
   let buscador = document.querySelector('#buscador');
@@ -279,11 +295,11 @@ window.addEventListener("DOMContentLoaded", () => {
   buscador.addEventListener('keydown', (e) => {
     navigate(e);
   });
-  buscador.addEventListener('submit',(e)=>{
+  buscador.addEventListener('submit', (e) => {
     e.preventDefault();
-    
+
   })
-  
+
 });
 
 
@@ -335,3 +351,7 @@ window.addEventListener("DOMContentLoaded", () => {
 })
 
 
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

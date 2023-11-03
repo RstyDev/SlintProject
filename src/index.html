@@ -15,7 +15,7 @@
 </head>
 
 <body>
-  <div class="container">
+  <header class="container">
     <div id="header">
       <div id="menu-image">
         <a id="menu-button"><img src="/assets/menu.svg" class="boton" alt="menu image"></a>
@@ -33,6 +33,7 @@
         </form>
       </div>
     </div>
+  </header>
     <main>
       <div id="agregar-producto-container" class="main-screen">
         <a id="cerrar-agregar-producto" class="a-boton">X</a>
@@ -48,8 +49,6 @@
           <section>
             <input id="marca" list="opciones-marca" placeholder="Marca" required />
             <datalist id="opciones-marca">
-              <option value="Pureza"></option>
-              <option value="Marlboro"></option>
             </datalist>
           </section>
           <section>
@@ -101,6 +100,14 @@
         </form>
 
       </div>
+      
+      
+      <div id="msg-container">
+        <p id="mensaje1-msg"></p>
+      </div>
+      <section id="cuadro-venta">
+
+      </section>
     </main>
 
     <!-- <div class="row">
@@ -114,16 +121,9 @@
 
 
 
-    <form class="row" id="buscador-form">
-      <input id="buscador" placeholder="Buscar..." />
-      <button type="submit">Buscar</button>
-    </form>
+    
 
-    <div id="msg-container">
-      <p id="mensaje1-msg"></p>
-    </div>
-
-  </div>
+  
 </body>
 
 </html>
