@@ -42,8 +42,11 @@
   display: none;
   flex-direction: column;
   border-radius: 5px;
-  background-color: #0f0f0f;
+  background-color: #0000;
   position: absolute;
+}
+#barra-de-opciones.visible{
+  display: inline-flex;
 }
 
 #header {

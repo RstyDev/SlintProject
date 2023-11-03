@@ -188,7 +188,7 @@ window.addEventListener("DOMContentLoaded", () => {
       elemento[i].style.display = "none"
     }
     document.getElementById("agregar-producto-container").style.display = "inline-flex";
-    document.getElementById("barra-de-opciones").style.display = "none";
+    document.getElementById("barra-de-opciones").classList.remove('visible');
   }
   document.getElementById("cerrar-agregar-producto").onclick = function () {
     document.getElementById("agregar-producto-container").style.display = "none";
@@ -202,7 +202,7 @@ window.addEventListener("DOMContentLoaded", () => {
       elemento[i].style.display = "none"
     }
     document.getElementById("agregar-proveedor-container").style.display = "inline-flex";
-    document.getElementById("barra-de-opciones").style.display = "none";
+    document.getElementById("barra-de-opciones").classList.remove('visible');
   }
   document.getElementById("cerrar-agregar-proveedor").onclick = function () {
     document.getElementById("agregar-proveedor-container").style.display = "none";
