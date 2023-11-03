@@ -697,7 +697,7 @@ fn redondeo(politica: f64, numero: f64) -> f64 {
 }
 #[tauri::command]
 fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: String) -> Result<Venta, String> {
-    let mut res ;
+    let res ;
     match sistema.lock() {
         Ok(a) =>{
             if pos=='1'.to_string(){
