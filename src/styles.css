@@ -71,6 +71,10 @@
   border: 1px;
   box-sizing: border-box;
 }
+.focuseado{
+  border: solid 2px white;
+  border-radius: 3px;
+}
 
 .logo {
   height: 6em;

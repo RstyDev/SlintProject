@@ -7,7 +7,7 @@ use std::fmt::{self, Display};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::sync::Mutex;
-use tauri::{State, Window, window};
+use tauri::{window, State, Window};
 
 #[derive(Debug, Default)]
 pub struct Config {
@@ -27,7 +27,7 @@ pub enum Luz {
     Claro,
     Oscuro,
 }
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default,Serialize)]
 pub struct Pago {
     medio_pago: String,
     monto: f64,
@@ -54,7 +54,7 @@ pub struct Relacion {
     id_proveedor: usize,
     codigo: Option<u128>,
 }
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
     monto_total: f64,
     productos: Vec<Producto>,
@@ -290,66 +290,75 @@ impl<'a> Sistema {
     }
     fn filtrar_marca(&self, filtro: &str) -> Vec<String> {
         let iter = self.productos.iter();
-        let mut res:Vec<String>=iter.filter_map(|x| if x.marca.to_lowercase().contains(&filtro.to_lowercase()){
-            Some(x.marca.clone())
-        }else{
-            None
-        }).collect();
+        let mut res: Vec<String> = iter
+            .filter_map(|x| {
+                if x.marca.to_lowercase().contains(&filtro.to_lowercase()) {
+                    Some(x.marca.clone())
+                } else {
+                    None
+                }
+            })
+            .collect();
         res.sort();
         res.dedup();
-        println!("de Rust:{:?}",res);
-        
+        println!("de Rust:{:?}", res);
+
         res
     }
-    
-    
-    fn filtrar_tipo_producto(&self, filtro:&str)->Vec<String>{
-        let iter=self.productos.iter();
-        let mut res:Vec<String>=iter.filter_map(|x|if x.tipo_producto.to_lowercase().contains(&filtro.to_lowercase()){
-            Some(x.tipo_producto.clone())
-        }else{
-            None
-        }).collect();
+
+    fn filtrar_tipo_producto(&self, filtro: &str) -> Vec<String> {
+        let iter = self.productos.iter();
+        let mut res: Vec<String> = iter
+            .filter_map(|x| {
+                if x.tipo_producto
+                    .to_lowercase()
+                    .contains(&filtro.to_lowercase())
+                {
+                    Some(x.tipo_producto.clone())
+                } else {
+                    None
+                }
+            })
+            .collect();
         res.sort();
         res.dedup();
-        println!("de Rust:{:?}",res);
+        println!("de Rust:{:?}", res);
         res
     }
-    fn filtrar_todo(&self, filtro:&str)->Vec<String>{
+    fn filtrar_todo(&self, filtro: &str) -> Vec<String> {
         let filtros = filtro.split(' ').collect::<Vec<&str>>();
         self.productos
-                .iter()
-                .filter_map(|x| {
-                    let codigo = filtro.parse::<u128>();
-                    if (codigo.is_ok() && x.codigo_de_barras.eq(&codigo.unwrap()))
-                        || filtros.iter().any(|line| {
-                            if x.get_nombre_completo()
-                                .to_lowercase()
-                                .contains(&line.to_lowercase())
-                            {
-                                true
-                            } else {
-                                false
-                            }
-                        })
-                    {
-                        Some(serde_json::to_string_pretty(&x).unwrap())
-                    } else {
-                        None
-                    }
-                })
-                .collect()
+            .iter()
+            .filter_map(|x| {
+                let codigo = filtro.parse::<u128>();
+                if (codigo.is_ok() && x.codigo_de_barras.eq(&codigo.unwrap()))
+                    || filtros.iter().any(|line| {
+                        if x.get_nombre_completo()
+                            .to_lowercase()
+                            .contains(&line.to_lowercase())
+                        {
+                            true
+                        } else {
+                            false
+                        }
+                    })
+                {
+                    Some(serde_json::to_string_pretty(&x).unwrap())
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
-//     pub id: usize,
-//     pub codigo_de_barras: u128,
-//     pub precio_de_venta: f64,
-//     pub porcentaje: f64,
-//     pub precio_de_costo: f64,
-//     pub tipo_producto: String,
-//     pub marca: String,
-//     pub variedad: String,
-//     pub cantidad: Presentacion
-    
+    //     pub id: usize,
+    //     pub codigo_de_barras: u128,
+    //     pub precio_de_venta: f64,
+    //     pub porcentaje: f64,
+    //     pub precio_de_costo: f64,
+    //     pub tipo_producto: String,
+    //     pub marca: String,
+    //     pub variedad: String,
+    //     pub cantidad: Presentacion
 }
 
 impl Default for Presentacion {
@@ -655,17 +664,17 @@ fn agregar_pago(
 fn get_filtrado(
     sistema: State<Mutex<Sistema>>,
     filtro: String,
-    tipo_filtro: String
+    tipo_filtro: String,
 ) -> Result<Vec<String>, String> {
-    let mut res=Err("No inicializado".to_string());
+    let mut res = Err("No inicializado".to_string());
     match sistema.lock() {
         Ok(a) => {
-            if tipo_filtro.eq("todo"){
-                res=Ok(a.filtrar_todo(&filtro));
-            } else if tipo_filtro.eq("marca"){
-                res=Ok(a.filtrar_marca(&filtro));
-            } else if tipo_filtro.eq("tipo_producto"){
-                res=Ok(a.filtrar_tipo_producto(&filtro));
+            if tipo_filtro.eq("todo") {
+                res = Ok(a.filtrar_todo(&filtro));
+            } else if tipo_filtro.eq("marca") {
+                res = Ok(a.filtrar_marca(&filtro));
+            } else if tipo_filtro.eq("tipo_producto") {
+                res = Ok(a.filtrar_tipo_producto(&filtro));
             }
         }
         Err(e) => res = Err(e.to_string()),
@@ -686,8 +695,22 @@ fn redondeo(politica: f64, numero: f64) -> f64 {
     }
     res
 }
+#[tauri::command]
+fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: String) -> Result<Venta, String> {
+    let mut res ;
+    match sistema.lock() {
+        Ok(a) =>{
+            if pos=='1'.to_string(){
+                res=Ok(a.ventas.1.clone());
+            }else{
+                res=Ok(a.ventas.0.clone());
+            }
+        },
+        Err(e)=>res=Err(e.to_string()),
 
-
+    }
+    res
+}
 
 //----------------------------------------main--------------------------------------------
 
@@ -705,7 +728,8 @@ fn main() {
             get_productos_filtrado,
             agregar_producto_a_venta,
             redondeo,
-            agregar_pago
+            agregar_pago,
+            get_venta_actual
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

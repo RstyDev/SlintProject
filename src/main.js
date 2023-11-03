@@ -15,6 +15,7 @@ let timeoutId;
 let proveedores = [];
 let proveedores_producto = [];
 let codigosProv = [];
+let focuseado;
 
 
 async function buscador() {
@@ -22,19 +23,21 @@ async function buscador() {
   mensaje1.textContent = await invoke("buscador", { name: buscadorInput.value });
 }
 
-function navigate(tr2, e) {
-  if (e.keyCode == 38 && tr2.previousElementSibling) {
+function navigate(e) {
+  if (e.keyCode == 38 && focuseado.previousElementSibling) {
+    e.preventDefault();
+    focus(focuseado.previousElementSibling);
 
-    tr2.previousElementSibling.focus();
-
-  } else if (e.keyCode == 40 && tr2.nextElementSibling) {
-
-    tr2.nextElementSibling.focus();
+  } else if (e.keyCode == 40 && focuseado.nextElementSibling) {
+    e.preventDefault();
+    focus(focuseado.nextElementSibling);
 
   } else if (e.keyCode == 27) {
+    e.preventDefault();
     borrarBusqueda();
   } else if (e.keyCode == 13) {
-    agregarProdVentaAct(tr2);
+    agregarProdVentaAct(focuseado);
+    e.preventDefault();
     borrarBusqueda();
   }
 }
@@ -89,71 +92,76 @@ window.addEventListener("DOMContentLoaded", () => {
     get_filtrado(document.getElementById(id_marca).value, id_marca, objetivo_marca);
   });
 });
-async function buscarProducto(filtrado) {
-  let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
-  let prods = document.getElementsByClassName("texto-producto");
+
+function dibujarProductos(objetos) {
   let container = document.querySelector('#msg-container');
   mensaje1.textContent = '';
   container.replaceChildren([]);
   let tabla = document.createElement('table');
   tabla.style.width = '100%';
+  tabla.id='tabla-productos';
   let tr;
-
+  tr = document.createElement('tr');
   {
-    tr = document.createElement('tr');
-    {
-      let th = document.createElement('th');
-      th.style.width = '60%'
-      th.innerHTML = 'Producto';
-      tr.appendChild(th);
-      let th3 = document.createElement('th');
-      th3.innerHTML = 'Precio';
-      tr.appendChild(th3);
-    }
-    tabla.appendChild(tr);
+    let th = document.createElement('th');
+    th.style.width = '60%'
+    th.innerHTML = 'Producto';
+    tr.appendChild(th);
+    let th3 = document.createElement('th');
+    th3.innerHTML = 'Precio';
+    tr.appendChild(th3);
+  }
+  tabla.appendChild(tr);
 
-    for (let i = 0; i < objetos.length; i++) {
-      let tr2 = document.createElement('tr')
-      tr2.tabIndex = 2;
-      let cantidad;
-      let presentacion;
-      switch (Object.keys(objetos[i].cantidad)[0]) {
-        case 'Grs':
-          cantidad = objetos[i].cantidad.Grs;
-          presentacion = 'Grs';
-          break;
-        case 'Un':
-          cantidad = objetos[i].cantidad.Un;
-          presentacion = 'Un';
-          break;
-        case 'Lt':
-          cantidad = objetos[i].cantidad.Lt;
-          presentacion = 'Lt';
-      }
-      let id = document.createElement('td');
-      id.innerHTML = objetos[i].id;
-      id.style.display = 'none'
-      tr2.appendChild(id);
-      let producto = document.createElement('td');
-      producto.innerHTML = objetos[i].tipo_producto + ' ' + objetos[i].marca + ' ' + objetos[i].variedad + ' ' + cantidad + ' ' + presentacion;
-      tr2.appendChild(producto);
-      let precio = document.createElement('td');
-      precio.innerHTML = objetos[i].precio_de_venta;
-      tr2.appendChild(precio);
-      console.log(tr2);
-      tr2.addEventListener('keydown', (e) => {
-        navigate(tr2, e)
-      });
-      tabla.appendChild(tr2);
+  for (let i = 0; i < objetos.length; i++) {
+    let tr2 = document.createElement('tr')
+    tr2.tabIndex = 2;
+    let cantidad;
+    let presentacion;
+    switch (Object.keys(objetos[i].cantidad)[0]) {
+      case 'Grs':
+        cantidad = objetos[i].cantidad.Grs;
+        presentacion = 'Grs';
+        break;
+      case 'Un':
+        cantidad = objetos[i].cantidad.Un;
+        presentacion = 'Un';
+        break;
+      case 'Lt':
+        cantidad = objetos[i].cantidad.Lt;
+        presentacion = 'Lt';
     }
-
+    let id = document.createElement('td');
+    id.innerHTML = objetos[i].id;
+    id.style.display = 'none'
+    tr2.appendChild(id);
+    let producto = document.createElement('td');
+    producto.innerHTML = objetos[i].tipo_producto + ' ' + objetos[i].marca + ' ' + objetos[i].variedad + ' ' + cantidad + ' ' + presentacion;
+    tr2.appendChild(producto);
+    let precio = document.createElement('td');
+    precio.innerHTML = objetos[i].precio_de_venta;
+    tr2.appendChild(precio);
+    console.log(tr2);
+    tr2.addEventListener('keydown', (e) => {
+      navigate(e)
+    });
+    tabla.appendChild(tr2);
   }
   container.appendChild(tabla);
   if (tr.nextElementSibling) {
-    tr.nextElementSibling.focus();
+    focus(tr.nextElementSibling);
   }
-
-
+}
+function focus(obj){
+  console.log(focuseado)
+  if (focuseado){
+  focuseado.classList.toggle('focuseado')}
+  focuseado=obj;
+  focuseado.classList.toggle('focuseado');
+}
+async function buscarProducto(filtrado) {
+  let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
+  dibujarProductos(objetos);
 }
 async function agregarProveedor() {
   let prov = document.querySelector('#input-nombre-proveedor');
@@ -261,12 +269,21 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
 window.addEventListener("DOMContentLoaded", () => {
-  document.querySelector('#buscador').addEventListener('input', () => {
+  let buscador = document.querySelector('#buscador');
+  buscador.addEventListener('input', () => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(function () {
       buscarProducto(document.querySelector('#buscador').value)
     }, 500);
   });
+  buscador.addEventListener('keydown', (e) => {
+    navigate(e);
+  });
+  buscador.addEventListener('submit',(e)=>{
+    e.preventDefault();
+    
+  })
+  
 });
 
 
