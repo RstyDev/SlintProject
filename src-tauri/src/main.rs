@@ -696,11 +696,11 @@ fn redondeo(politica: f64, numero: f64) -> f64 {
     res
 }
 #[tauri::command]
-fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: String) -> Result<Venta, String> {
+fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta, String> {
     let res ;
     match sistema.lock() {
         Ok(a) =>{
-            if pos=='1'.to_string(){
+            if pos==1{
                 res=Ok(a.ventas.1.clone());
             }else{
                 res=Ok(a.ventas.0.clone());

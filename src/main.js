@@ -1,7 +1,7 @@
 const { invoke } = window.__TAURI__.tauri;
 let posicionVenta = 0;
 let buscadorInput;
-let mensaje1 = document.querySelector('#mensaje1-msg');
+const mensaje1 = document.querySelector('#mensaje1-msg');
 let tpProd;
 let mark;
 let variety;
@@ -39,11 +39,30 @@ function navigate(e) {
     agregarProdVentaAct(focuseado);
     e.preventDefault();
     borrarBusqueda();
+    get_venta_actual().then(venta => dibujar_venta(venta));
   }
 }
 
+function dibujar_venta(venta) {
+  console.log(venta);
+  let cuadro = document.querySelector('#cuadro-venta');
+  cuadro.replaceChildren([]);
+  let hijos = "";
+  for (let i = 0; i < venta.productos.length; i++) {
+    hijos+=`<article id="articulo${i}"> ${venta.productos[i]}</article>`;
+  }
+  cuadro.innerHTML=hijos;
+}
+
+async function get_venta_actual() {
+  let res = await invoke("get_venta_actual", { pos: posicionVenta });
+  let ret = await res;
+  // console.log(ret)
+  return ret;
+}
+
 async function agregarProdVentaAct(tr2) {
-  await invoke("agregar_producto_a_venta", { id: "" + tr2.children[0].innerHTML, pos: "" + posicionVenta })
+  await invoke("agregar_producto_a_venta", { id: "" + tr2.children[0].innerHTML, pos: "" + posicionVenta });
 }
 function borrarBusqueda() {
   document.getElementById('buscador').value = '';
@@ -141,7 +160,6 @@ function dibujarProductos(objetos) {
     let precio = document.createElement('td');
     precio.innerHTML = objetos[i].precio_de_venta;
     tr2.appendChild(precio);
-    console.log(tr2);
     tr2.addEventListener('keydown', (e) => {
       navigate(e)
     });
@@ -153,7 +171,6 @@ function dibujarProductos(objetos) {
   }
 }
 function focus(obj) {
-  console.log(focuseado)
   if (focuseado) {
     focuseado.classList.toggle('focuseado')
   }
@@ -268,17 +285,17 @@ window.addEventListener("DOMContentLoaded", () => {
     ids.push(e.target);
     ids.push(e.target.parentNode);
     ids.push(e.target.parentNode.parentNode);
-    let barra=document.querySelector('#barra-de-opciones');
+    let barra = document.querySelector('#barra-de-opciones');
     let esId = false;
     for (const id of ids) {
-      if (id.id == 'menu-image'||id.id=='menu-button') {
+      if (id.id == 'menu-image' || id.id == 'menu-button') {
         esId = true;
       }
     }
     if ((!esId && !barra.classList.contains('visible'))) {
       barra.classList.remove('visible');
       barra.classList.remove('para-hamburguesa');
-    } 
+    }
 
 
   });
@@ -287,10 +304,15 @@ window.addEventListener("DOMContentLoaded", () => {
 window.addEventListener("DOMContentLoaded", () => {
   let buscador = document.querySelector('#buscador');
   buscador.addEventListener('input', () => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(function () {
-      buscarProducto(document.querySelector('#buscador').value)
-    }, 500);
+    if (buscador.value.length == 0) {
+      clearTimeout(timeoutId);
+      borrarBusqueda();
+    } else {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(function () {
+        buscarProducto(document.querySelector('#buscador').value)
+      }, 500);
+    }
   });
   buscador.addEventListener('keydown', (e) => {
     navigate(e);
