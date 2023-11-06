@@ -8,7 +8,7 @@
         "tipo_producto": "Cigarrillos",
         "marca": "Marlboro",
         "variedad": "KS",
-        "cantidad": {
+        "presentacion": {
             "Un": 20
         }
     },
@@ -21,7 +21,7 @@
         "tipo_producto": "Harina",
         "marca": "Pureza",
         "variedad": "000",
-        "cantidad": {
+        "presentacion": {
             "Grs": 1000.0
         }
     },
@@ -34,7 +34,7 @@
         "tipo_producto": "Papel Higienico",
         "marca": "Higienol",
         "variedad": "Doble Hoja",
-        "cantidad": {
+        "presentacion": {
             "Un": 1
         }
     },
@@ -47,7 +47,7 @@
         "tipo_producto": "Harina",
         "marca": "Marolio",
         "variedad": "000",
-        "cantidad": {
+        "presentacion": {
             "Grs": 1000.0
         }
     }

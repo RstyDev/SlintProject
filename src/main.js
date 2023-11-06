@@ -24,34 +24,73 @@ async function buscador() {
 }
 
 function navigate(e) {
-  if (e.keyCode == 38 && focuseado.previousElementSibling) {
-    e.preventDefault();
-    focus(focuseado.previousElementSibling);
+  let buscador = document.querySelector('#buscador');
+  if (focuseado) {
+    if (e.keyCode == 38 && focuseado.previousElementSibling) {
+      e.preventDefault();
+      console.log(focuseado)
+      focus(focuseado.previousElementSibling);
 
-  } else if (e.keyCode == 40 && focuseado.nextElementSibling) {
-    e.preventDefault();
-    focus(focuseado.nextElementSibling);
+    } else if (e.keyCode == 40 && focuseado.nextElementSibling) {
+      e.preventDefault();
+      focus(focuseado.nextElementSibling);
 
-  } else if (e.keyCode == 27) {
-    e.preventDefault();
-    borrarBusqueda();
-  } else if (e.keyCode == 13) {
-    agregarProdVentaAct(focuseado);
-    e.preventDefault();
-    borrarBusqueda();
-    get_venta_actual().then(venta => dibujar_venta(venta));
+    } else if (e.keyCode == 27 && buscador.value.length != 0) {
+      e.preventDefault();
+      buscador.value = '';
+      get_venta_actual().then(venta => dibujar_venta(venta));
+    } else if (e.keyCode == 13) {
+      agregarProdVentaAct(focuseado.children[0].innerHTML);
+      e.preventDefault();
+      buscador.value = '';
+      get_venta_actual().then(venta => dibujar_venta(venta));
+    }
   }
 }
 
+function sumarProducto(e) {
+  agregarProdVentaAct(e.target.parentNode.parentNode.id);
+  borrarBusqueda();
+}
+function restarProducto(e) {
+  let cantidad = e.target.nextElementSibling;
+  descontarProdVentaAct(e.target.parentNode.parentNode.id);
+  borrarBusqueda();
+}
 function dibujar_venta(venta) {
   console.log(venta);
   let cuadro = document.querySelector('#cuadro-venta');
   cuadro.replaceChildren([]);
+  let disabled = "";
   let hijos = "";
-  for (let i = 0; i < venta.productos.length; i++) {
-    hijos+=`<article id="articulo${i}"> ${venta.productos[i]}</article>`;
+  for (let producto of venta.productos) {
+    if (producto[0] < 2) {
+      disabled = 'disabled';
+    }
+    hijos += `<article class="articulo" id="${producto[1].id}">
+     <section class="descripcion">
+        ${producto[1].marca} ${producto[1].tipo_producto} ${producto[1].variedad}    
+     </section>
+     <section>
+     cantidad:
+        <button class="button restar" ${disabled}>-</button>
+        <p class="cantidad-producto"> ${producto[0]}</p>
+        <button class="button sumar">+</button>
+     </section>
+     <section>
+        ${producto[1].precio_de_venta}
+     </section>
+     </article>`;
   }
-  cuadro.innerHTML=hijos;
+  hijos += `<section id="monto-total"> ${venta.monto_total}</section>`
+  cuadro.innerHTML = hijos;
+  for (let boton of document.querySelectorAll('.sumar')) {
+    boton.addEventListener('click', (e) => { sumarProducto(e) });
+  }
+  for (let boton of document.querySelectorAll('.restar')) {
+    boton.addEventListener('click', (e) => { restarProducto(e) });
+  }
+
 }
 
 async function get_venta_actual() {
@@ -61,12 +100,17 @@ async function get_venta_actual() {
   return ret;
 }
 
-async function agregarProdVentaAct(tr2) {
-  await invoke("agregar_producto_a_venta", { id: "" + tr2.children[0].innerHTML, pos: "" + posicionVenta });
+async function agregarProdVentaAct(id) {
+  await invoke("agregar_producto_a_venta", { id: "" + id, pos: "" + posicionVenta });
+}
+async function descontarProdVentaAct(id) {
+  await invoke("descontar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta });
 }
 function borrarBusqueda() {
   document.getElementById('buscador').value = '';
-  document.querySelector('#msg-container').replaceChildren([]);
+  document.querySelector('#cuadro-venta').replaceChildren([]);
+  get_venta_actual().then(venta => dibujar_venta(venta));
+  document.getElementById('buscador').focus();
 }
 async function get_filtrado(filtro, tipo_filtro, objetivo) {
   let res = await invoke("get_filtrado", { filtro: filtro, tipoFiltro: tipo_filtro });
@@ -93,6 +137,7 @@ async function get_filtrado(filtro, tipo_filtro, objetivo) {
   }
 }
 window.addEventListener("DOMContentLoaded", () => {
+  borrarBusqueda();
   let id = "tipo_producto";
   let objetivo = "opciones-tipo-producto";
   let id_marca = "marca";
@@ -113,7 +158,7 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 function dibujarProductos(objetos) {
-  let container = document.querySelector('#msg-container');
+  let container = document.querySelector('#cuadro-venta');
   mensaje1.textContent = '';
   container.replaceChildren([]);
   let tabla = document.createElement('table');
@@ -137,17 +182,17 @@ function dibujarProductos(objetos) {
     tr2.tabIndex = 2;
     let cantidad;
     let presentacion;
-    switch (Object.keys(objetos[i].cantidad)[0]) {
+    switch (Object.keys(objetos[i].presentacion)[0]) {
       case 'Grs':
-        cantidad = objetos[i].cantidad.Grs;
+        cantidad = objetos[i].presentacion.Grs;
         presentacion = 'Grs';
         break;
       case 'Un':
-        cantidad = objetos[i].cantidad.Un;
+        cantidad = objetos[i].presentacion.Un;
         presentacion = 'Un';
         break;
       case 'Lt':
-        cantidad = objetos[i].cantidad.Lt;
+        cantidad = objetos[i].presentacion.Lt;
         presentacion = 'Lt';
     }
     let id = document.createElement('td');
@@ -179,7 +224,10 @@ function focus(obj) {
 }
 async function buscarProducto(filtrado) {
   let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
-  dibujarProductos(objetos);
+  if (filtrado.length < 5 || isNaN(filtrado)) {
+    clearTimeout(timeoutId);
+    dibujarProductos(objetos);
+  }
 }
 async function agregarProveedor() {
   let prov = document.querySelector('#input-nombre-proveedor');
@@ -209,9 +257,10 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   document.getElementById("cerrar-agregar-producto").onclick = function () {
     document.getElementById("agregar-producto-container").style.display = "none";
+    document.querySelector('#cuadro-venta').style.display = 'block';
   }
 
-  //** */
+
 
   document.getElementById("agregar-proveedor-mostrar").onclick = function () {
     let elemento = document.getElementsByClassName("main-screen");
@@ -223,6 +272,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   document.getElementById("cerrar-agregar-proveedor").onclick = function () {
     document.getElementById("agregar-proveedor-container").style.display = "none";
+    document.querySelector('#cuadro-venta').style.display = 'block';
   }
 
 });
@@ -303,15 +353,13 @@ window.addEventListener("DOMContentLoaded", () => {
 
 window.addEventListener("DOMContentLoaded", () => {
   let buscador = document.querySelector('#buscador');
-  buscador.addEventListener('input', () => {
+
+  buscador.addEventListener('input', (e) => {
     if (buscador.value.length == 0) {
       clearTimeout(timeoutId);
       borrarBusqueda();
     } else {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(function () {
-        buscarProducto(document.querySelector('#buscador').value)
-      }, 500);
+      buscarProducto(buscador.value)
     }
   });
   buscador.addEventListener('keydown', (e) => {
@@ -319,7 +367,9 @@ window.addEventListener("DOMContentLoaded", () => {
   });
   buscador.addEventListener('submit', (e) => {
     e.preventDefault();
-
+    if (!isNaN(buscador.value) && buscador.value > 4) {
+      //TODO
+    }
   })
 
 });

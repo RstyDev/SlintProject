@@ -7,7 +7,7 @@ use std::fmt::{self, Display};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::sync::Mutex;
-use tauri::{window, State, Window};
+use tauri::State;
 
 #[derive(Debug, Default)]
 pub struct Config {
@@ -27,7 +27,7 @@ pub enum Luz {
     Claro,
     Oscuro,
 }
-#[derive(Debug, Clone, Default,Serialize)]
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct Pago {
     medio_pago: String,
     monto: f64,
@@ -57,7 +57,7 @@ pub struct Relacion {
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
     monto_total: f64,
-    productos: Vec<Producto>,
+    productos: Vec<(u32, Producto)>,
     pagos: Vec<Pago>,
 }
 
@@ -71,7 +71,7 @@ pub struct Producto {
     pub tipo_producto: String,
     pub marca: String,
     pub variedad: String,
-    pub cantidad: Presentacion,
+    pub presentacion: Presentacion,
 }
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
@@ -123,11 +123,34 @@ impl<'a> Venta {
         self.monto_total - pagado
     }
     fn agregar_producto(&mut self, producto: Producto) {
-        self.productos.push(producto);
+        let mut esta = false;
+        for i in 0..self.productos.len() {
+            if producto == self.productos[i].1 {
+                self.productos[i].0 += 1;
+                esta = true;
+            }
+        }
+        if !esta {
+            self.productos.push((1, producto));
+        }
         self.monto_total = 0.0;
         for i in &self.productos {
-            self.monto_total += i.precio_de_venta;
+            self.monto_total += i.1.precio_de_venta * i.0 as f64;
         }
+    }
+    fn restar_producto(&mut self, producto: Producto) -> Result<(), String> {
+        let mut res = Err("Producto no encontrado".to_string());
+        for i in 0..self.productos.len() {
+            if producto == self.productos[i].1 {
+                self.productos[i].0 -= 1;
+                res = Ok(());
+            }
+        }
+        self.monto_total = 0.0;
+        for i in &self.productos {
+            self.monto_total += i.1.precio_de_venta * i.0 as f64;
+        }
+        res
     }
 }
 
@@ -262,17 +285,27 @@ impl<'a> Sistema {
         match pos {
             0 => {
                 self.ventas.0.agregar_producto(res);
-                self.ventas.0.monto_total = 0.0;
-                for i in 0..self.ventas.0.productos.len() {
-                    self.ventas.0.monto_total += self.ventas.0.productos[i].precio_de_venta;
-                }
             }
             1 => {
                 self.ventas.1.agregar_producto(res);
                 self.ventas.0.monto_total = 0.0;
                 for i in 0..self.ventas.0.productos.len() {
-                    self.ventas.0.monto_total += self.ventas.0.productos[i].precio_de_venta;
+                    self.ventas.0.monto_total += self.ventas.0.productos[i].1.precio_de_venta;
                 }
+            }
+            _ => return Err("Numero de venta incorrecto".to_string()),
+        }
+
+        Ok(())
+    }
+    fn descontar_producto_de_venta(&mut self, id: usize, pos: usize) -> Result<(), String> {
+        let res = self.get_producto(id)?;
+        match pos {
+            0 => {
+                self.ventas.0.restar_producto(res)?;
+            }
+            1 => {
+                self.ventas.1.restar_producto(res)?;
             }
             _ => return Err("Numero de venta incorrecto".to_string()),
         }
@@ -325,40 +358,6 @@ impl<'a> Sistema {
         println!("de Rust:{:?}", res);
         res
     }
-    fn filtrar_todo(&self, filtro: &str) -> Vec<String> {
-        let filtros = filtro.split(' ').collect::<Vec<&str>>();
-        self.productos
-            .iter()
-            .filter_map(|x| {
-                let codigo = filtro.parse::<u128>();
-                if (codigo.is_ok() && x.codigo_de_barras.eq(&codigo.unwrap()))
-                    || filtros.iter().any(|line| {
-                        if x.get_nombre_completo()
-                            .to_lowercase()
-                            .contains(&line.to_lowercase())
-                        {
-                            true
-                        } else {
-                            false
-                        }
-                    })
-                {
-                    Some(serde_json::to_string_pretty(&x).unwrap())
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
-    //     pub id: usize,
-    //     pub codigo_de_barras: u128,
-    //     pub precio_de_venta: f64,
-    //     pub porcentaje: f64,
-    //     pub precio_de_costo: f64,
-    //     pub tipo_producto: String,
-    //     pub marca: String,
-    //     pub variedad: String,
-    //     pub cantidad: Presentacion
 }
 
 impl Default for Presentacion {
@@ -395,24 +394,15 @@ impl Producto {
             tipo_producto: tipo_producto.to_string(),
             marca: marca.to_string(),
             variedad: variedad.to_string(),
-            cantidad: cant,
+            presentacion: cant,
         }
     }
     fn get_nombre_completo(&self) -> String {
         format!(
             "{} {} {} {}",
-            self.marca, self.tipo_producto, self.variedad, self.cantidad
+            self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
-    // fn get_vec(&self) -> Vec<String> {
-    //     let mut res = Vec::new();
-    //     res.push(self.tipo_producto.clone());
-    //     res.push(self.marca.clone());
-    //     res.push(self.variedad.clone());
-    //     res.push(self.cantidad.to_string());
-    //     res.push(self.precio_de_venta.to_string());
-    //     res
-    // }
 }
 
 impl PartialEq for Producto {
@@ -639,6 +629,19 @@ fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: Str
         Err(e) => panic!("{}", e),
     };
 }
+#[tauri::command]
+fn descontar_producto_de_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
+    match sistema.lock() {
+        Ok(mut a) => {
+            let pos = pos.parse().unwrap();
+            match a.descontar_producto_de_venta(id.parse().unwrap(), pos) {
+                Ok(_) => println!("{:?}", a.get_venta(pos)),
+                Err(e) => panic!("{}", e),
+            }
+        }
+        Err(e) => panic!("{}", e),
+    };
+}
 
 #[tauri::command]
 fn agregar_pago(
@@ -669,9 +672,7 @@ fn get_filtrado(
     let mut res = Err("No inicializado".to_string());
     match sistema.lock() {
         Ok(a) => {
-            if tipo_filtro.eq("todo") {
-                res = Ok(a.filtrar_todo(&filtro));
-            } else if tipo_filtro.eq("marca") {
+            if tipo_filtro.eq("marca") {
                 res = Ok(a.filtrar_marca(&filtro));
             } else if tipo_filtro.eq("tipo_producto") {
                 res = Ok(a.filtrar_tipo_producto(&filtro));
@@ -697,17 +698,16 @@ fn redondeo(politica: f64, numero: f64) -> f64 {
 }
 #[tauri::command]
 fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta, String> {
-    let res ;
+    let res;
     match sistema.lock() {
-        Ok(a) =>{
-            if pos==1{
-                res=Ok(a.ventas.1.clone());
-            }else{
-                res=Ok(a.ventas.0.clone());
+        Ok(a) => {
+            if pos == 1 {
+                res = Ok(a.ventas.1.clone());
+            } else {
+                res = Ok(a.ventas.0.clone());
             }
-        },
-        Err(e)=>res=Err(e.to_string()),
-
+        }
+        Err(e) => res = Err(e.to_string()),
     }
     res
 }
@@ -727,6 +727,7 @@ fn main() {
             get_filtrado,
             get_productos_filtrado,
             agregar_producto_a_venta,
+            descontar_producto_de_venta,
             redondeo,
             agregar_pago,
             get_venta_actual
