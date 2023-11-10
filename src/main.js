@@ -26,12 +26,12 @@ async function buscador() {
 function navigate(e) {
   let buscador = document.querySelector('#buscador');
   if (focuseado) {
-    if (e.keyCode == 38 && focuseado.previousElementSibling) {
+    if (e.keyCode == 38 && focuseado.previousElementSibling.previousElementSibling) {
       e.preventDefault();
       console.log(focuseado)
       focus(focuseado.previousElementSibling);
 
-    } else if (e.keyCode == 40 && focuseado.nextElementSibling) {
+    } else if (e.keyCode == 40 && focuseado.nextElementSibling.previousElementSibling) {
       e.preventDefault();
       focus(focuseado.nextElementSibling);
 
