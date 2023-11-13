@@ -1,4 +1,5 @@
 var contents;
+prods = [];
 function readSingleFile(e) {
     var file = e.target.files[0];
     if (!file) {
@@ -7,13 +8,52 @@ function readSingleFile(e) {
     var reader = new FileReader();
     reader.onload = function (e) {
         var contents = e.target.result;
-        let res=JSON.parse(contents);
+        let res = JSON.parse(contents);
         console.log(res[0]);
-        
+
+        for (let i = 0; i < res.length; i++) {
+            let esta = false;
+            for (let j = 0; j < prods.length; j++)
+                if (prods[j].id == res[i]['Descripcion'])
+                    esta = true;
+            if (res[i]['Descripcion'].length == 5 && !esta) {
+                let prod = {
+                    "id": 0,
+                    "codigos_de_barras": [],
+                    "precio_de_venta": 0,
+                    "porcentaje": 0,
+                    "precio_de_costo": 0,
+                    "tipo_producto": "",
+                    "marca": "",
+                    "variedad": "",
+                    "presentacion": {
+                        "": 0
+                    }
+                }
+                console.log("entro")
+                prod.id = res[i].Codigo;
+                prod.codigos_de_barras = [res[i]]
+                prod.precio_de_venta = res[i]['Precio de Venta'];
+                prod.precio_de_costo = res[i]['Costo'];
+                prod.porcentaje = ((prod.precio_de_venta / prod.precio_de_costo) - 1) * 100;
+                prod.tipo_producto = res[i]['Descripcion'][0];
+
+
+
+
+                console.log(prod);
+            }
+        }
+        console.log(prods.length);
+
         //TODO hay que parsear todo
 
 
-
+        /*{"Codigo":"654165416516682","Descripcion":["OBLEA","ARBANIT","FRUTILLA","28","GR"],
+        "Codigo de Barras":"763331452213","Familia":"GOLOSINAS","Costo":194.66,"Precio de Venta":370,
+        "Stock Minimo":0,"Tope de Descuento":100,"IVA":21,"Pesable":"N","Tipo":"P","Activo":"S",
+        "Impuesto Interno":0,"Publicar en Web":"S","Unidades por bulto":0,"Dias de Stock":0,"Favorito":"N",
+        "RG 5329/23":"N"}*/
 
         /*{
         "id": 0,
