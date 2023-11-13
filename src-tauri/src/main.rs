@@ -64,7 +64,7 @@ pub struct Venta {
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Producto {
     pub id: usize,
-    pub codigo_de_barras: u128,
+    pub codigos_de_barras: Vec<u128>,
     pub precio_de_venta: f64,
     pub porcentaje: f64,
     pub precio_de_costo: f64,
@@ -81,18 +81,24 @@ pub struct Proveedor {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Presentacion {
-    Grs(f64),
+    Gr(f64),
     Un(i32),
     Lt(f64),
+    Ml(i32),
+    Cc(i32),
+    Kg(f64),
 }
 
 //-----------------------------------Implementations---------------------------------
 impl Display for Presentacion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Grs(a) => write!(f, "{} Grs", a),
+            Self::Gr(a) => write!(f, "{} Gr", a),
             Self::Lt(a) => write!(f, "{} Lt", a),
             Self::Un(a) => write!(f, "{} Un", a),
+            Self::Ml(a) => write!(f, "{} Ml", a),
+            Self::Cc(a) => write!(f, "{} CC", a),
+            Self::Kg(a) => write!(f, "{} Kg", a),
         }
     }
 }
@@ -198,7 +204,7 @@ impl<'a> Sistema {
         &mut self,
         proveedores: Vec<String>,
         codigos_prov: Vec<String>,
-        codigo_de_barras: &str,
+        codigos_de_barras: Vec<&str>,
         precio_de_venta: &str,
         porcentaje: &str,
         precio_de_costo: &str,
@@ -207,10 +213,16 @@ impl<'a> Sistema {
         variedad: &str,
         cantidad: &str,
         presentacion: &str,
-    ) {
+    ) -> Result<(), String> {
+        let mut res = Ok(());
+        for code in &codigos_de_barras {
+            if let Err(e) = code.parse::<u128>() {
+                res = Err(e.to_string());
+            }
+        }
         let producto = Producto::new(
             self.productos.len(),
-            codigo_de_barras,
+            codigos_de_barras,
             precio_de_venta,
             porcentaje,
             precio_de_costo,
@@ -238,12 +250,13 @@ impl<'a> Sistema {
 
         match crear_file(&self.path_prods, &self.productos) {
             Ok(_) => (),
-            Err(e) => panic!("No se pudo porque {}", e),
+            Err(e) => res = Err(e.to_string()),
         }
         match crear_file(&self.path_relaciones, &self.relaciones) {
             Ok(_) => (),
-            Err(e) => panic!("No se pudo porque {}", e),
+            Err(e) => res = Err(e.to_string()),
         }
+        res
     }
     pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: &str) -> Result<(), String> {
         let mut res = Ok(());
@@ -369,7 +382,7 @@ impl Default for Presentacion {
 impl Producto {
     fn new(
         id: usize,
-        codigo: &str,
+        codigos: Vec<&str>,
         precio_de_venta: &str,
         porcentaje: &str,
         precio_de_costo: &str,
@@ -380,14 +393,18 @@ impl Producto {
         presentacion: &str,
     ) -> Producto {
         let cant = match presentacion {
-            "Grs" => Presentacion::Grs(cantidad.parse().unwrap()),
+            "Gr" => Presentacion::Gr(cantidad.parse().unwrap()),
             "Un" => Presentacion::Un(cantidad.parse().unwrap()),
             "Lt" => Presentacion::Lt(cantidad.parse().unwrap()),
             _ => panic!("no posible"),
         };
+        let codigos = codigos
+            .iter()
+            .map(|code| -> u128 { code.parse().unwrap() })
+            .collect();
         Producto {
             id,
-            codigo_de_barras: codigo.parse().unwrap(),
+            codigos_de_barras: codigos,
             precio_de_venta: precio_de_venta.parse().unwrap(),
             porcentaje: porcentaje.parse().unwrap(),
             precio_de_costo: precio_de_costo.parse().unwrap(),
@@ -407,11 +424,13 @@ impl Producto {
 
 impl PartialEq for Producto {
     fn eq(&self, other: &Self) -> bool {
-        if self.codigo_de_barras == other.codigo_de_barras {
-            true
-        } else {
-            false
+        let mut esta = false;
+        for code in &self.codigos_de_barras {
+            if other.codigos_de_barras.contains(&code) {
+                esta = true;
+            }
         }
+        esta
     }
 }
 
@@ -508,7 +527,7 @@ fn agregar_producto(
     sistema: State<Mutex<Sistema>>,
     proveedores: Vec<String>,
     codigos_prov: Vec<String>,
-    codigo_de_barras: &str,
+    codigos_de_barras: Vec<&str>,
     precio_de_venta: &str,
     porcentaje: &str,
     precio_de_costo: &str,
@@ -517,13 +536,13 @@ fn agregar_producto(
     variedad: &str,
     cantidad: &str,
     presentacion: &str,
-) -> String {
+) -> Result<(), String> {
     match sistema.lock() {
         Ok(mut sis) => {
             sis.agregar_producto(
                 proveedores,
                 codigos_prov,
-                codigo_de_barras,
+                codigos_de_barras,
                 precio_de_venta,
                 porcentaje,
                 precio_de_costo,
@@ -532,13 +551,11 @@ fn agregar_producto(
                 variedad,
                 cantidad,
                 presentacion,
-            );
+            )?;
 
-            format!("{:#?}", sis.productos[sis.productos.len() - 1].clone())
+            Ok(())
         }
-        Err(a) => {
-            format!("Error: {}", a)
-        }
+        Err(a) => Err(a.to_string()),
     }
 }
 
@@ -592,7 +609,7 @@ fn get_productos_filtrado(
                 .into_iter()
                 .filter(|x| {
                     let codigo = filtro.parse::<u128>();
-                    if (codigo.is_ok() && x.codigo_de_barras.eq(&codigo.unwrap()))
+                    if (codigo.is_ok() && x.codigos_de_barras.contains(&codigo.unwrap()))
                         || filtros.iter().any(|line| {
                             if x.get_nombre_completo()
                                 .to_lowercase()

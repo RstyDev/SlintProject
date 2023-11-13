@@ -6,7 +6,7 @@
             "ARBANIT",
             "FRUTILLA",
             "28",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "763331452213",
         "Familia": "GOLOSINAS",
@@ -32,7 +32,7 @@
             "DOVE",
             "OLEO NUTRICION",
             "200",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791293045283",
         "Familia": "PERFUMERIA",
@@ -57,7 +57,7 @@
             "GALLETAS DE ARROZ",
             "ARROCITAS",
             "101",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790538009561",
         "Familia": "BEBIDAS",
@@ -83,7 +83,7 @@
             "VOCACION",
             "CLASICA",
             "141",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790040131187",
         "Familia": "BEBIDAS",
@@ -135,7 +135,7 @@
             "SUAVE",
             "MANZANA VERDE Y VITAMINAS",
             "930",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791293030289",
         "Familia": "PERFUMERIA",
@@ -161,7 +161,7 @@
             "GYM",
             "CLÁSICAS",
             "350",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798035779130",
         "Familia": "GALLETITAS",
@@ -186,7 +186,8 @@
             "PAPEL HIGIENICO",
             "FELPITA",
             "SIMPLE 80 MT",
-            "4 UN"
+            "4",
+            "Un"
         ],
         "Codigo de Barras": "7791828000657",
         "Familia": "BEBIDAS",
@@ -210,8 +211,9 @@
         "Descripcion": [
             "MAICITOS",
             "CHEETOS",
+            "CLASICOS",
             "43",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790310985274",
         "Codigo de Barras 2": "7790310984482",
@@ -238,7 +240,7 @@
             "ESTILO SPA",
             "GLICERINA HUMECTANTE",
             "120",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798096056973",
         "Familia": "PERFUMERIA",
@@ -264,7 +266,7 @@
             "LA CAMPAGNOLA",
             "NARANJA",
             "454",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7793360131431",
         "Familia": "GENERAL",
@@ -290,7 +292,7 @@
             "MOGUL",
             "FRUTALES",
             "50",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790580129422",
         "Familia": "BEBIDAS",
@@ -316,7 +318,7 @@
             "KELLOGG'S ZUCARITAS",
             "CLASICAS",
             "240",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7896004004921",
         "Familia": "GENERAL",
@@ -342,7 +344,7 @@
             "DOS ANCLAS",
             "RANCH PICANTE",
             "250",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7792900990743",
         "Familia": "GENERAL",
@@ -367,7 +369,8 @@
             "GALLETITAS",
             "VANINA",
             "MINI",
-            "110G"
+            "110",
+            "Gr"
         ],
         "Codigo de Barras": "7798017860085",
         "Familia": "GALLETITAS",
@@ -393,7 +396,7 @@
             "LA SALTEÑA",
             "JYQ",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790236000693",
         "Familia": "GENERAL",
@@ -419,7 +422,7 @@
             "TORO",
             "TINTO CLASICO",
             "750",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7790314003226",
         "Familia": "BEBIDAS",
@@ -445,7 +448,7 @@
             "REXONA",
             "NUTRITIVE",
             "150",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791293041735",
         "Codigo de Barras 2": "7791293045566",
@@ -472,7 +475,7 @@
             "ALICANTE",
             "ESPARRAGOS LIGHT",
             "40",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790150441701",
         "Familia": "GENERAL",
@@ -498,7 +501,7 @@
             "LA SALTEÑA",
             "PARA HAMBURGUESAS CON SESAMO",
             "220",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790883003504",
         "Familia": "GENERAL",
@@ -524,7 +527,7 @@
             "ELVIVE",
             "CITRUS",
             "200",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7898587762380",
         "Familia": "PERFUMERIA",
@@ -550,7 +553,7 @@
             "GLADE",
             "HARMONY",
             "360",
-            "CC"
+            "Cc"
         ],
         "Codigo de Barras": "7790520998224",
         "Familia": "BEBIDAS",
@@ -576,7 +579,7 @@
             "MILKA",
             "OREO",
             "155",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7622300990213",
         "Familia": "GOLOSINAS",
@@ -601,8 +604,8 @@
             "AGUA DE MESA",
             "BENEDICTINO",
             "SIN GAS",
-            "1,5",
-            "LT"
+            "1.5",
+            "Lt"
         ],
         "Codigo de Barras": "7790895064456",
         "Codigo de Barras 2": "7790895647659",
@@ -629,7 +632,7 @@
             "PRIME",
             "SUPER FINO",
             "3",
-            "UN"
+            "Un"
         ],
         "Codigo de Barras": "7791519200045",
         "Familia": "GENERAL",
@@ -655,7 +658,7 @@
             "ESTRELLA",
             "CLASICO",
             "100",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790064001701",
         "Familia": "PERFUMERIA",
@@ -681,7 +684,7 @@
             "GALLO",
             "DULCES",
             "100",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790070418425",
         "Codigo de Barras 2": "7790070411358",
@@ -705,10 +708,10 @@
         "Codigo": "959541846",
         "Descripcion": [
             "BIZCOCHITOS",
-            "GRANIX",
-            "INTEGRAL SEMILLAS DE GIRASOL",
+            "GrANIX",
+            "INTEGrAL SEMILLAS DE GIRASOL",
             "180",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790045824909",
         "Familia": "BEBIDAS",
@@ -734,7 +737,7 @@
             "MAKE",
             "6 HILERAS",
             "1",
-            "UN"
+            "Un"
         ],
         "Codigo de Barras": "7798092961271",
         "Familia": "BEBIDAS",
@@ -760,7 +763,7 @@
             "DANETTE",
             "CARAMELO",
             "95",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337006591",
         "Codigo de Barras 2": "7791337005297",
@@ -787,7 +790,7 @@
             "COCINERO",
             "OLIVA EXTRA VIRGEN",
             "500",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7790070218216",
         "Familia": "GENERAL",
@@ -813,7 +816,7 @@
             "ABUELA MECHA",
             "BLANCO",
             "23",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798069890252",
         "Familia": "GOLOSINAS",
@@ -839,7 +842,7 @@
             "DOS ANCLAS",
             "MOLIDO",
             "50",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7792900009063",
         "Familia": "GENERAL",
@@ -865,7 +868,7 @@
             "IMPERIAL",
             "GOLDEN",
             "473",
-            "CC"
+            "Cc"
         ],
         "Codigo de Barras": "7793147571689",
         "Familia": "BEBIDAS",
@@ -891,7 +894,7 @@
             "BRIA",
             "CHOCOLATE Y AVELLANAS",
             "100",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "701575359165",
         "Familia": "GALLETITAS",
@@ -917,7 +920,7 @@
             "IMPERIAL",
             "GOLDEN",
             "1000",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7793147571672",
         "Familia": "BEBIDAS",
@@ -943,7 +946,7 @@
             "CACHAFAZ",
             "AVENA Y PASAS DE UVA",
             "225",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798128000677",
         "Familia": "GENERAL",
@@ -969,7 +972,7 @@
             "LA CAMPAGNOLA",
             "DESMENUZADO AL NATURAL",
             "170",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7793360129957",
         "Familia": "GENERAL",
@@ -995,7 +998,7 @@
             "PATYVIENA",
             "FUN X6",
             "190",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790670051220",
         "Codigo de Barras 2": "7790670052111",
@@ -1022,36 +1025,12 @@
             "MENDIA",
             "4 QUESOS",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790522002493",
         "Familia": "GENERAL",
         "Costo": 15,
         "Precio de Venta": 220,
-        "Stock Minimo": 0,
-        "Tope de Descuento": 100,
-        "IVA": 21,
-        "Pesable": "N",
-        "Tipo": "P",
-        "Activo": "S",
-        "Impuesto Interno": 0,
-        "Publicar en Web": "S",
-        "Unidades por bulto": 0,
-        "Dias de Stock": 0,
-        "Favorito": "N",
-        "RG 5329/23": "N"
-    },
-    {
-        "Codigo": "77919489",
-        "Descripcion": [
-            "TOPLINE",
-            "SANDIA",
-            "6.7G"
-        ],
-        "Codigo de Barras": "77919489",
-        "Familia": "GOLOSINAS",
-        "Costo": 0,
-        "Precio de Venta": 130,
         "Stock Minimo": 0,
         "Tope de Descuento": 100,
         "IVA": 21,
@@ -1072,7 +1051,7 @@
             "NIVEA",
             "MEN FRESH",
             "50",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "4005900517005",
         "Familia": "PERFUMERIA",
@@ -1098,7 +1077,7 @@
             "ALARIS",
             "SAUVIGNON BLANCO",
             "750",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7790240017069",
         "Familia": "BEBIDAS",
@@ -1124,7 +1103,7 @@
             "TRAVIATA",
             "CLASICAS",
             "101",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790040872103",
         "Familia": "GALLETITAS",
@@ -1150,7 +1129,7 @@
             "VIZZIO",
             "CON ALMENDRAS",
             "35",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7792360094524",
         "Familia": "GOLOSINAS",
@@ -1176,7 +1155,7 @@
             "SILK",
             "CHOCOLATE",
             "125",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337005785",
         "Familia": "LACTEOS",
@@ -1202,7 +1181,7 @@
             "HERMIDA",
             "DE MESA",
             "500",
-            "CC"
+            "Cc"
         ],
         "Codigo de Barras": "7798146350044",
         "Familia": "BEBIDAS",
@@ -1228,7 +1207,7 @@
             "HOJALMAR",
             "TRIANGULOS",
             "150",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7793450000128",
         "Familia": "BEBIDAS",
@@ -1254,7 +1233,7 @@
             "HILERET",
             "STEVIA",
             "200",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7790490998224",
         "Familia": "GENERAL",
@@ -1280,7 +1259,7 @@
             "RIERA",
             "MULTI SEMILLAS",
             "200",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790071070608",
         "Familia": "GALLETITAS",
@@ -1306,7 +1285,7 @@
             "REXONA",
             "COTTON DRY",
             "150",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791293032467",
         "Codigo de Barras 2": "7791293045146",
@@ -1333,7 +1312,7 @@
             "PATAGONIA",
             "LIGHT",
             "300",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798060852402",
         "Familia": "BEBIDAS",
@@ -1359,7 +1338,7 @@
             "MATARAZZO",
             "TIRABUZON",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790070320766",
         "Codigo de Barras 2": "7790070318602 ",
@@ -1386,7 +1365,7 @@
             "OCASO",
             "GOLDEN",
             "473",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7798342330055",
         "Familia": "BEBIDAS",
@@ -1412,7 +1391,7 @@
             "DELUXE",
             "CREMA DE MANI",
             "28",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798301130184",
         "Familia": "GOLOSINAS",
@@ -1438,7 +1417,7 @@
             "NUTREE",
             "QUINOA Y ESPINACA CON NUEZ MOSCADA X4",
             "400",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "076625216294",
         "Familia": "CONGELADOS",
@@ -1463,8 +1442,8 @@
             "GASEOSA",
             "SPRITE",
             "CLASICA",
-            "1,5",
-            "LT"
+            "1.5",
+            "Lt"
         ],
         "Codigo de Barras": "7790895000447",
         "Familia": "BEBIDAS",
@@ -1490,7 +1469,7 @@
             "MINERVA",
             "CLASICO",
             "250",
-            "CC"
+            "Cc"
         ],
         "Codigo de Barras": "7790070507372",
         "Familia": "GENERAL",
@@ -1516,7 +1495,7 @@
             "ADES",
             "MANZANA",
             "1",
-            "LT"
+            "Lt"
         ],
         "Codigo de Barras": "7790895643835",
         "Familia": "BEBIDAS",
@@ -1542,7 +1521,7 @@
             "MAROLIO",
             "CHOCOLATE",
             "540",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7797470008287",
         "Familia": "GENERAL",
@@ -1568,7 +1547,7 @@
             "MONSTER",
             "ULTRA SUNRISE",
             "473",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "1007084703703",
         "Familia": "BEBIDAS",
@@ -1592,9 +1571,9 @@
         "Descripcion": [
             "EDULCORANTE POLVO",
             "EQUAL SWEET",
-            "STEVIA 40 GR",
+            "STEVIA 40 Gr",
             "50",
-            "UN"
+            "Un"
         ],
         "Codigo de Barras": "7792129003620",
         "Familia": "GENERAL",
@@ -1620,7 +1599,7 @@
             "LA SALTEÑA",
             "RICOTTA",
             "450",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790070621269",
         "Familia": "GENERAL",
@@ -1646,7 +1625,7 @@
             "MISKY",
             "CON LECHE",
             "25",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790580612719",
         "Familia": "GOLOSINAS",
@@ -1672,7 +1651,7 @@
             "100 DUCADOS",
             "GOTAS DE DULCE DE LECHE",
             "300",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798164160397",
         "Familia": "GENERAL",
@@ -1698,7 +1677,7 @@
             "LA MORENITA",
             "CLASICO",
             "125",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790170901858",
         "Familia": "GENERAL",
@@ -1723,8 +1702,8 @@
             "CARAMELOS",
             "MENTHOPLUS",
             "ZERO STRONG",
-            "26,6",
-            "GR"
+            "26.6",
+            "Gr"
         ],
         "Codigo de Barras": "77901095",
         "Familia": "GOLOSINAS",
@@ -1750,7 +1729,7 @@
             "BON O BON",
             "CLASICO",
             "15",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "77958921",
         "Familia": "GOLOSINAS",
@@ -1776,7 +1755,7 @@
             "ORALI",
             "FETTUCCINE",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791218000076",
         "Familia": "GENERAL",
@@ -1802,7 +1781,7 @@
             "CHIVAS REGAL",
             "CLASICO",
             "500",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "080432402733",
         "Familia": "BEBIDAS",
@@ -1828,7 +1807,7 @@
             "LEVITE",
             "NARANJA",
             "500",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7798062548655",
         "Codigo de Barras 2": "7798062548716",
@@ -1855,7 +1834,7 @@
             "SUIZA",
             "ROBLE CLARO",
             "850",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7790613001053",
         "Familia": "LIMPIEZA",
@@ -1880,8 +1859,8 @@
             "ACEITE",
             "COCINERO",
             "GIRASOL BLEND",
-            "1,5",
-            "LT"
+            "1.5",
+            "Lt"
         ],
         "Codigo de Barras": "7790070229694",
         "Familia": "GENERAL",
@@ -1907,7 +1886,7 @@
             "HELLMANN’S",
             "LIVIANA",
             "1",
-            "KG"
+            "Kg"
         ],
         "Codigo de Barras": "7794000007086",
         "Familia": "GENERAL",
@@ -1933,7 +1912,7 @@
             "VACALIN",
             "SARDO",
             "250",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790616000602",
         "Familia": "LACTEOS",
@@ -1959,7 +1938,7 @@
             "DUCADOS",
             "FRUTOS DEL BOSQUE",
             "300",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798164160700",
         "Familia": "GALLETITAS",
@@ -1985,7 +1964,7 @@
             "NIVEA",
             "REPARADORA",
             "250",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "4005900980373",
         "Familia": "PERFUMERIA",
@@ -2011,7 +1990,7 @@
             "VACALIN",
             "MOZZARELLA",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790616080048",
         "Familia": "BEBIDAS",
@@ -2037,7 +2016,7 @@
             "MUECAS",
             "PASAS Y ALMENDRAS",
             "45",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798333090050",
         "Familia": "GOLOSINAS",
@@ -2063,7 +2042,7 @@
             "CEREAL FORT",
             "CROCO",
             "19",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790206509072",
         "Familia": "GOLOSINAS",
@@ -2089,7 +2068,7 @@
             "LA SERENISIMA",
             "EXTRA CALCIO BOTELLA",
             "1",
-            "LT"
+            "Lt"
         ],
         "Codigo de Barras": "7790742358905",
         "Familia": "LACTEOS",
@@ -2115,7 +2094,7 @@
             "LEVITE",
             "POMELO",
             "2",
-            "LT"
+            "Lt"
         ],
         "Codigo de Barras": "7790315101082",
         "Codigo de Barras 2": "7798062544893",
@@ -2142,7 +2121,7 @@
             "LISETTA",
             "CLASICA",
             "400",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798032180601",
         "Familia": "GENERAL",
@@ -2168,7 +2147,7 @@
             "PROCENEX",
             "FLORES DEL JARDIN",
             "900",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791130683531",
         "Familia": "BEBIDAS",
@@ -2194,7 +2173,7 @@
             "LEVEX",
             "CLASICA",
             "50",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798018851341",
         "Familia": "GENERAL",
@@ -2220,7 +2199,7 @@
             "SER",
             "NATURAL ENDULZADO",
             "300",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337004191",
         "Familia": "LACTEOS",
@@ -2246,7 +2225,7 @@
             "LA SUIPACHENSE",
             "CLASICA",
             "200",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7794396000890",
         "Familia": "LACTEOS",
@@ -2272,7 +2251,7 @@
             "CHEETOS",
             "QUESO",
             "94",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790310984499",
         "Familia": "GENERAL",
@@ -2298,7 +2277,7 @@
             "CHESTERFIELD",
             "BOX",
             "10",
-            "UN"
+            "Un"
         ],
         "Codigo de Barras": "77953483",
         "Familia": "GENERAL",
@@ -2324,7 +2303,7 @@
             "VACALIN",
             "ORIGINAL",
             "1",
-            "KG"
+            "Kg"
         ],
         "Codigo de Barras": "7790616018058",
         "Familia": "LACTEOS",
@@ -2350,7 +2329,7 @@
             "ARMONÍA",
             "CLASICO",
             "400",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790742330307",
         "Familia": "LACTEOS",
@@ -2376,7 +2355,7 @@
             "SALADIX",
             "PIZZA",
             "100",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790580697303",
         "Familia": "BEBIDAS",
@@ -2402,7 +2381,7 @@
             "ROCKLETS",
             "CLASICAS",
             "118",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790040110748",
         "Familia": "BEBIDAS",
@@ -2428,7 +2407,7 @@
             "TULIPAN",
             "FRUTILLA",
             "3",
-            "UN"
+            "Un"
         ],
         "Codigo de Barras": "7791014001178",
         "Familia": "PERFUMERIA",
@@ -2454,7 +2433,7 @@
             "KNORR",
             "GALLINA",
             "12",
-            "UN"
+            "Un"
         ],
         "Codigo de Barras": "7794000006737",
         "Codigo de Barras 2": "7794000005730",
@@ -2481,7 +2460,7 @@
             "MORIXE",
             "0000",
             "1",
-            "KG"
+            "Kg"
         ],
         "Codigo de Barras": "7790199000020",
         "Familia": "GENERAL",
@@ -2507,7 +2486,7 @@
             "LA CAMPAGNOLA",
             "LOMITOS AL NATURAL",
             "300",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790580138776",
         "Codigo de Barras 2": "7793360005169",
@@ -2534,7 +2513,7 @@
             "SKARCHITOS",
             "AZUCARADOS",
             "240",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790045001607",
         "Familia": "GENERAL",
@@ -2560,7 +2539,7 @@
             "VIDACOL",
             "DESCREMADO MULTIFRUTA",
             "100",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337005006",
         "Familia": "LACTEOS",
@@ -2586,7 +2565,7 @@
             "MENTHOPLUS",
             "ZERO DURAZNO",
             "26,6",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "77946812",
         "Familia": "GOLOSINAS",
@@ -2612,7 +2591,7 @@
             "CLUB SOCIAL",
             "ORIGINAL",
             "144",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7622300990749",
         "Codigo de Barras 2": "7622300990701",
@@ -2639,7 +2618,7 @@
             "VIRULANA",
             "INOXY",
             "1",
-            "UN"
+            "Un"
         ],
         "Codigo de Barras": "7794440002399",
         "Familia": "BEBIDAS",
@@ -2665,7 +2644,7 @@
             "HAMLET",
             "LECHE Y COOKIES",
             "43",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7794612065917",
         "Familia": "GOLOSINAS",
@@ -2691,7 +2670,7 @@
             "FANTA",
             "POMELO",
             "1,75",
-            "LT"
+            "Lt"
         ],
         "Codigo de Barras": "7790895647895",
         "Familia": "BEBIDAS",
@@ -2717,7 +2696,7 @@
             "GANDARA",
             "FRUTILLA",
             "200",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798335282019",
         "Familia": "BEBIDAS",
@@ -2743,7 +2722,7 @@
             "CICA",
             "CLASICO",
             "520",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7794000599826",
         "Familia": "GENERAL",
@@ -2769,7 +2748,7 @@
             "PUREZA",
             "PIZZA",
             "1",
-            "KG"
+            "Kg"
         ],
         "Codigo de Barras": "7792180004567",
         "Familia": "GENERAL",
@@ -2795,7 +2774,7 @@
             "ESENCIAL",
             "ROSAS",
             "300",
-            "CC"
+            "Cc"
         ],
         "Codigo de Barras": "7797470197547",
         "Familia": "LIMPIEZA",
@@ -2821,7 +2800,7 @@
             "CINDOR",
             "CLASICA",
             "200",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791337007260",
         "Codigo de Barras 2": "7791337005624",
@@ -2848,7 +2827,7 @@
             "MAROLIO",
             "TALLARINES",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7797470005446",
         "Familia": "GENERAL",
@@ -2874,7 +2853,7 @@
             "ILOLAY",
             "DESCREMADO FRUTILLA TETRA",
             "1",
-            "LT"
+            "Lt"
         ],
         "Codigo de Barras": "7790787949595",
         "Codigo de Barras 2": "7790787949359",
@@ -2901,7 +2880,7 @@
             "CIF",
             "ULTRA BRILLO ORIGINAL",
             "400",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791290792753",
         "Familia": "BEBIDAS",
@@ -2927,7 +2906,7 @@
             "GILLETTE",
             "VENUS SENSITIVE",
             "1",
-            "UN"
+            "Un"
         ],
         "Codigo de Barras": "7500435138505",
         "Familia": "PERFUMERIA",
@@ -2953,7 +2932,7 @@
             "ROMERO",
             "PARA FREIR",
             "310",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7796854000206",
         "Familia": "GENERAL",
@@ -2979,7 +2958,7 @@
             "MILKA",
             "MOUSSE BLANCO",
             "55",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7622300457303",
         "Familia": "GOLOSINAS",
@@ -3005,7 +2984,7 @@
             "CUESTA DEL MADERO",
             "BLANCO CLASICO",
             "750",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7798130464887",
         "Familia": "BEBIDAS",
@@ -3031,7 +3010,7 @@
             "CABRALES",
             "SUPER MOLIDO CAPSULAS X10",
             "55",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790550018916",
         "Familia": "GENERAL",
@@ -3057,7 +3036,7 @@
             "MORIXE",
             "GIRASOL",
             "900",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7790199603931",
         "Familia": "GENERAL",
@@ -3083,7 +3062,7 @@
             "CIF",
             "LIMA",
             "500",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791290792616",
         "Familia": "BEBIDAS",
@@ -3109,7 +3088,7 @@
             "REXONA",
             "NUTRITIVE",
             "50",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "78944855",
         "Familia": "PERFUMERIA",
@@ -3135,7 +3114,7 @@
             "VACALIN",
             "CREMA DE VAINILLA",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790616004204",
         "Familia": "HELADOS",
@@ -3161,7 +3140,7 @@
             "SER",
             "DULCE DE LECHE",
             "100",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337007000",
         "Codigo de Barras 2": "7791337004672",
@@ -3188,7 +3167,7 @@
             "SERENITO",
             "WOW DDL",
             "100",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337000698",
         "Familia": "BEBIDAS",
@@ -3214,7 +3193,7 @@
             "PORTEÑITAS",
             "CLASICAS",
             "139",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790040132689",
         "Familia": "BEBIDAS",
@@ -3240,7 +3219,7 @@
             "MURVILLE",
             "CHENIN CHARDONNAY",
             "750",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7790765000249",
         "Familia": "BEBIDAS",
@@ -3264,9 +3243,9 @@
         "Descripcion": [
             "CERVEZA",
             "ANDES",
-            "NEGRA",
+            "NEGrA",
             "473",
-            "CC"
+            "Cc"
         ],
         "Codigo de Barras": "7792798002320",
         "Familia": "BEBIDAS",
@@ -3292,7 +3271,7 @@
             "LS CLASICO",
             "CON ARANDANOS",
             "140",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337605879",
         "Codigo de Barras 2": "7791337006072",
@@ -3319,7 +3298,7 @@
             "S&P",
             "CLASICO",
             "400",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791990000042",
         "Familia": "GENERAL",
@@ -3345,7 +3324,7 @@
             "LA BANDA",
             "BLANCOS",
             "430",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790499000508",
         "Familia": "GENERAL",
@@ -3371,7 +3350,7 @@
             "ARCOR",
             "KIOSCO EN CASA",
             "246",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790580131371",
         "Familia": "GENERAL",
@@ -3397,7 +3376,7 @@
             "PITUSAS",
             "MERENGUE",
             "120",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791324157534",
         "Familia": "BEBIDAS",
@@ -3420,12 +3399,10 @@
         "Codigo": "9841654",
         "Descripcion": [
             "ARROZ",
-            "DOS",
-            "HERMANOS",
-            "DOBLE",
-            "CAROLINA",
+            "DOS HERMANOS",
+            "DOBLE CAROLINA",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790503199143",
         "Familia": "GENERAL",
@@ -3451,7 +3428,7 @@
             "ORALI",
             "4 QUESOS",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791218124239",
         "Familia": "GENERAL",
@@ -3477,7 +3454,7 @@
             "SERENITO",
             "CHOCOLATE",
             "100",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337006751",
         "Familia": "LACTEOS",
@@ -3503,7 +3480,7 @@
             "CBSE",
             "FRUTOS DE BOSQUE",
             "500",
-            "G"
+            "Gr"
         ],
         "Codigo de Barras": "7790710334702",
         "Familia": "GENERAL",
@@ -3527,9 +3504,9 @@
         "Descripcion": [
             "ALCAPARRAS",
             "NUCETE",
-            "EN VINAGRE",
+            "EN VINAGrE",
             "110",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791885005206",
         "Codigo de Barras 2": "7792070000761",
@@ -3555,8 +3532,8 @@
             "GASEOSA",
             "7UP",
             "SIN AZUCARES",
-            "1,5",
-            "LT"
+            "1.5",
+            "Lt"
         ],
         "Codigo de Barras": "7791813421580",
         "Familia": "BEBIDAS",
@@ -3582,7 +3559,7 @@
             "GLADE",
             "I LOVE YOU",
             "360",
-            "CC"
+            "Cc"
         ],
         "Codigo de Barras": "7790520998170",
         "Familia": "GENERAL",
@@ -3608,7 +3585,7 @@
             "EL MAIZAL",
             "CLASICO",
             "100",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798134521029",
         "Familia": "GALLETITAS",
@@ -3634,7 +3611,7 @@
             "GILLETTE",
             "REGULAR",
             "312",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "3014260273903",
         "Familia": "PERFUMERIA",
@@ -3660,7 +3637,7 @@
             "SER",
             "VAINILLA",
             "900",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791337004801",
         "Codigo de Barras 2": "7791337005747",
@@ -3687,7 +3664,7 @@
             "VACALIN",
             "FRUTILLA",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790616004181",
         "Familia": "HELADOS",
@@ -3713,7 +3690,7 @@
             "DON YEYO",
             "CON CHIPS",
             "400",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7795293601685",
         "Familia": "GENERAL",
@@ -3739,7 +3716,7 @@
             "KRACHITOS",
             "DE QUESO",
             "45",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7794520868167",
         "Familia": "BEBIDAS",
@@ -3765,7 +3742,7 @@
             "ROMERO",
             "PARA HORNO",
             "310",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7796854000190",
         "Familia": "GENERAL",
@@ -3791,7 +3768,7 @@
             "FORMIS",
             "CIANOS CHOCOLATE",
             "102",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790040139930",
         "Codigo de Barras 2": "7790040139978",
@@ -3818,7 +3795,7 @@
             "INCA",
             "CREMOSO BCO",
             "350",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790790120806",
         "Familia": "GENERAL",
@@ -3844,7 +3821,7 @@
             "BAHIA",
             "AL NATURAL",
             "300",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7795933000014",
         "Familia": "GENERAL",
@@ -3870,7 +3847,7 @@
             "LA ABADIA",
             "INSTANTANEA",
             "400",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798049540566",
         "Familia": "GENERAL",
@@ -3896,7 +3873,7 @@
             "DOVE",
             "REGENERACION EXTREMA",
             "200",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791293038742",
         "Familia": "PERFUMERIA",
@@ -3922,7 +3899,7 @@
             "MONTEMAR",
             "CLASICO",
             "60",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798123300208",
         "Familia": "GOLOSINAS",
@@ -3948,7 +3925,7 @@
             "IVESS",
             "SIN GAS",
             "500",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7797257000121",
         "Familia": "BEBIDAS",
@@ -3974,7 +3951,7 @@
             "VACALIN",
             "CHOCOLATE",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790616004051",
         "Familia": "HELADOS",
@@ -4000,7 +3977,7 @@
             "VACALIN",
             "SAMBAYON",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790616004112",
         "Familia": "HELADOS",
@@ -4026,7 +4003,7 @@
             "AGUILA",
             "SEMIAMARGO",
             "14",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "77931528",
         "Familia": "GOLOSINAS",
@@ -4052,7 +4029,7 @@
             "LACTAL",
             "TAPAMANIA",
             "560",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798056680552",
         "Familia": "GENERAL",
@@ -4078,7 +4055,7 @@
             "D.R.F.",
             "MENTA",
             "23",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7792222002865",
         "Familia": "GOLOSINAS",
@@ -4104,7 +4081,7 @@
             "MILKA",
             "RELLENO CHOCO-SWING",
             "300",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "9012200872739",
         "Familia": "GOLOSINAS",
@@ -4130,7 +4107,7 @@
             "BAHIA",
             "DESMENUZADO AL NATURAL",
             "170",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7795933000298",
         "Familia": "GENERAL",
@@ -4156,7 +4133,7 @@
             "HARPIC",
             "100% REMOVEDOR DE SARRO",
             "500",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791130681384",
         "Codigo de Barras 2": "7791130681421",
@@ -4180,10 +4157,10 @@
         "Codigo": "7793253004547",
         "Descripcion": [
             "GALLETITAS",
-            "GRANOVITA",
+            "GrANOVITA",
             "COCO",
             "140",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790045000860",
         "Familia": "GALLETITAS",
@@ -4209,7 +4186,7 @@
             "MILKAUT",
             "VAINILLA",
             "900",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7794820902882",
         "Codigo de Barras 2": "7794820902257",
@@ -4236,7 +4213,7 @@
             "EXQUISITA",
             "VAINILLA",
             "40",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790070413116",
         "Familia": "GENERAL",
@@ -4262,7 +4239,7 @@
             "ESENCIAL",
             "ROSA MOSQUETA",
             "750",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7793699045409",
         "Familia": "LIMPIEZA",
@@ -4288,7 +4265,7 @@
             "FAVORITA",
             "000",
             "1",
-            "KG"
+            "Kg"
         ],
         "Codigo de Barras": "7790070507235",
         "Familia": "GENERAL",
@@ -4314,7 +4291,7 @@
             "LUCCHETTI",
             "MOSTACHOL",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790070335494",
         "Familia": "GENERAL",
@@ -4340,7 +4317,7 @@
             "PRESTO PRONTA",
             "PANCETA Y QUESO",
             "250",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790580126322",
         "Familia": "GENERAL",
@@ -4366,7 +4343,7 @@
             "COFLER",
             "BLOCK BLANCO",
             "38",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "77981912",
         "Familia": "GOLOSINAS",
@@ -4392,7 +4369,7 @@
             "LIRA",
             "GIRASOL",
             "120",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790070231840",
         "Familia": "GENERAL",
@@ -4418,7 +4395,7 @@
             "MECANO",
             "DULCE DE LECHE",
             "100",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7792360094678",
         "Familia": "GOLOSINAS",
@@ -4444,7 +4421,7 @@
             "NESTUM",
             "TRIGO Y MIEL",
             "225",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "8445290118189",
         "Familia": "GENERAL",
@@ -4470,7 +4447,7 @@
             "KRACHITOS",
             "PELADO",
             "110",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7794520868990",
         "Familia": "GENERAL",
@@ -4496,7 +4473,7 @@
             "SER",
             "NARANJA ZANAHORIA",
             "190",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337005259",
         "Familia": "LACTEOS",
@@ -4522,7 +4499,7 @@
             "LUCCHETTINI",
             "ESPINACA Y QUESO",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790070317469",
         "Familia": "GENERAL",
@@ -4548,7 +4525,7 @@
             "MENDIA",
             "POLLO",
             "1",
-            "KG"
+            "Kg"
         ],
         "Codigo de Barras": "7790522002875",
         "Familia": "GENERAL",
@@ -4573,8 +4550,8 @@
             "GASEOSA",
             "PEPSI",
             "LIGHT",
-            "1,5",
-            "LT"
+            "1.5",
+            "Lt"
         ],
         "Codigo de Barras": "7791813421351",
         "Codigo de Barras 2": "7791813421054",
@@ -4601,7 +4578,7 @@
             "LA TONADITA",
             "LIGHT",
             "290",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798060852945",
         "Familia": "LACTEOS",
@@ -4627,7 +4604,7 @@
             "DOVE",
             "BEAUTY FINISH",
             "150",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791293033235",
         "Familia": "PERFUMERIA",
@@ -4653,7 +4630,7 @@
             "HOJALMAR",
             "VEGGIES",
             "150",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7793450000913",
         "Familia": "GALLETITAS",
@@ -4679,7 +4656,7 @@
             "RINCON VEGANO",
             "SCONES NARANJA Y CHIPS",
             "350",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "732535949362",
         "Familia": "BEBIDAS",
@@ -4705,7 +4682,7 @@
             "LA MERCED",
             "DE MONTE",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790387015614",
         "Familia": "GENERAL",
@@ -4731,7 +4708,7 @@
             "SINERGIA",
             "MALBEC",
             "750",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7798138760196",
         "Familia": "BEBIDAS",
@@ -4757,7 +4734,7 @@
             "LS CLASICO",
             "LIGHT FRUTILLA",
             "900",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337004924",
         "Familia": "BEBIDAS",
@@ -4783,7 +4760,7 @@
             "FINLANDIA",
             "FINAS HIERBAS",
             "180",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790742327307",
         "Familia": "BEBIDAS",
@@ -4809,7 +4786,7 @@
             "CUTEX",
             "FORTALECEDOR",
             "100",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7790416066532",
         "Familia": "PERFUMERIA",
@@ -4835,7 +4812,7 @@
             "CRUSH",
             "LIMA LIMON",
             "2,25",
-            "LT"
+            "Lt"
         ],
         "Codigo de Barras": "7790895007385",
         "Familia": "BEBIDAS",
@@ -4861,7 +4838,7 @@
             "YIN YANG",
             "QUINOA POP KIDS",
             "50",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790495004685",
         "Familia": "GENERAL",
@@ -4887,7 +4864,7 @@
             "MACUCAS",
             "MINI",
             "140",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790040133716",
         "Familia": "BEBIDAS",
@@ -4913,7 +4890,7 @@
             "DOREE",
             "HUMECTANTE",
             "65",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7794050005001",
         "Familia": "PERFUMERIA",
@@ -4937,41 +4914,14 @@
         "Descripcion": [
             "CHOCOLATE",
             "COFLER",
-            "AIREADO NEGRO",
+            "AIREADO NEGrO",
             "55",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790580033408",
         "Familia": "GOLOSINAS",
         "Costo": 152.2,
         "Precio de Venta": 750,
-        "Stock Minimo": 0,
-        "Tope de Descuento": 100,
-        "IVA": 21,
-        "Pesable": "N",
-        "Tipo": "P",
-        "Activo": "S",
-        "Impuesto Interno": 0,
-        "Publicar en Web": "S",
-        "Unidades por bulto": 0,
-        "Dias de Stock": 0,
-        "Favorito": "N",
-        "RG 5329/23": "N"
-    },
-    {
-        "Codigo": "7730908400567",
-        "Descripcion": [
-            "JUGO",
-            "SOBRE",
-            "RINDE",
-            "DOS",
-            "MANZANA",
-            "13G"
-        ],
-        "Codigo de Barras": "7730908400567",
-        "Familia": "GENERAL",
-        "Costo": 0,
-        "Precio de Venta": 185,
         "Stock Minimo": 0,
         "Tope de Descuento": 100,
         "IVA": 21,
@@ -4992,7 +4942,7 @@
             "NOEL",
             "PORTUGUESA",
             "340",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790580134488",
         "Codigo de Barras 2": "7795184946505",
@@ -5017,10 +4967,9 @@
         "Descripcion": [
             "SHAMPOO",
             "SEDAL",
-            "CARBON",
-            "ACTIVADO",
+            "CARBON ACTIVADO",
             "190",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791293042923",
         "Familia": "PERFUMERIA",
@@ -5043,13 +4992,10 @@
         "Codigo": "10871",
         "Descripcion": [
             "RAVIOLES",
-            "LA",
-            "SALTEÑA",
-            "MINI",
-            "CUATRO",
-            "QUESOS",
+            "LA SALTEÑA",
+            "MINI CUATRO UESOS",
             "300",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790070621900",
         "Familia": "GENERAL",
@@ -5069,116 +5015,13 @@
         "RG 5329/23": "N"
     },
     {
-        "Codigo": "654165416516506",
-        "Descripcion": [
-            "NAIPES",
-            "HABANA",
-            "ESTILO",
-            "ESPAÑOL",
-            "X40"
-        ],
-        "Codigo de Barras": "7797216002036",
-        "Familia": "GENERAL",
-        "Costo": 400,
-        "Precio de Venta": 590,
-        "Stock Minimo": 0,
-        "Tope de Descuento": 100,
-        "IVA": 21,
-        "Pesable": "N",
-        "Tipo": "P",
-        "Activo": "S",
-        "Impuesto Interno": 0,
-        "Publicar en Web": "S",
-        "Unidades por bulto": 0,
-        "Dias de Stock": 0,
-        "Favorito": "N",
-        "RG 5329/23": "N"
-    },
-    {
-        "Codigo": "3042",
-        "Descripcion": [
-            "HELADO",
-            "ARCOR",
-            "3",
-            "CREMAS"
-        ],
-        "Codigo de Barras": "7790580130022",
-        "Familia": "HELADOS",
-        "Costo": 57.3,
-        "Precio de Venta": 860,
-        "Stock Minimo": 0,
-        "Tope de Descuento": 100,
-        "IVA": 21,
-        "Pesable": "N",
-        "Tipo": "P",
-        "Activo": "S",
-        "Impuesto Interno": 0,
-        "Publicar en Web": "S",
-        "Unidades por bulto": 0,
-        "Dias de Stock": 0,
-        "Favorito": "N",
-        "RG 5329/23": "N"
-    },
-    {
-        "Codigo": "17",
-        "Descripcion": [
-            "CALZONE/FATAY"
-        ],
-        "Familia": "PANADERIA",
-        "Costo": 350,
-        "Precio de Venta": 450,
-        "Stock Minimo": 0,
-        "Tope de Descuento": 100,
-        "IVA": 21,
-        "Pesable": "N",
-        "Tipo": "P",
-        "Activo": "S",
-        "Impuesto Interno": 0,
-        "Publicar en Web": "S",
-        "Unidades por bulto": 0,
-        "Dias de Stock": 0,
-        "Favorito": "N",
-        "RG 5329/23": "N"
-    },
-    {
-        "Codigo": "77991904",
-        "Descripcion": [
-            "LICOR",
-            "3",
-            "PLUMAS",
-            "CAFE",
-            "X",
-            "200"
-        ],
-        "Codigo de Barras": "77991904",
-        "Familia": "BEBIDAS",
-        "Costo": 380,
-        "Precio de Venta": 560,
-        "Stock Minimo": 0,
-        "Tope de Descuento": 100,
-        "IVA": 21,
-        "Pesable": "N",
-        "Tipo": "P",
-        "Activo": "S",
-        "Impuesto Interno": 0,
-        "Publicar en Web": "N",
-        "Unidades por bulto": 0,
-        "Dias de Stock": 0,
-        "Favorito": "N",
-        "RG 5329/23": "N"
-    },
-    {
         "Codigo": "10496",
         "Descripcion": [
-            "LIMPIADOR",
-            "LIQUIDO",
+            "LIMPIADOR LIQUIDO",
             "CIF",
-            "PISOS",
-            "PLASTIFICADOS",
-            "Y",
-            "FLOTANTES",
+            "PISOS PLASTIFICADOS Y FLOTANTES",
             "750",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791290003514",
         "Familia": "BEBIDAS",
@@ -5201,13 +5044,10 @@
         "Codigo": "7793253004327",
         "Descripcion": [
             "REMOLACHA",
-            "LA",
-            "BANDA",
-            "EN",
-            "CUBOS",
-            "TETRA",
+            "LA BANDA",
+            "EN CUBOS TETRA",
             "340",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790499002519",
         "Familia": "GENERAL",
@@ -5229,12 +5069,11 @@
     {
         "Codigo": "1844",
         "Descripcion": [
-            "AGUA",
-            "SABORIZADA",
+            "AGUA SABORIZADA",
             "LEVITE",
             "PERA",
-            "1,5",
-            "LT"
+            "1.5",
+            "Lt"
         ],
         "Codigo de Barras": "7798362540250",
         "Codigo de Barras 2": "7798062540253",
@@ -5308,10 +5147,9 @@
         "Descripcion": [
             "SHAMPOO",
             "PANTENE",
-            "HIDRATACION",
-            "EXTREMA",
+            "HIDRATACION EXTREMA",
             "200",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7500435012720",
         "Codigo de Barras 2": "7500435169936",
@@ -5336,12 +5174,9 @@
         "Descripcion": [
             "HELADO",
             "VACALIN",
-            "FRUTILLA",
-            "A",
-            "LA",
-            "REINA",
+            "FRUTILLA A A REINA",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790616004174",
         "Familia": "HELADOS",
@@ -5365,9 +5200,9 @@
         "Descripcion": [
             "CAFE",
             "CABRALES",
-            "ESPRESSO",
-            "GRANO",
-            "500G"
+            "ESPRESSO GrANO",
+            "500",
+            "Gr"
         ],
         "Codigo de Barras": "7790550001512",
         "Familia": "GENERAL",
@@ -5420,7 +5255,7 @@
             "CADBURY",
             "ALMENDRAS",
             "82",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7622201807405",
         "Familia": "GOLOSINAS",
@@ -5470,10 +5305,9 @@
         "Descripcion": [
             "BUDIN",
             "POZO",
-            "CON",
-            "FRUTAS",
+            "CON FRUTAS",
             "170",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790077000432",
         "Familia": "GENERAL",
@@ -5500,7 +5334,7 @@
             "OLIVA",
             "ECOLIVA",
             "500",
-            "CC"
+            "Cc"
         ],
         "Codigo de Barras": "7798159930110",
         "Familia": "GENERAL",
@@ -5524,40 +5358,14 @@
         "Descripcion": [
             "PAN",
             "ROMERO",
-            "PARA",
-            "HAMBUERGUESAS",
+            "PARA HAMBUERGUESAS",
             "210",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7796854000114",
         "Familia": "GENERAL",
         "Costo": 314,
         "Precio de Venta": 490,
-        "Stock Minimo": 0,
-        "Tope de Descuento": 100,
-        "IVA": 21,
-        "Pesable": "N",
-        "Tipo": "P",
-        "Activo": "S",
-        "Impuesto Interno": 0,
-        "Publicar en Web": "S",
-        "Unidades por bulto": 0,
-        "Dias de Stock": 0,
-        "Favorito": "N",
-        "RG 5329/23": "N"
-    },
-    {
-        "Codigo": "597",
-        "Descripcion": [
-            "MANI",
-            "CON",
-            "CASCARA",
-            "250",
-            "GR"
-        ],
-        "Familia": "GENERAL",
-        "Costo": 185,
-        "Precio de Venta": 580,
         "Stock Minimo": 0,
         "Tope de Descuento": 100,
         "IVA": 21,
@@ -5604,8 +5412,8 @@
             "YOGUR",
             "DANONINO",
             "VAINILLA",
-            "80,5",
-            "GR"
+            "80.5",
+            "Gr"
         ],
         "Codigo de Barras": "7791337004719",
         "Familia": "BEBIDAS",
@@ -5628,11 +5436,10 @@
         "Codigo": "7793253004556",
         "Descripcion": [
             "VINO",
-            "ANGEL",
-            "ROJO",
+            "ANGEL ROJO",
             "MALBEC",
             "750",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7798104240080",
         "Familia": "BEBIDAS",
@@ -5658,7 +5465,7 @@
             "MATARAZZO",
             "MOÑOS",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790230033031",
         "Familia": "GENERAL",
@@ -5684,7 +5491,7 @@
             "PITUSAS",
             "CHOCOLATE",
             "160",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791324157046",
         "Familia": "BEBIDAS",
@@ -5738,7 +5545,7 @@
             "CACHAMATE",
             "ROSA",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7792280001466",
         "Familia": "GENERAL",
@@ -5761,12 +5568,10 @@
         "Codigo": "7793253004100",
         "Descripcion": [
             "LECHE",
-            "LA",
-            "SERENISIMA",
-            "BOTELLA",
-            "PREBIOTICOS",
+            "LA SERENISIMA",
+            "BOTELLA PREBIOTICOS",
             "1",
-            "LT"
+            "Lt"
         ],
         "Codigo de Barras": "7790742358509",
         "Familia": "LACTEOS",
@@ -5809,15 +5614,11 @@
     {
         "Codigo": "11026",
         "Descripcion": [
-            "DULCE",
-            "DE",
-            "LECHE",
-            "LA",
-            "SERENISIMA",
-            "ESTILO",
-            "COLONIAL",
+            "DULCE DE LECHE",
+            "LA SERENISIMA",
+            "ESTILO COLONIAL",
             "400",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790742625205",
         "Codigo de Barras 2": "7790742140609",
@@ -5845,7 +5646,7 @@
             "LIMON",
             "SILVA",
             "960",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7798142740160",
         "Familia": "GENERAL",
@@ -5896,7 +5697,7 @@
             "MANTECA",
             "TONADITA",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798060852839",
         "Familia": "LACTEOS",
@@ -5921,8 +5722,8 @@
             "ACEITE",
             "NATURA",
             "GIRASOL",
-            "1,5",
-            "LT"
+            "1.5",
+            "Lt"
         ],
         "Codigo de Barras": "7790272001029",
         "Familia": "GENERAL",
@@ -5970,11 +5771,10 @@
         "Codigo": "10352",
         "Descripcion": [
             "GALLETITAS",
-            "SURTIDO",
-            "DIVERSION",
+            "SURTIDO DIVERSION",
             "CHOCOLATE",
             "160",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790040131071",
         "Familia": "GALLETITAS",
@@ -5999,7 +5799,8 @@
             "HARINA",
             "MAROLIO",
             "000",
-            "1KG"
+            "1",
+            "Kg"
         ],
         "Codigo de Barras": "7797470000045",
         "Familia": "GENERAL",
@@ -6071,13 +5872,11 @@
     {
         "Codigo": "1128",
         "Descripcion": [
-            "JUGO",
-            "EN",
-            "POLVO",
+            "JUGO EN POLVO",
             "CLIGHT",
             "ANANA",
             "7",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7622201702625",
         "Codigo de Barras 2": "7622210812872",
@@ -6179,10 +5978,10 @@
         "Codigo": "7790045827047",
         "Descripcion": [
             "GALLETITAS",
-            "GRANIX",
+            "GrANIX",
             "SEMOLADAS",
             "420",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790045827047",
         "Familia": "GALLETITAS",
@@ -6205,10 +6004,10 @@
         "Codigo": "7791664000880",
         "Descripcion": [
             "PASCUALINA",
-            "LA",
-            "ITALIANA",
+            "LA ITALIANA",
             "CRIOLLA",
-            "400G"
+            "400",
+            "Gr"
         ],
         "Codigo de Barras": "7791664000880",
         "Familia": "GENERAL",
@@ -6235,7 +6034,7 @@
             "PISO",
             "FLORAL",
             "900",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7790520012579",
         "Familia": "BEBIDAS",
@@ -6259,10 +6058,9 @@
         "Descripcion": [
             "MANI",
             "KRACHITOS",
-            "PELADO",
-            "SALADO",
+            "PELADO SALADO",
             "120",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7794520412216",
         "Codigo de Barras 2": "7794520442121",
@@ -6371,7 +6169,7 @@
             "LUCCHETTI",
             "PARBOIL",
             "1",
-            "KG"
+            "Kg"
         ],
         "Codigo de Barras": "7790070411815",
         "Familia": "GENERAL",
@@ -6397,7 +6195,7 @@
             "ARCOR",
             "SELECCION",
             "258",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790580131388",
         "Familia": "GENERAL",
@@ -6447,12 +6245,10 @@
         "Codigo": "7790240041675",
         "Descripcion": [
             "VINO",
-            "FINCA",
-            "LAS",
-            "MORAS",
-            "BLANCO",
-            "SAUVIGNON",
-            "750ML"
+            "FINCA LAS MORAS",
+            "BLANCO SAUVIGNON",
+            "750",
+            "Ml"
         ],
         "Codigo de Barras": "7790240041675",
         "Familia": "BEBIDAS",
@@ -6474,17 +6270,11 @@
     {
         "Codigo": "10542",
         "Descripcion": [
-            "JABON",
-            "DE",
-            "TOCADOR",
+            "JABON DE TOCADOR",
             "SUAVE",
-            "LIRIO",
-            "&",
-            "AGUA",
-            "DE",
-            "ROSAS",
+            "LIRIO & AGUA DE ROSAS",
             "90",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791293038056",
         "Familia": "PERFUMERIA",
@@ -6508,10 +6298,9 @@
         "Descripcion": [
             "YOGUR",
             "YOGURISIMO",
-            "FIRME",
-            "DURAZNO",
+            "FIRME DURAZNO",
             "190",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337005594",
         "Codigo de Barras 2": "7791337006386",
@@ -6567,7 +6356,7 @@
             "ROMERO",
             "HOJALDRE",
             "400",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7796854000237",
         "Familia": "GENERAL",
@@ -6590,12 +6379,10 @@
         "Codigo": "7793253004076",
         "Descripcion": [
             "CAFE",
-            "LA",
-            "MORENITA",
-            "INSTANTANEO",
-            "INTENSO",
+            "LA MORENITA",
+            "INSTANTANEO INTENSO",
             "170",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790170904668",
         "Familia": "GENERAL",
@@ -6617,15 +6404,11 @@
     {
         "Codigo": "9872804",
         "Descripcion": [
-            "TOSTADAS",
-            "DE",
-            "ARROZ",
-            "DOS",
-            "HERMANOS",
-            "CON",
-            "SAL",
+            "TOSTADAS DE ARROZ",
+            "DOS HERMANOS",
+            "CON SAL",
             "120",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790503000333",
         "Familia": "GENERAL",
@@ -6676,7 +6459,7 @@
             "TURRON",
             "MANI",
             "80",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7798094221731",
         "Familia": "GALLETITAS",
@@ -6698,15 +6481,11 @@
     {
         "Codigo": "654165416516594",
         "Descripcion": [
-            "JABON",
-            "EN",
-            "POLVO",
+            "JABON EN POLVO",
             "LIMZUL",
-            "LAVADO",
-            "A",
-            "MANO",
+            "LAVADO A MANO",
             "800",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790990001349",
         "Familia": "LIMPIEZA",
@@ -6732,7 +6511,7 @@
             "SEDAL",
             "HIALURÓNICO",
             "340",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791293046433",
         "Familia": "PERFUMERIA",
@@ -6757,7 +6536,8 @@
             "VINO",
             "SUTER",
             "MALBEC",
-            "750ML"
+            "750",
+            "Ml"
         ],
         "Codigo de Barras": "7790704167637",
         "Familia": "BEBIDAS",
@@ -6780,11 +6560,10 @@
         "Codigo": "65420",
         "Descripcion": [
             "VINO",
-            "CUATRO",
-            "FINCAS",
+            "CUATRO FINCAS",
             "MALBEC-SYRAH",
             "750",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7798370260058",
         "Familia": "BEBIDAS",
@@ -6833,10 +6612,9 @@
         "Descripcion": [
             "QUESO",
             "FINLANDIA",
-            "UNTABLE",
-            "PARMESANO",
+            "UNTABLE PARMESANO",
             "180",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790742326706",
         "Familia": "BEBIDAS",
@@ -6863,7 +6641,7 @@
             "DE",
             "LA",
             "NONA",
-            "180GR"
+            "180Gr"
         ],
         "Codigo de Barras": "7798048730883",
         "Familia": "GALLETITAS",
@@ -6913,7 +6691,7 @@
             "OROWEAT",
             "CEREALES",
             "600",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7793890258431",
         "Familia": "GENERAL",
@@ -6938,7 +6716,7 @@
             "MINICORONITAS",
             "FRAMBUESA",
             "140",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790369000997",
         "Familia": "GALLETITAS",
@@ -6962,10 +6740,9 @@
         "Descripcion": [
             "LAVANDINA",
             "AYUDIN",
-            "QUITAMANCHAS",
-            "BLANCOS",
+            "QUITAMANCHAS BLANCOS",
             "2",
-            "LT"
+            "Lt"
         ],
         "Codigo de Barras": "7793253004781",
         "Familia": "BEBIDAS",
@@ -6987,14 +6764,11 @@
     {
         "Codigo": "9872969",
         "Descripcion": [
-            "LIMPIADOR",
-            "LIQUIDO",
+            "LIMPIADOR LIQUIDO",
             "POETT",
-            "SUAVIDAD",
-            "DE",
-            "ALGODON",
+            "SUAVIDAD DE ALGODON",
             "900",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7793253003470",
         "Familia": "BEBIDAS",
@@ -7118,11 +6892,10 @@
         "Codigo": "7793253004418",
         "Descripcion": [
             "POSTRE",
-            "GRAN",
-            "COMPRA",
+            "GrAN COMPRA",
             "VAINILLA",
             "100",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337005181",
         "Familia": "LACTEOS",
@@ -7146,8 +6919,9 @@
         "Descripcion": [
             "OREGANO",
             "ALICANTE",
+            "TRITURADO",
             "50",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790150540336",
         "Familia": "GENERAL",
@@ -7248,7 +7022,8 @@
             "MERMELADA",
             "CORMILLOT",
             "FRAMBUESA",
-            "390G"
+            "390",
+            "Gr"
         ],
         "Codigo de Barras": "7793046007869",
         "Familia": "GENERAL",
@@ -7344,12 +7119,10 @@
         "Codigo": "7793253004500",
         "Descripcion": [
             "VINO",
-            "GRAN",
-            "SOMBRERO",
-            "CABERNET",
-            "FRANC",
+            "GrAN SOMBRERO",
+            "CABERNET FRANC",
             "750",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "742832932592",
         "Codigo de Barras 2": "742832932516",
@@ -7374,9 +7147,9 @@
         "Descripcion": [
             "PRESERVATIVOS",
             "PRIME",
-            "EXTRA",
-            "LUCRICADO",
-            "X3"
+            "EXTRA LUCRICADO",
+            "3",
+            "Un"
         ],
         "Codigo de Barras": "7791519000676",
         "Familia": "GENERAL",
@@ -7402,7 +7175,7 @@
             "OPERA",
             "CHOCOLATE",
             "68",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "77971708",
         "Familia": "BEBIDAS",
@@ -7452,10 +7225,9 @@
         "Descripcion": [
             "SHAMPOO",
             "DOVE",
-            "HIDRATACION",
-            "INTENSA",
+            "HIDRATACION INTENSA",
             "200",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7891150082632",
         "Familia": "PERFUMERIA",
@@ -7479,11 +7251,9 @@
         "Descripcion": [
             "TURRON",
             "GEORGALOS",
-            "MANI",
-            "Y",
-            "ALMENDRAS",
+            "MANI Y ALMENDRAS",
             "80",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790380011903",
         "Familia": "GOLOSINAS",
@@ -7506,11 +7276,10 @@
         "Codigo": "65450",
         "Descripcion": [
             "POROTOS",
-            "LA",
-            "BANDA",
-            "NEGROS",
+            "LA BANDA",
+            "NEGrOS",
             "350",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790499017759",
         "Familia": "GENERAL",
@@ -7532,12 +7301,11 @@
     {
         "Codigo": "7791290794429",
         "Descripcion": [
-            "LIMPIADOR",
-            "LÍQUIDO",
+            "LIMPIADOR LÍQUIDO",
             "CIF",
             "BAÑO",
             "450",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7791290794429",
         "Familia": "LIMPIEZA",
@@ -7560,11 +7328,10 @@
         "Codigo": "65448",
         "Descripcion": [
             "POROTOS",
-            "LA",
-            "BANDA",
+            "LA BANDA",
             "ROJOS",
             "350",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790499017742",
         "Familia": "GENERAL",
@@ -7588,11 +7355,9 @@
         "Descripcion": [
             "ATUN",
             "GOMES",
-            "LOMITOS",
-            "AL",
-            "NATURAL",
+            "LOMITOS AL NATURAL",
             "170",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7891167831100",
         "Familia": "GENERAL",
@@ -7667,7 +7432,7 @@
             "MILKA",
             "LECHE",
             "20",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7622210795625",
         "Familia": "GENERAL",
@@ -7693,7 +7458,7 @@
             "SHOT",
             "BLANCO",
             "35",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "77983992",
         "Familia": "GOLOSINAS",
@@ -7742,11 +7507,9 @@
         "Descripcion": [
             "YOGUR",
             "GARCIA",
-            "BEBIBLE",
-            "VAINILLA",
-            "DESCREMADO",
+            "BEBIBLE VAINILLA DESCREMADO",
             "900",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791337004467",
         "Familia": "BEBIDAS",
@@ -7769,7 +7532,7 @@
         "Codigo": "2437",
         "Descripcion": [
             "MORIXE",
-            "INTEGRAL"
+            "INTEGrAL"
         ],
         "Codigo de Barras": "7790199603856",
         "Familia": "GENERAL",
@@ -7792,11 +7555,10 @@
         "Codigo": "7793253003893",
         "Descripcion": [
             "YERBA",
-            "NOBLEZA",
-            "GAUCHA",
+            "NOBLEZA GAUCHA",
             "SUAVE",
             "500",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790070509109",
         "Codigo de Barras 2": "7790070506696",
@@ -7844,11 +7606,10 @@
         "Codigo": "7793253004198",
         "Descripcion": [
             "BROCOLI",
+            "GrEEN LIFE",
             "CONGELADO",
-            "GREEN",
-            "LIFE",
             "400",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790670051589",
         "Familia": "BEBIDAS",
@@ -7901,7 +7662,7 @@
             "EXQUISITA",
             "NARANJA",
             "540",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7790070412362",
         "Familia": "GENERAL",
@@ -7926,7 +7687,7 @@
             "MILKA",
             "BLANCO",
             "55",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7622210745583",
         "Familia": "BEBIDAS",
@@ -7953,7 +7714,7 @@
             "NESCAFE",
             "DOLCA",
             "125",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "8445290256355",
         "Familia": "GENERAL",
@@ -8027,13 +7788,11 @@
     {
         "Codigo": "654165416516618",
         "Descripcion": [
-            "PAN",
-            "DULCE",
+            "PAN DULCE",
             "FANTOCHE",
-            "SIN",
-            "FRUTA",
+            "SIN FRUTA",
             "400",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7791672001985",
         "Familia": "GENERAL",
@@ -8057,10 +7816,9 @@
         "Descripcion": [
             "DETERGENTE",
             "MAGISTRAL",
-            "LIMON",
-            "CREMOSO",
+            "LIMON CREMOSO",
             "215",
-            "ML"
+            "Ml"
         ],
         "Codigo de Barras": "7500435183949",
         "Familia": "LIMPIEZA",
@@ -8082,15 +7840,11 @@
     {
         "Codigo": "1768",
         "Descripcion": [
-            "BOLSA",
-            "PARA",
-            "HORNO",
+            "BOLSA PARA HORNO",
             "KNORR",
-            "LIMON",
-            "Y",
-            "OREGANO",
+            "LIMON Y OREGANO",
             "21",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7891150058132",
         "Codigo de Barras 2": "7794000004887",
@@ -8114,11 +7868,10 @@
         "Codigo": "9872620",
         "Descripcion": [
             "JALEA",
-            "DE",
-            "MEMBRILLO",
             "BC",
+            "MEMBRILLO",
             "390",
-            "GR"
+            "Gr"
         ],
         "Codigo de Barras": "7793360131615",
         "Familia": "GENERAL",

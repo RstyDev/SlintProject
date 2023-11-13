@@ -168,7 +168,7 @@ function dibujarProductos(objetos) {
   tr = document.createElement('tr');
   {
     let th = document.createElement('th');
-    th.style.width = '60%'
+    th.style.width = '80%'
     th.innerHTML = 'Producto';
     tr.appendChild(th);
     let th3 = document.createElement('th');
@@ -183,9 +183,9 @@ function dibujarProductos(objetos) {
     let cantidad;
     let presentacion;
     switch (Object.keys(objetos[i].presentacion)[0]) {
-      case 'Grs':
-        cantidad = objetos[i].presentacion.Grs;
-        presentacion = 'Grs';
+      case 'Gr':
+        cantidad = objetos[i].presentacion.Gr;
+        presentacion = 'Gr';
         break;
       case 'Un':
         cantidad = objetos[i].presentacion.Un;
@@ -194,6 +194,20 @@ function dibujarProductos(objetos) {
       case 'Lt':
         cantidad = objetos[i].presentacion.Lt;
         presentacion = 'Lt';
+        break;
+      case 'Ml':
+        cantidad = objetos[i].presentacion.Ml;
+        presentacion = 'Ml';
+        break;
+      case 'Cc':
+        cantidad = objetos[i].presentacion.Cc;
+        presentacion = 'Cc';
+        break;
+      case 'Kg':
+        cantidad = objetos[i].presentacion.Kg;
+        presentacion = 'Kg';
+        break;
+
     }
     let id = document.createElement('td');
     id.innerHTML = objetos[i].id;
@@ -203,7 +217,8 @@ function dibujarProductos(objetos) {
     producto.innerHTML = objetos[i].tipo_producto + ' ' + objetos[i].marca + ' ' + objetos[i].variedad + ' ' + cantidad + ' ' + presentacion;
     tr2.appendChild(producto);
     let precio = document.createElement('td');
-    precio.innerHTML = objetos[i].precio_de_venta;
+    precio.innerHTML = "$  "+objetos[i].precio_de_venta;
+    precio.style.textAlign='end'
     tr2.appendChild(precio);
     tr2.addEventListener('keydown', (e) => {
       navigate(e)
@@ -303,7 +318,7 @@ window.addEventListener("DOMContentLoaded", () => {
       if (document.querySelector('#porcentaje').value != '') {
         let percent = document.querySelector('#porcentaje').value;
         let sale = document.querySelector('#precio_de_costo').value;
-        if (sale != null) {
+        if (sale != 0) {
           document.querySelector('#precio_de_venta').value = parseFloat(sale) * (1 + (parseFloat(percent)) / 100)
         }
       }

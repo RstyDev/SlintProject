@@ -29,94 +29,94 @@
       <!-- <h1>Welcome to Tauri!</h1> -->
       <div>
         <form autocomplete="off">
-          <input type="text" id="buscador" >
+          <input type="text" id="buscador">
         </form>
       </div>
     </div>
   </header>
-    <main>
-      <div id="agregar-producto-container" class="main-screen">
-        <a id="cerrar-agregar-producto" class="a-boton">X</a>
-        <form id="agregar-producto-submit">
-          <section>
-            <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" required />
-          </section>
-          <section>
-            <input id="tipo_producto" list="opciones-tipo-producto" placeholder="Tipo de producto" required />
-            <datalist id="opciones-tipo-producto">
-            </datalist>
-          </section>
-          <section>
-            <input id="marca" list="opciones-marca" placeholder="Marca" required />
-            <datalist id="opciones-marca">
-            </datalist>
-          </section>
-          <section>
-            <input id="variedad" placeholder="Variedad" required />
-          </section>
-          <section>
-            <input type="number" id="cantidad" placeholder="Cantidad" required />
-            <select name="presentacion" id="presentacion" required>
-              <option value="" selected disabled hidden>Elige una opción</option>
-              <option value="Grs">Grs.</option>
-              <option value="Un">Un.</option>
-              <option value="Lt">Lt.</option>
-            </select>
-          </section>
-          <section>
-            <input type="number" id="precio_de_costo" placeholder="Precio de costo" required />
-          </section>
-          <section>
-            <input type="number" id="porcentaje" placeholder="Porcentaje" value='40' required />
-          </section>
-          <section>
-            <input type="number" id="precio_de_venta" placeholder="Precio de venta" required />
-          </section>
-          <button type="submit">Agregar producto</button>
-        </form>
-        <form id="agregar-proveedor-a-producto">
-
-          <select name="Proveedor" id="proveedor" required>
-            <option value="" selected disabled hidden>Seleccione una opción</option>
-
+  <main>
+    <div id="agregar-producto-container" class="main-screen">
+      <a id="cerrar-agregar-producto" class="a-boton">X</a>
+      <form id="agregar-producto-submit">
+        <section>
+          <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" required />
+        </section>
+        <section>
+          <input id="tipo_producto" list="opciones-tipo-producto" placeholder="Tipo de producto" required />
+          <datalist id="opciones-tipo-producto">
+          </datalist>
+        </section>
+        <section>
+          <input id="marca" list="opciones-marca" placeholder="Marca" required />
+          <datalist id="opciones-marca">
+          </datalist>
+        </section>
+        <section>
+          <input id="variedad" placeholder="Variedad" required />
+        </section>
+        <section>
+          <input type="number" id="cantidad" placeholder="Cantidad" required />
+          <select name="presentacion" id="presentacion" required>
+            <option value="" selected disabled hidden>Elige una opción</option>
+            <option value="Grs">Grs.</option>
+            <option value="Un">Un.</option>
+            <option value="Lt">Lt.</option>
           </select>
-          <input type="number" id="codigo_prov" placeholder="Codigo interno del proveedor">
+        </section>
+        <section>
+          <input type="number" id="precio_de_costo" placeholder="Precio de costo" required />
+        </section>
+        <section>
+          <input type="number" id="porcentaje" placeholder="Porcentaje" value='40' required />
+        </section>
+        <section>
+          <input type="number" id="precio_de_venta" placeholder="Precio de venta" required />
+        </section>
+        <button type="submit">Agregar producto</button>
+      </form>
+      <form id="agregar-proveedor-a-producto">
+
+        <select name="Proveedor" id="proveedor" required>
+          <option value="" selected disabled hidden>Seleccione una opción</option>
+
+        </select>
+        <input type="number" id="codigo_prov" placeholder="Codigo interno del proveedor">
+
+        <button type="submit">Agregar</button>
+      </form>
+
+    </div>
+    <div id="agregar-proveedor-container" class="main-screen">
+      <a id="cerrar-agregar-proveedor" class="a-boton">X</a>
+      <form id="agregar-proveedor-submit">
+        <input type="text" id="input-nombre-proveedor" placeholder="Nombre del proveedor" required>
+
+        <div>
+          <input id="input-contacto-proveedor" name="input-contacto-proveedor" type="tel"
+            placeholder="Numero de contacto" size="20" minlength="9" maxlength="14" />
 
           <button type="submit">Agregar</button>
-        </form>
+        </div>
+      </form>
 
-      </div>
-      <div id="agregar-proveedor-container" class="main-screen">
-        <a id="cerrar-agregar-proveedor" class="a-boton">X</a>
-        <form id="agregar-proveedor-submit">
-          <input type="text" id="input-nombre-proveedor" placeholder="Nombre del proveedor" required>
+    </div>
 
-          <div>
-            <input id="input-contacto-proveedor" name="input-contacto-proveedor" type="tel"
-              placeholder="Numero de contacto" size="20" minlength="9" maxlength="14" />
 
-            <button type="submit">Agregar</button>
-          </div>
-        </form>
+    <div id="msg-container">
+      <p id="mensaje1-msg"></p>
+    </div>
+    <section id="cuadro-venta" class="main-screen">
 
-      </div>
-      
-      
-      <div id="msg-container">
-        <p id="mensaje1-msg"></p>
-      </div>
-      <section id="cuadro-venta" class="main-screen">
-
-      </section>
-    </main>
+    </section>
+  </main>
 
 
 
 
 
-    
 
-  
+
+
 </body>
 
 </html>
