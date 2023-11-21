@@ -36,9 +36,21 @@
 }
 
 .articulo {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 50% 35% 15%;
+}
+
+.descripcion {
+  grid-column-start: 1;
+}
+
+.cantidad {
+  grid-column-start: 2;
+}
+
+.monto {
+  grid-column-start: 3;
+  text-align: end;
 }
 
 .articulo section {
@@ -96,7 +108,11 @@
   height: 80svh;
   background-color: #0f0f0f98;
   border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
 }
+
 
 .logo {
   height: 6em;
@@ -147,14 +163,20 @@ header button {
 #monto-total {
   display: inline-block;
   align-self: end;
+  margin: auto 5px 5px 5px;
 }
-.descripcion{
+
+#monto-total p {
+  display: inline-block;
+  padding: 5px 10px;
+  background-color: #2f2f2f;
+  border-radius: 5px;
+}
+
+.descripcion {
   flex-grow: 1;
 }
-#cuadro-venta{
-  display: flex;
-  flex-direction: column;
-}
+
 
 input,
 button,
@@ -171,18 +193,22 @@ select,
   transition: border-color 0.25s;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
-main{
+
+main {
   display: flex;
   justify-content: center;
 }
+
 select,
 .a-boton {
   background-color: #1a1a1a;
   color: #7f7f7f;
 }
-.cantidad-producto{
+
+.cantidad-producto {
   display: inline;
 }
+
 .a-boton {
   height: 20px;
 }
@@ -224,20 +250,23 @@ button:active {
   border-color: #396cd8;
   background-color: #e8e8e8;
 }
-*:disabled{
+
+*:disabled {
   color: #666666;
   background-color: #2f2f2f;
   transition: none;
 }
-*:disabled:hover{
-  border:#2f2f2f;
-  cursor:auto;
+
+*:disabled:hover {
+  border: #2f2f2f;
+  cursor: auto;
   border-color: rgba(0, 0, 0, 0);
   border-radius: 8px;
-  border-style: solid; 
+  border-style: solid;
   border-width: 1px;
   border-image-outset: 0;
 }
+
 input,
 button {
   outline: none;

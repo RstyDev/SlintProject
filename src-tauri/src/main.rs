@@ -6,22 +6,22 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 use std::fs::File;
 use std::io::{Read, Write};
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard, PoisonError};
 use tauri::State;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Config {
     politica_redondeo: f64,
     formato_producto: Formato,
     modo_luz: Luz,
 }
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub enum Formato {
     #[default]
     Tmv,
     Mtv,
 }
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub enum Luz {
     #[default]
     Claro,
@@ -40,12 +40,14 @@ impl Pago {
 
 //---------------------------------Structs y Enums-------------------------------------
 pub struct Sistema {
+    configs: Config,
     productos: Vec<Producto>,
     ventas: (Venta, Venta),
     proveedores: Vec<Proveedor>,
     path_prods: String,
     path_proveedores: String,
     path_relaciones: String,
+    path_configs: String,
     relaciones: Vec<Relacion>,
 }
 #[derive(Clone, Serialize, Deserialize)]
@@ -165,6 +167,7 @@ impl<'a> Sistema {
         let path_prods = String::from("Productos.json");
         let path_proveedores = String::from("Proveedores.json");
         let path_relaciones = String::from("Relaciones.json");
+        let path_configs = String::from("Configs.json");
         let mut productos = Vec::new();
         if let Err(e) = leer_file(&mut productos, &path_prods) {
             panic!("{}", e);
@@ -177,16 +180,30 @@ impl<'a> Sistema {
         if let Err(e) = leer_file(&mut relaciones, &path_relaciones) {
             panic!("{}", e);
         }
-
+        let mut configs = Vec::<Config>::new();
+        if let Err(e) = leer_file(&mut configs, &path_configs) {
+            panic!("{}", e);
+        }
+        if configs.len() == 0 {
+            configs.push(Config::default());
+            if let Err(e) = crear_file(&path_configs, &mut configs) {
+                panic!("{}", e);
+            }
+        }
         Sistema {
+            configs: configs[0].clone(),
             productos,
             ventas: (Venta::new(), Venta::new()),
             proveedores,
             path_prods,
             path_proveedores,
             path_relaciones,
+            path_configs,
             relaciones,
         }
+    }
+    pub fn set_configs(&mut self, configs: Config) {
+        self.configs = configs;
     }
     pub fn imprimir(&self) {
         println!("Printed from rust");
@@ -204,40 +221,13 @@ impl<'a> Sistema {
         &mut self,
         proveedores: Vec<String>,
         codigos_prov: Vec<String>,
-        codigos_de_barras: Vec<&str>,
-        precio_de_venta: &str,
-        porcentaje: &str,
-        precio_de_costo: &str,
-        tipo_producto: &str,
-        marca: &str,
-        variedad: &str,
-        cantidad: &str,
-        presentacion: &str,
+        producto: Producto,
     ) -> Result<(), String> {
         let mut res = Ok(());
-        for code in &codigos_de_barras {
-            if let Err(e) = code.parse::<u128>() {
-                res = Err(e.to_string());
-            }
-        }
-        let producto = Producto::new(
-            self.productos.len(),
-            codigos_de_barras,
-            precio_de_venta,
-            porcentaje,
-            precio_de_costo,
-            tipo_producto,
-            marca,
-            variedad,
-            cantidad,
-            presentacion,
-        );
+
         self.productos.push(producto);
 
         for i in 0..proveedores.len() {
-            println!("{:?}", self.productos[self.productos.len() - 1]);
-            println!("{:?}", proveedores[i]);
-            println!("{:?}", codigos_prov[i]);
             match codigos_prov[i].parse::<u128>() {
                 Ok(a) => self
                     .relaciones
@@ -539,9 +529,13 @@ fn agregar_producto(
 ) -> Result<(), String> {
     match sistema.lock() {
         Ok(mut sis) => {
-            sis.agregar_producto(
-                proveedores,
-                codigos_prov,
+            for code in &codigos_de_barras {
+                if let Err(e) = code.parse::<u128>() {
+                    return Err(e.to_string());
+                }
+            }
+            let producto = Producto::new(
+                sis.productos.len(),
                 codigos_de_barras,
                 precio_de_venta,
                 porcentaje,
@@ -551,7 +545,8 @@ fn agregar_producto(
                 variedad,
                 cantidad,
                 presentacion,
-            )?;
+            );
+            sis.agregar_producto(proveedores, codigos_prov, producto)?;
 
             Ok(())
         }
@@ -728,6 +723,24 @@ fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta, S
     }
     res
 }
+#[tauri::command]
+fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config, String> {
+    let res;
+    match sistema.lock() {
+        Ok(sis) => res = Ok(sis.configs.clone()),
+        Err(e) => res = Err(e.to_string()),
+    }
+    res
+}
+#[tauri::command]
+fn set_configs(sistema: State<Mutex<Sistema>>, configs: Config) -> Result<(), String> {
+    let mut res = Ok(());
+    match sistema.lock() {
+        Ok(mut sis) => sis.set_configs(configs),
+        Err(e) => res = Err(e.to_string()),
+    }
+    res
+}
 
 //----------------------------------------main--------------------------------------------
 
@@ -747,7 +760,9 @@ fn main() {
             descontar_producto_de_venta,
             redondeo,
             agregar_pago,
-            get_venta_actual
+            get_venta_actual,
+            get_configs,
+            set_configs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

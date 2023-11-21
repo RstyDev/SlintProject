@@ -66,23 +66,25 @@ function dibujar_venta(venta) {
   for (let producto of venta.productos) {
     if (producto[0] < 2) {
       disabled = 'disabled';
+    }else{
+      disabled='';
     }
     hijos += `<article class="articulo" id="${producto[1].id}">
      <section class="descripcion">
         ${producto[1].marca} ${producto[1].tipo_producto} ${producto[1].variedad}    
      </section>
-     <section>
+     <section class="cantidad">
      cantidad:
         <button class="button restar" ${disabled}>-</button>
         <p class="cantidad-producto"> ${producto[0]}</p>
         <button class="button sumar">+</button>
      </section>
-     <section>
+     <section class="monto">
         ${producto[1].precio_de_venta}
      </section>
      </article>`;
   }
-  hijos += `<section id="monto-total"> ${venta.monto_total}</section>`
+  hijos += `<section id="monto-total"> TOTAL <p>${venta.monto_total}</p></section>`
   cuadro.innerHTML = hijos;
   for (let boton of document.querySelectorAll('.sumar')) {
     boton.addEventListener('click', (e) => { sumarProducto(e) });

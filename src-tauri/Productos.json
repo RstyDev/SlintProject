@@ -124,9 +124,9 @@
         "codigos_de_barras": [
             7791293030289
         ],
-        "precio_de_venta": 0,
-        "porcentaje": -100,
-        "precio_de_costo": 1,
+        "precio_de_venta": 200,
+        "porcentaje": 100,
+        "precio_de_costo": 400,
         "tipo_producto": "ACONDICIONADOR",
         "marca": "SUAVE",
         "variedad": "MANZANA VERDE Y VITAMINAS",
@@ -278,7 +278,7 @@
         "porcentaje": 0,
         "precio_de_costo": 190,
         "tipo_producto": "CAPELETIS",
-        "marca": "LA SALTEÃ�A",
+        "marca": "LA SALTEÑA",
         "variedad": "JYQ",
         "presentacion": {
             "Gr": 500
@@ -319,9 +319,9 @@
         "codigos_de_barras": [
             7790150441701
         ],
-        "precio_de_venta": 0,
-        "porcentaje": -100,
-        "precio_de_costo": 1.23,
+        "precio_de_venta": 300,
+        "porcentaje": 100,
+        "precio_de_costo": 600,
         "tipo_producto": "SOPA LISTA",
         "marca": "ALICANTE",
         "variedad": "ESPARRAGOS LIGHT",
@@ -338,7 +338,7 @@
         "porcentaje": 83.33333333333333,
         "precio_de_costo": 360,
         "tipo_producto": "PAN",
-        "marca": "LA SALTEÃ�A",
+        "marca": "LA SALTEÑA",
         "variedad": "PARA HAMBURGUESAS CON SESAMO",
         "presentacion": {
             "Gr": 220
@@ -968,7 +968,7 @@
         "porcentaje": 193.02325581395348,
         "precio_de_costo": 430,
         "tipo_producto": "RAVIOLES",
-        "marca": "LA SALTEÃ�A",
+        "marca": "LA SALTEÑA",
         "variedad": "RICOTTA",
         "presentacion": {
             "Gr": 450
@@ -1133,7 +1133,7 @@
         "porcentaje": 46.57210401891252,
         "precio_de_costo": 846,
         "tipo_producto": "MAYONESA",
-        "marca": "HELLMANNâ��S",
+        "marca": "HELLMANN'S",
         "variedad": "LIVIANA",
         "presentacion": {
             "Kg": 1
@@ -1388,7 +1388,7 @@
         "porcentaje": 0,
         "precio_de_costo": 0,
         "tipo_producto": "DULCE DE LECHE",
-        "marca": "ARMONÃ�A",
+        "marca": "ARMONIA",
         "variedad": "CLASICO",
         "presentacion": {
             "Gr": 400
@@ -1883,7 +1883,7 @@
         "porcentaje": 150.8938091952581,
         "precio_de_costo": 159.43,
         "tipo_producto": "GALLETITAS",
-        "marca": "PORTEÃ�ITAS",
+        "marca": "PORTEÑITAS",
         "variedad": "CLASICAS",
         "presentacion": {
             "Gr": 139
@@ -2164,9 +2164,9 @@
         "codigos_de_barras": [
             7795293601685
         ],
-        "precio_de_venta": 0,
-        "porcentaje": 0,
-        "precio_de_costo": 0,
+        "precio_de_venta": 200,
+        "porcentaje": 50,
+        "precio_de_costo": 300,
         "tipo_producto": "PAN DULCE",
         "marca": "DON YEYO",
         "variedad": "CON CHIPS",
@@ -2918,7 +2918,7 @@
         "porcentaje": 123.25581395348837,
         "precio_de_costo": 430,
         "tipo_producto": "RAVIOLES",
-        "marca": "LA SALTEÃ�A",
+        "marca": "LA SALTEÑA",
         "variedad": "MINI CUATRO UESOS",
         "presentacion": {
             "Gr": 300
@@ -3099,7 +3099,7 @@
         "precio_de_costo": 283.38,
         "tipo_producto": "FIDEOS",
         "marca": "MATARAZZO",
-        "variedad": "MOÃ�OS",
+        "variedad": "MOÑOS",
         "presentacion": {
             "Gr": 500
         }
@@ -3429,7 +3429,7 @@
         "precio_de_costo": 0,
         "tipo_producto": "ACONDICIONADOR",
         "marca": "SEDAL",
-        "variedad": "HIALURÃ�NICO",
+        "variedad": "HIALURÑNICO",
         "presentacion": {
             "Ml": 340
         }
@@ -3667,9 +3667,9 @@
         "precio_de_venta": 390,
         "porcentaje": 0,
         "precio_de_costo": 0,
-        "tipo_producto": "LIMPIADOR LÃ�QUIDO",
+        "tipo_producto": "LIMPIADOR LÑQUIDO",
         "marca": "CIF",
-        "variedad": "BAÃ�O",
+        "variedad": "BAÑO",
         "presentacion": {
             "Ml": 450
         }
@@ -3879,7 +3879,7 @@
         "precio_de_costo": 0,
         "tipo_producto": "FRAU",
         "marca": "ALCOHOL",
-        "variedad": "ETÃ�LICO",
+        "variedad": "ETÑLICO",
         "presentacion": {
             "Cc": 500
         }
@@ -4989,7 +4989,7 @@
         "precio_de_costo": 20,
         "tipo_producto": "AGUILA",
         "marca": "ALMENDRAS",
-        "variedad": "BAÃ�ADAS",
+        "variedad": "BAÑADAS",
         "presentacion": {
             "Gr": 120
         }
@@ -5899,9 +5899,9 @@
         "codigos_de_barras": [
             7500435012355
         ],
-        "precio_de_venta": 0,
-        "porcentaje": -100,
-        "precio_de_costo": 63.83,
+        "precio_de_venta": 400,
+        "porcentaje": 100,
+        "precio_de_costo": 800,
         "tipo_producto": "ACONDICIONADOR",
         "marca": "PANTENE",
         "variedad": "HIDRATACION",
@@ -6608,8 +6608,8 @@
         "porcentaje": 0,
         "precio_de_costo": 0,
         "tipo_producto": "MAROLIO",
-        "marca": "CAFÃ�",
-        "variedad": "INSTANTÃ�NEO",
+        "marca": "CAFÑ",
+        "variedad": "INSTANTÑNEO",
         "presentacion": {
             "Gr": 100
         }
@@ -7314,7 +7314,7 @@
         "precio_de_costo": 0,
         "tipo_producto": "GALLETAS",
         "marca": "NS",
-        "variedad": "MAÃ�Z",
+        "variedad": "MAÑZ",
         "presentacion": {
             "Gr": 300
         }
@@ -7433,7 +7433,7 @@
         "porcentaje": 74.92591373065525,
         "precio_de_costo": 485.92,
         "tipo_producto": "ACEITE",
-        "marca": "CAÃ�UELAS",
+        "marca": "CAÑUELAS",
         "variedad": "GIRASOL",
         "presentacion": {
             "Ml": 900
@@ -7644,7 +7644,7 @@
         "precio_de_costo": 135.25,
         "tipo_producto": "FIDEOS",
         "marca": "TERRABUSI",
-        "variedad": "MOÃ�OS",
+        "variedad": "MOÑOS",
         "presentacion": {
             "Gr": 500
         }
@@ -7914,7 +7914,7 @@
         "precio_de_costo": 0,
         "tipo_producto": "QUESO",
         "marca": "FINLANDIA",
-        "variedad": "CLÃ�SICO",
+        "variedad": "CLÑSICO",
         "presentacion": {
             "Gr": 290
         }
@@ -7927,7 +7927,7 @@
         "precio_de_venta": 150,
         "porcentaje": 0,
         "precio_de_costo": 150,
-        "tipo_producto": "GARRAPIÃ�ADAS",
+        "tipo_producto": "GARRAPIÑADAS",
         "marca": "GEORGALOS",
         "variedad": "MANI",
         "presentacion": {
@@ -8468,7 +8468,7 @@
         "porcentaje": 253.95724196517065,
         "precio_de_costo": 70.63,
         "tipo_producto": "CEREAL",
-        "marca": "BAÃ�ADO",
+        "marca": "BAÑADO",
         "variedad": "FEELING",
         "presentacion": {
             "Gr": 20
@@ -8529,7 +8529,7 @@
         "precio_de_costo": 0,
         "tipo_producto": "SHAMPOO",
         "marca": "SEDAL",
-        "variedad": "COLÃ�GENO",
+        "variedad": "COLÑGENO",
         "presentacion": {
             "Ml": 190
         }
@@ -8783,7 +8783,7 @@
         "porcentaje": 0,
         "precio_de_costo": 0,
         "tipo_producto": "LAY'S",
-        "marca": "JAMÃ�N",
+        "marca": "JAMÑN",
         "variedad": "SERRANO",
         "presentacion": {
             "Gr": 77
@@ -8844,7 +8844,7 @@
         "precio_de_costo": 229.47,
         "tipo_producto": "FIDEOS",
         "marca": "LUCCHETTI",
-        "variedad": "MOÃ�O",
+        "variedad": "MOÑO",
         "presentacion": {
             "Gr": 500
         }
@@ -9309,7 +9309,7 @@
         "precio_de_costo": 0,
         "tipo_producto": "PUROCOL",
         "marca": "ALCOHOL",
-        "variedad": "ETÃ�LICO",
+        "variedad": "ETÑLICO",
         "presentacion": {
             "Cc": 500
         }
@@ -10058,7 +10058,7 @@
         "porcentaje": 0,
         "precio_de_costo": 0,
         "tipo_producto": "MAROLIO",
-        "marca": "MAÃ�Z",
+        "marca": "MAÑZ",
         "variedad": "PISINGALLO",
         "presentacion": {
             "Gr": 400
@@ -10824,7 +10824,7 @@
         "precio_de_costo": 18.8,
         "tipo_producto": "HARINA",
         "marca": "LUCCHETTI",
-        "variedad": "Ã�OQUIS",
+        "variedad": "ÑOQUIS",
         "presentacion": {
             "Gr": 500
         }
@@ -11109,7 +11109,7 @@
         "precio_de_costo": 0,
         "tipo_producto": "SHAMPOO",
         "marca": "SEDAL",
-        "variedad": "HIALURÃ�NICO",
+        "variedad": "HIALURÑNICO",
         "presentacion": {
             "Ml": 340
         }
@@ -11979,7 +11979,7 @@
         "precio_de_costo": 102.3,
         "tipo_producto": "FIDEOS",
         "marca": "KNORR",
-        "variedad": "MOÃ�OS",
+        "variedad": "MOÑOS",
         "presentacion": {
             "Gr": 500
         }
@@ -13477,7 +13477,7 @@
         "precio_de_venta": 1760,
         "porcentaje": 193.82303839732887,
         "precio_de_costo": 599,
-        "tipo_producto": "DESTAPACAÃ�ERIAS",
+        "tipo_producto": "DESTAPACAÑERIAS",
         "marca": "PLOMERO",
         "variedad": "LIQUIDO",
         "presentacion": {
@@ -13794,7 +13794,7 @@
         "precio_de_costo": 0,
         "tipo_producto": "SHAMPOO",
         "marca": "SEDAL",
-        "variedad": "ARGÃ�N",
+        "variedad": "ARGÑN",
         "presentacion": {
             "Ml": 340
         }
@@ -14469,7 +14469,7 @@
         "precio_de_costo": 0,
         "tipo_producto": "GALLETITAS",
         "marca": "FANTOCHE",
-        "variedad": "HORÃ�SCOPO",
+        "variedad": "HORÑSCOPO",
         "presentacion": {
             "Gr": 240
         }
@@ -15034,9 +15034,9 @@
         "codigos_de_barras": [
             7500435012041
         ],
-        "precio_de_venta": 0,
-        "porcentaje": -100,
-        "precio_de_costo": 63.83,
+        "precio_de_venta": 400,
+        "porcentaje": 100,
+        "precio_de_costo": 800,
         "tipo_producto": "SHAMPOO",
         "marca": "PANTENE",
         "variedad": "RESTAURACION",
@@ -16569,7 +16569,7 @@
         "precio_de_costo": 62.52,
         "tipo_producto": "CHUPETIN",
         "marca": "CHOCOLATE",
-        "variedad": "PARAGÃ�ITAS",
+        "variedad": "PARAGÑITAS",
         "presentacion": {
             "Gr": 13
         }
@@ -17559,7 +17559,7 @@
         "precio_de_costo": 1,
         "tipo_producto": "FIDEOS",
         "marca": "BADALONI",
-        "variedad": "MOÃ�OS",
+        "variedad": "MOÑOS",
         "presentacion": {
             "Gr": 500
         }
@@ -18144,7 +18144,7 @@
         "precio_de_costo": 0,
         "tipo_producto": "GALLETAS",
         "marca": "NS",
-        "variedad": "MAÃ�Z",
+        "variedad": "MAÑZ",
         "presentacion": {
             "Gr": 300
         }
@@ -18608,7 +18608,7 @@
         "porcentaje": 119.48456527895779,
         "precio_de_costo": 141.24,
         "tipo_producto": "HARINA",
-        "marca": "CAÃ�UELAS",
+        "marca": "CAÑUELAS",
         "variedad": "000",
         "presentacion": {
             "Kg": 1
@@ -19459,9 +19459,9 @@
         "codigos_de_barras": [
             7500435012461
         ],
-        "precio_de_venta": 0,
-        "porcentaje": -100,
-        "precio_de_costo": 63.83,
+        "precio_de_venta": 400,
+        "porcentaje": 100,
+        "precio_de_costo": 800,
         "tipo_producto": "SHAMPOO",
         "marca": "PANTENE",
         "variedad": "LISO",
@@ -20063,7 +20063,7 @@
         "porcentaje": 101.76471723978145,
         "precio_de_costo": 1035.86,
         "tipo_producto": "ACEITE",
-        "marca": "CAÃ�UELAS",
+        "marca": "CAÑUELAS",
         "variedad": "OLIVA",
         "presentacion": {
             "Ml": 500
@@ -20104,9 +20104,9 @@
         "codigos_de_barras": [
             7500435012287
         ],
-        "precio_de_venta": 0,
-        "porcentaje": -100,
-        "precio_de_costo": 63.83,
+        "precio_de_venta": 400,
+        "porcentaje": 100,
+        "precio_de_costo": 800,
         "tipo_producto": "SHAMPOO",
         "marca": "PANTENE",
         "variedad": "HIDRATACION",
@@ -20543,7 +20543,7 @@
         "porcentaje": 58.18181818181818,
         "precio_de_costo": 550,
         "tipo_producto": "ACEITE",
-        "marca": "CAÃ�UELAS",
+        "marca": "CAÑUELAS",
         "variedad": "GIRASOL",
         "presentacion": {
             "Lt": 1
