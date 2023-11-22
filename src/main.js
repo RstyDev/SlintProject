@@ -277,6 +277,10 @@ async function get_configs(){
   return await invoke("get_configs");
 }
 
+async function set_configs(configs){
+  await invoke("set_configs",{configs:configs})
+}
+
 window.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("menu-button").onclick = function () {
@@ -318,6 +322,16 @@ window.addEventListener("DOMContentLoaded", () => {
     document.querySelector('#cuadro-venta').style.display = 'flex';
   }
 
+  document.querySelector('#cambiar-configs-submit').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    let configs = {
+      "politica_redondeo": parseFloat(e.target.children[1].value),
+      "formato_producto": "" + e.target.children[3].value,
+      "modo_luz": "" + e.target.children[5].value
+    }
+    console.log(configs)
+    set_configs(configs)
+  })
 
 
   document.getElementById("agregar-proveedor-mostrar").onclick = function () {

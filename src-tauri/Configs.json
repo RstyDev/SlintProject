@@ -1,7 +1,7 @@
 [
   {
-    "politica_redondeo": 5.0,
+    "politica_redondeo": 3.2,
     "formato_producto": "Tmv",
-    "modo_luz": "Claro"
+    "modo_luz": "Oscuro"
   }
 ]

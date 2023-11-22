@@ -219,6 +219,9 @@ impl<'a> Sistema {
     }
     pub fn set_configs(&mut self, configs: Config) {
         self.configs = configs;
+        if let Err(e)=crear_file(&self.path_configs, &vec![&self.configs]){
+            panic!("{e}");
+        }
     }
     pub fn imprimir(&self) {
         println!("Printed from rust");
