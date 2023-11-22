@@ -22,7 +22,7 @@
         <div id="barra-de-opciones">
           <a id="agregar-producto-mostrar" class="a-boton">Agregar Producto</a>
           <a id="agregar-proveedor-mostrar" class="a-boton">Agregar Proveedor</a>
-          <a id="cambiar-configs" class="a-boton">Configuraciones</a>
+          <a id="cambiar-configs-mostrar" class="a-boton">Configuraciones</a>
         </div>
 
       </div>
@@ -98,6 +98,23 @@
 
           <button type="submit">Agregar</button>
         </div>
+      </form>
+
+    </div>
+    <div id="cambiar-configs-container" class="main-screen">
+      <a id="cerrar-cambiar-configs" class="a-boton">X</a>
+      <form id="cambiar-configs-submit">
+
+        <label for="input-politica-redondeo"></label>
+        <input type="number" id="input-politica-redondeo" step="0.01" placeholder="Política de redondeo" required>
+
+        <label for="input-formato-producto">Formato del producto: </label>
+        <select name="formato" id="input-formato-producto"></select>
+        
+        <label for="input-modo-luz">Modo de luz:</label>
+        <select name="modo-luz" id="input-modo-luz"></select>
+
+        <button type="submit">Guardar</button>
       </form>
 
     </div>

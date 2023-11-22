@@ -31,13 +31,13 @@
 }
 
 #agregar-producto-container,
-#agregar-proveedor-container {
+#agregar-proveedor-container,#cambiar-configs-container {
   display: none;
 }
 
 .articulo {
   display: grid;
-  grid-template-columns: 50% 35% 15%;
+  grid-template-columns: 50% 30% 10% 10%;
 }
 
 .descripcion {
@@ -225,13 +225,13 @@ label {
 }
 
 #agregar-proveedor-container,
-#agregar-producto-container {
+#agregar-producto-container,#cambiar-configs-container {
   flex-direction: column;
   align-items: center;
 }
 
 #cerrar-agregar-proveedor,
-#cerrar-agregar-producto {
+#cerrar-agregar-producto,#cerrar-cambiar-configs {
   align-self: flex-end;
 }
 

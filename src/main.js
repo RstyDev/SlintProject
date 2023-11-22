@@ -57,6 +57,12 @@ function restarProducto(e) {
   descontarProdVentaAct(e.target.parentNode.parentNode.id);
   borrarBusqueda();
 }
+
+function eliminarProducto(e){
+  eliminarProdVentaAct(e.target.parentNode.id);
+  borrarBusqueda();
+  console.log(e.target.parentNode.id)
+}
 function dibujar_venta(venta) {
   console.log(venta);
   let cuadro = document.querySelector('#cuadro-venta');
@@ -82,18 +88,23 @@ function dibujar_venta(venta) {
      <section class="monto">
         ${producto[1].precio_de_venta}
      </section>
+     <button class="button eliminar">Borrar</button>
      </article>`;
   }
   hijos += `<section id="monto-total"> TOTAL <p>${venta.monto_total}</p></section>`
   cuadro.innerHTML = hijos;
   for (let boton of document.querySelectorAll('.sumar')) {
-    boton.addEventListener('click', (e) => { sumarProducto(e) });
+    boton.addEventListener('click', (e)=> {sumarProducto(e)} );
   }
   for (let boton of document.querySelectorAll('.restar')) {
-    boton.addEventListener('click', (e) => { restarProducto(e) });
+    boton.addEventListener('click', (e)=> {restarProducto(e)});
   }
-
+  for (let boton of document.querySelectorAll('.eliminar')){
+    boton.addEventListener('click', (e)=> {
+      eliminarProducto(e)});
+  }
 }
+
 
 async function get_venta_actual() {
   let res = await invoke("get_venta_actual", { pos: posicionVenta });
@@ -108,7 +119,10 @@ async function agregarProdVentaAct(id) {
 async function descontarProdVentaAct(id) {
   await invoke("descontar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta });
 }
-function borrarBusqueda() {
+
+async function eliminarProdVentaAct(id) {
+  await invoke("eliminar_producto_de_venta", { id:""+id, pos: ""+posicionVenta})
+}function borrarBusqueda() {
   document.getElementById('buscador').value = '';
   document.querySelector('#cuadro-venta').replaceChildren([]);
   get_venta_actual().then(venta => dibujar_venta(venta));
@@ -259,6 +273,10 @@ async function agregarProducto() {
   codigosProv = [];
 }
 
+async function get_configs(){
+  return await invoke("get_configs");
+}
+
 window.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("menu-button").onclick = function () {
@@ -274,7 +292,30 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   document.getElementById("cerrar-agregar-producto").onclick = function () {
     document.getElementById("agregar-producto-container").style.display = "none";
-    document.querySelector('#cuadro-venta').style.display = 'block';
+    document.querySelector('#cuadro-venta').style.display = 'flex';
+  }
+
+
+  document.getElementById("cambiar-configs-mostrar").onclick = function () {
+    let elemento = document.getElementsByClassName("main-screen");
+    for (let i = 0; i < elemento.length; i++) {
+      elemento[i].style.display = "none"
+    }
+    document.getElementById("cambiar-configs-container").style.display = "inline-flex";
+    document.getElementById("barra-de-opciones").classList.remove('visible');
+    get_configs().then(conf=>{
+      document.querySelector('#input-politica-redondeo').value=conf.politica_redondeo;
+      document.querySelector('#input-formato-producto').innerHTML+=`<option value="Tmv">Tipo - Marca - Variedad</option>
+      <option value="Mtv">Marca - Tipo - Variedad</option>`
+      document.querySelector('#input-modo-luz').innerHTML+=`<option value="Claro">Claro</option>
+      <option value="Oscuro">Oscuro</option>
+      `
+    });
+
+  }
+  document.getElementById("cerrar-cambiar-configs").onclick = function () {
+    document.getElementById("cambiar-configs-container").style.display = "none";
+    document.querySelector('#cuadro-venta').style.display = 'flex';
   }
 
 
@@ -289,7 +330,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   document.getElementById("cerrar-agregar-proveedor").onclick = function () {
     document.getElementById("agregar-proveedor-container").style.display = "none";
-    document.querySelector('#cuadro-venta').style.display = 'block';
+    document.querySelector('#cuadro-venta').style.display = 'flex';
   }
 
 });

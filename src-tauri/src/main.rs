@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 use std::fs::File;
 use std::io::{Read, Write};
-use std::sync::{Mutex, MutexGuard, PoisonError};
+use std::sync::Mutex;
 use tauri::State;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -152,6 +152,21 @@ impl<'a> Venta {
             if producto == self.productos[i].1 {
                 self.productos[i].0 -= 1;
                 res = Ok(());
+            }
+        }
+        self.monto_total = 0.0;
+        for i in &self.productos {
+            self.monto_total += i.1.precio_de_venta * i.0 as f64;
+        }
+        res
+    }
+    fn eliminar_producto(&mut self, producto: Producto) -> Result<(), String> {
+        let mut res = Err("Producto no encontrado".to_string());
+        for i in 0..self.productos.len() {
+            if producto == self.productos[i].1 {
+                self.productos.remove(i);
+                res = Ok(());
+                break;
             }
         }
         self.monto_total = 0.0;
@@ -312,7 +327,19 @@ impl<'a> Sistema {
             }
             _ => return Err("Numero de venta incorrecto".to_string()),
         }
-
+        Ok(())
+    }
+    fn eliminar_producto_de_venta(&mut self, id: usize, pos: usize) -> Result<(), String> {
+        let res = self.get_producto(id)?;
+        match pos {
+            0 => {
+                self.ventas.0.eliminar_producto(res)?;
+            }
+            1 => {
+                self.ventas.1.eliminar_producto(res)?;
+            }
+            _ => return Err("Numero de venta incorrecto".to_string()),
+        }
         Ok(())
     }
     fn get_venta(&self, pos: usize) -> Result<Venta, String> {
@@ -654,6 +681,19 @@ fn descontar_producto_de_venta(sistema: State<Mutex<Sistema>>, id: String, pos: 
         Err(e) => panic!("{}", e),
     };
 }
+#[tauri::command]
+fn eliminar_producto_de_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
+    match sistema.lock() {
+        Ok(mut a) => {
+            let pos = pos.parse().unwrap();
+            match a.eliminar_producto_de_venta(id.parse().unwrap(), pos) {
+                Ok(_) => println!("{:?}", a.get_venta(pos)),
+                Err(e) => panic!("{}", e),
+            }
+        }
+        Err(e) => panic!("{}", e),
+    };
+}
 
 #[tauri::command]
 fn agregar_pago(
@@ -758,6 +798,7 @@ fn main() {
             get_productos_filtrado,
             agregar_producto_a_venta,
             descontar_producto_de_venta,
+            eliminar_producto_de_venta,
             redondeo,
             agregar_pago,
             get_venta_actual,
