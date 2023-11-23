@@ -58,50 +58,120 @@ function restarProducto(e) {
   borrarBusqueda();
 }
 
-function eliminarProducto(e){
+function eliminarProducto(e) {
   eliminarProdVentaAct(e.target.parentNode.id);
   borrarBusqueda();
   console.log(e.target.parentNode.id)
 }
-function dibujar_venta(venta) {
+function camalize(str) {
+  return str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
+}
+async function formatear_strings(strings){
+  let conf=await get_configs()
+  console.log(conf)
+  
+  switch (conf.modo_mayus){
+    case "Upper":
+      return [strings[0].toUpperCase(), strings[1].toUpperCase()];
+    case "Lower":
+      return [strings[0].toLowerCase(), strings[1].toLowerCase()];
+    case "Camel":
+      return [camalize(strings[0]), camalize(strings[1])];
+  }
+  
+}
+async function dibujar_venta(venta) {
   console.log(venta);
-  let cuadro = document.querySelector('#cuadro-venta');
+  let cuadro = document.querySelector('#cuadro-principal');
   cuadro.replaceChildren([]);
   let disabled = "";
+  let hijosRes;
   let hijos = "";
+  let pres;
+  let descripcion;
+  let cant;
   for (let producto of venta.productos) {
     if (producto[0] < 2) {
       disabled = 'disabled';
-    }else{
-      disabled='';
+    } else {
+      disabled = '';
     }
-    hijos += `<article class="articulo" id="${producto[1].id}">
+    switch (Object.keys(producto[1].presentacion)[0]) {
+      case 'Gr': {
+        pres = "Gr";
+        cant = producto[1].presentacion.Gr;
+        break;
+      }
+      case 'Un': {
+        pres = "Un";
+        cant = producto[1].presentacion.Un;
+        break;
+      }
+      case "Lt": {
+        pres = "Lt";
+        cant = producto[1].presentacion.Lt;
+        break;
+      }
+      case "Ml": {
+        pres = "Ml";
+        cant = producto[1].presentacion.Ml;
+        break;
+      }
+      case "Cc": {
+        pres = "Cc";
+        cant = producto[1].presentacion.Cc;
+        break;
+      }
+      case "Kg": {
+        pres = "Kg";
+        cant = producto[1].presentacion.Kg;
+        break;
+      }
+    }
+    descripcion = `${producto[1].marca} ${producto[1].tipo_producto} ${producto[1].variedad}
+         ${cant} ${pres}`
+    await formatear_strings([descripcion, "" + producto[0]]).then(strings=>{
+      hijos += `<article class="articulo" id="${producto[1].id}">
      <section class="descripcion">
-        ${producto[1].marca} ${producto[1].tipo_producto} ${producto[1].variedad}    
+        <p> ${strings[0]} </p>
      </section>
      <section class="cantidad">
-     cantidad:
+       <p> cantidad: </p>
         <button class="button restar" ${disabled}>-</button>
-        <p class="cantidad-producto"> ${producto[0]}</p>
+        <p class="cantidad-producto"> ${strings[1]}</p>
         <button class="button sumar">+</button>
      </section>
      <section class="monto">
-        ${producto[1].precio_de_venta}
+        <p> Precio: ${producto[1].precio_de_venta} </p>
      </section>
-     <button class="button eliminar">Borrar</button>
+     <section>
+      <p> ${producto[1].precio_de_venta*producto[0]}
+     </section>
+     <section id="borrar">
+      <button class="button eliminar">Borrar</button>
+    </section>
      </article>`;
+
+
+    });
+
+    
+
+    hijosRes += `${producto[1].marca} ${producto[1].tipo_producto} ${producto[1].variedad}`
   }
   hijos += `<section id="monto-total"> TOTAL <p>${venta.monto_total}</p></section>`
-  cuadro.innerHTML = hijos;
+
+  cuadro.innerHTML = `<section id="cuadro-venta">${hijos}</section> <section id="vista-resumen-venta"></section>`;
   for (let boton of document.querySelectorAll('.sumar')) {
-    boton.addEventListener('click', (e)=> {sumarProducto(e)} );
+    boton.addEventListener('click', (e) => { sumarProducto(e) });
   }
   for (let boton of document.querySelectorAll('.restar')) {
-    boton.addEventListener('click', (e)=> {restarProducto(e)});
+    boton.addEventListener('click', (e) => { restarProducto(e) });
   }
-  for (let boton of document.querySelectorAll('.eliminar')){
-    boton.addEventListener('click', (e)=> {
-      eliminarProducto(e)});
+  for (let boton of document.querySelectorAll('.eliminar')) {
+    boton.addEventListener('click', (e) => {
+      eliminarProducto(e)
+    });
   }
 }
 
@@ -121,10 +191,10 @@ async function descontarProdVentaAct(id) {
 }
 
 async function eliminarProdVentaAct(id) {
-  await invoke("eliminar_producto_de_venta", { id:""+id, pos: ""+posicionVenta})
-}function borrarBusqueda() {
+  await invoke("eliminar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta })
+} function borrarBusqueda() {
   document.getElementById('buscador').value = '';
-  document.querySelector('#cuadro-venta').replaceChildren([]);
+  document.querySelector('#cuadro-principal').replaceChildren([]);
   get_venta_actual().then(venta => dibujar_venta(venta));
   document.getElementById('buscador').focus();
 }
@@ -174,7 +244,7 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 function dibujarProductos(objetos) {
-  let container = document.querySelector('#cuadro-venta');
+  let container = document.querySelector('#cuadro-principal');
   mensaje1.textContent = '';
   container.replaceChildren([]);
   let tabla = document.createElement('table');
@@ -233,8 +303,8 @@ function dibujarProductos(objetos) {
     producto.innerHTML = objetos[i].tipo_producto + ' ' + objetos[i].marca + ' ' + objetos[i].variedad + ' ' + cantidad + ' ' + presentacion;
     tr2.appendChild(producto);
     let precio = document.createElement('td');
-    precio.innerHTML = "$  "+objetos[i].precio_de_venta;
-    precio.style.textAlign='end'
+    precio.innerHTML = "$  " + objetos[i].precio_de_venta;
+    precio.style.textAlign = 'end'
     tr2.appendChild(precio);
     tr2.addEventListener('keydown', (e) => {
       navigate(e)
@@ -273,12 +343,12 @@ async function agregarProducto() {
   codigosProv = [];
 }
 
-async function get_configs(){
+async function get_configs() {
   return await invoke("get_configs");
 }
 
-async function set_configs(configs){
-  await invoke("set_configs",{configs:configs})
+async function set_configs(configs) {
+  await invoke("set_configs", { configs: configs })
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -296,7 +366,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   document.getElementById("cerrar-agregar-producto").onclick = function () {
     document.getElementById("agregar-producto-container").style.display = "none";
-    document.querySelector('#cuadro-venta').style.display = 'flex';
+    document.querySelector('#cuadro-principal').style.display = 'flex';
   }
 
 
@@ -307,27 +377,52 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     document.getElementById("cambiar-configs-container").style.display = "inline-flex";
     document.getElementById("barra-de-opciones").classList.remove('visible');
-    get_configs().then(conf=>{
-      document.querySelector('#input-politica-redondeo').value=conf.politica_redondeo;
-      document.querySelector('#input-formato-producto').innerHTML+=`<option value="Tmv">Tipo - Marca - Variedad</option>
+    get_configs().then(conf => {
+      document.querySelector('#input-politica-redondeo').value = conf.politica_redondeo;
+      document.querySelector('#input-formato-producto').innerHTML += `<option value="Tmv">Tipo - Marca - Variedad</option>
       <option value="Mtv">Marca - Tipo - Variedad</option>`
-      document.querySelector('#input-modo-luz').innerHTML+=`<option value="Claro">Claro</option>
-      <option value="Oscuro">Oscuro</option>
-      `
+      switch (conf.modo_mayus) {
+        case "Upper": {
+          document.querySelector('#input-modo-mayus').innerHTML += `
+          <option value="Upper" >MAYÚSCULAS</option>
+          <option value="Camel" >Pimera Letra Mayúscula</option>
+          <option value="Lower" >minúsculas</option>
+          `;
+          break;
+        }
+        case "Camel": {
+          document.querySelector('#input-modo-mayus').innerHTML += `
+          <option value="Camel" >Pimera Letra Mayúscula</option>
+          <option value="Upper" >MAYÚSCULAS</option>
+          <option value="Lower" >minúsculas</option>
+          `;
+          break;
+        }
+        case "Lower":{
+          document.querySelector('#input-modo-mayus').innerHTML += `
+          <option value="Lower" >minúsculas</option>
+          <option value="Camel" >Pimera Letra Mayúscula</option>
+          <option value="Upper" >MAYÚSCULAS</option>
+          `;
+          break;
+        }
+      }
+
+
     });
 
   }
   document.getElementById("cerrar-cambiar-configs").onclick = function () {
     document.getElementById("cambiar-configs-container").style.display = "none";
-    document.querySelector('#cuadro-venta').style.display = 'flex';
+    document.querySelector('#cuadro-principal').style.display = 'flex';
   }
 
-  document.querySelector('#cambiar-configs-submit').addEventListener('submit', (e)=>{
+  document.querySelector('#cambiar-configs-submit').addEventListener('submit', (e) => {
     e.preventDefault();
     let configs = {
       "politica_redondeo": parseFloat(e.target.children[1].value),
       "formato_producto": "" + e.target.children[3].value,
-      "modo_luz": "" + e.target.children[5].value
+      "modo_mayus": "" + e.target.children[5].value
     }
     console.log(configs)
     set_configs(configs)
@@ -344,11 +439,11 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   document.getElementById("cerrar-agregar-proveedor").onclick = function () {
     document.getElementById("agregar-proveedor-container").style.display = "none";
-    document.querySelector('#cuadro-venta').style.display = 'flex';
+    document.querySelector('#cuadro-principal').style.display = 'flex';
   }
 
 });
-                                                                                                                                                                         
+
 
 
 

@@ -13,7 +13,7 @@ use tauri::State;
 pub struct Config {
     politica_redondeo: f64,
     formato_producto: Formato,
-    modo_luz: Luz,
+    modo_mayus: Mayusculas,
 }
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub enum Formato {
@@ -22,10 +22,11 @@ pub enum Formato {
     Mtv,
 }
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub enum Luz {
+pub enum Mayusculas {
     #[default]
-    Claro,
-    Oscuro,
+    Upper,
+    Lower,
+    Camel,
 }
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Pago {
@@ -302,7 +303,7 @@ impl<'a> Sistema {
         res
     }
     fn agregar_producto_a_venta(&mut self, id: usize, pos: usize) -> Result<(), String> {
-        let res = self.get_producto(id)?;
+        let res = self.get_producto(id)?.redondear(self.configs.politica_redondeo);
         match pos {
             0 => {
                 self.ventas.0.agregar_producto(res);
@@ -440,6 +441,13 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
+    fn redondear(&self, politica:f64)->Producto{
+        Producto{
+            id:self.id, codigos_de_barras:self.codigos_de_barras.clone(), precio_de_venta:redondeo(politica, self.precio_de_venta),
+            porcentaje:self.porcentaje,precio_de_costo:self.precio_de_costo,tipo_producto:self.tipo_producto.clone(),
+            marca:self.marca.clone(), variedad:self.variedad.clone(), presentacion:self.presentacion.clone()
+        }
+    }
 }
 
 impl PartialEq for Producto {
@@ -515,6 +523,7 @@ fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     }
     Ok(())
 }
+
 
 // -------------------------------Commands----------------------------------------------
 
