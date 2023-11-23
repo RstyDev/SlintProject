@@ -16,6 +16,12 @@ let proveedores = [];
 let proveedores_producto = [];
 let codigosProv = [];
 let focuseado;
+let configs;
+
+get_configs().then(conf=>{
+  configs=conf;
+  console.log(configs)
+})
 
 
 async function buscador() {
@@ -66,19 +72,30 @@ function eliminarProducto(e) {
 function camalize(str) {
   return str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
 }
-async function formatear_strings(strings){
-  let conf=await get_configs()
-  console.log(conf)
+function formatear_descripcion(marca, tipo, variedad, cantidad, pres) {
+  switch (configs.formato_producto) {
+      case "Tmv":
+        return `${tipo} ${marca} ${variedad} ${cantidad} ${pres}`;
+      case "Mtv":
+        return `${marca} ${tipo} ${variedad} ${cantidad} ${pres}`;
+    }
+
   
-  switch (conf.modo_mayus){
-    case "Upper":
-      return [strings[0].toUpperCase(), strings[1].toUpperCase()];
-    case "Lower":
-      return [strings[0].toLowerCase(), strings[1].toLowerCase()];
-    case "Camel":
-      return [camalize(strings[0]), camalize(strings[1])];
-  }
-  
+}
+function formatear_strings(strings) {
+
+
+    switch (configs.modo_mayus) {
+      case "Upper":
+        return strings.toUpperCase();
+      case "Lower":
+        return strings.toLowerCase();
+      case "Camel":
+        return camalize(strings);
+    }
+
+
+
 }
 async function dibujar_venta(venta) {
   console.log(venta);
@@ -89,6 +106,7 @@ async function dibujar_venta(venta) {
   let hijos = "";
   let pres;
   let descripcion;
+  let strings;
   let cant;
   for (let producto of venta.productos) {
     if (producto[0] < 2) {
@@ -128,24 +146,24 @@ async function dibujar_venta(venta) {
         break;
       }
     }
-    descripcion = `${producto[1].marca} ${producto[1].tipo_producto} ${producto[1].variedad}
-         ${cant} ${pres}`
-    await formatear_strings([descripcion, "" + producto[0]]).then(strings=>{
+    descripcion=formatear_descripcion(producto[1].marca, producto[1].tipo_producto,
+      producto[1].variedad, cant, pres);
+    strings=formatear_strings(""+descripcion)
       hijos += `<article class="articulo" id="${producto[1].id}">
      <section class="descripcion">
-        <p> ${strings[0]} </p>
+        <p> ${strings} </p>
      </section>
      <section class="cantidad">
        <p> cantidad: </p>
         <button class="button restar" ${disabled}>-</button>
-        <p class="cantidad-producto"> ${strings[1]}</p>
+        <p class="cantidad-producto"> ${producto[0]}</p>
         <button class="button sumar">+</button>
      </section>
      <section class="monto">
         <p> Precio: ${producto[1].precio_de_venta} </p>
      </section>
      <section>
-      <p> ${producto[1].precio_de_venta*producto[0]}
+      <p> ${producto[1].precio_de_venta * producto[0]}
      </section>
      <section id="borrar">
       <button class="button eliminar">Borrar</button>
@@ -153,10 +171,7 @@ async function dibujar_venta(venta) {
      </article>`;
 
 
-    });
-
     
-
     hijosRes += `${producto[1].marca} ${producto[1].tipo_producto} ${producto[1].variedad}`
   }
   hijos += `<section id="monto-total"> TOTAL <p>${venta.monto_total}</p></section>`
@@ -398,7 +413,7 @@ window.addEventListener("DOMContentLoaded", () => {
           `;
           break;
         }
-        case "Lower":{
+        case "Lower": {
           document.querySelector('#input-modo-mayus').innerHTML += `
           <option value="Lower" >minúsculas</option>
           <option value="Camel" >Pimera Letra Mayúscula</option>
