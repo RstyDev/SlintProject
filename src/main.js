@@ -15,12 +15,11 @@ let timeoutId;
 let proveedores = [];
 let proveedores_producto = [];
 let codigosProv = [];
-let focuseado;
 let configs;
+let idUlt;
 
-get_configs().then(conf=>{
-  configs=conf;
-  console.log(configs)
+get_configs().then(conf => {
+  configs = conf;
 })
 
 
@@ -29,30 +28,53 @@ async function buscador() {
   mensaje1.textContent = await invoke("buscador", { name: buscadorInput.value });
 }
 
-function navigate(e) {
-  let buscador = document.querySelector('#buscador');
-  if (focuseado) {
-    if (e.keyCode == 38 && focuseado.previousElementSibling.previousElementSibling) {
-      e.preventDefault();
-      console.log(focuseado)
-      focus(focuseado.previousElementSibling);
-
-    } else if (e.keyCode == 40 && focuseado.nextElementSibling.previousElementSibling) {
-      e.preventDefault();
-      focus(focuseado.nextElementSibling);
-
-    } else if (e.keyCode == 27 && buscador.value.length != 0) {
-      e.preventDefault();
-      buscador.value = '';
-      get_venta_actual().then(venta => dibujar_venta(venta));
-    } else if (e.keyCode == 13) {
-      agregarProdVentaAct(focuseado.children[0].innerHTML);
-      e.preventDefault();
-      buscador.value = '';
-      get_venta_actual().then(venta => dibujar_venta(venta));
+window.addEventListener("DOMContentLoaded", () => {
+  let inputProductos = document.querySelector('#input-productos');
+  let productos = document.querySelector('#productos');
+  inputProductos.addEventListener('keydown', (e) => {
+    if (idUlt && e.keyCode == 13 && inputProductos.value.length == 0) {
+      agregarProdVentaAct(idUlt)
     }
-  }
-}
+  })
+  inputProductos.addEventListener('input', (e) => {
+
+    e.target.parentNode.nextElementSibling.innerHTML = '';
+    buscarProducto(inputProductos.value).then(res => {
+      productos.innerHTML = '';
+      if (res.length > configs.cantidad_productos) {
+        for (let i = 0; i < configs.cantidad_productos; i++) {
+          productos.innerHTML += `<option class="opcion-producto" id="${res[i].id}" value="${formatear_strings(formatear_descripcion(res[i]))}"></option>`
+        }
+      } else {
+        for (let i = 0; i < res.length; i++) {
+          productos.innerHTML += `<option class="opcion-producto" id="${res[i].id}" value="${formatear_strings(formatear_descripcion(res[i]))}"></option>`
+        }
+      }
+      let opciones = document.getElementsByClassName('opcion-producto');
+      for (let i = 0; i < opciones.length; i++) {
+        if (opciones[i].value.length == inputProductos.value.length && opciones[i].value == inputProductos.value) {
+          inputProductos.value = '';
+          agregarProdVentaAct(opciones[i].id);
+          idUlt = opciones[i].id;
+          // console.log(opciones[i].id);
+          get_venta_actual(posicionVenta).then(venta => {
+            dibujar_venta(venta)
+          })
+
+
+        }
+      }
+
+    })
+
+
+
+  })
+
+})
+
+
+
 
 function sumarProducto(e) {
   agregarProdVentaAct(e.target.parentNode.parentNode.id);
@@ -65,48 +87,80 @@ function restarProducto(e) {
 }
 
 function eliminarProducto(e) {
-  eliminarProdVentaAct(e.target.parentNode.id);
+  eliminarProdVentaAct(e.target.parentNode.parentNode.id);
   borrarBusqueda();
-  console.log(e.target.parentNode.id)
 }
 function camalize(str) {
-  return str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
+  return str.replace(/(\w)(\w*)/g,
+    function (g0, g1, g2) { return g1.toUpperCase() + g2.toLowerCase(); });
 }
-function formatear_descripcion(marca, tipo, variedad, cantidad, pres) {
-  switch (configs.formato_producto) {
-      case "Tmv":
-        return `${tipo} ${marca} ${variedad} ${cantidad} ${pres}`;
-      case "Mtv":
-        return `${marca} ${tipo} ${variedad} ${cantidad} ${pres}`;
+function formatear_descripcion(producto) {
+  let pres;
+  let cant;
+  switch (Object.keys(producto.presentacion)[0]) {
+    case 'Gr': {
+      pres = "Gr";
+      cant = producto.presentacion.Gr;
+      break;
     }
+    case 'Un': {
+      pres = "Un";
+      cant = producto.presentacion.Un;
+      break;
+    }
+    case "Lt": {
+      pres = "Lt";
+      cant = producto.presentacion.Lt;
+      break;
+    }
+    case "Ml": {
+      pres = "Ml";
+      cant = producto.presentacion.Ml;
+      break;
+    }
+    case "Cc": {
+      pres = "Cc";
+      cant = producto.presentacion.Cc;
+      break;
+    }
+    case "Kg": {
+      pres = "Kg";
+      cant = producto.presentacion.Kg;
+      break;
+    }
+  }
+  switch (configs.formato_producto) {
+    case "Tmv":
+      return `${producto.tipo_producto} ${producto.marca} ${producto.variedad} ${cant} ${pres}`;
+    case "Mtv":
+      return `${producto.marca} ${producto.tipo_producto} ${producto.variedad} ${cant} ${pres}`;
+  }
 
-  
+
 }
 function formatear_strings(strings) {
 
 
-    switch (configs.modo_mayus) {
-      case "Upper":
-        return strings.toUpperCase();
-      case "Lower":
-        return strings.toLowerCase();
-      case "Camel":
-        return camalize(strings);
-    }
+  switch (configs.modo_mayus) {
+    case "Upper":
+      return strings.toUpperCase();
+    case "Lower":
+      return strings.toLowerCase();
+    case "Camel":
+      return camalize(strings);
+  }
 
 
 
 }
 async function dibujar_venta(venta) {
-  console.log(venta);
   let cuadro = document.querySelector('#cuadro-principal');
   cuadro.replaceChildren([]);
   let disabled = "";
-  let hijosRes;
+  let hijosRes = "";
   let hijos = "";
-  let pres;
-  let descripcion;
-  let strings;
+  let pres = "";
+  let strings = "";
   let cant;
   for (let producto of venta.productos) {
     if (producto[0] < 2) {
@@ -114,42 +168,8 @@ async function dibujar_venta(venta) {
     } else {
       disabled = '';
     }
-    switch (Object.keys(producto[1].presentacion)[0]) {
-      case 'Gr': {
-        pres = "Gr";
-        cant = producto[1].presentacion.Gr;
-        break;
-      }
-      case 'Un': {
-        pres = "Un";
-        cant = producto[1].presentacion.Un;
-        break;
-      }
-      case "Lt": {
-        pres = "Lt";
-        cant = producto[1].presentacion.Lt;
-        break;
-      }
-      case "Ml": {
-        pres = "Ml";
-        cant = producto[1].presentacion.Ml;
-        break;
-      }
-      case "Cc": {
-        pres = "Cc";
-        cant = producto[1].presentacion.Cc;
-        break;
-      }
-      case "Kg": {
-        pres = "Kg";
-        cant = producto[1].presentacion.Kg;
-        break;
-      }
-    }
-    descripcion=formatear_descripcion(producto[1].marca, producto[1].tipo_producto,
-      producto[1].variedad, cant, pres);
-    strings=formatear_strings(""+descripcion)
-      hijos += `<article class="articulo" id="${producto[1].id}">
+    strings = formatear_strings(formatear_descripcion(producto[1]))
+    hijos += `<article class="articulo" id="${producto[1].id}">
      <section class="descripcion">
         <p> ${strings} </p>
      </section>
@@ -171,12 +191,12 @@ async function dibujar_venta(venta) {
      </article>`;
 
 
-    
-    hijosRes += `${producto[1].marca} ${producto[1].tipo_producto} ${producto[1].variedad}`
+
+    hijosRes += `<p>${strings}</p>`
   }
   hijos += `<section id="monto-total"> TOTAL <p>${venta.monto_total}</p></section>`
 
-  cuadro.innerHTML = `<section id="cuadro-venta">${hijos}</section> <section id="vista-resumen-venta"></section>`;
+  cuadro.innerHTML = `<section id="cuadro-venta">${hijos}</section> <section id="vista-resumen-venta">${hijosRes}</section>`;
   for (let boton of document.querySelectorAll('.sumar')) {
     boton.addEventListener('click', (e) => { sumarProducto(e) });
   }
@@ -207,11 +227,12 @@ async function descontarProdVentaAct(id) {
 
 async function eliminarProdVentaAct(id) {
   await invoke("eliminar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta })
-} function borrarBusqueda() {
-  document.getElementById('buscador').value = '';
+} 
+function borrarBusqueda() {
+  document.getElementById('input-productos').value = '';
   document.querySelector('#cuadro-principal').replaceChildren([]);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  document.getElementById('buscador').focus();
+  document.getElementById('input-productos').focus();
 }
 async function get_filtrado(filtro, tipo_filtro, objetivo) {
   let res = await invoke("get_filtrado", { filtro: filtro, tipoFiltro: tipo_filtro });
@@ -258,91 +279,12 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-function dibujarProductos(objetos) {
-  let container = document.querySelector('#cuadro-principal');
-  mensaje1.textContent = '';
-  container.replaceChildren([]);
-  let tabla = document.createElement('table');
-  tabla.style.width = '100%';
-  tabla.id = 'tabla-productos';
-  let tr;
-  tr = document.createElement('tr');
-  {
-    let th = document.createElement('th');
-    th.style.width = '80%'
-    th.innerHTML = 'Producto';
-    tr.appendChild(th);
-    let th3 = document.createElement('th');
-    th3.innerHTML = 'Precio';
-    tr.appendChild(th3);
-  }
-  tabla.appendChild(tr);
-
-  for (let i = 0; i < objetos.length; i++) {
-    let tr2 = document.createElement('tr')
-    tr2.tabIndex = 2;
-    let cantidad;
-    let presentacion;
-    switch (Object.keys(objetos[i].presentacion)[0]) {
-      case 'Gr':
-        cantidad = objetos[i].presentacion.Gr;
-        presentacion = 'Gr';
-        break;
-      case 'Un':
-        cantidad = objetos[i].presentacion.Un;
-        presentacion = 'Un';
-        break;
-      case 'Lt':
-        cantidad = objetos[i].presentacion.Lt;
-        presentacion = 'Lt';
-        break;
-      case 'Ml':
-        cantidad = objetos[i].presentacion.Ml;
-        presentacion = 'Ml';
-        break;
-      case 'Cc':
-        cantidad = objetos[i].presentacion.Cc;
-        presentacion = 'Cc';
-        break;
-      case 'Kg':
-        cantidad = objetos[i].presentacion.Kg;
-        presentacion = 'Kg';
-        break;
-
-    }
-    let id = document.createElement('td');
-    id.innerHTML = objetos[i].id;
-    id.style.display = 'none'
-    tr2.appendChild(id);
-    let producto = document.createElement('td');
-    producto.innerHTML = objetos[i].tipo_producto + ' ' + objetos[i].marca + ' ' + objetos[i].variedad + ' ' + cantidad + ' ' + presentacion;
-    tr2.appendChild(producto);
-    let precio = document.createElement('td');
-    precio.innerHTML = "$  " + objetos[i].precio_de_venta;
-    precio.style.textAlign = 'end'
-    tr2.appendChild(precio);
-    tr2.addEventListener('keydown', (e) => {
-      navigate(e)
-    });
-    tabla.appendChild(tr2);
-  }
-  container.appendChild(tabla);
-  if (tr.nextElementSibling) {
-    focus(tr.nextElementSibling);
-  }
-}
-function focus(obj) {
-  if (focuseado) {
-    focuseado.classList.toggle('focuseado')
-  }
-  focuseado = obj;
-  focuseado.classList.toggle('focuseado');
-}
 async function buscarProducto(filtrado) {
-  let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
+  clearTimeout(timeoutId);
   if (filtrado.length < 5 || isNaN(filtrado)) {
-    clearTimeout(timeoutId);
-    dibujarProductos(objetos);
+    let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
+
+    return objetos
   }
 }
 async function agregarProveedor() {
@@ -381,7 +323,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   document.getElementById("cerrar-agregar-producto").onclick = function () {
     document.getElementById("agregar-producto-container").style.display = "none";
-    document.querySelector('#cuadro-principal').style.display = 'flex';
+    document.querySelector('#cuadro-principal').style.display = 'grid';
   }
 
 
@@ -392,44 +334,46 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     document.getElementById("cambiar-configs-container").style.display = "inline-flex";
     document.getElementById("barra-de-opciones").classList.remove('visible');
-    get_configs().then(conf => {
-      document.querySelector('#input-politica-redondeo').value = conf.politica_redondeo;
-      document.querySelector('#input-formato-producto').innerHTML += `<option value="Tmv">Tipo - Marca - Variedad</option>
+
+    document.querySelector('#input-politica-redondeo').value = configs.politica_redondeo;
+    let inputFormatoProducto = document.querySelector('#input-formato-producto')
+    inputFormatoProducto.innerHTML = '';
+    inputFormatoProducto.innerHTML += `<option value="Tmv">Tipo - Marca - Variedad</option>
       <option value="Mtv">Marca - Tipo - Variedad</option>`
-      switch (conf.modo_mayus) {
-        case "Upper": {
-          document.querySelector('#input-modo-mayus').innerHTML += `
+    document.querySelector('#input-modo-mayus').innerHTML = '';
+    switch (configs.modo_mayus) {
+      case "Upper": {
+        document.querySelector('#input-modo-mayus').innerHTML += `
           <option value="Upper" >MAYÚSCULAS</option>
           <option value="Camel" >Pimera Letra Mayúscula</option>
           <option value="Lower" >minúsculas</option>
           `;
-          break;
-        }
-        case "Camel": {
-          document.querySelector('#input-modo-mayus').innerHTML += `
-          <option value="Camel" >Pimera Letra Mayúscula</option>
-          <option value="Upper" >MAYÚSCULAS</option>
-          <option value="Lower" >minúsculas</option>
-          `;
-          break;
-        }
-        case "Lower": {
-          document.querySelector('#input-modo-mayus').innerHTML += `
-          <option value="Lower" >minúsculas</option>
-          <option value="Camel" >Pimera Letra Mayúscula</option>
-          <option value="Upper" >MAYÚSCULAS</option>
-          `;
-          break;
-        }
+        break;
       }
+      case "Camel": {
+        document.querySelector('#input-modo-mayus').innerHTML += `
+          <option value="Camel" >Pimera Letra Mayúscula</option>
+          <option value="Upper" >MAYÚSCULAS</option>
+          <option value="Lower" >minúsculas</option>
+          `;
+        break;
+      }
+      case "Lower": {
+        document.querySelector('#input-modo-mayus').innerHTML += `
+          <option value="Lower" >minúsculas</option>
+          <option value="Camel" >Pimera Letra Mayúscula</option>
+          <option value="Upper" >MAYÚSCULAS</option>
+          `;
+        break;
+      }
+    }
+    document.querySelector('#input-cantidad-productos').value = configs.cantidad_productos;
 
-
-    });
 
   }
   document.getElementById("cerrar-cambiar-configs").onclick = function () {
     document.getElementById("cambiar-configs-container").style.display = "none";
-    document.querySelector('#cuadro-principal').style.display = 'flex';
+    document.querySelector('#cuadro-principal').style.display = 'grid';
   }
 
   document.querySelector('#cambiar-configs-submit').addEventListener('submit', (e) => {
@@ -437,7 +381,8 @@ window.addEventListener("DOMContentLoaded", () => {
     let configs = {
       "politica_redondeo": parseFloat(e.target.children[1].value),
       "formato_producto": "" + e.target.children[3].value,
-      "modo_mayus": "" + e.target.children[5].value
+      "modo_mayus": "" + e.target.children[5].value,
+      "cantidad_productos": e.target.children[7].value
     }
     console.log(configs)
     set_configs(configs)
@@ -454,7 +399,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   document.getElementById("cerrar-agregar-proveedor").onclick = function () {
     document.getElementById("agregar-proveedor-container").style.display = "none";
-    document.querySelector('#cuadro-principal').style.display = 'flex';
+    document.querySelector('#cuadro-principal').style.display = 'grid';
   }
 
 });
@@ -472,7 +417,7 @@ window.addEventListener("DOMContentLoaded", () => {
         let sale = document.querySelector('#precio_de_costo').value;
         document.querySelector('#precio_de_venta').value = parseFloat(sale) * (1 + (parseFloat(percent)) / 100)
       }
-    }, 500);
+    }, 2000);
 
 
   });
@@ -532,29 +477,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
   });
 })
-
-window.addEventListener("DOMContentLoaded", () => {
-  let buscador = document.querySelector('#buscador');
-
-  buscador.addEventListener('input', (e) => {
-    if (buscador.value.length == 0) {
-      clearTimeout(timeoutId);
-      borrarBusqueda();
-    } else {
-      buscarProducto(buscador.value)
-    }
-  });
-  buscador.addEventListener('keydown', (e) => {
-    navigate(e);
-  });
-  buscador.addEventListener('submit', (e) => {
-    e.preventDefault();
-    if (!isNaN(buscador.value) && buscador.value > 4) {
-      //TODO
-    }
-  })
-
-});
 
 
 

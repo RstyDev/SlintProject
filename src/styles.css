@@ -35,6 +35,11 @@
 #cambiar-configs-container {
   display: none;
 }
+#vista-resumen-venta p{
+  margin: 2px;
+  font-size: 0.7em;
+
+}
 
 .articulo {
   display: grid;

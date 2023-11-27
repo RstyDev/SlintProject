@@ -29,9 +29,11 @@
 
       <!-- <h1>Welcome to Tauri!</h1> -->
       <div>
-        <form autocomplete="off">
-          <input type="text" id="buscador">
-        </form>
+        <label><input placeholder="Buscar.." id="input-productos" list="productos" name="productos" /></label>
+        <datalist id="productos">
+        </datalist>
+
+
       </div>
     </div>
   </header>
@@ -105,14 +107,17 @@
       <a id="cerrar-cambiar-configs" class="a-boton">X</a>
       <form id="cambiar-configs-submit">
 
-        <label for="input-politica-redondeo"></label>
+        <label for="input-politica-redondeo">Política de redondeo: </label>
         <input type="number" id="input-politica-redondeo" step="0.01" placeholder="Política de redondeo" required>
 
         <label for="input-formato-producto">Formato del producto: </label>
         <select name="formato" id="input-formato-producto"></select>
-        
+
         <label for="input-modo-mayus">Modo de mayúsculas:</label>
         <select name="modo-mayus" id="input-modo-mayus"></select>
+
+        <label for="input-cantidad-productos">Cantidad de productos a mostrar en el buscador:</label>
+        <input type="number" id="input-cantidad-productos"  placeholder="Cantidad de productos a mostrar en el buscador" required>
 
         <button type="submit">Guardar</button>
       </form>
