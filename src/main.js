@@ -5,6 +5,7 @@ const mensaje1 = document.querySelector('#mensaje1-msg');
 let tpProd;
 let mark;
 let variety;
+let focuseado;
 let amount;
 let pres;
 let cod;
@@ -28,50 +29,31 @@ async function buscador() {
   mensaje1.textContent = await invoke("buscador", { name: buscadorInput.value });
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  let inputProductos = document.querySelector('#input-productos');
-  let productos = document.querySelector('#productos');
-  inputProductos.addEventListener('keydown', (e) => {
-    if (idUlt && e.keyCode == 13 && inputProductos.value.length == 0) {
-      agregarProdVentaAct(idUlt)
+function navigate(e) {
+  let buscador = document.querySelector('#buscador');
+  if (focuseado) {
+    if (e.keyCode == 38 && focuseado.previousElementSibling.previousElementSibling) {
+      e.preventDefault();
+      focus(focuseado.previousElementSibling);
+
+    } else if (e.keyCode == 40 && focuseado.nextElementSibling) {
+      e.preventDefault();
+      focus(focuseado.nextElementSibling);
+
+    } else if (e.keyCode == 27 && buscador.value.length != 0) {
+      e.preventDefault();
+      buscador.value = '';
+      get_venta_actual().then(venta => dibujar_venta(venta));
+    } else if (e.keyCode == 13) {
+      agregarProdVentaAct(focuseado.children[0].innerHTML);
+      e.preventDefault();
+      buscador.value = '';
+      get_venta_actual().then(venta => dibujar_venta(venta));
     }
-  })
-  inputProductos.addEventListener('input', (e) => {
-
-    e.target.parentNode.nextElementSibling.innerHTML = '';
-    buscarProducto(inputProductos.value).then(res => {
-      productos.innerHTML = '';
-      if (res.length > configs.cantidad_productos) {
-        for (let i = 0; i < configs.cantidad_productos; i++) {
-          productos.innerHTML += `<option class="opcion-producto" id="${res[i].id}" value="${formatear_strings(formatear_descripcion(res[i]))}"></option>`
-        }
-      } else {
-        for (let i = 0; i < res.length; i++) {
-          productos.innerHTML += `<option class="opcion-producto" id="${res[i].id}" value="${formatear_strings(formatear_descripcion(res[i]))}"></option>`
-        }
-      }
-      let opciones = document.getElementsByClassName('opcion-producto');
-      for (let i = 0; i < opciones.length; i++) {
-        if (opciones[i].value.length == inputProductos.value.length && opciones[i].value == inputProductos.value) {
-          inputProductos.value = '';
-          agregarProdVentaAct(opciones[i].id);
-          idUlt = opciones[i].id;
-          // console.log(opciones[i].id);
-          get_venta_actual(posicionVenta).then(venta => {
-            dibujar_venta(venta)
-          })
+  }
+}
 
 
-        }
-      }
-
-    })
-
-
-
-  })
-
-})
 
 
 
@@ -229,10 +211,10 @@ async function eliminarProdVentaAct(id) {
   await invoke("eliminar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta })
 } 
 function borrarBusqueda() {
-  document.getElementById('input-productos').value = '';
+  document.getElementById('buscador').value = '';
   document.querySelector('#cuadro-principal').replaceChildren([]);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  document.getElementById('input-productos').focus();
+  document.getElementById('buscador').focus();
 }
 async function get_filtrado(filtro, tipo_filtro, objetivo) {
   let res = await invoke("get_filtrado", { filtro: filtro, tipoFiltro: tipo_filtro });
@@ -258,6 +240,101 @@ async function get_filtrado(filtro, tipo_filtro, objetivo) {
     ops.appendChild(opciones[i]);
   }
 }
+
+function dibujarProductos(objetos) {
+  let container = document.querySelector('#cuadro-principal');
+  mensaje1.textContent = '';
+  container.replaceChildren([]);
+  let tabla = document.createElement('table');
+  tabla.style.width = '100%';
+  tabla.id = 'tabla-productos';
+  let tr = document.createElement('tr');
+  {
+    let th = document.createElement('th');
+    th.style.width = '80%'
+    th.innerHTML = 'Producto';
+    tr.appendChild(th);
+    let th3 = document.createElement('th');
+    th3.innerHTML = 'Precio';
+    tr.appendChild(th3);
+  }
+  tabla.appendChild(tr);
+
+  for (let i = 0; i < objetos.length; i++) {
+    let tr2 = document.createElement('tr')
+    tr2.addEventListener('click',()=>{
+      document.querySelector('#buscador').focus();
+      let focused = tr2.parentNode.getElementsByClassName('focuseado');
+      for (let i=0;i<focused.length;i++){
+        focused[i].classList.toggle('focuseado',false);
+      }
+      tr2.classList.toggle('focuseado',true);
+      focuseado=tr2;
+
+    });
+    tr2.addEventListener('dblclick',()=>{
+      borrarBusqueda()
+      agregarProdVentaAct(focuseado.children[0].innerHTML);
+    })
+    tr2.tabIndex = 2;
+    let cantidad;
+    let presentacion;
+    switch (Object.keys(objetos[i].presentacion)[0]) {
+      case 'Gr':
+        cantidad = objetos[i].presentacion.Gr;
+        presentacion = 'Gr';
+        break;
+      case 'Un':
+        cantidad = objetos[i].presentacion.Un;
+        presentacion = 'Un';
+        break;
+      case 'Lt':
+        cantidad = objetos[i].presentacion.Lt;
+        presentacion = 'Lt';
+        break;
+      case 'Ml':
+        cantidad = objetos[i].presentacion.Ml;
+        presentacion = 'Ml';
+        break;
+      case 'Cc':
+        cantidad = objetos[i].presentacion.Cc;
+        presentacion = 'Cc';
+        break;
+      case 'Kg':
+        cantidad = objetos[i].presentacion.Kg;
+        presentacion = 'Kg';
+        break;
+
+    }
+    let id = document.createElement('td');
+    id.innerHTML = objetos[i].id;
+    id.style.display = 'none'
+    tr2.appendChild(id);
+    let producto = document.createElement('td');
+    producto.innerHTML = objetos[i].tipo_producto + ' ' + objetos[i].marca + ' ' + objetos[i].variedad + ' ' + cantidad + ' ' + presentacion;
+    tr2.appendChild(producto);
+    let precio = document.createElement('td');
+    precio.innerHTML = "$  " + objetos[i].precio_de_venta;
+    precio.style.textAlign = 'end'
+    tr2.appendChild(precio);
+    tr2.addEventListener('keydown', (e) => {
+      navigate(e)
+    });
+    tabla.appendChild(tr2);
+  }
+  container.appendChild(tabla);
+  if (tr.nextElementSibling) {
+    focus(tr.nextElementSibling);
+  }
+}
+function focus(obj) {
+  if (focuseado) {
+    focuseado.classList.toggle('focuseado')
+  }
+  focuseado = obj;
+  focuseado.classList.toggle('focuseado');
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   borrarBusqueda();
   let id = "tipo_producto";
@@ -283,8 +360,7 @@ async function buscarProducto(filtrado) {
   clearTimeout(timeoutId);
   if (filtrado.length < 5 || isNaN(filtrado)) {
     let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
-
-    return objetos
+    dibujarProductos(objetos);
   }
 }
 async function agregarProveedor() {
@@ -382,9 +458,8 @@ window.addEventListener("DOMContentLoaded", () => {
       "politica_redondeo": parseFloat(e.target.children[1].value),
       "formato_producto": "" + e.target.children[3].value,
       "modo_mayus": "" + e.target.children[5].value,
-      "cantidad_productos": e.target.children[7].value
+      "cantidad_productos": parseInt(e.target.children[7].value)
     }
-    console.log(configs)
     set_configs(configs)
   })
 
@@ -477,6 +552,29 @@ window.addEventListener("DOMContentLoaded", () => {
 
   });
 })
+
+window.addEventListener("DOMContentLoaded", () => {
+  let buscador = document.querySelector('#buscador');
+
+  buscador.addEventListener('input', (e) => {
+    if (buscador.value.length == 0) {
+      clearTimeout(timeoutId);
+      borrarBusqueda();
+    } else {
+      buscarProducto(buscador.value)
+    }
+  });
+  buscador.addEventListener('keydown', (e) => {
+    navigate(e);
+  });
+  buscador.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!isNaN(buscador.value) && buscador.value > 4) {
+      //TODO
+    }
+  })
+
+});
 
 
 

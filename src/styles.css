@@ -30,6 +30,10 @@
 
 }
 
+#tabla-productos tr:hover{
+  background-color: #666;
+}
+
 #agregar-producto-container,
 #agregar-proveedor-container,
 #cambiar-configs-container {
