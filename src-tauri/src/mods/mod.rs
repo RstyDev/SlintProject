@@ -8,12 +8,13 @@ use self::lib::{leer_file, crear_file};
 
 mod lib;
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     politica_redondeo: f64,
     formato_producto: Formato,
     modo_mayus: Mayusculas,
     cantidad_productos: usize,
+    medios_pago: Vec<String>,
 }
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub enum Formato {
@@ -39,7 +40,6 @@ impl Pago {
     }
 }
 
-//---------------------------------Structs y Enums-------------------------------------
 pub struct Sistema {
     configs: Config,
     productos: Vec<Producto>,
@@ -108,6 +108,14 @@ impl Display for Presentacion {
 impl Config{
     pub fn get_cantidad_productos(&self)->usize{
         self.cantidad_productos
+    }
+    pub fn get_medios_pago(&self)->Vec<String>{
+        self.medios_pago.clone()
+    }
+}
+impl Default for Config{
+    fn default() -> Self {
+        Config { politica_redondeo: 10.0, formato_producto: Formato::default(), modo_mayus: Mayusculas::default(), cantidad_productos: 10, medios_pago: vec!["Efectivo".to_owned(), "Crédito".to_owned(), "Débito".to_owned()] }
     }
 }
 impl Relacion {

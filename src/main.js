@@ -49,6 +49,9 @@ function navigate(e) {
       e.preventDefault();
       buscador.value = '';
       get_venta_actual().then(venta => dibujar_venta(venta));
+    }else if (keyCode==121){
+      document.getElementById('cuadro-venta').classList.toggle('focused', false);
+      
     }
   }
 }
@@ -137,13 +140,12 @@ function formatear_strings(strings) {
 }
 async function dibujar_venta(venta) {
   let cuadro = document.querySelector('#cuadro-principal');
+  
   cuadro.replaceChildren([]);
   let disabled = "";
   let hijosRes = "";
   let hijos = "";
-  let pres = "";
   let strings = "";
-  let cant;
   for (let producto of venta.productos) {
     if (producto[0] < 2) {
       disabled = 'disabled';
@@ -156,7 +158,7 @@ async function dibujar_venta(venta) {
         <p> ${strings} </p>
      </section>
      <section class="cantidad">
-       <p> cantidad: </p>
+       
         <button class="button restar" ${disabled}>-</button>
         <p class="cantidad-producto"> ${producto[0]}</p>
         <button class="button sumar">+</button>
@@ -177,8 +179,19 @@ async function dibujar_venta(venta) {
     hijosRes += `<p>${strings}</p>`
   }
   hijos += `<section id="monto-total"> TOTAL <p>${venta.monto_total}</p></section>`
+  
 
-  cuadro.innerHTML = `<section id="cuadro-venta">${hijos}</section> <section id="vista-resumen-venta">${hijosRes}</section>`;
+  cuadro.innerHTML = `<section id="cuadro-venta">${hijos}</section> 
+  <section id="resumen-y-pago">
+      <div id='resumen'>
+        ${hijosRes}
+      </div>
+      <div id='pagos'>
+          ${venta.pagos}
+      </div>
+    </section>`;
+  document.getElementById('cuadro-venta').classList.add('focused');
+  
   for (let boton of document.querySelectorAll('.sumar')) {
     boton.addEventListener('click', (e) => { sumarProducto(e) });
   }

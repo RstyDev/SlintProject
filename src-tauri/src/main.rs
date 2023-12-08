@@ -5,11 +5,6 @@ use mods::Sistema;
 use mods::Venta;
 use mods::Config;
 use mods::Producto;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
-use std::fmt::{self, Display};
-use std::fs::File;
-use std::io::{Read, Write};
 use std::sync::Mutex;
 use tauri::State;
 mod mods;
@@ -284,6 +279,16 @@ fn set_configs(sistema: State<Mutex<Sistema>>, configs: Config) -> Result<(), St
     res
 }
 
+
+#[tauri::command]
+fn get_medios_pago(sistema: State<Mutex<Sistema>>)-> Result<Vec<String>,String>{
+    let res;
+    match sistema.lock(){
+        Ok(sis)=>res=Ok(sis.get_configs().get_medios_pago()),
+        Err(e)=>res=Err(e.to_string()),
+    }
+    res
+}
 //----------------------------------------main--------------------------------------------
 
 fn main() {
