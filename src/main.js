@@ -56,7 +56,12 @@ function navigate(e) {
   }
 }
 
-
+async function agregar_pago(medio_pago, monto){
+  return await invoke("agregar_pago", { "medio_pago":medio_pago, "monto":monto});
+}
+async function get_configs() {
+  return await invoke("get_configs");
+}
 
 
 
@@ -138,7 +143,7 @@ function formatear_strings(strings) {
 
 
 }
-async function dibujar_venta(venta) {
+function dibujar_venta(venta) {
   let cuadro = document.querySelector('#cuadro-principal');
   
   cuadro.replaceChildren([]);
@@ -187,11 +192,14 @@ async function dibujar_venta(venta) {
         ${hijosRes}
       </div>
       <div id='pagos'>
-          ${venta.pagos}
+          
       </div>
     </section>`;
   document.getElementById('cuadro-venta').classList.add('focused');
-  
+  let pagos=document.getElementById('pagos');
+  for (let i=0;i<venta.pagos;i++){
+      pagos.innerHTML+=venta.pagos;
+  }
   for (let boton of document.querySelectorAll('.sumar')) {
     boton.addEventListener('click', (e) => { sumarProducto(e) });
   }

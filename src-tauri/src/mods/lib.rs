@@ -11,17 +11,17 @@ pub fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Res
     Ok(())
 }
 
-pub fn push(pr: Producto, path: &String) {
-    let mut prods = Vec::new();
-    if let Err(e) = leer_file(&mut prods, path) {
-        panic!("{}", e);
-    }
-    prods.push(pr);
-    match crear_file(&path, &prods) {
-        Ok(_) => (),
-        Err(e) => panic!("No se pudo pushear porque {}", e),
-    };
-}
+// pub fn push(pr: Producto, path: &String) {
+//     let mut prods = Vec::new();
+//     if let Err(e) = leer_file(&mut prods, path) {
+//         panic!("{}", e);
+//     }
+//     prods.push(pr);
+//     match crear_file(&path, &prods) {
+//         Ok(_) => (),
+//         Err(e) => panic!("No se pudo pushear porque {}", e),
+//     };
+// }
 
 pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     buf: &mut T,
