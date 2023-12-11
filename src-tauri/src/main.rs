@@ -198,18 +198,17 @@ fn agregar_pago(
     medio_pago: String,
     monto: f64,
     pos: String,
-) -> Result<f64, String> {
-    let res;
+) -> Result<(), String> {
     let pos: usize = pos.parse().unwrap();
     match sistema.lock() {
         Ok(mut a) => match pos {
-            0 => res = Ok(a.get_venta_mut(0).agregar_pago(medio_pago, monto)),
-            1 => res = Ok(a.get_venta_mut(1).agregar_pago(medio_pago, monto)),
-            _ => res = Err("numero de venta incorrecto".to_string()),
+            0 =>  a.get_venta_mut(0).agregar_pago(medio_pago, monto),
+            1 =>  a.get_venta_mut(1).agregar_pago(medio_pago, monto),
+            _ => return Err("numero de venta incorrecto".to_string()),
         },
-        Err(e) => res = Err(e.to_string()),
+        Err(e) => return Err(e.to_string()),
     }
-    res
+    Ok(())
 }
 
 #[tauri::command]

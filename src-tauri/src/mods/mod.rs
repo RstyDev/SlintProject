@@ -62,6 +62,7 @@ pub struct Venta {
     monto_total: f64,
     productos: Vec<(u32, Producto)>,
     pagos: Vec<Pago>,
+    monto_pagado:f64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -134,15 +135,12 @@ impl<'a> Venta {
             monto_total: 0.0,
             productos: Vec::new(),
             pagos: Vec::new(),
+            monto_pagado:0.0,
         }
     }
-    pub fn agregar_pago(&mut self, medio_pago: String, monto: f64) -> f64 {
+    pub fn agregar_pago(&mut self, medio_pago: String, monto: f64) {
         self.pagos.push(Pago::new(medio_pago, monto));
-        let mut pagado = 0.0;
-        for i in &self.pagos {
-            pagado += i.monto;
-        }
-        self.monto_total - pagado
+        self.monto_pagado+=monto;
     }
     fn agregar_producto(&mut self, producto: Producto) {
         let mut esta = false;

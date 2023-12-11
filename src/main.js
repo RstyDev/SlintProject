@@ -49,7 +49,7 @@ function navigate(e) {
       e.preventDefault();
       buscador.value = '';
       get_venta_actual().then(venta => dibujar_venta(venta));
-    }else if (keyCode==121){
+    }else if (e.keyCode==121){
       document.getElementById('cuadro-venta').classList.toggle('focused', false);
       
     }
@@ -186,16 +186,33 @@ function dibujar_venta(venta) {
   hijos += `<section id="monto-total"> TOTAL <p>${venta.monto_total}</p></section>`
   
 
-  cuadro.innerHTML = `<section id="cuadro-venta">${hijos}</section> 
+  cuadro.innerHTML = `
+  <section id="cuadro-venta">
+    ${hijos}
+  </section> 
   <section id="resumen-y-pago">
-      <div id='resumen'>
-        ${hijosRes}
-      </div>
-      <div id='pagos'>
-          
-      </div>
-    </section>`;
-  document.getElementById('cuadro-venta').classList.add('focused');
+    <div id='resumen'>
+      ${hijosRes}
+    </div>
+    <div id='pagos'>
+    </div>
+    <p>Resta pagar: ${venta.monto_total-venta.monto_pagado}</p>        
+  </section>`;
+
+  document.getElementById('pagos').innerHTML=`
+  <section class="pago">
+  <input id="input-monto" type="number" step="0.01" placeholder="Monto"></input>
+  <select id="opciones-pagos">
+  </select>
+  <input id="boton-agregar-pago" value="Cash" type="submit">
+    </section>
+  
+  `
+  let opciones=document.getElementById('opciones-pagos');
+  for(let i=0;i<configs.medios_pago.length;i++){
+    opciones.innerHTML+=`<option>${configs.medios_pago[i]}</option>`
+  }
+  console.log(configs.medios_pago[0]);
   let pagos=document.getElementById('pagos');
   for (let i=0;i<venta.pagos;i++){
       pagos.innerHTML+=venta.pagos;
@@ -283,6 +300,7 @@ function dibujarProductos(objetos) {
 
   for (let i = 0; i < objetos.length; i++) {
     let tr2 = document.createElement('tr')
+    tr2.style.maxHeight='1.5em';
     tr2.addEventListener('click',()=>{
       document.querySelector('#buscador').focus();
       let focused = tr2.parentNode.getElementsByClassName('focuseado');
@@ -397,9 +415,7 @@ async function agregarProducto() {
   codigosProv = [];
 }
 
-async function get_configs() {
-  return await invoke("get_configs");
-}
+
 
 async function set_configs(configs) {
   await invoke("set_configs", { configs: configs })
