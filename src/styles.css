@@ -5,7 +5,7 @@
   font-weight: 400;
 
   color: #0f0f0f;
-  background-color: #f6f6f6;
+  background-color: #f9f9f9;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -121,7 +121,7 @@
 #cuadro-principal {
   width: 98%;
   height: 80svh;
-  background-color: #0f0f0f98;
+  background-color: #0f0f0f50;
   border-radius: 5px;
   display: grid;
   grid-template-columns: 80% 20%;

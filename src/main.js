@@ -491,13 +491,14 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.querySelector('#cambiar-configs-submit').addEventListener('submit', (e) => {
     e.preventDefault();
-    let configs = {
+    let configs2 = {
       "politica_redondeo": parseFloat(e.target.children[1].value),
       "formato_producto": "" + e.target.children[3].value,
       "modo_mayus": "" + e.target.children[5].value,
-      "cantidad_productos": parseInt(e.target.children[7].value)
+      "cantidad_productos": parseInt(e.target.children[7].value),
+      "medios_pago": configs.medios_pago
     }
-    set_configs(configs)
+    set_configs(configs2)
   })
 
 
