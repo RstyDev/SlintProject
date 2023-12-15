@@ -102,12 +102,16 @@
   text-align: center;
 }
 
+#cuadro-venta{
+  width: 100%;
+}
+
 .boton {
   height: 2.6em;
   padding: 0.4em;
   will-change: filter;
   transition: 0.5s;
-  background-color: #1a1a1a;
+  background-color: #fafafa;
   border-radius: 8px;
   border: 1px;
   box-sizing: border-box;
@@ -163,7 +167,7 @@ td {
 }
 
 tr:nth-child(even){
-  background-color: #222222;
+  background-color: #888;
 }
 
 tr:hover {
@@ -215,7 +219,7 @@ header button {
 #monto-total p {
   display: inline-block;
   padding: 5px 10px;
-  background-color: #2f2f2f;
+  background-color: #fafafa;
   border-radius: 5px;
 }
 
@@ -247,8 +251,8 @@ main {
 
 select,
 .a-boton {
-  background-color: #1a1a1a;
-  color: #7f7f7f;
+  background-color: #fafafa;
+  color: #9a9a9a;
 }
 
 .cantidad-producto {
@@ -300,13 +304,13 @@ button:active {
 }
 
 *:disabled {
-  color: #666666;
-  background-color: #2f2f2f;
+  color: #777;
+  background-color: #aaa;
   transition: none;
 }
 
 *:disabled:hover {
-  border: #2f2f2f;
+  border: #aaa;
   cursor: auto;
   border-color: rgba(0, 0, 0, 0);
   border-radius: 8px;
@@ -334,8 +338,11 @@ button {
     color: #24c8db;
   }
 
+
+
   input,
-  button {
+  button,
+  select {
     color: #ffffff;
     background-color: #0f0f0f98;
   }
@@ -356,4 +363,33 @@ button {
     -moz-appearance: textfield;
     appearance: none;
   }
+
+  select,
+.a-boton {
+  background-color: #1a1a1a;
+  color: #7f7f7f;
+}
+#monto-total p {
+  background-color: #2f2f2f;
+}
+
+.boton {
+  height: 2.6em;
+  padding: 0.4em;
+  will-change: filter;
+  transition: 0.5s;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  border: 1px;
+  box-sizing: border-box;
+}
+
+*:disabled {
+  color: #666666;
+  background-color: #2f2f2f;
+}
+
+*:disabled:hover {
+  border: #2f2f2f;
+}
 }
