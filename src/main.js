@@ -215,24 +215,26 @@ function dibujar_venta(venta) {
     </div>
     <p>Resta pagar: ${venta.monto_total - venta.monto_pagado}</p>        
   </section>`;
-
-  document.getElementById('pagos').innerHTML = `
-  <section class="pago">
+  let pagos = document.getElementById('pagos')
+  pagos.innerHTML = `
+  <form class="pago">
   <input id="input-monto" type="number" step="0.01" placeholder="Monto"></input>
   <select id="opciones-pagos">
   </select>
   <input id="boton-agregar-pago" value="Cash" type="submit">
-    </section>
-  
+    </form>
   `
+  
+  pagos.firstChild.addEventListener('submit',()=>{
+    console.log('hacer pago')
+  })
+
   let opciones = document.getElementById('opciones-pagos');
   for (let i = 0; i < configs.medios_pago.length; i++) {
     opciones.innerHTML += `<option>${configs.medios_pago[i]}</option>`
   }
-  console.log(configs.medios_pago[0]);
-  let pagos = document.getElementById('pagos');
   for (let i = 0; i < venta.pagos; i++) {
-    pagos.innerHTML += venta.pagos;
+    pagos.innerHTML += venta.pagos[i];
   }
   for (let boton of document.querySelectorAll('.sumar')) {
     boton.addEventListener('click', (e) => { sumarProducto(e) });

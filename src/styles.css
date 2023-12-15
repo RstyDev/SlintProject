@@ -49,7 +49,7 @@
 
 .articulo {
   display: grid;
-  grid-template-columns: auto 150px 10% 10% 10%;
+  grid-template-columns: auto 150px 80px 80px 80px;
   border: solid 1px #6f6f6f;
   border-radius: 10px;
   margin: 2px;
@@ -80,10 +80,12 @@
 
 .articulo p {
   margin: 5px 0;
+  overflow-x: auto;
 }
 
 .descripcion {
   grid-column-start: 1;
+  overflow-x: auto;
 }
 
 #cuadro-principal .cantidad {
@@ -163,9 +165,7 @@
   border-radius: 3px;
 }
 
-.descripcion {
-  overflow-x: auto;
-}
+
 
 #cuadro-principal {
   width: 98%;
