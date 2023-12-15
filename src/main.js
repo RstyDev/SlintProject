@@ -49,15 +49,15 @@ function navigate(e) {
       e.preventDefault();
       buscador.value = '';
       get_venta_actual().then(venta => dibujar_venta(venta));
-    }else if (e.keyCode==121){
+    } else if (e.keyCode == 121) {
       document.getElementById('cuadro-venta').classList.toggle('focused', false);
-      
+
     }
   }
 }
 
-async function agregar_pago(medio_pago, monto){
-  return await invoke("agregar_pago", { "medio_pago":medio_pago, "monto":monto});
+async function agregar_pago(medio_pago, monto) {
+  return await invoke("agregar_pago", { "medio_pago": medio_pago, "monto": monto });
 }
 async function get_configs() {
   return await invoke("get_configs");
@@ -145,11 +145,26 @@ function formatear_strings(strings) {
 }
 function dibujar_venta(venta) {
   let cuadro = document.querySelector('#cuadro-principal');
-  
+
   cuadro.replaceChildren([]);
   let disabled = "";
   let hijosRes = "";
-  let hijos = "";
+  let hijos = `<article class="articulo">
+     <section class="descripcion">
+        <p> DESCRIPCION </p>
+     </section>
+     <section class="cantidad">
+        <p> CANTIDAD </p>
+     </section>
+     <section class="monto">
+        <p> UNIDAD </p>
+     </section>
+     <section>
+      <p> TOTAL PARCIAL</p>
+     
+      
+    </section>
+     </article>`;
   let strings = "";
   for (let producto of venta.productos) {
     if (producto[0] < 2) {
@@ -169,10 +184,10 @@ function dibujar_venta(venta) {
         <button class="button sumar">+</button>
      </section>
      <section class="monto">
-        <p> Precio: ${producto[1].precio_de_venta} </p>
+        <p>${producto[1].precio_de_venta}</p>
      </section>
      <section>
-      <p> ${producto[1].precio_de_venta * producto[0]}
+      <p> ${producto[1].precio_de_venta * producto[0]}</p>
      </section>
      <section id="borrar">
       <button class="button eliminar">Borrar</button>
@@ -183,12 +198,14 @@ function dibujar_venta(venta) {
 
     hijosRes += `<p>${strings}</p>`
   }
-  hijos += `<section id="monto-total"> TOTAL <p>${venta.monto_total}</p></section>`
-  
+
 
   cuadro.innerHTML = `
   <section id="cuadro-venta">
+    <section id="productos">
     ${hijos}
+    </section>
+    <section id="monto-total"> TOTAL <p>${venta.monto_total}</p></section>
   </section> 
   <section id="resumen-y-pago">
     <div id='resumen'>
@@ -196,10 +213,10 @@ function dibujar_venta(venta) {
     </div>
     <div id='pagos'>
     </div>
-    <p>Resta pagar: ${venta.monto_total-venta.monto_pagado}</p>        
+    <p>Resta pagar: ${venta.monto_total - venta.monto_pagado}</p>        
   </section>`;
 
-  document.getElementById('pagos').innerHTML=`
+  document.getElementById('pagos').innerHTML = `
   <section class="pago">
   <input id="input-monto" type="number" step="0.01" placeholder="Monto"></input>
   <select id="opciones-pagos">
@@ -208,14 +225,14 @@ function dibujar_venta(venta) {
     </section>
   
   `
-  let opciones=document.getElementById('opciones-pagos');
-  for(let i=0;i<configs.medios_pago.length;i++){
-    opciones.innerHTML+=`<option>${configs.medios_pago[i]}</option>`
+  let opciones = document.getElementById('opciones-pagos');
+  for (let i = 0; i < configs.medios_pago.length; i++) {
+    opciones.innerHTML += `<option>${configs.medios_pago[i]}</option>`
   }
   console.log(configs.medios_pago[0]);
-  let pagos=document.getElementById('pagos');
-  for (let i=0;i<venta.pagos;i++){
-      pagos.innerHTML+=venta.pagos;
+  let pagos = document.getElementById('pagos');
+  for (let i = 0; i < venta.pagos; i++) {
+    pagos.innerHTML += venta.pagos;
   }
   for (let boton of document.querySelectorAll('.sumar')) {
     boton.addEventListener('click', (e) => { sumarProducto(e) });
@@ -247,7 +264,7 @@ async function descontarProdVentaAct(id) {
 
 async function eliminarProdVentaAct(id) {
   await invoke("eliminar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta })
-} 
+}
 function borrarBusqueda() {
   document.getElementById('buscador').value = '';
   document.querySelector('#cuadro-principal').replaceChildren([]);
@@ -300,18 +317,18 @@ function dibujarProductos(objetos) {
 
   for (let i = 0; i < objetos.length; i++) {
     let tr2 = document.createElement('tr')
-    tr2.style.maxHeight='1.5em';
-    tr2.addEventListener('click',()=>{
+    tr2.style.maxHeight = '1.5em';
+    tr2.addEventListener('click', () => {
       document.querySelector('#buscador').focus();
       let focused = tr2.parentNode.getElementsByClassName('focuseado');
-      for (let i=0;i<focused.length;i++){
-        focused[i].classList.toggle('focuseado',false);
+      for (let i = 0; i < focused.length; i++) {
+        focused[i].classList.toggle('focuseado', false);
       }
-      tr2.classList.toggle('focuseado',true);
-      focuseado=tr2;
+      tr2.classList.toggle('focuseado', true);
+      focuseado = tr2;
 
     });
-    tr2.addEventListener('dblclick',()=>{
+    tr2.addEventListener('dblclick', () => {
       borrarBusqueda()
       agregarProdVentaAct(focuseado.children[0].innerHTML);
     })

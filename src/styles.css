@@ -30,7 +30,7 @@
 
 }
 
-#tabla-productos tr:hover{
+#tabla-productos tr:hover {
   background-color: #666;
 }
 
@@ -39,7 +39,9 @@
 #cambiar-configs-container {
   display: none;
 }
-#resumen-y-pago p{
+
+
+#resumen-y-pago p {
   margin: 2px;
   font-size: 0.7em;
 
@@ -47,7 +49,37 @@
 
 .articulo {
   display: grid;
-  grid-template-columns: 50% 20% 10% 10% 10%;
+  grid-template-columns: auto 150px 10% 10% 10%;
+  border: solid 1px #6f6f6f;
+  border-radius: 10px;
+  margin: 2px;
+  box-shadow: 3px 2px rgba(0, 0, 0, 0.2);
+  padding-left: 10px;
+}
+
+#cuadro-principal .articulo:first-of-type {
+  border-radius: 0px;
+
+  & section,
+  &.cantidad {
+    border-right: solid 1px #6f6f6f;
+    display: block;
+
+  }
+
+  & p {
+    text-align: center;
+    margin: auto 0;
+  }
+
+  & .monto+section {
+    grid-column-start: 4;
+    grid-column-end: 6;
+  }
+}
+
+.articulo p {
+  margin: 5px 0;
 }
 
 .descripcion {
@@ -59,12 +91,19 @@
   display: flex;
   flex-direction: row;
 }
-.cantidad button,.cantidad p,#borrar .button{
+
+.cantidad button,
+.cantidad p,
+#borrar .button {
   margin: auto 5px;
 }
 
 .monto {
   grid-column-start: 3;
+  text-align: end;
+}
+
+.monto+section {
   text-align: end;
 }
 
@@ -102,8 +141,10 @@
   text-align: center;
 }
 
-#cuadro-venta{
+#cuadro-venta {
+  border: solid 1px #6f6f6f;
   width: 100%;
+  height: 80svh;
 }
 
 .boton {
@@ -122,15 +163,31 @@
   border-radius: 3px;
 }
 
+.descripcion {
+  overflow-x: auto;
+}
+
 #cuadro-principal {
   width: 98%;
   height: 80svh;
   background-color: #0f0f0f50;
   border-radius: 5px;
   display: grid;
-  grid-template-columns: 80% 20%;
+  grid-template-columns: 70% 30%;
   padding: 10px;
 }
+
+#productos {
+  max-height: 80%;
+  overflow-y: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 
 #cuadro-principal section {
   display: flex;
@@ -166,7 +223,7 @@ td {
   border-collapse: collapse;
 }
 
-tr:nth-child(even){
+tr:nth-child(even) {
   background-color: #888;
 }
 
@@ -179,27 +236,46 @@ a:hover {
   color: #535bf2;
 }
 
-#resumen{
+#resumen {
   height: 70%;
+  font-size: 0.75em;
 }
 
-div#pagos section.pago{
+div#pagos section.pago {
   display: flex;
   flex-direction: row;
 }
-#resumen-y-pago p{
-  font-size: 1em;
-  align-self: self-end;
+
+#resumen-y-pago {
+  padding-left: 5px;
+
+  & p {
+    font-size: 1em;
+    align-self: self-end;
+  }
 }
 
-#pagos{
+
+
+#pagos {
   height: 30%;
   display: flex;
   flex-direction: column;
 }
 
-#input-monto{
+#input-monto {
   width: 30%;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+input[type=number] {
+  appearance: textfield;
+  -moz-appearance: textfield;
 }
 
 h1 {
@@ -242,6 +318,12 @@ select,
   background-color: #ffffff;
   transition: border-color 0.25s;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+.eliminar {
+  padding: 0.6em 0.5em;
+  width: 70px;
+  font-size: 90%;
 }
 
 main {
@@ -351,45 +433,35 @@ button {
     background-color: #0f0f0f69;
   }
 
-  /* Chrome, Safari, Edge, Opera */
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
 
-  /* Firefox */
-  input[type=number] {
-    -moz-appearance: textfield;
-    appearance: none;
-  }
 
   select,
-.a-boton {
-  background-color: #1a1a1a;
-  color: #7f7f7f;
-}
-#monto-total p {
-  background-color: #2f2f2f;
-}
+  .a-boton {
+    background-color: #1a1a1a;
+    color: #7f7f7f;
+  }
 
-.boton {
-  height: 2.6em;
-  padding: 0.4em;
-  will-change: filter;
-  transition: 0.5s;
-  background-color: #1a1a1a;
-  border-radius: 8px;
-  border: 1px;
-  box-sizing: border-box;
-}
+  #monto-total p {
+    background-color: #2f2f2f;
+  }
 
-*:disabled {
-  color: #666666;
-  background-color: #2f2f2f;
-}
+  .boton {
+    height: 2.6em;
+    padding: 0.4em;
+    will-change: filter;
+    transition: 0.5s;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    border: 1px;
+    box-sizing: border-box;
+  }
 
-*:disabled:hover {
-  border: #2f2f2f;
-}
+  *:disabled {
+    color: #666666;
+    background-color: #2f2f2f;
+  }
+
+  *:disabled:hover {
+    border: #2f2f2f;
+  }
 }
