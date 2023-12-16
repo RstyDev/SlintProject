@@ -3,8 +3,8 @@
 use core::panic;
 use mods::Sistema;
 use mods::Venta;
-use mods::Config;
 use mods::Producto;
+use mods::Config;
 use std::sync::Mutex;
 use tauri::State;
 mod mods;
@@ -288,7 +288,6 @@ fn get_medios_pago(sistema: State<Mutex<Sistema>>)-> Result<Vec<String>,String>{
     }
     res
 }
-//----------------------------------------main--------------------------------------------
 
 fn main() {
     tauri::Builder::default()
