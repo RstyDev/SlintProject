@@ -205,7 +205,7 @@ function dibujar_venta(venta) {
     <section id="productos">
     ${hijos}
     </section>
-    <section id="monto-total"> TOTAL <p>${venta.monto_total}</p></section>
+    <section id="monto-total"> TOTAL ${venta.monto_total}</section>
   </section> 
   <section id="resumen-y-pago">
     <div id='resumen'>

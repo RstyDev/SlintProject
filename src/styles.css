@@ -136,7 +136,7 @@
 
 .container {
   margin: 0;
-  padding-top: 10vh;
+  padding-top: 8vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -178,11 +178,11 @@
 }
 
 #productos {
-  max-height: 80%;
+  max-height: 93%;
   overflow-y: scroll;
   -ms-overflow-style: none;
   scrollbar-width: none;
-
+  border-bottom: solid 1px #6f6f6f;
   &::-webkit-scrollbar {
     display: none;
   }
@@ -288,6 +288,8 @@ header button {
 
 #monto-total {
   display: inline-block;
+  font-size: 1.5em;
+  font-weight: 600;
   align-self: end;
   margin: auto 5px 5px 5px;
 }
