@@ -13,7 +13,7 @@ mod mods;
 
 #[tauri::command]
 fn buscador(name: &str) -> String {
-    format!("Hello, {}! You've been mensaje1ed from Rust!", name)
+    format!("Hello, {}! You've been mensajed from Rust!", name)
 }
 
 #[tauri::command]
