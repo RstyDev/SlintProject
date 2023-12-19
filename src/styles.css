@@ -143,11 +143,7 @@
   text-align: center;
 }
 
-#cuadro-venta {
-  border: solid 1px #6f6f6f;
-  width: 100%;
-  height: 80svh;
-}
+
 
 .boton {
   height: 2.6em;
@@ -169,12 +165,27 @@
 
 #cuadro-principal {
   width: 98%;
-  height: 80svh;
+  height: 75svh;
   background-color: #0f0f0f50;
   border-radius: 5px;
   display: grid;
   grid-template-columns: 70% 30%;
   padding: 10px;
+  & section.ayb{
+    display: inline;
+    position:fixed;
+    bottom: 85svh;
+    left: 40%;
+    & a{
+      display: inline-block;
+    }
+    & a:hover{
+      cursor: pointer;
+    }
+  }
+}
+.v-actual{
+  transform: scale(1.3);
 }
 
 #productos {
@@ -192,6 +203,11 @@
 #cuadro-principal section {
   display: flex;
   flex-direction: column;
+  &#cuadro-venta {
+    border: solid 1px #6f6f6f;
+    width: 100%;
+    height: 75svh;
+  }
 }
 
 

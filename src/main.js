@@ -128,9 +128,8 @@ function formatear_descripcion(producto) {
 
 
 }
+
 function formatear_strings(strings) {
-
-
   switch (configs.modo_mayus) {
     case "Upper":
       return strings.toUpperCase();
@@ -139,10 +138,24 @@ function formatear_strings(strings) {
     case "Camel":
       return camalize(strings);
   }
-
-
-
 }
+function cambiar_venta(boton) {
+  if (boton.nextElementSibling&&posicionVenta==1){
+    boton.classList.toggle('v-actual');
+    boton.nextElementSibling.classList.toggle('v-actual');
+    posicionVenta=0;
+    get_venta_actual().then(venta => dibujar_venta(venta));
+    document.getElementById('buscador').focus();
+  }else if (boton.previousElementSibling&&posicionVenta==0){
+    boton.classList.toggle('v-actual');
+    boton.previousElementSibling.classList.toggle('v-actual');
+    posicionVenta=1;
+    get_venta_actual().then(venta => dibujar_venta(venta));
+    document.getElementById('buscador').focus();
+  }
+}
+
+
 function dibujar_venta(venta) {
   let cuadro = document.querySelector('#cuadro-principal');
 
@@ -201,6 +214,10 @@ function dibujar_venta(venta) {
 
 
   cuadro.innerHTML = `
+  <section class="ayb">
+  <a id="v-a" class="a-boton"> Venta A </a>
+  <a id="v-b" class="a-boton"> Venta B </a>
+  </section>
   <section id="cuadro-venta">
     <section id="productos">
     ${hijos}
@@ -215,7 +232,22 @@ function dibujar_venta(venta) {
     </div>
     <p>Resta pagar: ${venta.monto_total - venta.monto_pagado}</p>        
   </section>`;
-  let pagos = document.getElementById('pagos')
+  let pagos = document.getElementById('pagos');
+  let va=document.getElementById('v-a');
+  let vb=document.getElementById('v-b');
+  if (posicionVenta==0){
+    va.classList.toggle('v-actual', true);
+    vb.classList.toggle('v-actual', false);
+  }else{
+    va.classList.toggle('v-actual', false);
+    vb.classList.toggle('v-actual', true);
+  }
+  va.addEventListener('click', ()=>{
+    cambiar_venta(va);
+  })
+  vb.addEventListener('click',()=>{
+    cambiar_venta(vb);
+  })
   pagos.innerHTML = `
   <form class="pago">
   <input id="input-monto" type="number" step="0.01" placeholder="Monto"></input>
