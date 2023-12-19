@@ -279,16 +279,19 @@ div#pagos section.pago {
   flex-direction: column;
 }
 
-#input-monto {
-  width: 30%;
-
+.input-monto {
+  width: 20%;
   &::-webkit-outer-spin-button,
   &::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
 }
-
+#boton-agregar-pago{
+  width: 20%;
+  padding-left: 3px;
+  padding-right: 3px;
+}
 input[type=number] {
   appearance: textfield;
   -moz-appearance: textfield;
@@ -337,6 +340,15 @@ select,
   transition: border-color 0.25s;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
+select,
+.a-boton {
+  background-color: #fafafa;
+  color: #9a9a9a;
+}
+.a-boton {
+  height: 20px;
+}
+
 
 .eliminar {
   padding: 0.6em 0.5em;
@@ -349,19 +361,12 @@ main {
   justify-content: center;
 }
 
-select,
-.a-boton {
-  background-color: #fafafa;
-  color: #9a9a9a;
-}
+
 
 .cantidad-producto {
   display: inline;
 }
 
-.a-boton {
-  height: 20px;
-}
 
 label {
   display: block;

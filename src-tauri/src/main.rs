@@ -210,9 +210,9 @@ fn agregar_pago(
     sistema: State<Mutex<Sistema>>,
     medio_pago: String,
     monto: f64,
-    pos: String,
+    pos: usize,
 ) -> Result<(), String> {
-    let pos: usize = pos.parse().unwrap();
+    // let pos: usize = pos.parse().unwrap();
     match sistema.lock() {
         Ok(mut a) => match pos {
             0 => a.get_venta_mut(0).agregar_pago(medio_pago, monto),

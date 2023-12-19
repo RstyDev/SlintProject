@@ -56,8 +56,9 @@ function navigate(e) {
   }
 }
 
-async function agregar_pago(medio_pago, monto) {
-  return await invoke("agregar_pago", { "medio_pago": medio_pago, "monto": monto });
+async function agregar_pago(medio_pago, m) {
+  let monto=parseFloat(m);
+  return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos": posicionVenta });
 }
 async function get_configs() {
   return await invoke("get_configs");
@@ -233,6 +234,35 @@ function dibujar_venta(venta) {
     <p>Resta pagar: ${venta.monto_total - venta.monto_pagado}</p>        
   </section>`;
   let pagos = document.getElementById('pagos');
+  for (let i=0;i<venta.pagos.length;i++){
+    pagos.innerHTML += `
+  <form class="pago">
+  <input class="input-monto" type="number" step="0.01" disabled value="${venta.pagos[i].monto}"></input>
+  <input class="opciones-pagos" value="${venta.pagos[i].medio_pago}" disabled>
+  </input>
+  <input class="boton-eliminar-pago" value="Eliminar" type="submit">
+    </form>
+  `  
+  }
+  pagos.innerHTML += `
+  <form class="pago">
+  <input class="input-monto" type="number" step="0.01" placeholder="Monto"></input>
+  <select class="opciones-pagos">
+  </select>
+  <input id="boton-agregar-pago" value="Cash" type="submit">
+    </form>
+  `
+  document.getElementById('boton-agregar-pago').addEventListener('click',(e)=>{
+    e.preventDefault();
+    if (e.target.parentNode.children[0].value.length>0){
+      console.log(e.target.parentNode.children[0].value);
+      console.log(e.target.parentNode.children[1].value);
+      agregar_pago(e.target.parentNode.children[1].value,e.target.parentNode.children[0].value);
+      get_venta_actual().then(venta => dibujar_venta(venta));
+      document.getElementById('buscador').focus();
+    }
+    
+  })
   let va=document.getElementById('v-a');
   let vb=document.getElementById('v-b');
   if (posicionVenta==0){
@@ -248,22 +278,16 @@ function dibujar_venta(venta) {
   vb.addEventListener('click',()=>{
     cambiar_venta(vb);
   })
-  pagos.innerHTML = `
-  <form class="pago">
-  <input id="input-monto" type="number" step="0.01" placeholder="Monto"></input>
-  <select id="opciones-pagos">
-  </select>
-  <input id="boton-agregar-pago" value="Cash" type="submit">
-    </form>
-  `
+  
+  
   
   pagos.firstChild.addEventListener('submit',()=>{
     console.log('hacer pago')
   })
 
-  let opciones = document.getElementById('opciones-pagos');
+  let opciones = document.getElementsByClassName('opciones-pagos');
   for (let i = 0; i < configs.medios_pago.length; i++) {
-    opciones.innerHTML += `<option>${configs.medios_pago[i]}</option>`
+    opciones[opciones.length-1].innerHTML += `<option>${configs.medios_pago[i]}</option>`
   }
   for (let i = 0; i < venta.pagos; i++) {
     pagos.innerHTML += venta.pagos[i];
