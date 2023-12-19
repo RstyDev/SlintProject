@@ -1,15 +1,16 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use core::panic;
+use mods::Config;
+use mods::Producto;
 use mods::Sistema;
 use mods::Venta;
-use mods::Producto;
-use mods::Config;
+use sea_orm::Database;
 use std::sync::Mutex;
+use std::thread;
+use tauri::async_runtime;
 use tauri::State;
 mod mods;
-
-
 
 #[tauri::command]
 fn buscador(name: &str) -> String {
@@ -127,8 +128,7 @@ fn get_productos_filtrado(
                 .into_iter()
                 .filter(|x| {
                     let codigo = filtro.parse::<u128>();
-                    if (codigo.is_ok() 
-                    && x.codigos_de_barras.contains(&codigo.unwrap()))
+                    if (codigo.is_ok() && x.codigos_de_barras.contains(&codigo.unwrap()))
                         || filtros.iter().any(|line| {
                             if x.get_nombre_completo()
                                 .to_lowercase()
@@ -144,7 +144,8 @@ fn get_productos_filtrado(
                     } else {
                         false
                     }
-                }).take(a.get_configs().get_cantidad_productos())
+                })
+                .take(a.get_configs().get_cantidad_productos())
                 .to_owned()
                 .collect());
         }
@@ -152,8 +153,20 @@ fn get_productos_filtrado(
     }
     res
 }
+
+async fn connect() {
+    println!("attempt");
+    if let Ok(db) = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+        println!("conectado");
+    } else {
+        println!("no conectado");
+    }
+}
 #[tauri::command]
 fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
+    let algo = async_runtime::spawn(connect());
+    let _=async_runtime::block_on(algo);
+
     match sistema.lock() {
         Ok(mut a) => {
             let pos = pos.parse().unwrap();
@@ -202,8 +215,8 @@ fn agregar_pago(
     let pos: usize = pos.parse().unwrap();
     match sistema.lock() {
         Ok(mut a) => match pos {
-            0 =>  a.get_venta_mut(0).agregar_pago(medio_pago, monto),
-            1 =>  a.get_venta_mut(1).agregar_pago(medio_pago, monto),
+            0 => a.get_venta_mut(0).agregar_pago(medio_pago, monto),
+            1 => a.get_venta_mut(1).agregar_pago(medio_pago, monto),
             _ => return Err("numero de venta incorrecto".to_string()),
         },
         Err(e) => return Err(e.to_string()),
@@ -278,13 +291,12 @@ fn set_configs(sistema: State<Mutex<Sistema>>, configs: Config) -> Result<(), St
     res
 }
 
-
 #[tauri::command]
-fn get_medios_pago(sistema: State<Mutex<Sistema>>)-> Result<Vec<String>,String>{
+fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> {
     let res;
-    match sistema.lock(){
-        Ok(sis)=>res=Ok(sis.get_configs().get_medios_pago()),
-        Err(e)=>res=Err(e.to_string()),
+    match sistema.lock() {
+        Ok(sis) => res = Ok(sis.get_configs().get_medios_pago()),
+        Err(e) => res = Err(e.to_string()),
     }
     res
 }
