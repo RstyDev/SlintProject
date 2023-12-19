@@ -156,11 +156,11 @@ fn get_productos_filtrado(
 
 async fn connect() {
     println!("attempt");
-    if let Ok(db) = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-        println!("conectado");
-    } else {
-        println!("no conectado");
-    }
+    // if let Ok(db) = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+    //     println!("conectado");
+    // } else {
+    //     println!("no conectado");
+    // }
 }
 #[tauri::command]
 fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
