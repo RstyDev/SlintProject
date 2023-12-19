@@ -60,6 +60,9 @@ async function agregar_pago(medio_pago, m) {
   let monto=parseFloat(m);
   return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos": posicionVenta });
 }
+async function eliminar_pago(index) {
+  return await invoke("eliminar_pago", { "pos": posicionVenta, "index": index });
+}
 async function get_configs() {
   return await invoke("get_configs");
 }
@@ -69,17 +72,20 @@ async function get_configs() {
 
 function sumarProducto(e) {
   agregarProdVentaAct(e.target.parentNode.parentNode.id);
-  borrarBusqueda();
+  get_venta_actual().then(venta => dibujar_venta(venta));
+  document.getElementById('buscador').focus();
 }
 function restarProducto(e) {
   let cantidad = e.target.nextElementSibling;
   descontarProdVentaAct(e.target.parentNode.parentNode.id);
-  borrarBusqueda();
+  get_venta_actual().then(venta => dibujar_venta(venta));
+  document.getElementById('buscador').focus();
 }
 
 function eliminarProducto(e) {
   eliminarProdVentaAct(e.target.parentNode.parentNode.id);
-  borrarBusqueda();
+  get_venta_actual().then(venta => dibujar_venta(venta));
+  document.getElementById('buscador').focus();
 }
 function camalize(str) {
   return str.replace(/(\w)(\w*)/g,
@@ -242,8 +248,10 @@ function dibujar_venta(venta) {
   </input>
   <input class="boton-eliminar-pago" value="Eliminar" type="submit">
     </form>
-  `  
+  ` 
+  
   }
+  
   pagos.innerHTML += `
   <form class="pago">
   <input class="input-monto" type="number" step="0.01" placeholder="Monto"></input>
@@ -252,11 +260,18 @@ function dibujar_venta(venta) {
   <input id="boton-agregar-pago" value="Cash" type="submit">
     </form>
   `
+  for (let i=0;i<venta.pagos.length;i++){
+    let btns=document.getElementsByClassName('boton-eliminar-pago');
+    btns[i].addEventListener('click',(e)=>{
+      e.preventDefault();
+      eliminar_pago(i)
+      get_venta_actual().then(venta => dibujar_venta(venta));
+      document.getElementById('buscador').focus();
+    })
+  }
   document.getElementById('boton-agregar-pago').addEventListener('click',(e)=>{
     e.preventDefault();
     if (e.target.parentNode.children[0].value.length>0){
-      console.log(e.target.parentNode.children[0].value);
-      console.log(e.target.parentNode.children[1].value);
       agregar_pago(e.target.parentNode.children[1].value,e.target.parentNode.children[0].value);
       get_venta_actual().then(venta => dibujar_venta(venta));
       document.getElementById('buscador').focus();
@@ -293,14 +308,21 @@ function dibujar_venta(venta) {
     pagos.innerHTML += venta.pagos[i];
   }
   for (let boton of document.querySelectorAll('.sumar')) {
-    boton.addEventListener('click', (e) => { sumarProducto(e) });
+    boton.addEventListener('click', (e) => { 
+      e.preventDefault();
+      sumarProducto(e) 
+    });
   }
   for (let boton of document.querySelectorAll('.restar')) {
-    boton.addEventListener('click', (e) => { restarProducto(e) });
+    boton.addEventListener('click', (e) => { 
+      e.preventDefault();
+      restarProducto(e);
+    });
   }
   for (let boton of document.querySelectorAll('.eliminar')) {
     boton.addEventListener('click', (e) => {
-      eliminarProducto(e)
+      e.preventDefault();
+      eliminarProducto(e);
     });
   }
 }
@@ -387,8 +409,8 @@ function dibujarProductos(objetos) {
 
     });
     tr2.addEventListener('dblclick', () => {
-      borrarBusqueda()
       agregarProdVentaAct(focuseado.children[0].innerHTML);
+      borrarBusqueda();
     })
     tr2.tabIndex = 2;
     let cantidad;

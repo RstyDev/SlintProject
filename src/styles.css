@@ -287,8 +287,14 @@ div#pagos section.pago {
     margin: 0;
   }
 }
-#boton-agregar-pago{
-  width: 20%;
+.opciones-pagos{
+  box-sizing: border-box;
+  width: 30%;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+.boton-eliminar-pago, #boton-agregar-pago{
+  width: 30%;
   padding-left: 3px;
   padding-right: 3px;
 }

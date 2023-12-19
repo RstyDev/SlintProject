@@ -158,6 +158,9 @@ impl<'a> Venta {
             self.monto_total += i.1.precio_de_venta * i.0 as f64;
         }
     }
+    pub fn eliminar_pago(&mut self,index:usize){
+        self.pagos.remove(index);
+    }
     fn restar_producto(&mut self, producto: Producto) -> Result<(), String> {
         let mut res = Err("Producto no encontrado".to_string());
         for i in 0..self.productos.len() {

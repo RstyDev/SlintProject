@@ -225,6 +225,23 @@ fn agregar_pago(
 }
 
 #[tauri::command]
+fn eliminar_pago(
+    sistema: State<Mutex<Sistema>>,
+    pos: usize,
+    index:usize
+) -> Result<(), String>{
+    match sistema.lock() {
+        Ok(mut a) => match pos {
+            0 => a.get_venta_mut(0).eliminar_pago(index),
+            1 => a.get_venta_mut(1).eliminar_pago(index),
+            _ => return Err("numero de venta incorrecto".to_string()),
+        },
+        Err(e) => return Err(e.to_string()),
+    }
+    Ok(())
+}
+
+#[tauri::command]
 fn get_filtrado(
     sistema: State<Mutex<Sistema>>,
     filtro: String,
@@ -318,6 +335,7 @@ fn main() {
             eliminar_producto_de_venta,
             redondeo,
             agregar_pago,
+            eliminar_pago,
             get_venta_actual,
             get_configs,
             set_configs,
