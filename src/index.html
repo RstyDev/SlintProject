@@ -39,8 +39,9 @@
     <div id="agregar-producto-container" class="main-screen">
       <a id="cerrar-agregar-producto" class="a-boton">X</a>
       <form id="agregar-producto-submit">
-        <section>
+        <section id="input-codigo">
           <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" required />
+          <button class="boton">Agregar código</button>
         </section>
         <section>
           <input id="tipo_producto" list="opciones-tipo-producto" placeholder="Tipo de producto" required />
@@ -52,9 +53,7 @@
           <datalist id="opciones-marca">
           </datalist>
         </section>
-        <section>
-          <input id="variedad" placeholder="Variedad" required />
-        </section>
+        <input id="variedad" placeholder="Variedad" required />        
         <section>
           <input type="number" id="cantidad" placeholder="Cantidad" required />
           <select name="presentacion" id="presentacion" required>

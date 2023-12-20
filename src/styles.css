@@ -307,6 +307,11 @@ div#pagos section.pago {
 input[type=number] {
   appearance: textfield;
   -moz-appearance: textfield;
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 }
 
 h1 {

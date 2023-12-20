@@ -51,6 +51,8 @@ fn agregar_producto(
     cantidad: &str,
     presentacion: &str,
 ) -> Result<(), String> {
+    let v=marca.to_string();
+    println!("agregando {v}");
     match sistema.lock() {
         Ok(mut sis) => {
             for code in &codigos_de_barras {
