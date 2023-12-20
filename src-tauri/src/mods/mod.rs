@@ -159,7 +159,11 @@ impl<'a> Venta {
         }
     }
     pub fn eliminar_pago(&mut self,index:usize){
-        self.pagos.remove(index);
+        let pago= self.pagos.remove(index);
+        self.monto_pagado-=pago.monto;
+            
+        
+        
     }
     fn restar_producto(&mut self, producto: Producto) -> Result<(), String> {
         let mut res = Err("Producto no encontrado".to_string());
