@@ -1,9 +1,11 @@
 const { invoke } = window.__TAURI__.tauri;
+const mensaje1 = document.querySelector('#mensaje1-msg');
 let posicionVenta = 0;
 let focuseado;
 let timeoutId;
 let proveedores_producto = [];
 let codigosProv = [];
+let codigosProd=[];
 let configs;
 let idUlt;
 
@@ -491,10 +493,11 @@ async function agregarProveedor() {
   prov.value = '';
   cont.value = '';
 }
-async function agregarProducto(tpProd,mark,variety,amount,pres,cod,precio_de_venta,percent,precio_de_costo) {
-  mensaje1.textContent = ("Producto agregado: " + await invoke("agregar_producto", { proveedores: proveedores_producto, codigosProv: codigosProv, codigoDeBarras: cod.value, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
+async function agregarProducto(tpProd,mark,variety,amount,pres,precio_de_venta,percent,precio_de_costo) {
+  mensaje1.textContent = ("Producto agregado: " + await invoke("agregar_producto", { proveedores: proveedores_producto, codigosProv: codigosProv, codigosDeBarras: codigosProd, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
   proveedores_producto = [];
   codigosProv = [];
+  codigosProd=[];
 }
 
 
@@ -704,13 +707,12 @@ window.addEventListener("DOMContentLoaded", () => {
   let variety = document.querySelector('#variedad');
   let amount = document.querySelector('#cantidad');
   let pres = document.querySelector('#presentacion');
-  let cod = document.querySelector('#codigo_de_barras');
   let precio_de_venta = document.querySelector('#precio_de_venta');
   let percent = document.querySelector('#porcentaje');
   let precio_de_costo = document.querySelector('#precio_de_costo');
   document.querySelector('#agregar-producto-submit').addEventListener("submit", (e) => {
     e.preventDefault();
-    agregarProducto(tpProd,mark,variety,amount,pres,cod,precio_de_venta,percent,precio_de_costo);
+    agregarProducto(tpProd,mark,variety,amount,pres,precio_de_venta,percent,precio_de_costo);
   })
   document.querySelector('#agregar-proveedor-submit').addEventListener("submit", (e) => {
     e.preventDefault();
@@ -743,10 +745,40 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   let input=document.querySelector('#input-codigo');
-  input.children[1].addEventListener('click',(e)=>{
-    e.preventDefault();
+  input.innerHTML=
+  `
+  <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" required />
+          <button class="boton">Agregar código</button>`
 
-    console.log(input);
+
+  input.children[input.children.length-1].addEventListener('click',(e)=>{
+    e.preventDefault();
+    codigosProd.push(input.children[input.children.length-2].value);
+    if (input.parentElement.children.length>9){
+      for (let i=0;i<input.parentElement.children.length-10;i++){
+        input.parentElement.removeChild(input.parentElement.children[i]);
+      }
+    }
+    for (let i=0;i<codigosProd.length;i++){
+      let input2=document.createElement('input');
+      input2.disabled='true';
+      input2.value=codigosProd[i];
+      let btn =document.createElement('button');
+      btn.innerText='Eliminar'
+      btn.classList.add('boton');
+      btn.value='Eliminar';
+      btn.addEventListener('click',(e)=>{
+        e.preventDefault();
+        console.log(e.target.parentElement);
+        e.target.parentElement.parentElement.removeChild(e.target.parentElement);
+        codigosProd=codigosProd.splice(e.target.parentElement.parentElement.children.indexOf(e.target.parentElement), 1)
+      })
+      let sc=document.createElement('section');
+      sc.appendChild(input2);
+      sc.appendChild(btn);
+      input.parentElement.insertBefore(sc, input.parentElement.firstChild);
+    }
+    console.log(codigosProd);
   })
 
 })

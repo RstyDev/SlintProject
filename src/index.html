@@ -40,8 +40,7 @@
       <a id="cerrar-agregar-producto" class="a-boton">X</a>
       <form id="agregar-producto-submit">
         <section id="input-codigo">
-          <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" required />
-          <button class="boton">Agregar código</button>
+          
         </section>
         <section>
           <input id="tipo_producto" list="opciones-tipo-producto" placeholder="Tipo de producto" required />
@@ -58,9 +57,12 @@
           <input type="number" id="cantidad" placeholder="Cantidad" required />
           <select name="presentacion" id="presentacion" required>
             <option value="" selected disabled hidden>Elige una opción</option>
-            <option value="Grs">Grs.</option>
+            <option value="Gr">Grs.</option>
             <option value="Un">Un.</option>
             <option value="Lt">Lt.</option>
+            <option value="Ml">Ml.</option>
+            <option value="Cc">Cc.</option>
+            <option value="Kg">Kg.</option>            
           </select>
         </section>
         <section>

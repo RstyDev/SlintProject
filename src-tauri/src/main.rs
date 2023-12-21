@@ -50,9 +50,7 @@ fn agregar_producto(
     variedad: &str,
     cantidad: &str,
     presentacion: &str,
-) -> Result<(), String> {
-    let v=marca.to_string();
-    println!("agregando {v}");
+) -> Result<String, String> {
     match sistema.lock() {
         Ok(mut sis) => {
             for code in &codigos_de_barras {
@@ -72,9 +70,9 @@ fn agregar_producto(
                 cantidad,
                 presentacion,
             );
-            sis.agregar_producto(proveedores, codigos_prov, producto)?;
+            sis.agregar_producto(proveedores, codigos_prov, producto.clone())?;
 
-            Ok(())
+            Ok(producto.get_nombre_completo())
         }
         Err(a) => Err(a.to_string()),
     }

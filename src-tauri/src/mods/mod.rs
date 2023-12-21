@@ -457,7 +457,7 @@ impl Producto {
             "Gr" => Presentacion::Gr(cantidad.parse().unwrap()),
             "Un" => Presentacion::Un(cantidad.parse().unwrap()),
             "Lt" => Presentacion::Lt(cantidad.parse().unwrap()),
-            _ => panic!("no posible"),
+            _ => panic!("no posible {presentacion}"),
         };
         let codigos = codigos
             .iter()
