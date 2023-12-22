@@ -214,11 +214,7 @@ fn agregar_pago(
 ) -> Result<(), String> {
     // let pos: usize = pos.parse().unwrap();
     match sistema.lock() {
-        Ok(mut a) => match pos {
-            0 => a.get_venta_mut(0).agregar_pago(medio_pago, monto),
-            1 => a.get_venta_mut(1).agregar_pago(medio_pago, monto),
-            _ => return Err("numero de venta incorrecto".to_string()),
-        },
+        Ok(mut a) => a.agregar_pago(medio_pago, monto, pos),
         Err(e) => return Err(e.to_string()),
     }
     Ok(())

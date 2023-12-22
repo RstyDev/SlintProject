@@ -262,6 +262,17 @@ impl<'a> Sistema {
         }
         
     }
+    pub fn agregar_pago(&mut self, medio_pago:String,monto:f64,pos:usize){
+        match pos{
+            0=>{
+                self.ventas.0.agregar_pago(medio_pago, monto);
+            }
+            1=>{
+                self.ventas.1.agregar_pago(medio_pago, monto);
+            }
+            _=>panic!("error, hay solo dos posiciones para ventas")
+        }
+    }
     pub fn set_configs(&mut self, configs: Config) {
         self.configs = configs;
         if let Err(e) = crear_file(&self.path_configs, &vec![&self.configs]) {
@@ -440,8 +451,16 @@ impl<'a> Sistema {
     }
     pub fn cerrar_venta(&mut self, pos:usize){
         match pos{
-
-        }
+            0=> {
+                self.registro.push(self.ventas.0.clone());
+                self.ventas.0=Venta::new();
+            },
+            1=>{
+                self.registro.push(self.ventas.1.clone());
+                self.ventas.1=Venta::new();
+            },
+            _=>panic!("error, solo hay 2 posiciones para ventas"),
+        };
     }
 }
 
