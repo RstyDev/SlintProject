@@ -5,9 +5,10 @@ let focuseado;
 let timeoutId;
 let proveedores_producto = [];
 let codigosProv = [];
-let codigosProd=[];
+let codigosProd = [];
 let configs;
 let idUlt;
+let buscador;
 
 get_configs().then(conf => {
   configs = conf;
@@ -17,7 +18,6 @@ get_configs().then(conf => {
 
 
 function navigate(e) {
-  let buscador = document.querySelector('#buscador');
   if (focuseado) {
     if (e.keyCode == 38 && focuseado.previousElementSibling.previousElementSibling) {
       e.preventDefault();
@@ -44,7 +44,7 @@ function navigate(e) {
 }
 
 async function agregar_pago(medio_pago, m) {
-  let monto=parseFloat(m);
+  let monto = parseFloat(m);
   return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos": posicionVenta });
 }
 async function eliminar_pago(index) {
@@ -60,19 +60,19 @@ async function get_configs() {
 function sumarProducto(e) {
   agregarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  document.getElementById('buscador').focus();
+  buscador.focus();
 }
 function restarProducto(e) {
   let cantidad = e.target.nextElementSibling;
   descontarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  document.getElementById('buscador').focus();
+  buscador.focus();
 }
 
 function eliminarProducto(e) {
   eliminarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  document.getElementById('buscador').focus();
+  buscador.focus();
 }
 function camalize(str) {
   return str.replace(/(\w)(\w*)/g,
@@ -134,18 +134,18 @@ function formatear_strings(strings) {
   }
 }
 function cambiar_venta(boton) {
-  if (boton.nextElementSibling&&posicionVenta==1){
+  if (boton.nextElementSibling && posicionVenta == 1) {
     boton.classList.toggle('v-actual');
     boton.nextElementSibling.classList.toggle('v-actual');
-    posicionVenta=0;
+    posicionVenta = 0;
     get_venta_actual().then(venta => dibujar_venta(venta));
-    document.getElementById('buscador').focus();
-  }else if (boton.previousElementSibling&&posicionVenta==0){
+    buscador.focus();
+  } else if (boton.previousElementSibling && posicionVenta == 0) {
     boton.classList.toggle('v-actual');
     boton.previousElementSibling.classList.toggle('v-actual');
-    posicionVenta=1;
+    posicionVenta = 1;
     get_venta_actual().then(venta => dibujar_venta(venta));
-    document.getElementById('buscador').focus();
+    buscador.focus();
   }
 }
 
@@ -226,8 +226,17 @@ function dibujar_venta(venta) {
     </div>
     <p>Resta pagar: ${venta.monto_total - venta.monto_pagado}</p>        
   </section>`;
+  let pes = document.querySelector('#resumen');
+  pes.style.fontSize = `${calcFont(pes.offsetHeight, pes.children.length * 2)}px`;
+  for (let i = 0; i < pes.length; i++) {
+    pes[i].style.height = `${calcFont(pes.offsetHeight, pes.children.length)}px`;
+  }
+
+
+
+
   let pagos = document.getElementById('pagos');
-  for (let i=0;i<venta.pagos.length;i++){
+  for (let i = 0; i < venta.pagos.length; i++) {
     pagos.innerHTML += `
   <form class="pago">
   <input class="input-monto" type="number" step="0.01" disabled value="${venta.pagos[i].monto}"></input>
@@ -235,10 +244,10 @@ function dibujar_venta(venta) {
   </input>
   <input class="boton-eliminar-pago" value="Eliminar" type="submit">
     </form>
-  ` 
-  
+  `
+
   }
-  
+
   pagos.innerHTML += `
   <form class="pago">
   <input class="input-monto" type="number" step="0.01" placeholder="Monto"></input>
@@ -247,61 +256,61 @@ function dibujar_venta(venta) {
   <input id="boton-agregar-pago" value="Cash" type="submit">
     </form>
   `
-  for (let i=0;i<venta.pagos.length;i++){
-    let btns=document.getElementsByClassName('boton-eliminar-pago');
-    btns[i].addEventListener('click',(e)=>{
+  for (let i = 0; i < venta.pagos.length; i++) {
+    let btns = document.getElementsByClassName('boton-eliminar-pago');
+    btns[i].addEventListener('click', (e) => {
       e.preventDefault();
       eliminar_pago(i)
       get_venta_actual().then(venta => dibujar_venta(venta));
-      document.getElementById('buscador').focus();
+      buscador.focus();
     })
   }
-  document.getElementById('boton-agregar-pago').addEventListener('click',(e)=>{
+  document.getElementById('boton-agregar-pago').addEventListener('click', (e) => {
     e.preventDefault();
-    if (e.target.parentNode.children[0].value.length>0){
-      agregar_pago(e.target.parentNode.children[1].value,e.target.parentNode.children[0].value);
+    if (e.target.parentNode.children[0].value.length > 0) {
+      agregar_pago(e.target.parentNode.children[1].value, e.target.parentNode.children[0].value);
       get_venta_actual().then(venta => dibujar_venta(venta));
-      document.getElementById('buscador').focus();
+      buscador.focus();
     }
-    
+
   })
-  let va=document.getElementById('v-a');
-  let vb=document.getElementById('v-b');
-  if (posicionVenta==0){
+  let va = document.getElementById('v-a');
+  let vb = document.getElementById('v-b');
+  if (posicionVenta == 0) {
     va.classList.toggle('v-actual', true);
     vb.classList.toggle('v-actual', false);
-  }else{
+  } else {
     va.classList.toggle('v-actual', false);
     vb.classList.toggle('v-actual', true);
   }
-  va.addEventListener('click', ()=>{
+  va.addEventListener('click', () => {
     cambiar_venta(va);
   })
-  vb.addEventListener('click',()=>{
+  vb.addEventListener('click', () => {
     cambiar_venta(vb);
   })
-  
-  
-  
-  pagos.firstChild.addEventListener('submit',()=>{
+
+
+
+  pagos.firstChild.addEventListener('submit', () => {
     console.log('hacer pago')
   })
 
   let opciones = document.getElementsByClassName('opciones-pagos');
   for (let i = 0; i < configs.medios_pago.length; i++) {
-    opciones[opciones.length-1].innerHTML += `<option>${configs.medios_pago[i]}</option>`
+    opciones[opciones.length - 1].innerHTML += `<option>${configs.medios_pago[i]}</option>`
   }
   for (let i = 0; i < venta.pagos; i++) {
     pagos.innerHTML += venta.pagos[i];
   }
   for (let boton of document.querySelectorAll('.sumar')) {
-    boton.addEventListener('click', (e) => { 
+    boton.addEventListener('click', (e) => {
       e.preventDefault();
-      sumarProducto(e) 
+      sumarProducto(e)
     });
   }
   for (let boton of document.querySelectorAll('.restar')) {
-    boton.addEventListener('click', (e) => { 
+    boton.addEventListener('click', (e) => {
       e.preventDefault();
       restarProducto(e);
     });
@@ -333,10 +342,10 @@ async function eliminarProdVentaAct(id) {
   await invoke("eliminar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta })
 }
 function borrarBusqueda() {
-  document.getElementById('buscador').value = '';
+  buscador.value = '';
   document.querySelector('#cuadro-principal').replaceChildren([]);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  document.getElementById('buscador').focus();
+  buscador.focus();
 }
 async function get_filtrado(filtro, tipo_filtro, objetivo) {
   let res = await invoke("get_filtrado", { filtro: filtro, tipoFiltro: tipo_filtro });
@@ -386,7 +395,7 @@ function dibujarProductos(objetos) {
     let tr2 = document.createElement('tr')
     tr2.style.maxHeight = '1.5em';
     tr2.addEventListener('click', () => {
-      document.querySelector('#buscador').focus();
+      buscador.focus();
       let focused = tr2.parentNode.getElementsByClassName('focuseado');
       for (let i = 0; i < focused.length; i++) {
         focused[i].classList.toggle('focuseado', false);
@@ -458,8 +467,43 @@ function focus(obj) {
   focuseado.classList.toggle('focuseado');
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  borrarBusqueda();
+function agrProvSubmit() {
+  document.querySelector("#agregar-proveedor-a-producto").addEventListener("submit", (e) => {
+    e.preventDefault();
+    let res = document.querySelector('#proveedor').value;
+    let cod = document.querySelector('#codigo_prov').value;
+    if (!proveedores_producto.includes(res)) {
+      proveedores_producto.push(res);
+      codigosProv.push(cod);
+    }
+    console.log(proveedores_producto + " y " + codigosProv + "|");
+  });
+}
+
+function agrCodSubmit() {
+  let input = document.querySelector('#input-codigo');
+  input.innerHTML =
+    `
+  <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" />
+          <button class="boton">Agregar código</button>`
+
+  input.children[input.children.length - 2].addEventListener('keydown', (e) => {
+
+    if (e.keyCode == 13) {
+      e.preventDefault();
+      handle_codigos(e.target.nextElementSibling, input);
+      e.value = '';
+
+    }
+  })
+  input.children[input.children.length - 1].addEventListener('click', (e) => {
+    e.preventDefault();
+    handle_codigos(e.target, input)
+
+  })
+}
+
+function agrTipoProd() {
   let id = "tipo_producto";
   let objetivo = "opciones-tipo-producto";
   let id_marca = "marca";
@@ -477,212 +521,29 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById(id_marca).addEventListener('input', () => {
     get_filtrado(document.getElementById(id_marca).value, id_marca, objetivo_marca);
   });
-});
-
-async function buscarProducto(filtrado) {
-  clearTimeout(timeoutId);
-  if (filtrado.length < 5 || isNaN(filtrado)) {
-    let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
-    dibujarProductos(objetos);
-  }
-}
-async function agregarProveedor() {
-  let prov = document.querySelector('#input-nombre-proveedor');
-  let cont = document.querySelector('#input-contacto-proveedor');
-  mensaje1.textContent = await invoke("agregar_proveedor", { proveedor: prov.value, contacto: cont.value });
-  prov.value = '';
-  cont.value = '';
-}
-async function agregarProducto(tpProd,mark,variety,amount,pres,precio_de_venta,percent,precio_de_costo) {
-  mensaje1.textContent = ("Producto agregado: " + await invoke("agregar_producto", { proveedores: proveedores_producto, codigosProv: codigosProv, codigosDeBarras: codigosProd, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
-  proveedores_producto = [];
-  codigosProv = [];
-  codigosProd=[];
 }
 
-
-
-async function set_configs(configs) {
-  await invoke("set_configs", { configs: configs })
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-
-  document.getElementById("menu-button").onclick = function () {
-    document.getElementById("barra-de-opciones").classList.toggle('visible');
-  };
-  document.getElementById("agregar-producto-mostrar").onclick = function () {
-    let elemento = document.getElementsByClassName("main-screen");
-    for (let i = 0; i < elemento.length; i++) {
-      elemento[i].style.display = "none"
-    }
-    document.getElementById("agregar-producto-container").style.display = "inline-flex";
-    document.getElementById("barra-de-opciones").classList.remove('visible');
-  }
-  document.getElementById("cerrar-agregar-producto").onclick = function () {
-    document.getElementById("agregar-producto-container").style.display = "none";
-    document.querySelector('#cuadro-principal').style.display = 'grid';
-  }
-
-
-  document.getElementById("cambiar-configs-mostrar").onclick = function () {
-    let elemento = document.getElementsByClassName("main-screen");
-    for (let i = 0; i < elemento.length; i++) {
-      elemento[i].style.display = "none"
-    }
-    document.getElementById("cambiar-configs-container").style.display = "inline-flex";
-    document.getElementById("barra-de-opciones").classList.remove('visible');
-
-    document.querySelector('#input-politica-redondeo').value = configs.politica_redondeo;
-    let inputFormatoProducto = document.querySelector('#input-formato-producto')
-    inputFormatoProducto.innerHTML = '';
-    inputFormatoProducto.innerHTML += `<option value="Tmv">Tipo - Marca - Variedad</option>
-      <option value="Mtv">Marca - Tipo - Variedad</option>`
-    document.querySelector('#input-modo-mayus').innerHTML = '';
-    switch (configs.modo_mayus) {
-      case "Upper": {
-        document.querySelector('#input-modo-mayus').innerHTML += `
-          <option value="Upper" >MAYÚSCULAS</option>
-          <option value="Camel" >Pimera Letra Mayúscula</option>
-          <option value="Lower" >minúsculas</option>
-          `;
-        break;
-      }
-      case "Camel": {
-        document.querySelector('#input-modo-mayus').innerHTML += `
-          <option value="Camel" >Pimera Letra Mayúscula</option>
-          <option value="Upper" >MAYÚSCULAS</option>
-          <option value="Lower" >minúsculas</option>
-          `;
-        break;
-      }
-      case "Lower": {
-        document.querySelector('#input-modo-mayus').innerHTML += `
-          <option value="Lower" >minúsculas</option>
-          <option value="Camel" >Pimera Letra Mayúscula</option>
-          <option value="Upper" >MAYÚSCULAS</option>
-          `;
-        break;
-      }
-    }
-    document.querySelector('#input-cantidad-productos').value = configs.cantidad_productos;
-
-
-  }
-  document.getElementById("cerrar-cambiar-configs").onclick = function () {
-    document.getElementById("cambiar-configs-container").style.display = "none";
-    document.querySelector('#cuadro-principal').style.display = 'grid';
-  }
-
-  document.querySelector('#cambiar-configs-submit').addEventListener('submit', (e) => {
+function agrProdSubmit() {
+  let tpProd = document.querySelector('#tipo_producto');
+  let mark = document.querySelector('#marca');
+  let variety = document.querySelector('#variedad');
+  let amount = document.querySelector('#cantidad');
+  let pres = document.querySelector('#presentacion');
+  let precio_de_venta = document.querySelector('#precio_de_venta');
+  let percent = document.querySelector('#porcentaje');
+  let precio_de_costo = document.querySelector('#precio_de_costo');
+  document.querySelector('#agregar-producto-submit').addEventListener("submit", (e) => {
     e.preventDefault();
-    let configs2 = {
-      "politica_redondeo": parseFloat(e.target.children[1].value),
-      "formato_producto": "" + e.target.children[3].value,
-      "modo_mayus": "" + e.target.children[5].value,
-      "cantidad_productos": parseInt(e.target.children[7].value),
-      "medios_pago": configs.medios_pago
-    }
-    set_configs(configs2)
+    agregarProducto(tpProd, mark, variety, amount, pres, precio_de_venta, percent, precio_de_costo);
   })
+  document.querySelector('#agregar-proveedor-submit').addEventListener("submit", (e) => {
+    e.preventDefault();
+    agregarProveedor();
+  })
+}
 
-
-  document.getElementById("agregar-proveedor-mostrar").onclick = function () {
-    let elemento = document.getElementsByClassName("main-screen");
-    for (let i = 0; i < elemento.length; i++) {
-      elemento[i].style.display = "none"
-    }
-    document.getElementById("agregar-proveedor-container").style.display = "inline-flex";
-    document.getElementById("barra-de-opciones").classList.remove('visible');
-  }
-  document.getElementById("cerrar-agregar-proveedor").onclick = function () {
-    document.getElementById("agregar-proveedor-container").style.display = "none";
-    document.querySelector('#cuadro-principal').style.display = 'grid';
-  }
-
-});
-
-
-
-
-window.addEventListener("DOMContentLoaded", () => {
-
-  document.querySelector('#precio_de_costo').addEventListener('input', () => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(function () {
-      if (document.querySelector('#precio_de_costo').value != '') {
-        let percent = document.querySelector('#porcentaje').value;
-        let sale = document.querySelector('#precio_de_costo').value;
-        document.querySelector('#precio_de_venta').value = parseFloat(sale) * (1 + (parseFloat(percent)) / 100)
-      }
-    }, 2000);
-
-
-  });
-});
-
-window.addEventListener("DOMContentLoaded", () => {
-  document.querySelector('#porcentaje').addEventListener('input', () => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(function () {
-      if (document.querySelector('#porcentaje').value != '') {
-        let percent = document.querySelector('#porcentaje').value;
-        let sale = document.querySelector('#precio_de_costo').value;
-        if (sale != 0) {
-          document.querySelector('#precio_de_venta').value = parseFloat(sale) * (1 + (parseFloat(percent)) / 100)
-        }
-      }
-    }, 500);
-  });
-});
-
-window.addEventListener("DOMContentLoaded", () => {
-  document.querySelector('#precio_de_venta').addEventListener('input', () => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(function () {
-      if (document.querySelector('#precio_de_venta').value != '') {
-        let costo = document.querySelector('#precio_de_costo');
-        let venta = document.querySelector('#precio_de_venta');
-        if (costo.value != '') {
-          let floatventa = parseFloat(venta.value);
-          let floatcosto = parseFloat(costo.value);
-          document.querySelector('#porcentaje').value = ((floatventa / floatcosto) * 100.0) - 100.0;
-        } else {
-          document.querySelector('#precio_de_costo').value = ((100 + parseFloat(document.querySelector('#porcentaje').value) / 100) * parseFloat(venta.value));
-        }
-      }
-    }, 500);
-  });
-});
-window.addEventListener("DOMContentLoaded", () => {
-  document.body.addEventListener('click', function (e) {
-    let ids = [];
-    ids.push(e.target);
-    if (e.target.parentNode){
-      ids.push(e.target.parentNode);
-      if (e.target.parentNode.parentNode)
-      ids.push(e.target.parentNode.parentNode);
-    }
-    let barra = document.querySelector('#barra-de-opciones');
-    let esId = false;
-    for (const id of ids) {
-      if (id.id == 'menu-image' || id.id == 'menu-button') {
-        esId = true;
-      }
-    }
-    if ((!esId && !barra.classList.contains('visible'))) {
-      barra.classList.remove('visible');
-      barra.classList.remove('para-hamburguesa');
-    }
-
-
-  });
-})
-
-window.addEventListener("DOMContentLoaded", () => {
-  let buscador = document.querySelector('#buscador');
-
-  buscador.addEventListener('input', (e) => {
+function buscadorHandle() {
+  buscador.addEventListener('input', () => {
     if (buscador.value.length == 0) {
       clearTimeout(timeoutId);
       borrarBusqueda();
@@ -699,29 +560,218 @@ window.addEventListener("DOMContentLoaded", () => {
       //TODO
     }
   })
+}
+
+function optionBarHandle() {
+  document.body.addEventListener('click', function (e) {
+
+    let ids = [];
+    ids.push(e.target);
+    if (e.target.parentNode) {
+      ids.push(e.target.parentNode);
+      if (e.target.parentNode.parentNode)
+        ids.push(e.target.parentNode.parentNode);
+    }
+    let barra = document.querySelector('#barra-de-opciones');
+    let esId = false;
+    for (const id of ids) {
+      if (id.id == 'menu-image' || id.id == 'menu-button') {
+        esId = true;
+      }
+    }
+    if ((!esId && barra.classList.contains('visible'))) {
+      barra.classList.remove('visible');
+      barra.classList.remove('para-hamburguesa');
+    }
+  });
+}
+
+function salePriceHandle() {
+  document.querySelector('#precio_de_venta').addEventListener('input', () => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(function () {
+      if (document.querySelector('#precio_de_venta').value != '') {
+        let costo = document.querySelector('#precio_de_costo');
+        let venta = document.querySelector('#precio_de_venta');
+        if (costo.value != '') {
+          let floatventa = parseFloat(venta.value);
+          let floatcosto = parseFloat(costo.value);
+          document.querySelector('#porcentaje').value = ((floatventa / floatcosto) * 100.0) - 100.0;
+        } else {
+          document.querySelector('#precio_de_costo').value = ((100 + parseFloat(document.querySelector('#porcentaje').value) / 100) * parseFloat(venta.value));
+        }
+      }
+    }, 500);
+  });
+}
+
+function percentageHandle() {
+  document.querySelector('#porcentaje').addEventListener('input', () => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(function () {
+      if (document.querySelector('#porcentaje').value != '') {
+        let percent = document.querySelector('#porcentaje').value;
+        let sale = document.querySelector('#precio_de_costo').value;
+        if (sale != 0) {
+          document.querySelector('#precio_de_venta').value = parseFloat(sale) * (1 + (parseFloat(percent)) / 100)
+        }
+      }
+    }, 500);
+  });
+}
+
+function costPriceHandle() {
+  document.querySelector('#precio_de_costo').addEventListener('input', () => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(function () {
+      if (document.querySelector('#precio_de_costo').value != '') {
+        let percent = document.querySelector('#porcentaje').value;
+        let sale = document.querySelector('#precio_de_costo').value;
+        document.querySelector('#precio_de_venta').value = parseFloat(sale) * (1 + (parseFloat(percent)) / 100)
+      }
+    }, 2000);
+  });
+}
+
+function menuButtonHandle() {
+  document.getElementById("menu-button").onclick = function () {
+    document.getElementById("barra-de-opciones").classList.toggle('visible');
+  };
+}
+
+
+function agrProdContHandle() {
+  document.getElementById("agregar-producto-mostrar").onclick = function () {
+    mostrarContainerHandle("agregar-producto-container");
+  }
+  cerrarContainerHandle("cerrar-agregar-producto", "agregar-producto-container");
+
+}
+
+
+function cambiarConfHandle() {
+  document.getElementById("cambiar-configs-mostrar").onclick = function () {
+    mostrarContainerHandle("cambiar-configs-container");
+    document.querySelector('#input-politica-redondeo').value = configs.politica_redondeo;
+    let inputFormatoProducto = document.querySelector('#input-formato-producto')
+    inputFormatoProducto.innerHTML = '';
+    inputFormatoProducto.innerHTML += `<option value="Tmv">Tipo - Marca - Variedad</option>
+    <option value="Mtv">Marca - Tipo - Variedad</option>`
+    document.querySelector('#input-modo-mayus').innerHTML = '';
+    switch (configs.modo_mayus) {
+      case "Upper": {
+        document.querySelector('#input-modo-mayus').innerHTML += `
+        <option value="Upper" >MAYÚSCULAS</option>
+        <option value="Camel" >Pimera Letra Mayúscula</option>
+        <option value="Lower" >minúsculas</option>
+        `;
+        break;
+      }
+      case "Camel": {
+        document.querySelector('#input-modo-mayus').innerHTML += `
+        <option value="Camel" >Pimera Letra Mayúscula</option>
+        <option value="Upper" >MAYÚSCULAS</option>
+        <option value="Lower" >minúsculas</option>
+        `;
+        break;
+      }
+      case "Lower": {
+        document.querySelector('#input-modo-mayus').innerHTML += `
+        <option value="Lower" >minúsculas</option>
+        <option value="Camel" >Pimera Letra Mayúscula</option>
+        <option value="Upper" >MAYÚSCULAS</option>
+        `;
+        break;
+      }
+    }
+    document.querySelector('#input-cantidad-productos').value = configs.cantidad_productos;
+
+
+  }
+}
+
+function changeConfigsHandle() {
+  document.querySelector('#cambiar-configs-submit').addEventListener('submit', (e) => {
+    e.preventDefault();
+    let configs2 = {
+      "politica_redondeo": parseFloat(e.target.children[1].value),
+      "formato_producto": "" + e.target.children[3].value,
+      "modo_mayus": "" + e.target.children[5].value,
+      "cantidad_productos": parseInt(e.target.children[7].value),
+      "medios_pago": configs.medios_pago
+    }
+    set_configs(configs2)
+  })
+}
+function mostrarContainerHandle(s2) {
+  let elemento = document.getElementsByClassName("main-screen");
+  for (let i = 0; i < elemento.length; i++) {
+    elemento[i].style.display = "none"
+  }
+  document.getElementById(s2).style.display = "inline-flex";
+  document.getElementById("barra-de-opciones").classList.remove('visible');
+
+}
+function cerrarContainerHandle(s1, s2) {
+  document.getElementById(s1).onclick = function () {
+    document.getElementById(s2).style.display = "none";
+    document.querySelector('#cuadro-principal').style.display = 'grid';
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  buscador = document.querySelector('#buscador');
+  borrarBusqueda();
+  agrProvSubmit();
+  agrCodSubmit();
+  agrTipoProd();
+  agrProdContHandle();
+  buscadorHandle();
+  optionBarHandle()
+  salePriceHandle();
+  percentageHandle();
+  costPriceHandle();
+  menuButtonHandle();
+  changeConfigsHandle();
+  cambiarConfHandle();
+  cerrarContainerHandle("cerrar-cambiar-configs", "cambiar-configs-container");
+
+  document.getElementById("agregar-proveedor-mostrar").onclick = function () {
+    mostrarContainerHandle("agregar-proveedor-container");
+  }
+  cerrarContainerHandle("cerrar-agregar-proveedor", "agregar-proveedor-container")
+
 
 });
 
+async function buscarProducto(filtrado) {
+  clearTimeout(timeoutId);
+  if (filtrado.length < 5 || isNaN(filtrado)) {
+    let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
+    dibujarProductos(objetos);
+  }
+}
+async function agregarProveedor() {
+  let prov = document.querySelector('#input-nombre-proveedor');
+  let cont = document.querySelector('#input-contacto-proveedor');
+  mensaje1.textContent = await invoke("agregar_proveedor", { proveedor: prov.value, contacto: cont.value });
+  prov.value = '';
+  cont.value = '';
+}
+async function agregarProducto(tpProd, mark, variety, amount, pres, precio_de_venta, percent, precio_de_costo) {
+  mensaje1.textContent = ("Producto agregado: " + await invoke("agregar_producto", { proveedores: proveedores_producto, codigosProv: codigosProv, codigosDeBarras: codigosProd, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
+  proveedores_producto = [];
+  codigosProv = [];
+  codigosProd = [];
+}
 
 
-window.addEventListener("DOMContentLoaded", () => {
-  let tpProd = document.querySelector('#tipo_producto');
-  let mark = document.querySelector('#marca');
-  let variety = document.querySelector('#variedad');
-  let amount = document.querySelector('#cantidad');
-  let pres = document.querySelector('#presentacion');
-  let precio_de_venta = document.querySelector('#precio_de_venta');
-  let percent = document.querySelector('#porcentaje');
-  let precio_de_costo = document.querySelector('#precio_de_costo');
-  document.querySelector('#agregar-producto-submit').addEventListener("submit", (e) => {
-    e.preventDefault();
-    agregarProducto(tpProd,mark,variety,amount,pres,precio_de_venta,percent,precio_de_costo);
-  })
-  document.querySelector('#agregar-proveedor-submit').addEventListener("submit", (e) => {
-    e.preventDefault();
-    agregarProveedor();
-  })
-})
+
+async function set_configs(configs) {
+  await invoke("set_configs", { configs: configs })
+}
+
+
 
 window.addEventListener("DOMContentLoaded", async () => {
   let provs = await invoke("get_proveedores")
@@ -733,72 +783,45 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.querySelector('#proveedor').appendChild(option);
   }
 })
-function handle_codigos(e,input){
-  codigosProd.push(input.children[input.children.length-2].value);
-  while(input.parentElement.children.length>9){
+function handle_codigos(e, input) {
+  codigosProd.push(input.children[input.children.length - 2].value);
+  console.log(codigosProd);
+  while (input.parentElement.children.length > 9) {
     input.parentElement.removeChild(input.parentElement.children[0])
   }
-  for (let i=0;i<codigosProd.length;i++){
-    let input2=document.createElement('input');
-    input2.disabled='true';
+  for (let i = 0; i < codigosProd.length; i++) {
+    let input2 = document.createElement('input');
+    input2.disabled = 'true';
     console.log(codigosProd[i])
-    input2.value=codigosProd[i];
-    let btn =document.createElement('button');
-    btn.innerText='Eliminar'
+    input2.value = codigosProd[i];
+    let btn = document.createElement('button');
+    btn.innerText = 'Eliminar'
     btn.classList.add('boton');
-    btn.value='Eliminar';
-    btn.addEventListener('click',(el)=>{
+    btn.value = 'Eliminar';
+    btn.addEventListener('click', (el) => {
       el.preventDefault();
       console.log(el.target.parentElement);
       codigosProd.splice(i, 1)
       el.target.parentElement.parentElement.removeChild(el.target.parentElement);
-      
+
     });
-    let sc=document.createElement('section');
+    let sc = document.createElement('section');
     sc.appendChild(input2);
     sc.appendChild(btn);
     input.parentElement.insertBefore(sc, input);
   }
-  e.previousElementSibling.value='';
+  e.previousElementSibling.value = '';
   console.log(codigosProd);
 }
-//Agrega relacion
-window.addEventListener("DOMContentLoaded", () => {
-  document.querySelector("#agregar-proveedor-a-producto").addEventListener("submit", (e) => {
-    e.preventDefault();
-    let res = document.querySelector('#proveedor').value;
-    let cod = document.querySelector('#codigo_prov').value;
-    if (!proveedores_producto.includes(res)) {
-      proveedores_producto.push(res);
-      codigosProv.push(cod);
-    }
-    console.log(proveedores_producto + " y " + codigosProv + "|");
-  });
 
-  let input=document.querySelector('#input-codigo');
-  console.log(`largo: `)
-  console.log(input.parentElement.children.length)
-  input.innerHTML=
-  `
-  <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" />
-          <button class="boton">Agregar código</button>`
+function calcFont(height, ps) {
+  let res = height / ps;
+  if (res > 20) {
+    res = 20
+  }
+  return res * 0.8;
+}
 
-  input.children[input.children.length-2].addEventListener('keydown',(e)=>{
-    
-    if (e.keyCode==13){
-      e.preventDefault();
-      handle_codigos(e.target.nextElementSibling,input);
-      e.value='';
-
-    }
-  })
-  input.children[input.children.length-1].addEventListener('click',(e)=>{
-    e.preventDefault();
-    handle_codigos(e.target,input)
-    
-  })
-
-})
 
 
 
