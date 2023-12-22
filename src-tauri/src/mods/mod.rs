@@ -50,6 +50,8 @@ pub struct Sistema {
     path_relaciones: String,
     path_configs: String,
     relaciones: Vec<Relacion>,
+    stash: Vec<Venta>,
+    registro: Vec<Venta>
 }
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Relacion {
@@ -203,6 +205,8 @@ impl<'a> Sistema {
         let path_relaciones = String::from("Relaciones.json");
         let path_configs = String::from("Configs.json");
         let mut productos = Vec::new();
+        let stash=Vec::new();
+        let registro=Vec::new();
         if let Err(e) = leer_file(&mut productos, &path_prods) {
             panic!("{}", e);
         }
@@ -234,6 +238,8 @@ impl<'a> Sistema {
             path_relaciones,
             path_configs,
             relaciones,
+            stash,
+            registro,
         }
     }
     pub fn get_productos(&self)->&Vec<Producto>{
@@ -431,6 +437,11 @@ impl<'a> Sistema {
         res.dedup();
         println!("de Rust:{:?}", res);
         res
+    }
+    pub fn cerrar_venta(&mut self, pos:usize){
+        match pos{
+
+        }
     }
 }
 

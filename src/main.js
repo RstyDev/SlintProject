@@ -658,8 +658,11 @@ window.addEventListener("DOMContentLoaded", () => {
   document.body.addEventListener('click', function (e) {
     let ids = [];
     ids.push(e.target);
-    ids.push(e.target.parentNode);
-    ids.push(e.target.parentNode.parentNode);
+    if (e.target.parentNode){
+      ids.push(e.target.parentNode);
+      if (e.target.parentNode.parentNode)
+      ids.push(e.target.parentNode.parentNode);
+    }
     let barra = document.querySelector('#barra-de-opciones');
     let esId = false;
     for (const id of ids) {
@@ -730,7 +733,35 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.querySelector('#proveedor').appendChild(option);
   }
 })
-
+function handle_codigos(e,input){
+  codigosProd.push(input.children[input.children.length-2].value);
+  while(input.parentElement.children.length>9){
+    input.parentElement.removeChild(input.parentElement.children[0])
+  }
+  for (let i=0;i<codigosProd.length;i++){
+    let input2=document.createElement('input');
+    input2.disabled='true';
+    console.log(codigosProd[i])
+    input2.value=codigosProd[i];
+    let btn =document.createElement('button');
+    btn.innerText='Eliminar'
+    btn.classList.add('boton');
+    btn.value='Eliminar';
+    btn.addEventListener('click',(el)=>{
+      el.preventDefault();
+      console.log(el.target.parentElement);
+      codigosProd.splice(i, 1)
+      el.target.parentElement.parentElement.removeChild(el.target.parentElement);
+      
+    });
+    let sc=document.createElement('section');
+    sc.appendChild(input2);
+    sc.appendChild(btn);
+    input.parentElement.insertBefore(sc, input);
+  }
+  e.previousElementSibling.value='';
+  console.log(codigosProd);
+}
 //Agrega relacion
 window.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#agregar-proveedor-a-producto").addEventListener("submit", (e) => {
@@ -745,40 +776,26 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   let input=document.querySelector('#input-codigo');
+  console.log(`largo: `)
+  console.log(input.parentElement.children.length)
   input.innerHTML=
   `
-  <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" required />
+  <input type="number" id="codigo_de_barras" placeholder="Codigo de barras" />
           <button class="boton">Agregar código</button>`
 
+  input.children[input.children.length-2].addEventListener('keydown',(e)=>{
+    
+    if (e.keyCode==13){
+      e.preventDefault();
+      handle_codigos(e.target.nextElementSibling,input);
+      e.value='';
 
+    }
+  })
   input.children[input.children.length-1].addEventListener('click',(e)=>{
     e.preventDefault();
-    codigosProd.push(input.children[input.children.length-2].value);
-    if (input.parentElement.children.length>9){
-      for (let i=0;i<input.parentElement.children.length-10;i++){
-        input.parentElement.removeChild(input.parentElement.children[i]);
-      }
-    }
-    for (let i=0;i<codigosProd.length;i++){
-      let input2=document.createElement('input');
-      input2.disabled='true';
-      input2.value=codigosProd[i];
-      let btn =document.createElement('button');
-      btn.innerText='Eliminar'
-      btn.classList.add('boton');
-      btn.value='Eliminar';
-      btn.addEventListener('click',(e)=>{
-        e.preventDefault();
-        console.log(e.target.parentElement);
-        e.target.parentElement.parentElement.removeChild(e.target.parentElement);
-        codigosProd=codigosProd.splice(e.target.parentElement.parentElement.children.indexOf(e.target.parentElement), 1)
-      })
-      let sc=document.createElement('section');
-      sc.appendChild(input2);
-      sc.appendChild(btn);
-      input.parentElement.insertBefore(sc, input.parentElement.firstChild);
-    }
-    console.log(codigosProd);
+    handle_codigos(e.target,input)
+    
   })
 
 })

@@ -21827,47 +21827,16 @@
   {
     "id": 1455,
     "codigos_de_barras": [
-      345345
+      5338
     ],
-    "precio_de_venta": 1500.0,
-    "porcentaje": 50.0,
-    "precio_de_costo": 1000.0,
+    "precio_de_venta": 42.0,
+    "porcentaje": 40.0,
+    "precio_de_costo": 30.0,
     "tipo_producto": "NAFTALINA",
     "marca": "IBERIA",
     "variedad": "BOLITAS",
     "presentacion": {
-      "Un": 180
-    }
-  },
-  {
-    "id": 1456,
-    "codigos_de_barras": [
-      234543563,
-      234543563245
-    ],
-    "precio_de_venta": 1500.0,
-    "porcentaje": 50.0,
-    "precio_de_costo": 1000.0,
-    "tipo_producto": "NAFTALINA",
-    "marca": "IBERIA",
-    "variedad": "BOLITAS",
-    "presentacion": {
-      "Gr": 180.0
-    }
-  },
-  {
-    "id": 1457,
-    "codigos_de_barras": [
-      365635
-    ],
-    "precio_de_venta": 1500.0,
-    "porcentaje": 50.0,
-    "precio_de_costo": 1000.0,
-    "tipo_producto": "NAFTALINA",
-    "marca": "IBERIA",
-    "variedad": "BOLITAS",
-    "presentacion": {
-      "Un": 180
+      "Gr": 12.0
     }
   }
 ]
