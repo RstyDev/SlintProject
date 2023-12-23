@@ -211,13 +211,13 @@ fn agregar_pago(
     medio_pago: String,
     monto: f64,
     pos: usize,
-) -> Result<(), String> {
-    // let pos: usize = pos.parse().unwrap();
+) -> Result<f64, String> {
+    let res;
     match sistema.lock() {
-        Ok(mut a) => a.agregar_pago(medio_pago, monto, pos),
-        Err(e) => return Err(e.to_string()),
+        Ok(mut a) => res=a.agregar_pago(medio_pago, monto, pos),
+        Err(e) => res=Err(e.to_string()),
     }
-    Ok(())
+    res
 }
 
 #[tauri::command]

@@ -42,7 +42,7 @@ impl Pago {
 
 pub struct Sistema {
     configs: Config,
-    productos: Vec<Box<dyn Valuable>>,
+    productos: Vec<Producto>,
     ventas: (Venta, Venta),
     proveedores: Vec<Proveedor>,
     path_prods: String,
@@ -155,9 +155,10 @@ impl<'a> Venta {
             monto_pagado:0.0,
         }
     }
-    pub fn agregar_pago(&mut self, medio_pago: String, monto: f64) {
+    pub fn agregar_pago(&mut self, medio_pago: String, monto: f64)->f64 {
         self.pagos.push(Pago::new(medio_pago, monto));
         self.monto_pagado+=monto;
+        self.monto_total-self.monto_pagado
     }
     fn agregar_producto(&mut self, producto: Producto) {
         let mut esta = false;
@@ -277,16 +278,28 @@ impl<'a> Sistema {
         }
         
     }
-    pub fn agregar_pago(&mut self, medio_pago:String,monto:f64,pos:usize){
+    pub fn agregar_pago(&mut self, medio_pago:String,monto:f64,pos:usize)->Result<f64,String>{
+        let error_msj="error, hay solo dos posiciones para ventas".to_string();
+        let res;
         match pos{
-            0=>{
-                self.ventas.0.agregar_pago(medio_pago, monto);
-            }
-            1=>{
-                self.ventas.1.agregar_pago(medio_pago, monto);
-            }
-            _=>panic!("error, hay solo dos posiciones para ventas")
+            0=>if !medio_pago.eq("Efectivo")&&self.ventas.0.monto_pagado+monto>self.ventas.0.monto_total{
+                    res=Err(format!("El monto no puede ser superior al resto con {medio_pago}"));
+                }else{
+                    res=Ok(self.ventas.0.agregar_pago(medio_pago, monto));
+                },
+            1=>if !medio_pago.eq("Efectivo")&&self.ventas.1.monto_pagado+monto>self.ventas.1.monto_total{
+                    res=Err(format!("El monto no puede ser superior al resto con {medio_pago}"));
+                }else{
+                    res=Ok(self.ventas.1.agregar_pago(medio_pago, monto));
+                },
+            _=>res=Err(error_msj),
         }
+        if let Ok(a)=res{
+            if a<=0.0{
+                self.cerrar_venta(pos);
+            }
+        }
+        res
     }
     pub fn set_configs(&mut self, configs: Config) {
         self.configs = configs;
@@ -464,7 +477,7 @@ impl<'a> Sistema {
         println!("de Rust:{:?}", res);
         res
     }
-    pub fn cerrar_venta(&mut self, pos:usize){
+    fn cerrar_venta(&mut self, pos:usize){
         match pos{
             0=> {
                 self.registro.push(self.ventas.0.clone());
@@ -476,6 +489,36 @@ impl<'a> Sistema {
             },
             _=>panic!("error, solo hay 2 posiciones para ventas"),
         };
+    }
+    pub fn stash_sale(&mut self, pos:usize){
+        match pos{
+            0=> {
+                self.stash.push(self.ventas.0.clone());
+                self.ventas.0=Venta::new();
+            },
+            1=>{
+                self.stash.push(self.ventas.1.clone());
+                self.ventas.1=Venta::new();
+            },
+            _=>panic!("error, solo hay 2 posiciones para ventas"),
+        };
+    }
+    pub fn unstash_sale(&mut self,pos:usize,index:usize)->Result<(),String>{
+        match pos{
+            0=> {
+                self.ventas.0=self.stash.remove(index);
+                Ok(())
+            },
+            1=>{
+                self.stash.push(self.ventas.1.clone());
+                self.ventas.1=self.stash.remove(index);
+                Ok(())
+            },
+            _=>Err("error, solo hay 2 posiciones para ventas".to_string()),
+        }
+    }
+    pub fn get_stash(&self)->Vec<Venta>{
+        self.stash.clone()
     }
 }
 
