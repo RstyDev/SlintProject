@@ -27,19 +27,12 @@ function navigate(e) {
       e.preventDefault();
       focus(focuseado.nextElementSibling);
 
-    } else if (e.keyCode == 27 && buscador.value.length != 0) {
-      e.preventDefault();
-      buscador.value = '';
-      get_venta_actual().then(venta => dibujar_venta(venta));
     } else if (e.keyCode == 13) {
       agregarProdVentaAct(focuseado.children[0].innerHTML);
       e.preventDefault();
       buscador.value = '';
       get_venta_actual().then(venta => dibujar_venta(venta));
-    } else if (e.keyCode == 121) {
-      document.getElementById('cuadro-venta').classList.toggle('focused', false);
-
-    }
+    } 
   }
 }
 
@@ -250,7 +243,7 @@ function dibujar_venta(venta) {
 
   pagos.innerHTML += `
   <form class="pago">
-  <input class="input-monto" type="number" step="0.01" placeholder="Monto"></input>
+  <input class="input-monto" id="input-activo" type="number" step="0.01" placeholder="Monto"></input>
   <select class="opciones-pagos">
   </select>
   <input id="boton-agregar-pago" value="Cash" type="submit">
@@ -271,6 +264,7 @@ function dibujar_venta(venta) {
       agregar_pago(e.target.parentNode.children[1].value, e.target.parentNode.children[0].value);
       get_venta_actual().then(venta => dibujar_venta(venta));
       buscador.focus();
+      pasarAPagar();
     }
 
   })
@@ -556,6 +550,32 @@ function buscadorHandle() {
   });
 }
 
+function pasarAPagar(){
+  buscador.value='';
+      get_venta_actual().then(venta => {
+        dibujar_venta(venta);
+        let input=document.querySelector('#input-activo');
+        input.value=venta.monto_total-venta.monto_pagado;
+        input.focus();
+        input.select();
+      });
+}
+
+function escYf10Press(){
+  document.body.addEventListener('keydown', (e)=>{
+    if (e.keyCode == 27){
+      e.preventDefault();
+      buscador.value = '';
+      get_venta_actual().then(venta => dibujar_venta(venta));
+      buscador.focus();
+    }else if(e.keyCode==121){
+      e.preventDefault();
+      pasarAPagar();
+    }
+  })
+}
+
+
 function optionBarHandle() {
   document.body.addEventListener('click', function (e) {
 
@@ -729,6 +749,7 @@ window.addEventListener("DOMContentLoaded", () => {
   changeConfigsHandle();
   cambiarConfHandle();
   cerrarContainerHandle("cerrar-cambiar-configs", "cambiar-configs-container");
+  escYf10Press();
 
   document.getElementById("agregar-proveedor-mostrar").onclick = function () {
     mostrarContainerHandle("agregar-proveedor-container");
