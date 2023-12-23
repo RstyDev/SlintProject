@@ -42,7 +42,7 @@ impl Pago {
 
 pub struct Sistema {
     configs: Config,
-    productos: Vec<Producto>,
+    productos: Vec<Box<dyn Valuable>>,
     ventas: (Venta, Venta),
     proveedores: Vec<Proveedor>,
     path_prods: String,
@@ -78,6 +78,21 @@ pub struct Producto {
     pub marca: String,
     pub variedad: String,
     pub presentacion: Presentacion,
+}
+
+pub trait Valuable {
+    
+}
+pub struct Pesable{
+    descripcion:String,
+}
+impl Valuable for Producto{
+
+}
+
+
+impl Valuable for Pesable{
+
 }
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {

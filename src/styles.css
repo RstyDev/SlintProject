@@ -13,7 +13,12 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
   -webkit-user-select: none;
-    user-select: none;
+  user-select: none;
+}
+
+input:disabled {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #menu-image button {

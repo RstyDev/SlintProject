@@ -554,12 +554,6 @@ function buscadorHandle() {
   buscador.addEventListener('keydown', (e) => {
     navigate(e);
   });
-  buscador.addEventListener('submit', (e) => {
-    e.preventDefault();
-    if (!isNaN(buscador.value) && buscador.value > 4) {
-      //TODO
-    }
-  })
 }
 
 function optionBarHandle() {
