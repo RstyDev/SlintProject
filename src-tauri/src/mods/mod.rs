@@ -62,7 +62,7 @@ pub struct Relacion {
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
     monto_total: f64,
-    productos: Vec<(u32, Producto)>,
+    productos: Vec<(f64, Producto)>,
     pagos: Vec<Pago>,
     monto_pagado:f64,
 }
@@ -80,19 +80,9 @@ pub struct Producto {
     pub presentacion: Presentacion,
 }
 
-pub trait Valuable {
+pub enum Valuable{
+    Prod(Producto),
     
-}
-pub struct Pesable{
-    descripcion:String,
-}
-impl Valuable for Producto{
-
-}
-
-
-impl Valuable for Pesable{
-
 }
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
@@ -164,12 +154,12 @@ impl<'a> Venta {
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i].1 {
-                self.productos[i].0 += 1;
+                self.productos[i].0 += 1.0;
                 esta = true;
             }
         }
         if !esta {
-            self.productos.push((1, producto));
+            self.productos.push((1.0, producto));
         }
         self.monto_total = 0.0;
         for i in &self.productos {
@@ -187,7 +177,7 @@ impl<'a> Venta {
         let mut res = Err("Producto no encontrado".to_string());
         for i in 0..self.productos.len() {
             if producto == self.productos[i].1 {
-                self.productos[i].0 -= 1;
+                self.productos[i].0 -= 1.0;
                 res = Ok(());
             }
         }
