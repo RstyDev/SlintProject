@@ -261,10 +261,30 @@ function dibujar_venta(venta) {
   document.getElementById('boton-agregar-pago').addEventListener('click', (e) => {
     e.preventDefault();
     if (e.target.parentNode.children[0].value.length > 0) {
-      agregar_pago(e.target.parentNode.children[1].value, e.target.parentNode.children[0].value);
-      get_venta_actual().then(venta => dibujar_venta(venta));
-      buscador.focus();
-      pasarAPagar();
+      agregar_pago(e.target.parentNode.children[1].value, e.target.parentNode.children[0].value).then(pago=>{
+        if (isNaN(pago)){
+          console.log('error '+pago);
+        }else{
+          if (pago>0){
+            get_venta_actual().then(venta => dibujar_venta(venta));
+            pasarAPagar();
+          }else{
+            if (posicionVenta==0){
+              posicionVenta=1;
+            }else{
+              posicionVenta=0;
+            }
+            get_venta_actual().then(venta => {
+              dibujar_venta(venta);
+              buscador.focus();
+            });
+            
+          }
+        }
+        
+
+        
+      })
     }
 
   })
