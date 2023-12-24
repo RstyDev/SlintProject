@@ -57,7 +57,7 @@ pub struct Sistema {
 pub struct Relacion {
     id_producto: usize,
     id_proveedor: usize,
-    codigo: Option<u128>,
+    codigo_interno: Option<u128>,
 }
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
@@ -127,11 +127,11 @@ impl Default for Config{
     }
 }
 impl Relacion {
-    pub fn new(id_producto: usize, id_proveedor: usize, codigo: Option<u128>) -> Self {
+    pub fn new(id_producto: usize, id_proveedor: usize, codigo_interno: Option<u128>) -> Self {
         Relacion {
             id_producto,
             id_proveedor,
-            codigo,
+            codigo_interno,
         }
     }
 }

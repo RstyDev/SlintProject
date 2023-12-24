@@ -123,7 +123,7 @@ fn get_productos_filtrado(
     let res;
     match sistema.lock() {
         Ok(a) => {
-            let b = a.get_productos_cloned().clone();
+            let b = a.get_productos_cloned();
             res = Ok(b
                 .into_iter()
                 .filter(|x| {
@@ -335,6 +335,7 @@ fn main() {
             get_venta_actual,
             get_configs,
             set_configs,
+            get_medios_pago,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
