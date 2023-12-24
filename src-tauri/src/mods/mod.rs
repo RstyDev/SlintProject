@@ -42,7 +42,7 @@ impl Pago {
 
 pub struct Sistema {
     configs: Config,
-    productos: Vec<Producto>,
+    productos: Vec<Valuable>,
     ventas: (Venta, Venta),
     proveedores: Vec<Proveedor>,
     path_prods: String,
@@ -62,10 +62,11 @@ pub struct Relacion {
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
     monto_total: f64,
-    productos: Vec<(f64, Producto)>,
+    productos: Vec<Valuable>,
     pagos: Vec<Pago>,
     monto_pagado:f64,
 }
+
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Producto {
@@ -79,11 +80,94 @@ pub struct Producto {
     pub variedad: String,
     pub presentacion: Presentacion,
 }
+#[derive(Debug, Clone, Default, Serialize,Deserialize)]
+pub struct Pesable{
+    pub id:usize,
+    pub codigo:u128,
+    pub precio_peso: f64,
+    pub porcentaje: f64,
+    pub costo_kilo: f64,
+    pub descripcion: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize,Deserialize)]
+pub struct Rubro{
+    pub id:usize,
+    pub monto:f64,
+    pub descripcion: String,
+}
+#[derive(Debug, Clone, Serialize,Deserialize)]
 
 pub enum Valuable{
-    Prod(Producto),
-    
+    Prod((u32,Producto)),
+    Pes((f64, Pesable)),
+    Rub((u32,Rubro)),
 }
+impl Default for Valuable{
+    fn default() -> Self {
+        Valuable::Prod((1,Producto::default()))
+    }
+}
+impl PartialEq for Valuable{
+    fn eq(&self, other:&Self)->bool{
+        match (self,other){
+            (Valuable::Pes(a),Valuable::Pes(b))=>a.1.id==b.1.id,
+            (Valuable::Prod(a),Valuable::Prod(b))=>a.1.id==b.1.id,
+            (Valuable::Rub(a),Valuable::Rub(b))=>a.1.id==b.1.id,
+            (_,_)=>false
+        }
+    }
+}
+
+pub trait ValuableTrait{
+    fn redondear(&self, politica:f64)->Self;
+}
+
+impl Valuable{
+    fn get_price(&self,politica:f64)->f64{
+        match self{
+            Valuable::Pes(a)=>redondeo(politica,a.0*a.1.precio_peso),
+            Valuable::Prod(a)=>a.1.redondear(politica).precio_de_venta,
+            Valuable::Rub(a)=>a.1.redondear(politica).monto,
+        }
+    }
+}
+
+impl ValuableTrait for Valuable{
+    fn redondear(&self, politica: f64) -> Valuable {
+        match self{
+            Valuable::Pes(a)=>Valuable::Pes(a.clone()),
+            Valuable::Prod(a)=>Valuable::Prod((a.0,a.1.redondear(politica))),
+            Valuable::Rub(a)=>Valuable::Rub((a.0,a.1.redondear(politica))),
+        }
+    }
+}
+
+impl ValuableTrait for Producto{
+    fn redondear(&self, politica: f64) -> Producto {
+        Producto {
+            id: self.id,
+            codigos_de_barras: self.codigos_de_barras.clone(),
+            precio_de_venta: redondeo(politica, self.precio_de_venta),
+            porcentaje: self.porcentaje,
+            precio_de_costo: self.precio_de_costo,
+            tipo_producto: self.tipo_producto.clone(),
+            marca: self.marca.clone(),
+            variedad: self.variedad.clone(),
+            presentacion: self.presentacion.clone(),
+        }
+    }
+}
+impl ValuableTrait for Rubro{
+    fn redondear(&self, politica:f64)->Rubro{
+        Rubro{
+            id:self.id,
+            monto:redondeo(politica, self.monto),
+            descripcion: self.descripcion,
+        }
+    }
+} 
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
     nombre: String,
@@ -150,20 +234,33 @@ impl<'a> Venta {
         self.monto_pagado+=monto;
         self.monto_total-self.monto_pagado
     }
-    fn agregar_producto(&mut self, producto: Producto) {
+    fn agregar_producto(&mut self, producto: Valuable,politica:f64) {
         let mut esta = false;
         for i in 0..self.productos.len() {
-            if producto == self.productos[i].1 {
-                self.productos[i].0 += 1.0;
+            if producto == self.productos[i] {
+                let prod= self.productos.remove(i);
+                match prod{
+                    Valuable::Pes(mut a)=>a.0=a.0+1.0,
+                    Valuable::Prod(mut a)=>a.0=a.0+1,
+                    Valuable::Rub(a)=>self.productos.push(Valuable::Rub(a)),
+                }
+                self.productos.insert(i,prod);
                 esta = true;
             }
         }
         if !esta {
-            self.productos.push((1.0, producto));
+            self.productos.push(producto);
         }
+        self.update_monto_total(politica);
+    }
+    fn update_monto_total(&mut self,politica:f64){
         self.monto_total = 0.0;
         for i in &self.productos {
-            self.monto_total += i.1.precio_de_venta * i.0 as f64;
+            match i{
+                Valuable::Pes(mut a)=>self.monto_total+=redondeo(politica,a.0*a.1.precio_peso),
+                Valuable::Prod(mut a)=>self.monto_total+=a.1.precio_de_venta*a.0 as f64,
+                Valuable::Rub(mut a)=>self.monto_total+=a.1.monto*a.0 as f64,
+            }
         }
     }
     pub fn eliminar_pago(&mut self,index:usize){
@@ -173,33 +270,31 @@ impl<'a> Venta {
         
         
     }
-    fn restar_producto(&mut self, producto: Producto) -> Result<(), String> {
+    fn restar_producto(&mut self, producto: Valuable,politica:f64) -> Result<(), String> {
         let mut res = Err("Producto no encontrado".to_string());
         for i in 0..self.productos.len() {
-            if producto == self.productos[i].1 {
-                self.productos[i].0 -= 1.0;
+            if producto == self.productos[i] {
+                match &self.productos[i]{
+                    Valuable::Pes(mut a)=>a.0-=1.0,
+                    Valuable::Prod(mut a)=>a.0-=1,
+                    Valuable::Rub(mut a)=>a.0-=1,
+                }
                 res = Ok(());
             }
         }
-        self.monto_total = 0.0;
-        for i in &self.productos {
-            self.monto_total += i.1.precio_de_venta * i.0 as f64;
-        }
+        self.update_monto_total(politica);
         res
     }
-    fn eliminar_producto(&mut self, producto: Producto) -> Result<(), String> {
+    fn eliminar_producto(&mut self, producto: Valuable,politica:f64) -> Result<(), String> {
         let mut res = Err("Producto no encontrado".to_string());
         for i in 0..self.productos.len() {
-            if producto == self.productos[i].1 {
+            if producto == self.productos[i] {
                 self.productos.remove(i);
                 res = Ok(());
                 break;
             }
         }
-        self.monto_total = 0.0;
-        for i in &self.productos {
-            self.monto_total += i.1.precio_de_venta * i.0 as f64;
-        }
+        self.update_monto_total(politica);
         res
     }
 }
@@ -248,10 +343,10 @@ impl<'a> Sistema {
             registro,
         }
     }
-    pub fn get_productos(&self)->&Vec<Producto>{
+    pub fn get_productos(&self)->&Vec<Valuable>{
         &self.productos
     }
-    pub fn get_productos_cloned(&self)->Vec<Producto>{
+    pub fn get_productos_cloned(&self)->Vec<Valuable>{
         self.productos.clone()
     }
     pub fn get_proveedores(&self)->&Vec<Proveedor>{
@@ -317,7 +412,7 @@ impl<'a> Sistema {
     ) -> Result<(), String> {
         let mut res = Ok(());
 
-        self.productos.push(producto);
+        self.productos.push(Valuable::Prod((0,producto)));
 
         for i in 0..proveedores.len() {
             match codigos_prov[i].parse::<u128>() {
@@ -366,11 +461,19 @@ impl<'a> Sistema {
         }
         res
     }
-    fn get_producto(&mut self, id: usize) -> Result<Producto, String> {
+    fn get_producto(&mut self, id: usize) -> Result<Valuable, String> {
         let mut res = Err("Producto no encontrado".to_string());
         for p in &self.productos {
-            if p.id == id {
-                res = Ok(p.clone());
+            match p{
+                Valuable::Pes(a)=>if a.1.id==id{
+                    res=Ok(p.clone());
+                },
+                Valuable::Prod(a)=>if a.1.id==id{
+                    res=Ok(p.clone());
+                },
+                Valuable::Rub(a)=>if a.1.id==id{
+                    res=Ok(p.clone());
+                }
             }
         }
         res
@@ -381,14 +484,10 @@ impl<'a> Sistema {
             .redondear(self.configs.politica_redondeo);
         match pos {
             0 => {
-                self.ventas.0.agregar_producto(res);
+                self.ventas.0.agregar_producto(res,self.configs.politica_redondeo);
             }
             1 => {
-                self.ventas.1.agregar_producto(res);
-                self.ventas.0.monto_total = 0.0;
-                for i in 0..self.ventas.0.productos.len() {
-                    self.ventas.0.monto_total += self.ventas.0.productos[i].1.precio_de_venta;
-                }
+                self.ventas.1.agregar_producto(res,self.configs.politica_redondeo);
             }
             _ => return Err("Numero de venta incorrecto".to_string()),
         }
@@ -399,10 +498,10 @@ impl<'a> Sistema {
         let res = self.get_producto(id)?;
         match pos {
             0 => {
-                self.ventas.0.restar_producto(res)?;
+                self.ventas.0.restar_producto(res,self.configs.politica_redondeo)?;
             }
             1 => {
-                self.ventas.1.restar_producto(res)?;
+                self.ventas.1.restar_producto(res,self.configs.politica_redondeo)?;
             }
             _ => return Err("Numero de venta incorrecto".to_string()),
         }
@@ -412,10 +511,10 @@ impl<'a> Sistema {
         let res = self.get_producto(id)?;
         match pos {
             0 => {
-                self.ventas.0.eliminar_producto(res)?;
+                self.ventas.0.eliminar_producto(res,self.configs.politica_redondeo)?;
             }
             1 => {
-                self.ventas.1.eliminar_producto(res)?;
+                self.ventas.1.eliminar_producto(res,self.configs.politica_redondeo)?;
             }
             _ => return Err("Numero de venta incorrecto".to_string()),
         }
@@ -434,11 +533,15 @@ impl<'a> Sistema {
         let iter = self.productos.iter();
         let mut res: Vec<String> = iter
             .filter_map(|x| {
-                if x.marca.to_lowercase().contains(&filtro.to_lowercase()) {
-                    Some(x.marca.clone())
-                } else {
-                    None
+                match x{
+                    Valuable::Prod(a)=>if a.1.marca.to_lowercase().contains(&filtro.to_lowercase()){
+                        Some(a.1.marca.clone())
+                    }else{
+                        None
+                    },
+                    _=>None
                 }
+                
             })
             .collect();
         res.sort();
@@ -452,13 +555,17 @@ impl<'a> Sistema {
         let iter = self.productos.iter();
         let mut res: Vec<String> = iter
             .filter_map(|x| {
-                if x.tipo_producto
-                    .to_lowercase()
-                    .contains(&filtro.to_lowercase())
-                {
-                    Some(x.tipo_producto.clone())
-                } else {
-                    None
+                match x{
+                    Valuable::Prod(a)=>if a.1.tipo_producto
+                        .to_lowercase()
+                        .contains(&filtro.to_lowercase())
+                    {
+                        Some(a.1.tipo_producto.clone())
+                    } else {
+                        None
+                    },
+                    _=>None
+
                 }
             })
             .collect();
@@ -518,6 +625,7 @@ impl Default for Presentacion {
     }
 }
 
+
 impl Producto {
     pub fn new(
         id: usize,
@@ -559,19 +667,7 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
-    fn redondear(&self, politica: f64) -> Producto {
-        Producto {
-            id: self.id,
-            codigos_de_barras: self.codigos_de_barras.clone(),
-            precio_de_venta: redondeo(politica, self.precio_de_venta),
-            porcentaje: self.porcentaje,
-            precio_de_costo: self.precio_de_costo,
-            tipo_producto: self.tipo_producto.clone(),
-            marca: self.marca.clone(),
-            variedad: self.variedad.clone(),
-            presentacion: self.presentacion.clone(),
-        }
-    }
+    
 }
 
 impl PartialEq for Producto {

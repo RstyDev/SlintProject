@@ -4,6 +4,7 @@ use core::panic;
 use mods::Config;
 use mods::Producto;
 use mods::Sistema;
+use mods::Valuable;
 use mods::Venta;
 use sea_orm::Database;
 use std::sync::Mutex;
@@ -118,7 +119,7 @@ fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> 
 fn get_productos_filtrado(
     sistema: State<Mutex<Sistema>>,
     filtro: String,
-) -> Result<Vec<Producto>, String> {
+) -> Result<Vec<Valuable>, String> {
     let filtros = filtro.split(' ').collect::<Vec<&str>>();
     let res;
     match sistema.lock() {
@@ -128,9 +129,10 @@ fn get_productos_filtrado(
                 .into_iter()
                 .filter(|x| {
                     let codigo = filtro.parse::<u128>();
-                    if (codigo.is_ok() && x.codigos_de_barras.contains(&codigo.unwrap()))
+                    match x{
+                        Valuable::Prod(a)=>if (codigo.is_ok() && a.1.codigos_de_barras.contains(&codigo.unwrap()))
                         || filtros.iter().any(|line| {
-                            if x.get_nombre_completo()
+                            if a.1.get_nombre_completo()
                                 .to_lowercase()
                                 .contains(&line.to_lowercase())
                             {
@@ -144,6 +146,9 @@ fn get_productos_filtrado(
                     } else {
                         false
                     }
+                    _=>false,
+                    }
+                    
                 })
                 .take(a.get_configs().get_cantidad_productos())
                 .to_owned()
