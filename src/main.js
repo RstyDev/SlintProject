@@ -48,7 +48,11 @@ async function get_configs() {
 }
 
 
-
+function incrementarProducto(e) {
+  incrementarProdVentaAct(e.target.parentNode.parentNode.id);
+  get_venta_actual().then(venta => dibujar_venta(venta));
+  buscador.focus();
+}
 
 function sumarProducto(e) {
   agregarProdVentaAct(e.target.parentNode.parentNode.id);
@@ -73,6 +77,7 @@ function camalize(str) {
 }
 function formatear_descripcion(producto) {
   let pres;
+  
   let cant;
   switch (Object.keys(producto.presentacion)[0]) {
     case 'Gr': {
@@ -167,27 +172,28 @@ function dibujar_venta(venta) {
      </article>`;
   let strings = "";
   for (let producto of venta.productos) {
-    if (producto[0] < 2) {
+    
+    if (producto.Prod[0] < 2) {
       disabled = 'disabled';
     } else {
       disabled = '';
     }
-    strings = formatear_strings(formatear_descripcion(producto[1]))
-    hijos += `<article class="articulo" id="${producto[1].id}">
+    strings = formatear_strings(formatear_descripcion(producto.Prod[1]))
+    hijos += `<article class="articulo" id="${producto.Prod[1].id}">
      <section class="descripcion">
         <p> ${strings} </p>
      </section>
      <section class="cantidad">
        
         <button class="button restar" ${disabled}>-</button>
-        <p class="cantidad-producto"> ${producto[0]}</p>
+        <p class="cantidad-producto"> ${producto.Prod[0]}</p>
         <button class="button sumar">+</button>
      </section>
      <section class="monto">
-        <p>${producto[1].precio_de_venta}</p>
+        <p>${producto.Prod[1].precio_de_venta}</p>
      </section>
      <section>
-      <p> ${producto[1].precio_de_venta * producto[0]}</p>
+      <p> ${producto.Prod[1].precio_de_venta * producto.Prod[0]}</p>
      </section>
      <section id="borrar">
       <button class="button eliminar">Borrar</button>
@@ -320,7 +326,7 @@ function dibujar_venta(venta) {
   for (let boton of document.querySelectorAll('.sumar')) {
     boton.addEventListener('click', (e) => {
       e.preventDefault();
-      sumarProducto(e)
+      incrementarProducto(e);
     });
   }
   for (let boton of document.querySelectorAll('.restar')) {
@@ -344,7 +350,9 @@ async function get_venta_actual() {
   // console.log(ret)
   return ret;
 }
-
+async function incrementarProdVentaAct(id) {
+  await invoke("incrementar_producto_a_venta", { id: "" + id, pos: "" + posicionVenta });
+}
 async function agregarProdVentaAct(id) {
   await invoke("agregar_producto_a_venta", { id: "" + id, pos: "" + posicionVenta });
 }
@@ -387,6 +395,7 @@ async function get_filtrado(filtro, tipo_filtro, objetivo) {
 }
 
 function dibujarProductos(objetos) {
+
   let container = document.querySelector('#cuadro-principal');
   mensaje1.textContent = '';
   container.replaceChildren([]);
@@ -425,42 +434,42 @@ function dibujarProductos(objetos) {
     tr2.tabIndex = 2;
     let cantidad;
     let presentacion;
-    switch (Object.keys(objetos[i].presentacion)[0]) {
+    switch (Object.keys(objetos[i].Prod[1].presentacion)[0]) {
       case 'Gr':
-        cantidad = objetos[i].presentacion.Gr;
+        cantidad = objetos[i].Prod[1].presentacion.Gr;
         presentacion = 'Gr';
         break;
       case 'Un':
-        cantidad = objetos[i].presentacion.Un;
+        cantidad = objetos[i].Prod[1].presentacion.Un;
         presentacion = 'Un';
         break;
       case 'Lt':
-        cantidad = objetos[i].presentacion.Lt;
+        cantidad = objetos[i].Prod[1].presentacion.Lt;
         presentacion = 'Lt';
         break;
       case 'Ml':
-        cantidad = objetos[i].presentacion.Ml;
+        cantidad = objetos[i].Prod[1].presentacion.Ml;
         presentacion = 'Ml';
         break;
       case 'Cc':
-        cantidad = objetos[i].presentacion.Cc;
+        cantidad = objetos[i].Prod[1].presentacion.Cc;
         presentacion = 'Cc';
         break;
       case 'Kg':
-        cantidad = objetos[i].presentacion.Kg;
+        cantidad = objetos[i].Prod[1].presentacion.Kg;
         presentacion = 'Kg';
         break;
 
     }
     let id = document.createElement('td');
-    id.innerHTML = objetos[i].id;
+    id.innerHTML = objetos[i].Prod[1].id;
     id.style.display = 'none'
     tr2.appendChild(id);
     let producto = document.createElement('td');
-    producto.innerHTML = objetos[i].tipo_producto + ' ' + objetos[i].marca + ' ' + objetos[i].variedad + ' ' + cantidad + ' ' + presentacion;
+    producto.innerHTML = objetos[i].Prod[1].tipo_producto + ' ' + objetos[i].Prod[1].marca + ' ' + objetos[i].Prod[1].variedad + ' ' + cantidad + ' ' + presentacion;
     tr2.appendChild(producto);
     let precio = document.createElement('td');
-    precio.innerHTML = "$  " + objetos[i].precio_de_venta;
+    precio.innerHTML = "$  " + objetos[i].Prod[1].precio_de_venta;
     precio.style.textAlign = 'end'
     tr2.appendChild(precio);
     tr2.addEventListener('keydown', (e) => {

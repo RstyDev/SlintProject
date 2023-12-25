@@ -163,7 +163,7 @@ impl ValuableTrait for Rubro{
         Rubro{
             id:self.id,
             monto:redondeo(politica, self.monto),
-            descripcion: self.descripcion,
+            descripcion: self.descripcion.clone(),
         }
     }
 } 
@@ -238,28 +238,33 @@ impl<'a> Venta {
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
-                let prod= self.productos.remove(i);
-                match prod{
-                    Valuable::Pes(mut a)=>a.0=a.0+1.0,
-                    Valuable::Prod(mut a)=>a.0=a.0+1,
-                    Valuable::Rub(a)=>self.productos.push(Valuable::Rub(a)),
+                let mut prod= self.productos.remove(i);
+                match &prod{
+                    Valuable::Pes(a)=>prod=Valuable::Pes((a.0+1.0,a.1.clone())),
+                    Valuable::Prod(a)=>prod=Valuable::Prod((a.0+1,a.1.clone())),
+                    Valuable::Rub(a)=>self.productos.push(Valuable::Rub(a.clone())),
                 }
                 self.productos.insert(i,prod);
                 esta = true;
             }
         }
         if !esta {
-            self.productos.push(producto);
+            let prod=match producto{
+                Valuable::Pes(a)=>Valuable::Pes((a.0+1.0,a.1.clone())),
+                Valuable::Prod(a)=>Valuable::Prod((a.0+1,a.1.clone())),
+                Valuable::Rub(a)=>Valuable::Rub((a.0+1,a.1.clone())),
+            };
+            self.productos.push(prod);
         }
         self.update_monto_total(politica);
     }
     fn update_monto_total(&mut self,politica:f64){
         self.monto_total = 0.0;
         for i in &self.productos {
-            match i{
-                Valuable::Pes(mut a)=>self.monto_total+=redondeo(politica,a.0*a.1.precio_peso),
-                Valuable::Prod(mut a)=>self.monto_total+=a.1.precio_de_venta*a.0 as f64,
-                Valuable::Rub(mut a)=>self.monto_total+=a.1.monto*a.0 as f64,
+            match &i{
+                Valuable::Pes(a)=>self.monto_total+=redondeo(politica,a.0*a.1.precio_peso),
+                Valuable::Prod(a)=>self.monto_total+=a.1.precio_de_venta*a.0 as f64,
+                Valuable::Rub(a)=>self.monto_total+=a.1.monto*a.0 as f64,
             }
         }
     }
@@ -274,11 +279,30 @@ impl<'a> Venta {
         let mut res = Err("Producto no encontrado".to_string());
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
-                match &self.productos[i]{
-                    Valuable::Pes(mut a)=>a.0-=1.0,
-                    Valuable::Prod(mut a)=>a.0-=1,
-                    Valuable::Rub(mut a)=>a.0-=1,
+                let mut prod=self.productos.remove(i);
+                match &prod{
+                    Valuable::Pes(a)=>prod=Valuable::Pes((a.0-1.0,a.1.clone())),
+                    Valuable::Prod(a)=>prod=Valuable::Prod((a.0-1,a.1.clone())),
+                    Valuable::Rub(a)=>prod=Valuable::Rub((a.0-1,a.1.clone())),
                 }
+                self.productos.insert(i,prod);
+                res = Ok(());
+            }
+        }
+        self.update_monto_total(politica);
+        res
+    }
+    fn incrementar_producto(&mut self, producto: Valuable,politica:f64) -> Result<(), String> {
+        let mut res = Err("Producto no encontrado".to_string());
+        for i in 0..self.productos.len() {
+            if producto == self.productos[i] {
+                let mut prod=self.productos.remove(i);
+                match &prod{
+                    Valuable::Pes(a)=>prod=Valuable::Pes((a.0+1.0,a.1.clone())),
+                    Valuable::Prod(a)=>prod=Valuable::Prod((a.0+1,a.1.clone())),
+                    Valuable::Rub(a)=>prod=Valuable::Rub((a.0+1,a.1.clone())),
+                }
+                self.productos.insert(i,prod);
                 res = Ok(());
             }
         }
@@ -305,12 +329,32 @@ impl<'a> Sistema {
         let path_proveedores = String::from("Proveedores.json");
         let path_relaciones = String::from("Relaciones.json");
         let path_configs = String::from("Configs.json");
-        let mut productos = Vec::new();
+        let path_rubros=String::from("Rubros.json");
+        let path_pesables=String::from("Pesables.json");
+        let mut productos:Vec<Producto> = Vec::new();
+        let mut rubros:Vec<Rubro>=Vec::new();
+        let mut pesables:Vec<Pesable>=Vec::new();
         let stash=Vec::new();
         let registro=Vec::new();
+        if let Err(e) = leer_file(&mut rubros, &path_rubros) {
+            panic!("{}", e);
+        }if let Err(e) = leer_file(&mut pesables, &path_pesables) {
+            panic!("{}", e);
+        }
         if let Err(e) = leer_file(&mut productos, &path_prods) {
             panic!("{}", e);
         }
+        let mut rubros:Vec<Valuable>=rubros.iter().map(|a|{
+            Valuable::Rub((0,a.to_owned()))
+        }).collect();
+        let mut pesables:Vec<Valuable>=pesables.iter().map(|a|{
+            Valuable::Pes((0.0,a.to_owned()))
+        }).collect();
+        let mut productos:Vec<Valuable>=productos.iter().map(|a|{
+            Valuable::Prod((0,a.to_owned()))
+        }).collect();
+        productos.append(&mut pesables);
+        productos.append(&mut rubros);
         let mut proveedores = Vec::new();
         if let Err(e) = leer_file(&mut proveedores, &path_proveedores) {
             panic!("{}", e);
@@ -502,6 +546,19 @@ impl<'a> Sistema {
             }
             1 => {
                 self.ventas.1.restar_producto(res,self.configs.politica_redondeo)?;
+            }
+            _ => return Err("Numero de venta incorrecto".to_string()),
+        }
+        Ok(())
+    }
+    pub fn incrementar_producto_a_venta(&mut self, id: usize, pos: usize) -> Result<(), String> {
+        let res = self.get_producto(id)?;
+        match pos {
+            0 => {
+                self.ventas.0.incrementar_producto(res,self.configs.politica_redondeo)?;
+            }
+            1 => {
+                self.ventas.1.incrementar_producto(res,self.configs.politica_redondeo)?;
             }
             _ => return Err("Numero de venta incorrecto".to_string()),
         }

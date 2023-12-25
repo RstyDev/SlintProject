@@ -197,6 +197,20 @@ fn descontar_producto_de_venta(sistema: State<Mutex<Sistema>>, id: String, pos: 
     };
 }
 #[tauri::command]
+fn incrementar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String){
+    match sistema.lock() {
+        Ok(mut a) => {
+            let pos = pos.parse().unwrap();
+            match a.incrementar_producto_a_venta(id.parse().unwrap(), pos) {
+                Ok(_) => println!("{:?}", a.get_venta(pos)),
+                Err(e) => panic!("{}", e),
+            }
+        }
+        Err(e) => panic!("{}", e),
+    };
+}
+
+#[tauri::command]
 fn eliminar_producto_de_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
     match sistema.lock() {
         Ok(mut a) => {
@@ -333,6 +347,7 @@ fn main() {
             get_productos_filtrado,
             agregar_producto_a_venta,
             descontar_producto_de_venta,
+            incrementar_producto_a_venta,
             eliminar_producto_de_venta,
             redondeo,
             agregar_pago,

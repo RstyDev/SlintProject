@@ -528,7 +528,11 @@ button {
     background-color: #2f2f2f;
   }
 
+  *:disabled:hover{
+    background-color: #2f2f2f;
+  }
+
   *:disabled:hover {
-    border: #2f2f2f;
+    border: none;
   }
 }
