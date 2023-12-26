@@ -136,7 +136,19 @@ impl Valuable{
             Valuable::Pes(a)=>a.1.descripcion.clone(),
             Valuable::Rub(a)=>a.1.descripcion.clone(),
             Valuable::Prod(a)=>match conf.formato_producto{
-                Formato::Mtv=>format!("{} {} {}",a.1.marca,a.1.tipo_producto,a.1.variedad),
+                Formato::Mtv=>{
+                    match a.1.presentacion{
+                        Presentacion::Gr(cant)=>format!("{} {} {} {} Gr",a.1.marca,a.1.tipo_producto,a.1.variedad,cant),
+                        Presentacion::Cc(cant)=>format!("{} {} {} {} Cc",a.1.marca,a.1.tipo_producto,a.1.variedad,cant),
+                        Presentacion::Kg(cant)=>format!("{} {} {} {} Kg",a.1.marca,a.1.tipo_producto,a.1.variedad,cant),
+                        Presentacion::Lt(cant)=>format!("{} {} {} {} Lt",a.1.marca,a.1.tipo_producto,a.1.variedad,cant),
+                        Presentacion::Ml(cant)=>format!("{} {} {} {} Ml",a.1.marca,a.1.tipo_producto,a.1.variedad,cant),
+                        Presentacion::Un(cant)=>format!("{} {} {} {} Un",a.1.marca,a.1.tipo_producto,a.1.variedad,cant),
+
+                    }
+                    
+
+                },
                 Formato::Tmv=>format!("{} {} {}",a.1.tipo_producto, a.1.marca, a.1.variedad),
             }
         };

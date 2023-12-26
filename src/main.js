@@ -205,11 +205,8 @@ function dibujar_venta(venta) {
       disabled = '';
     }
     strings = formatear_strings(formatear_descripcion(producto.Prod[1]))
-    get_descripcion_valuable(producto, configs).then(res=>{}
-      
-    );
-    
-    hijos.innerHTML += `<article class="articulo" id="${producto.Prod[1].id}">
+    get_descripcion_valuable(producto, configs).then(strings=>{
+      hijos.innerHTML += `<article class="articulo" id="${producto.Prod[1].id}">
      <section class="descripcion">
         <p> ${strings} </p>
      </section>
@@ -233,6 +230,9 @@ function dibujar_venta(venta) {
 
 
     hijosRes.innerHTML += `<p>${strings}</p>`
+    });
+    
+    
   }
 
 
@@ -433,19 +433,6 @@ function dibujarProductos(objetos) {
   for (let i = 0; i < objetos.length; i++) {
     let tr2 = document.createElement('tr')
     tr2.style.maxHeight = '1.5em';
-    tr2.addEventListener('click', () => {
-      let focused = tr2.parentNode.getElementsByClassName('focuseado');
-      for (let i = 0; i < focused.length; i++) {
-        focused[i].classList.toggle('focuseado', false);
-      }
-      tr2.classList.toggle('focuseado', true);
-      focuseado = tr2;
-
-    });
-    tr2.addEventListener('dblclick', () => {
-      agregarProdVentaAct(focuseado.children[0].innerHTML);
-      borrarBusqueda();
-    })
     tr2.tabIndex = 2;
     let cantidad;
     let presentacion;
@@ -473,13 +460,11 @@ function dibujarProductos(objetos) {
       case 'Kg':
         cantidad = objetos[i].Prod[1].presentacion.Kg;
         presentacion = 'Kg';
-        break;
-
+        break;                  
     }
     let id = document.createElement('td');
     id.innerHTML = objetos[i].Prod[1].id;
     id.style.display = 'none'
-    tr2.appendChild(id);
     let producto = document.createElement('td');
     producto.innerHTML = objetos[i].Prod[1].tipo_producto + ' ' + objetos[i].Prod[1].marca + ' ' + objetos[i].Prod[1].variedad + ' ' + cantidad + ' ' + presentacion;
     tr2.appendChild(producto);
@@ -487,9 +472,23 @@ function dibujarProductos(objetos) {
     precio.innerHTML = "$  " + objetos[i].Prod[1].precio_de_venta;
     precio.style.textAlign = 'end'
     tr2.appendChild(precio);
+    tr2.addEventListener('click', () => {
+      let focused = tr2.parentNode.getElementsByClassName('focuseado');
+      for (let i = 0; i < focused.length; i++) {
+        focused[i].classList.toggle('focuseado', false);
+      }
+      tr2.classList.toggle('focuseado', true);
+      focuseado = tr2;
+
+    });
+    tr2.addEventListener('dblclick', () => {
+      agregarProdVentaAct(focuseado.children[0].innerHTML);
+      borrarBusqueda();
+    });
     tr2.addEventListener('keydown', (e) => {
       navigate(e)
     });
+    tr2.appendChild(id);
     tabla.appendChild(tr2);
   }
   container.appendChild(tabla);
