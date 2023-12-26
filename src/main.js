@@ -51,7 +51,7 @@ async function get_configs() {
 function incrementarProducto(e) {
   incrementarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  setFoco(buscador, document.getElementById('cuadro-venta'));
+  setFoco(buscador, document.getElementById('productos'));
 }
 
 
@@ -59,19 +59,19 @@ function incrementarProducto(e) {
 function sumarProducto(e) {
   agregarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  setFoco(buscador, document.getElementById('cuadro-venta'));
+  setFoco(buscador, document.getElementById('productos'));
 }
 function restarProducto(e) {
   let cantidad = e.target.nextElementSibling;
   descontarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  setFoco(buscador, document.getElementById('cuadro-venta'));
+  setFoco(buscador, document.getElementById('productos'));
 }
 
 function eliminarProducto(e) {
   eliminarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  setFoco(buscador, document.getElementById('cuadro-venta'));
+  setFoco(buscador, document.getElementById('productos'));
 }
 function camalize(str) {
   return str.replace(/(\w)(\w*)/g,
@@ -139,24 +139,49 @@ function cambiar_venta(boton) {
     boton.nextElementSibling.classList.toggle('v-actual');
     posicionVenta = 0;
     get_venta_actual().then(venta => dibujar_venta(venta));
-    setFoco(buscador, document.getElementById('cuadro-venta'));
+    setFoco(buscador, document.getElementById('productos'));
   } else if (boton.previousElementSibling && posicionVenta == 0) {
     boton.classList.toggle('v-actual');
     boton.previousElementSibling.classList.toggle('v-actual');
     posicionVenta = 1;
     get_venta_actual().then(venta => dibujar_venta(venta));
-    setFoco(buscador, document.getElementById('cuadro-venta'));
+    setFoco(buscador, document.getElementById('productos'));
   }
 }
 
+async function get_descripcion_valuable(prod,conf){
+  return await invoke("get_descripcion_valuable", { "prod": prod, "conf": conf});
+}
 
 function dibujar_venta(venta) {
   let cuadro = document.querySelector('#cuadro-principal');
 
   cuadro.replaceChildren([]);
   let disabled = "";
-  let hijosRes = "";
-  let hijos = `<article class="articulo">
+  
+  
+  let strings = "";
+  cuadro.innerHTML = `
+  <section class="ayb">
+  <a id="v-a" class="a-boton"> Venta A </a>
+  <a id="v-b" class="a-boton"> Venta B </a>
+  </section>
+  <section id="cuadro-venta" >
+    <section id="productos" class="focuseable">
+    
+    </section>
+    <section id="monto-total"> TOTAL ${venta.monto_total}</section>
+  </section> 
+  <section id="resumen-y-pago">
+    <div id='resumen'>
+    </div>
+    <div id='pagos' class="focuseable not-focused">
+    </div>
+    <p>Resta pagar: ${venta.monto_total - venta.monto_pagado}</p>        
+  </section>`;
+  let hijos =document.getElementById('productos');
+  let hijosRes = document.getElementById('resumen');
+   hijos.innerHTML+=`<article class="articulo">
      <section class="descripcion">
         <p> DESCRIPCION </p>
      </section>
@@ -172,7 +197,6 @@ function dibujar_venta(venta) {
       
     </section>
      </article>`;
-  let strings = "";
   for (let producto of venta.productos) {
     
     if (producto.Prod[0] < 2) {
@@ -181,7 +205,11 @@ function dibujar_venta(venta) {
       disabled = '';
     }
     strings = formatear_strings(formatear_descripcion(producto.Prod[1]))
-    hijos += `<article class="articulo" id="${producto.Prod[1].id}">
+    get_descripcion_valuable(producto, configs).then(res=>{}
+      
+    );
+    
+    hijos.innerHTML += `<article class="articulo" id="${producto.Prod[1].id}">
      <section class="descripcion">
         <p> ${strings} </p>
      </section>
@@ -204,33 +232,14 @@ function dibujar_venta(venta) {
 
 
 
-    hijosRes += `<p>${strings}</p>`
+    hijosRes.innerHTML += `<p>${strings}</p>`
   }
 
 
-  cuadro.innerHTML = `
-  <section class="ayb">
-  <a id="v-a" class="a-boton"> Venta A </a>
-  <a id="v-b" class="a-boton"> Venta B </a>
-  </section>
-  <section id="cuadro-venta">
-    <section id="productos">
-    ${hijos}
-    </section>
-    <section id="monto-total"> TOTAL ${venta.monto_total}</section>
-  </section> 
-  <section id="resumen-y-pago">
-    <div id='resumen'>
-      ${hijosRes}
-    </div>
-    <div id='pagos'>
-    </div>
-    <p>Resta pagar: ${venta.monto_total - venta.monto_pagado}</p>        
-  </section>`;
-  let pes = document.querySelector('#resumen');
-  pes.style.fontSize = `${calcFont(pes.offsetHeight, pes.children.length * 2)}px`;
-  for (let i = 0; i < pes.length; i++) {
-    pes[i].style.height = `${calcFont(pes.offsetHeight, pes.children.length)}px`;
+  
+  hijosRes.style.fontSize = `${calcFont(hijosRes.offsetHeight, hijosRes.children.length * 2)}px`;
+  for (let i = 0; i < hijosRes.length; i++) {
+    hijosRes[i].style.height = `${calcFont(hijosRes.offsetHeight, hijosRes.children.length)}px`;
   }
 
 
@@ -267,7 +276,7 @@ function dibujar_venta(venta) {
       e.preventDefault();
       eliminar_pago(i)
       get_venta_actual().then(venta => dibujar_venta(venta));
-      setFoco(buscador, document.getElementById('cuadro-venta'));
+      setFoco(buscador, document.getElementById('productos'));
     })
   }
   document.getElementById('boton-agregar-pago').addEventListener('click', (e) => {
@@ -288,7 +297,7 @@ function dibujar_venta(venta) {
             }
             get_venta_actual().then(venta => {
               dibujar_venta(venta);
-              setFoco(buscador, document.getElementById('cuadro-venta'));
+              setFoco(buscador, document.getElementById('productos'));
             });
             
           }
@@ -373,7 +382,7 @@ function borrarBusqueda() {
   buscador.value = '';
   document.querySelector('#cuadro-principal').replaceChildren([]);
   get_venta_actual().then(venta => {dibujar_venta(venta)
-    setFoco(buscador, document.getElementById('cuadro-venta'));});
+    setFoco(buscador, document.getElementById('productos'));});
   
 }
 async function get_filtrado(filtro, tipo_filtro, objetivo) {
@@ -425,7 +434,6 @@ function dibujarProductos(objetos) {
     let tr2 = document.createElement('tr')
     tr2.style.maxHeight = '1.5em';
     tr2.addEventListener('click', () => {
-      setFoco(buscador, document.getElementById('cuadro-venta'));
       let focused = tr2.parentNode.getElementsByClassName('focuseado');
       for (let i = 0; i < focused.length; i++) {
         focused[i].classList.toggle('focuseado', false);
@@ -603,7 +611,7 @@ function escYf10Press(){
       buscador.value = '';
       get_venta_actual().then(venta => {
         dibujar_venta(venta)
-        setFoco(buscador, document.getElementById('cuadro-venta'));
+        setFoco(buscador, document.getElementById('productos'));
       });
       
     }else if(e.keyCode==121){
@@ -774,9 +782,9 @@ function setFoco(foco,focuseable){
   let focos=document.querySelectorAll('.focuseable');
   console.log(focuseable);
   for (let i=0;i<focos.length;i++){
-    focos[i].classList.remove('focuseable');
+    focos[i].classList.toggle('not-focused',true);
   }
-  focuseable.classList.add('focuseable');
+  focuseable.classList.toggle('not-focused',false);
   foco.focus();
   foco.select();
 }
@@ -784,7 +792,7 @@ function setFoco(foco,focuseable){
 window.addEventListener("DOMContentLoaded", () => {
   buscador = document.querySelector('#buscador');
   buscador.addEventListener('focus',()=>{
-    setFoco(buscador, document.getElementById('cuadro-venta'))
+    setFoco(buscador, document.getElementById('productos'))
   })
   borrarBusqueda();
   agrProvSubmit();

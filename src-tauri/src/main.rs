@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use core::panic;
 use mods::Config;
+use mods::Formato;
 use mods::Producto;
 use mods::Sistema;
 use mods::Valuable;
@@ -333,6 +334,13 @@ fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String
     res
 }
 
+#[tauri::command]
+fn get_descripcion_valuable(prod:Valuable,conf:Config)->String{
+    let res:String;
+    res=prod.get_descripcion(conf);
+    res
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(Sistema::new()))
@@ -356,6 +364,7 @@ fn main() {
             get_configs,
             set_configs,
             get_medios_pago,
+            get_descripcion_valuable,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

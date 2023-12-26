@@ -124,13 +124,47 @@ pub trait ValuableTrait{
 }
 
 impl Valuable{
-    fn get_price(&self,politica:f64)->f64{
+    pub fn get_price(&self,politica:f64)->f64{
         match self{
             Valuable::Pes(a)=>redondeo(politica,a.0*a.1.precio_peso),
             Valuable::Prod(a)=>a.1.redondear(politica).precio_de_venta,
             Valuable::Rub(a)=>a.1.redondear(politica).monto,
         }
     }
+    pub fn get_descripcion(&self,conf:Config)->String{
+        let mut res=match self{
+            Valuable::Pes(a)=>a.1.descripcion.clone(),
+            Valuable::Rub(a)=>a.1.descripcion.clone(),
+            Valuable::Prod(a)=>match conf.formato_producto{
+                Formato::Mtv=>format!("{} {} {}",a.1.marca,a.1.tipo_producto,a.1.variedad),
+                Formato::Tmv=>format!("{} {} {}",a.1.tipo_producto, a.1.marca, a.1.variedad),
+            }
+        };
+        match conf.modo_mayus{
+            Mayusculas::Lower=>res=res.to_lowercase(),
+            Mayusculas::Upper=>res=res.to_uppercase(),
+            Mayusculas::Camel=>res=camalize(res),
+        }
+        res
+    }
+}
+
+fn camalize(data:String)->String{
+    
+    let mut es:bool=true;
+    for i in data.chars(){
+        if es{
+            i.to_uppercase();
+        }else{
+            i.to_lowercase();
+        }
+        if i==' '{
+            es=true;
+        }else{
+            es=false;
+        }
+    }
+    data.to_string()
 }
 
 impl ValuableTrait for Valuable{
