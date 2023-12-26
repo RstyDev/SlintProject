@@ -51,25 +51,27 @@ async function get_configs() {
 function incrementarProducto(e) {
   incrementarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  buscador.focus();
+  setFoco(buscador, document.getElementById('cuadro-venta'));
 }
+
+
 
 function sumarProducto(e) {
   agregarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  buscador.focus();
+  setFoco(buscador, document.getElementById('cuadro-venta'));
 }
 function restarProducto(e) {
   let cantidad = e.target.nextElementSibling;
   descontarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  buscador.focus();
+  setFoco(buscador, document.getElementById('cuadro-venta'));
 }
 
 function eliminarProducto(e) {
   eliminarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
-  buscador.focus();
+  setFoco(buscador, document.getElementById('cuadro-venta'));
 }
 function camalize(str) {
   return str.replace(/(\w)(\w*)/g,
@@ -137,13 +139,13 @@ function cambiar_venta(boton) {
     boton.nextElementSibling.classList.toggle('v-actual');
     posicionVenta = 0;
     get_venta_actual().then(venta => dibujar_venta(venta));
-    buscador.focus();
+    setFoco(buscador, document.getElementById('cuadro-venta'));
   } else if (boton.previousElementSibling && posicionVenta == 0) {
     boton.classList.toggle('v-actual');
     boton.previousElementSibling.classList.toggle('v-actual');
     posicionVenta = 1;
     get_venta_actual().then(venta => dibujar_venta(venta));
-    buscador.focus();
+    setFoco(buscador, document.getElementById('cuadro-venta'));
   }
 }
 
@@ -255,13 +257,17 @@ function dibujar_venta(venta) {
   <input id="boton-agregar-pago" value="Cash" type="submit">
     </form>
   `
+  let input=document.querySelector('#input-activo');
+  input.addEventListener('focus',()=>{
+    setFoco(input,pagos)
+  })
   for (let i = 0; i < venta.pagos.length; i++) {
     let btns = document.getElementsByClassName('boton-eliminar-pago');
     btns[i].addEventListener('click', (e) => {
       e.preventDefault();
       eliminar_pago(i)
       get_venta_actual().then(venta => dibujar_venta(venta));
-      buscador.focus();
+      setFoco(buscador, document.getElementById('cuadro-venta'));
     })
   }
   document.getElementById('boton-agregar-pago').addEventListener('click', (e) => {
@@ -282,7 +288,7 @@ function dibujar_venta(venta) {
             }
             get_venta_actual().then(venta => {
               dibujar_venta(venta);
-              buscador.focus();
+              setFoco(buscador, document.getElementById('cuadro-venta'));
             });
             
           }
@@ -366,8 +372,9 @@ async function eliminarProdVentaAct(id) {
 function borrarBusqueda() {
   buscador.value = '';
   document.querySelector('#cuadro-principal').replaceChildren([]);
-  get_venta_actual().then(venta => dibujar_venta(venta));
-  buscador.focus();
+  get_venta_actual().then(venta => {dibujar_venta(venta)
+    setFoco(buscador, document.getElementById('cuadro-venta'));});
+  
 }
 async function get_filtrado(filtro, tipo_filtro, objetivo) {
   let res = await invoke("get_filtrado", { filtro: filtro, tipoFiltro: tipo_filtro });
@@ -418,7 +425,7 @@ function dibujarProductos(objetos) {
     let tr2 = document.createElement('tr')
     tr2.style.maxHeight = '1.5em';
     tr2.addEventListener('click', () => {
-      buscador.focus();
+      setFoco(buscador, document.getElementById('cuadro-venta'));
       let focused = tr2.parentNode.getElementsByClassName('focuseado');
       for (let i = 0; i < focused.length; i++) {
         focused[i].classList.toggle('focuseado', false);
@@ -585,8 +592,7 @@ function pasarAPagar(){
         dibujar_venta(venta);
         let input=document.querySelector('#input-activo');
         input.value=venta.monto_total-venta.monto_pagado;
-        input.focus();
-        input.select();
+        setFoco(input, document.getElementById('pagos'));
       });
 }
 
@@ -595,8 +601,11 @@ function escYf10Press(){
     if (e.keyCode == 27){
       e.preventDefault();
       buscador.value = '';
-      get_venta_actual().then(venta => dibujar_venta(venta));
-      buscador.focus();
+      get_venta_actual().then(venta => {
+        dibujar_venta(venta)
+        setFoco(buscador, document.getElementById('cuadro-venta'));
+      });
+      
     }else if(e.keyCode==121){
       e.preventDefault();
       pasarAPagar();
@@ -761,9 +770,22 @@ function cerrarContainerHandle(s1, s2) {
     document.querySelector('#cuadro-principal').style.display = 'grid';
   }
 }
+function setFoco(foco,focuseable){
+  let focos=document.querySelectorAll('.focuseable');
+  console.log(focuseable);
+  for (let i=0;i<focos.length;i++){
+    focos[i].classList.remove('focuseable');
+  }
+  focuseable.classList.add('focuseable');
+  foco.focus();
+  foco.select();
+}
 
 window.addEventListener("DOMContentLoaded", () => {
   buscador = document.querySelector('#buscador');
+  buscador.addEventListener('focus',()=>{
+    setFoco(buscador, document.getElementById('cuadro-venta'))
+  })
   borrarBusqueda();
   agrProvSubmit();
   agrCodSubmit();

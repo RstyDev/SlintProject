@@ -175,6 +175,13 @@ input:disabled {
   grid-template-columns: 70% 30%;
   padding: 10px;
 
+  & #buscador-form{
+    display: inline;
+    position: fixed;
+    bottom: 85svh;
+    left: 80%;
+  }
+
   & section.ayb {
     display: inline;
     position: fixed;
@@ -216,6 +223,11 @@ input:disabled {
     border: solid 1px #6f6f6f;
     width: 100%;
     height: 75svh;
+    &.focuseable{
+      border-color: #535bf2;
+      filter: brightness(180%);
+      transform: scale(1.02);
+    }
   }
 }
 
@@ -298,9 +310,14 @@ div#pagos section.pago {
   overflow-y: scroll;
   -ms-overflow-style: none;
   scrollbar-width: none;
-
+  margin-left: 5px;
   &::-webkit-scrollbar {
     display: none;
+  }
+  &.focuseable{
+    border-color: #535bf2;
+    filter: brightness(180%);
+    transform: scale(1.02);
   }
 }
 
@@ -527,7 +544,12 @@ button {
     color: #666666;
     background-color: #2f2f2f;
   }
+  
+  .main-screen{
+    border: solid 2px #8f8f8f;
+  }
 
+  
   *:disabled:hover{
     background-color: #2f2f2f;
   }
