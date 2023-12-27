@@ -223,6 +223,8 @@ fn eliminar_producto_de_venta(sistema: State<Mutex<Sistema>>, id: String, pos: S
         }
         Err(e) => panic!("{}", e),
     };
+    println!("pago eliminado");
+    // open_window();
 }
 
 #[tauri::command]
@@ -346,8 +348,8 @@ fn get_descripcion_valuable(prod:Valuable,conf:Config)->String{
 async fn open_docs(handle: tauri::AppHandle) {
   let docs_window = tauri::WindowBuilder::new(
     &handle,
-    "external", /* the unique window label */
-    tauri::WindowUrl::External("/pages/add-product.html".parse().unwrap())
+    "local", /* the unique window label */
+    tauri::WindowUrl::App("/pages/add-product.html".parse().unwrap())
   ).build().unwrap();
 }
 #[tauri::command]
@@ -358,7 +360,7 @@ fn open_window(){
         let _=async_runtime::block_on(algo);
         Ok(())
     });
-    algo.run(tauri::generate_context!()).expect("error construyendo ventana");
+    algo.build(tauri::generate_context!()).expect("error construyendo ventana");
 }
 
 fn main() {

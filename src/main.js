@@ -49,6 +49,7 @@ async function get_configs() {
 
 
 function incrementarProducto(e) {
+  console.log(e);
   incrementarProdVentaAct(e.target.parentNode.parentNode.id);
   get_venta_actual().then(venta => dibujar_venta(venta));
   setFoco(buscador, document.getElementById('productos'));
@@ -325,12 +326,11 @@ function dibujar_venta(venta) {
     cambiar_venta(vb);
   })
 
-
-
-  pagos.firstChild.addEventListener('submit', () => {
-    console.log('hacer pago')
-  })
-
+  
+  // pagos.firstChild.addEventListener('submit', () => {
+  //   console.log('hacer pago')
+  // })
+  
   let opciones = document.getElementsByClassName('opciones-pagos');
   for (let i = 0; i < configs.medios_pago.length; i++) {
     opciones[opciones.length - 1].innerHTML += `<option>${configs.medios_pago[i]}</option>`
@@ -338,9 +338,17 @@ function dibujar_venta(venta) {
   for (let i = 0; i < venta.pagos; i++) {
     pagos.innerHTML += venta.pagos[i];
   }
-  for (let boton of document.querySelectorAll('.sumar')) {
+  let boton=document.getElementsByClassName('sumar');
+  console.log(document.getElementsByClassName('sumar'));
+  console.log()
+  console.log(boton[0])
+  for (let boton of document.getElementsByClassName('sumar')) {
+    console.log(boton[j])
+    
+    
     boton.addEventListener('click', (e) => {
       e.preventDefault();
+      console.log(e.target);
       incrementarProducto(e);
     });
   }
@@ -780,7 +788,6 @@ function cerrarContainerHandle(s1, s2) {
 }
 function setFoco(foco,focuseable){
   let focos=document.querySelectorAll('.focuseable');
-  console.log(focuseable);
   for (let i=0;i<focos.length;i++){
     focos[i].classList.toggle('not-focused',true);
   }
