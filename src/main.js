@@ -207,30 +207,53 @@ function dibujar_venta(venta) {
     }
     strings = formatear_strings(formatear_descripcion(producto.Prod[1]))
     get_descripcion_valuable(producto, configs).then(strings=>{
-      hijos.innerHTML += `<article class="articulo" id="${producto.Prod[1].id}">
-     <section class="descripcion">
-        <p> ${strings} </p>
+      let art=document.createElement('article');
+      art.id=producto.Prod[1].id;
+      art.classList.add('articulo');
+      art.innerHTML=`
+      <section class="descripcion">
+         <p> ${strings} </p>
+      </section>
+      <section class="cantidad">
+         <button class="button restar" ${disabled}>-</button>
+         <p class="cantidad-producto"> ${producto.Prod[0]}</p>
+         <button class="button sumar">+</button>
+      </section>
+      <section class="monto">
+         <p>${producto.Prod[1].precio_de_venta}</p>
+      </section>
+      <section>
+       <p> ${producto.Prod[1].precio_de_venta * producto.Prod[0]}</p>
+      </section>
+      <section id="borrar">
+       <button class="button eliminar">Borrar</button>
      </section>
-     <section class="cantidad">
-       
-        <button class="button restar" ${disabled}>-</button>
-        <p class="cantidad-producto"> ${producto.Prod[0]}</p>
-        <button class="button sumar">+</button>
-     </section>
-     <section class="monto">
-        <p>${producto.Prod[1].precio_de_venta}</p>
-     </section>
-     <section>
-      <p> ${producto.Prod[1].precio_de_venta * producto.Prod[0]}</p>
-     </section>
-     <section id="borrar">
-      <button class="button eliminar">Borrar</button>
-    </section>
-     </article>`;
-
-
-
-    hijosRes.innerHTML += `<p>${strings}</p>`
+      `;
+      ///----
+      
+      
+      art.children[1].children[2].addEventListener('click', (e) => {
+          e.preventDefault();
+          console.log(e.target);
+          incrementarProducto(e);
+        });
+      
+      art.children[1].children[0].addEventListener('click', (e) => {
+        e.preventDefault();
+        restarProducto(e);
+      });
+    
+      art.children[4].children[0].addEventListener('click', (e) => {
+        e.preventDefault();
+        eliminarProducto(e);
+      });
+      
+      
+      
+      
+      hijos.appendChild(art);
+      
+      hijosRes.innerHTML += `<p>${strings}</p>`
     });
     
     
@@ -338,32 +361,9 @@ function dibujar_venta(venta) {
   for (let i = 0; i < venta.pagos; i++) {
     pagos.innerHTML += venta.pagos[i];
   }
-  let boton=document.getElementsByClassName('sumar');
-  console.log(document.getElementsByClassName('sumar'));
-  console.log()
-  console.log(boton[0])
-  for (let boton of document.getElementsByClassName('sumar')) {
-    console.log(boton[j])
-    
-    
-    boton.addEventListener('click', (e) => {
-      e.preventDefault();
-      console.log(e.target);
-      incrementarProducto(e);
-    });
-  }
-  for (let boton of document.querySelectorAll('.restar')) {
-    boton.addEventListener('click', (e) => {
-      e.preventDefault();
-      restarProducto(e);
-    });
-  }
-  for (let boton of document.querySelectorAll('.eliminar')) {
-    boton.addEventListener('click', (e) => {
-      e.preventDefault();
-      eliminarProducto(e);
-    });
-  }
+  
+  
+  
 }
 
 

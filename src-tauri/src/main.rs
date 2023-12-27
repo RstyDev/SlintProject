@@ -224,7 +224,6 @@ fn eliminar_producto_de_venta(sistema: State<Mutex<Sistema>>, id: String, pos: S
         Err(e) => panic!("{}", e),
     };
     println!("pago eliminado");
-    // open_window();
 }
 
 #[tauri::command]
