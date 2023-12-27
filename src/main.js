@@ -28,7 +28,7 @@ function navigate(e) {
       focus(focuseado.nextElementSibling);
 
     } else if (e.keyCode == 13) {
-      agregarProdVentaAct(focuseado.children[0].innerHTML);
+      agregarProdVentaAct(focuseado.id);
       e.preventDefault();
       buscador.value = '';
       get_venta_actual().then(venta => dibujar_venta(venta));
@@ -384,7 +384,7 @@ function borrarBusqueda() {
   get_venta_actual().then(venta => {dibujar_venta(venta)
     setFoco(buscador, document.getElementById('productos'));});
   
-}
+} 
 async function get_filtrado(filtro, tipo_filtro, objetivo) {
   let res = await invoke("get_filtrado", { filtro: filtro, tipoFiltro: tipo_filtro });
   let ops = document.getElementById(objetivo);
@@ -434,6 +434,7 @@ function dibujarProductos(objetos) {
     let tr2 = document.createElement('tr')
     tr2.style.maxHeight = '1.5em';
     tr2.tabIndex = 2;
+    tr2.id=objetos[i].Prod[1].id;
     let cantidad;
     let presentacion;
     switch (Object.keys(objetos[i].Prod[1].presentacion)[0]) {
@@ -482,7 +483,7 @@ function dibujarProductos(objetos) {
 
     });
     tr2.addEventListener('dblclick', () => {
-      agregarProdVentaAct(focuseado.children[0].innerHTML);
+      agregarProdVentaAct(focuseado.id);
       borrarBusqueda();
     });
     tr2.addEventListener('keydown', (e) => {

@@ -70,7 +70,7 @@ pub struct Venta {
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Producto {
-    pub id: usize,
+    pub id: u128,
     pub codigos_de_barras: Vec<u128>,
     pub precio_de_venta: f64,
     pub porcentaje: f64,
@@ -82,7 +82,7 @@ pub struct Producto {
 }
 #[derive(Debug, Clone, Default, Serialize,Deserialize)]
 pub struct Pesable{
-    pub id:usize,
+    pub id:u128,
     pub codigo:u128,
     pub precio_peso: f64,
     pub porcentaje: f64,
@@ -92,7 +92,7 @@ pub struct Pesable{
 
 #[derive(Debug, Clone, Default, Serialize,Deserialize)]
 pub struct Rubro{
-    pub id:usize,
+    pub id:u128,
     pub monto:f64,
     pub descripcion: String,
 }
@@ -551,7 +551,7 @@ impl<'a> Sistema {
         }
         res
     }
-    fn get_producto(&mut self, id: usize) -> Result<Valuable, String> {
+    fn get_producto(&mut self, id: u128) -> Result<Valuable, String> {
         let mut res = Err("Producto no encontrado".to_string());
         for p in &self.productos {
             match p{
@@ -568,7 +568,7 @@ impl<'a> Sistema {
         }
         res
     }
-    pub fn agregar_producto_a_venta(&mut self, id: usize, pos: usize) -> Result<(), String> {
+    pub fn agregar_producto_a_venta(&mut self, id: u128, pos: usize) -> Result<(), String> {
         let res = self
             .get_producto(id)?
             .redondear(self.configs.politica_redondeo);
@@ -584,7 +584,7 @@ impl<'a> Sistema {
 
         Ok(())
     }
-    pub fn descontar_producto_de_venta(&mut self, id: usize, pos: usize) -> Result<(), String> {
+    pub fn descontar_producto_de_venta(&mut self, id: u128, pos: usize) -> Result<(), String> {
         let res = self.get_producto(id)?;
         match pos {
             0 => {
@@ -597,7 +597,7 @@ impl<'a> Sistema {
         }
         Ok(())
     }
-    pub fn incrementar_producto_a_venta(&mut self, id: usize, pos: usize) -> Result<(), String> {
+    pub fn incrementar_producto_a_venta(&mut self, id: u128, pos: usize) -> Result<(), String> {
         let res = self.get_producto(id)?;
         match pos {
             0 => {
@@ -610,7 +610,7 @@ impl<'a> Sistema {
         }
         Ok(())
     }
-    pub fn eliminar_producto_de_venta(&mut self, id: usize, pos: usize) -> Result<(), String> {
+    pub fn eliminar_producto_de_venta(&mut self, id: u128, pos: usize) -> Result<(), String> {
         let res = self.get_producto(id)?;
         match pos {
             0 => {
@@ -731,7 +731,7 @@ impl Default for Presentacion {
 
 impl Producto {
     pub fn new(
-        id: usize,
+        id: u128,
         codigos: Vec<&str>,
         precio_de_venta: &str,
         porcentaje: &str,

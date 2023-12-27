@@ -61,7 +61,7 @@ fn agregar_producto(
                 }
             }
             let producto = Producto::new(
-                sis.get_productos().len(),
+                sis.get_productos().len() as u128,
                 codigos_de_barras,
                 precio_de_venta,
                 porcentaje,
@@ -312,6 +312,7 @@ fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config, String> {
         Ok(sis) => res = Ok(sis.get_configs().clone()),
         Err(e) => res = Err(e.to_string()),
     }
+    
     res
 }
 #[tauri::command]
@@ -341,8 +342,27 @@ fn get_descripcion_valuable(prod:Valuable,conf:Config)->String{
     res
 }
 
+#[tauri::command]
+async fn open_docs(handle: tauri::AppHandle) {
+  let docs_window = tauri::WindowBuilder::new(
+    &handle,
+    "external", /* the unique window label */
+    tauri::WindowUrl::External("/pages/add-product.html".parse().unwrap())
+  ).build().unwrap();
+}
+#[tauri::command]
+fn open_window(){
+    let algo=tauri::Builder::default().setup(|app| {
+        let handle=app.handle();
+        let algo = async_runtime::spawn(open_docs(handle));
+        let _=async_runtime::block_on(algo);
+        Ok(())
+    });
+    algo.run(tauri::generate_context!()).expect("error construyendo ventana");
+}
+
 fn main() {
-    tauri::Builder::default()
+    let app=tauri::Builder::default()
         .manage(Mutex::new(Sistema::new()))
         .invoke_handler(tauri::generate_handler![
             buscador,
@@ -366,6 +386,10 @@ fn main() {
             get_medios_pago,
             get_descripcion_valuable,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+    
+
+    app.run(|_, _| {})
+    
 }
