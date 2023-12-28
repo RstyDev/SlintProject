@@ -3,16 +3,21 @@
 use core::panic;
 use mods::Config;
 use mods::Formato;
+use mods::Presentacion;
 use mods::Producto;
 use mods::Sistema;
 use mods::Valuable;
 use mods::Venta;
+use sea_orm::ActiveModelTrait;
+use sea_orm::ActiveValue::Set;
 use sea_orm::Database;
+use sea_orm::DatabaseConnection;
 use std::sync::Mutex;
 use std::thread;
 use tauri::async_runtime;
 use tauri::State;
 mod mods;
+use entity::producto;
 
 #[tauri::command]
 fn buscador(name: &str) -> String {
@@ -61,7 +66,7 @@ fn agregar_producto(
                 }
             }
             let producto = Producto::new(
-                sis.get_productos().len() as u128,
+                sis.get_productos().len() as i64,
                 codigos_de_barras,
                 precio_de_venta,
                 porcentaje,
@@ -72,6 +77,18 @@ fn agregar_producto(
                 cantidad,
                 presentacion,
             );
+            let prods:Vec<Producto> = sis.get_productos().iter().map(|x|{
+                match x{
+                    Valuable::Prod(a)=>Some(a.1.clone()),
+                    _=>None,
+                }
+            }).flatten().collect();
+            // for i in 0..prods.len() {
+            //     let save = async_runtime::spawn(save_producto(prods[i].clone()));
+            //     let _ = async_runtime::block_on(save);
+            // }
+            let save = async_runtime::spawn(save_producto(producto.clone()));
+            let _ = async_runtime::block_on(save);
             sis.agregar_producto(proveedores, codigos_prov, producto.clone())?;
 
             Ok(producto.get_nombre_completo())
@@ -130,26 +147,28 @@ fn get_productos_filtrado(
                 .into_iter()
                 .filter(|x| {
                     let codigo = filtro.parse::<u128>();
-                    match x{
-                        Valuable::Prod(a)=>if (codigo.is_ok() && a.1.codigos_de_barras.contains(&codigo.unwrap()))
-                        || filtros.iter().any(|line| {
-                            if a.1.get_nombre_completo()
-                                .to_lowercase()
-                                .contains(&line.to_lowercase())
+                    match x {
+                        Valuable::Prod(a) => {
+                            if (codigo.is_ok() && a.1.codigos_de_barras.contains(&codigo.unwrap()))
+                                || filtros.iter().any(|line| {
+                                    if a.1
+                                        .get_nombre_completo()
+                                        .to_lowercase()
+                                        .contains(&line.to_lowercase())
+                                    {
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                })
                             {
                                 true
                             } else {
                                 false
                             }
-                        })
-                    {
-                        true
-                    } else {
-                        false
+                        }
+                        _ => false,
                     }
-                    _=>false,
-                    }
-                    
                 })
                 .take(a.get_configs().get_cantidad_productos())
                 .to_owned()
@@ -161,17 +180,34 @@ fn get_productos_filtrado(
 }
 
 async fn connect() {
-    println!("attempt");
-    // if let Ok(db) = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-    //     println!("conectado");
-    // } else {
-    //     println!("no conectado");
-    // }
+    if let Ok(db) = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+        println!("conectado");
+    } else {
+        println!("no conectado");
+    }
+}
+async fn save_producto(producto: Producto) {
+    let model = producto::ActiveModel {
+        id: Set(producto.id),
+        precio_de_venta: Set(producto.precio_de_venta),
+        porcentaje: Set(producto.porcentaje),
+        precio_de_costo: Set(producto.precio_de_costo),
+        tipo_producto: Set(producto.tipo_producto.clone()),
+        marca: Set(producto.marca.clone()),
+        variedad: Set(producto.variedad.clone()),
+        presentacion: Set(producto.presentacion.to_string()),
+    };
+    if let Ok(db) = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+        println!("conectado");
+        let prod = model.insert(&db).await.unwrap();
+    } else {
+        println!("no conectado");
+    }
 }
 #[tauri::command]
 fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
     let algo = async_runtime::spawn(connect());
-    let _=async_runtime::block_on(algo);
+    let _ = async_runtime::block_on(algo);
 
     match sistema.lock() {
         Ok(mut a) => {
@@ -198,7 +234,7 @@ fn descontar_producto_de_venta(sistema: State<Mutex<Sistema>>, id: String, pos: 
     };
 }
 #[tauri::command]
-fn incrementar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String){
+fn incrementar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
     match sistema.lock() {
         Ok(mut a) => {
             let pos = pos.parse().unwrap();
@@ -235,18 +271,14 @@ fn agregar_pago(
 ) -> Result<f64, String> {
     let res;
     match sistema.lock() {
-        Ok(mut a) => res=a.agregar_pago(medio_pago, monto, pos),
-        Err(e) => res=Err(e.to_string()),
+        Ok(mut a) => res = a.agregar_pago(medio_pago, monto, pos),
+        Err(e) => res = Err(e.to_string()),
     }
     res
 }
 
 #[tauri::command]
-fn eliminar_pago(
-    sistema: State<Mutex<Sistema>>,
-    pos: usize,
-    index:usize
-) -> Result<(), String>{
+fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<(), String> {
     match sistema.lock() {
         Ok(mut a) => match pos {
             0 => a.get_venta_mut(0).eliminar_pago(index),
@@ -313,7 +345,7 @@ fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config, String> {
         Ok(sis) => res = Ok(sis.get_configs().clone()),
         Err(e) => res = Err(e.to_string()),
     }
-    
+
     res
 }
 #[tauri::command]
@@ -337,33 +369,36 @@ fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String
 }
 
 #[tauri::command]
-fn get_descripcion_valuable(prod:Valuable,conf:Config)->String{
-    let res:String;
-    res=prod.get_descripcion(conf);
+fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
+    let res: String;
+    res = prod.get_descripcion(conf);
     res
 }
 
 #[tauri::command]
 async fn open_docs(handle: tauri::AppHandle) {
-  let docs_window = tauri::WindowBuilder::new(
-    &handle,
-    "local", /* the unique window label */
-    tauri::WindowUrl::App("/pages/add-product.html".parse().unwrap())
-  ).build().unwrap();
+    let docs_window = tauri::WindowBuilder::new(
+        &handle,
+        "local", /* the unique window label */
+        tauri::WindowUrl::App("/pages/add-product.html".parse().unwrap()),
+    )
+    .build()
+    .unwrap();
 }
 #[tauri::command]
-fn open_window(){
-    let algo=tauri::Builder::default().setup(|app| {
-        let handle=app.handle();
+fn open_window() {
+    let algo = tauri::Builder::default().setup(|app| {
+        let handle = app.handle();
         let algo = async_runtime::spawn(open_docs(handle));
-        let _=async_runtime::block_on(algo);
+        let _ = async_runtime::block_on(algo);
         Ok(())
     });
-    algo.build(tauri::generate_context!()).expect("error construyendo ventana");
+    algo.build(tauri::generate_context!())
+        .expect("error construyendo ventana");
 }
 
 fn main() {
-    let app=tauri::Builder::default()
+    let app = tauri::Builder::default()
         .manage(Mutex::new(Sistema::new()))
         .invoke_handler(tauri::generate_handler![
             buscador,
@@ -389,8 +424,6 @@ fn main() {
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
-    
 
     app.run(|_, _| {})
-    
 }
