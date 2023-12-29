@@ -1,7 +1,13 @@
-use serde::{Deserialize, Serialize};
-use crate::redondeo;
 use self::lib::{crear_file, leer_file};
+use crate::redondeo;
+use serde::{Deserialize, Serialize};
 mod lib;
+use entity::{producto,proveedor};
+use sea_orm::ActiveModelTrait;
+use sea_orm::ActiveValue::Set;
+use sea_orm::Database;
+use sea_orm::DatabaseConnection;
+use tauri::async_runtime;
 use std::{
     borrow::BorrowMut,
     fmt::{self, Display},
@@ -108,9 +114,6 @@ pub struct RelacionProdProv {
     codigo_interno: Option<i64>,
 }
 
-
-
-
 impl Default for Valuable {
     fn default() -> Self {
         Valuable::Prod((1, Producto::default()))
@@ -134,7 +137,7 @@ pub trait ValuableTrait {
 impl Valuable {
     pub fn get_price(&self, politica: f64) -> f64 {
         match self {
-            Valuable::Pes(a) => redondeo(politica, a.0 as f64*  a.1.precio_peso),
+            Valuable::Pes(a) => redondeo(politica, a.0 as f64 * a.1.precio_peso),
             Valuable::Prod(a) => a.1.redondear(politica).precio_de_venta,
             Valuable::Rub(a) => a.1.redondear(politica).monto,
         }
@@ -236,11 +239,10 @@ impl ValuableTrait for Rubro {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
-    id:i64,
+    id: i64,
     nombre: String,
     contacto: Option<i64>,
 }
-
 
 //-----------------------------------Implementations---------------------------------
 impl Display for Presentacion {
@@ -330,7 +332,9 @@ impl<'a> Venta {
         self.monto_total = 0.0;
         for i in &self.productos {
             match &i {
-                Valuable::Pes(a) => self.monto_total += redondeo(politica, a.0 as f64* a.1.precio_peso),
+                Valuable::Pes(a) => {
+                    self.monto_total += redondeo(politica, a.0 as f64 * a.1.precio_peso)
+                }
                 Valuable::Prod(a) => self.monto_total += a.1.precio_de_venta * a.0 as f64,
                 Valuable::Rub(a) => self.monto_total += a.1.monto * a.0 as f64,
             }
@@ -410,8 +414,7 @@ impl<'a> Sistema {
         if let Err(e) = leer_file(&mut productos, &path_productos) {
             panic!("{}", e);
         }
-        
-        
+
         let mut rubros: Vec<Valuable> = rubros
             .iter()
             .map(|a| Valuable::Rub((0, a.to_owned())))
@@ -426,8 +429,8 @@ impl<'a> Sistema {
             .collect();
         productos.append(&mut pesables);
         productos.append(&mut rubros);
-        
-        let mut proveedores = Vec::new();
+
+        let mut proveedores:Vec<Proveedor> = Vec::new();
         if let Err(e) = leer_file(&mut proveedores, &path_proveedores) {
             panic!("{}", e);
         }
@@ -548,23 +551,27 @@ impl<'a> Sistema {
 
         for i in 0..proveedores.len() {
             match codigos_prov[i].parse::<i64>() {
-                Ok(a) => self
-                    .relaciones
-                    .push(RelacionProdProv::new(self.productos.len() as i64 - 1, i as i64, Some(a))),
-                Err(_) => self
-                    .relaciones
-                    .push(RelacionProdProv::new(self.productos.len() as i64 - 1, i as i64, None)),
+                Ok(a) => self.relaciones.push(RelacionProdProv::new(
+                    self.productos.len() as i64 - 1,
+                    i as i64,
+                    Some(a),
+                )),
+                Err(_) => self.relaciones.push(RelacionProdProv::new(
+                    self.productos.len() as i64 - 1,
+                    i as i64,
+                    None,
+                )),
             };
         }
         let productos: Vec<Producto> = self
             .productos
             .iter()
-            .map(|x| {match x {
+            .map(|x| match x {
                 Valuable::Prod(a) => Some(a.1.clone()),
                 Valuable::Pes(_) => None,
                 Valuable::Rub(_) => None,
-            }
-        }).flatten()
+            })
+            .flatten()
             .collect();
         match crear_file(&self.path_productos, &productos) {
             Ok(_) => (),
@@ -581,6 +588,7 @@ impl<'a> Sistema {
         if self.proveedor_esta(&proveedor) {
             res = Err("Proveedor existente".to_owned());
         } else {
+            let prov;
             if contacto.len() > 0 {
                 let contacto: String = contacto
                     .chars()
@@ -590,12 +598,22 @@ impl<'a> Sistema {
                     Ok(a) => Some(a),
                     Err(_) => return Err("Error al convertir el numero".to_owned()),
                 };
-                self.proveedores
-                    .push(Proveedor::new(self.proveedores.len() as i64,proveedor.to_owned(), contacto));
+                prov=Proveedor::new(
+                    self.proveedores.len() as i64,
+                    proveedor.to_owned(),
+                    contacto,
+                );
             } else {
-                self.proveedores
-                    .push(Proveedor::new(self.proveedores.len() as i64,proveedor.to_owned(), None));
+                prov=Proveedor::new(
+                    self.proveedores.len() as i64,
+                    proveedor.to_owned(),
+                    None,
+                );
             }
+            if let Err(e)=async_runtime::block_on(prov.save()){
+                return Err(e.to_string());
+            }
+            self.proveedores.push(prov);
             if let Err(e) = crear_file(&self.path_proveedores, &self.proveedores) {
                 res = Err(e.to_string());
             }
@@ -839,6 +857,29 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
+    pub async fn save(&self) -> Result<(), String> {
+        let model = producto::ActiveModel {
+            id: Set(self.id),
+            precio_de_venta: Set(self.precio_de_venta),
+            porcentaje: Set(self.porcentaje),
+            precio_de_costo: Set(self.precio_de_costo),
+            tipo_producto: Set(self.tipo_producto.clone()),
+            marca: Set(self.marca.clone()),
+            variedad: Set(self.variedad.clone()),
+            presentacion: Set(self.presentacion.to_string()),
+        };
+        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+            Ok(db) => {
+                println!("conectado");
+                if let Err(e) =model.insert(&db).await{
+                    Err(e.to_string())
+                }else{
+                    Ok(())
+                }
+            }
+            Err(e) => Err(e.to_string()),
+        }
+    }
 }
 
 impl PartialEq for Producto {
@@ -854,8 +895,30 @@ impl PartialEq for Producto {
 }
 
 impl Proveedor {
-    pub fn new(id:i64,nombre: String, contacto: Option<i64>) -> Self {
-        Proveedor { id, nombre, contacto }
+    pub fn new(id: i64, nombre: String, contacto: Option<i64>) -> Self {
+        Proveedor {
+            id,
+            nombre,
+            contacto,
+        }
+    }
+    pub async fn save(&self) -> Result<(), String> {
+        let model = proveedor::ActiveModel {
+            id: Set(self.id),
+            nombre: Set(self.nombre.clone()),
+            contacto: Set(self.contacto),
+        };
+        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+            Ok(db) => {
+                println!("conectado");
+                if let Err(e) =model.insert(&db).await{
+                    Err(e.to_string())
+                }else{
+                    Ok(())
+                }
+            }
+            Err(e) => Err(e.to_string()),
+        }
     }
 }
 impl ToString for Proveedor {

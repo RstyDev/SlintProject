@@ -19,7 +19,7 @@ use tauri::State;
 use tokio;
 mod mods;
 
-// use entity::producto;
+use entity::producto;
 
 #[tauri::command]
 fn buscador(name: &str) -> String {
@@ -80,22 +80,27 @@ fn agregar_producto(
                 cantidad,
                 presentacion,
             );
-            let prods:Vec<Producto> = sis.get_productos().iter().map(|x|{
-                match x{
-                    Valuable::Prod(a)=>Some(a.1.clone()),
-                    _=>None,
-                }
-            }).flatten().collect();
+            // let prods:Vec<Producto> = sis.get_productos().iter().map(|x|{
+            //     match x{
+            //         Valuable::Prod(a)=>Some(a.1.clone()),
+            //         _=>None,
+            //     }
+            // }).flatten().collect();
+
+            
             // for i in 0..prods.len() {
             //     let save = async_runtime::spawn(save_producto(prods[i].clone()));
             //     let _ = async_runtime::block_on(save);
             // }
-            println!("agregando");
-
+            if let Err(e)= async_runtime::block_on(producto.clone().save()){
+                return Err(e.to_string())
+            }
             // let save = async_runtime::spawn(save_producto(producto.clone()));
             // let _ = async_runtime::block_on(save);
             sis.agregar_producto(proveedores, codigos_prov, producto.clone())?;
-            window.close();
+            if let Err(e)=window.close(){
+                return Err(e.to_string())
+            }
             Ok(producto.get_nombre_completo())
         }
         Err(a) => Err(a.to_string()),
@@ -191,24 +196,24 @@ async fn connect() {
         println!("no conectado");
     }
 }
-// async fn save_producto(producto: Producto) {
-//     let model = producto::ActiveModel {
-//         id: Set(producto.id),
-//         precio_de_venta: Set(producto.precio_de_venta),
-//         porcentaje: Set(producto.porcentaje),
-//         precio_de_costo: Set(producto.precio_de_costo),
-//         tipo_producto: Set(producto.tipo_producto.clone()),
-//         marca: Set(producto.marca.clone()),
-//         variedad: Set(producto.variedad.clone()),
-//         presentacion: Set(producto.presentacion.to_string()),
-//     };
-//     if let Ok(db) = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-//         println!("conectado");
-//         let prod = model.insert(&db).await.unwrap();
-//     } else {
-//         println!("no conectado");
-//     }
-// }
+async fn save_producto(producto: Producto) {
+    let model = producto::ActiveModel {
+        id: Set(producto.id),
+        precio_de_venta: Set(producto.precio_de_venta),
+        porcentaje: Set(producto.porcentaje),
+        precio_de_costo: Set(producto.precio_de_costo),
+        tipo_producto: Set(producto.tipo_producto.clone()),
+        marca: Set(producto.marca.clone()),
+        variedad: Set(producto.variedad.clone()),
+        presentacion: Set(producto.presentacion.to_string()),
+    };
+    if let Ok(db) = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+        println!("conectado");
+        let prod = model.insert(&db).await.unwrap();
+    } else {
+        println!("no conectado");
+    }
+}
 #[tauri::command]
 fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
     // let algo = async_runtime::spawn(connect());
