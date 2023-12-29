@@ -308,7 +308,7 @@ function dibujar_venta(venta) {
   }
   document.getElementById('boton-agregar-pago').addEventListener('click', (e) => {
     e.preventDefault();
-    if (e.target.parentNode.children[0].value.length > 0) {
+    if (parseFloat(e.target.parentNode.children[0].value) > 0) {
       agregar_pago(e.target.parentNode.children[1].value, e.target.parentNode.children[0].value).then(pago=>{
         if (isNaN(pago)){
           console.log('error '+pago);

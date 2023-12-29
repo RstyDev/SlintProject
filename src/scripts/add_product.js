@@ -156,13 +156,32 @@ function agrCodSubmit() {
 function agrProvSubmit() {
     document.querySelector("#agregar-proveedor-a-producto").addEventListener("submit", (e) => {
         e.preventDefault();
+        console.log(e.target)
         let res = document.querySelector('#proveedor').value;
         let cod = document.querySelector('#codigo_prov').value;
         if (!proveedores_producto.includes(res)) {
             proveedores_producto.push(res);
             codigosProv.push(cod);
         }
-        console.log(proveedores_producto + " y " + codigosProv + "|");
+        let sect=document.createElement('section');
+        let inp=document.createElement('input');
+        inp.value=res;
+        let val=document.createElement('input');
+        val.value=cod;
+        inp.disabled='true';
+        val.type='double';
+        val.disabled='true';
+        let but=document.createElement('button');
+        but.innerText='Eliminar';
+        but.addEventListener('click',(a)=>{
+            a.preventDefault();
+            e.target.removeChild(sect);
+        })
+        sect.appendChild(inp);
+        sect.appendChild(val);
+        sect.appendChild(but);
+        e.target.insertBefore(sect,document.getElementById('agr-codigo'));
+
     });
 }
 async function get_filtrado(filtro, tipo_filtro, objetivo) {

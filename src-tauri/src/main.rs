@@ -386,7 +386,7 @@ async fn open_add_product(handle: tauri::AppHandle) {
         &handle,
         "add-product", /* the unique window label */
         tauri::WindowUrl::App("/pages/add-product.html".parse().unwrap()),
-    ).always_on_top(true).resizable(false)
+    ).always_on_top(true).resizable(false).inner_size(800.0, 380.0)
     .build();
 }
 

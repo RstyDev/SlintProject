@@ -174,7 +174,7 @@ input:disabled {
   grid-template-columns: 70% 30%;
   padding: 10px;
 
-  & #buscador-form{
+  & #buscador-form {
     display: inline;
     position: fixed;
     bottom: 85svh;
@@ -222,12 +222,13 @@ input:disabled {
     border: solid 1px #6f6f6f;
     width: 100%;
     height: 75svh;
-    & .focuseable{
+
+    & .focuseable {
       border: solid 1px #535bf2;
-      
-      &.not-focused{
+
+      &.not-focused {
         border-color: #6F6F6F;
-        filter:blur(2px);
+        filter: blur(2px);
         transform: scale(0.99);
       }
     }
@@ -314,14 +315,17 @@ div#pagos section.pago {
   -ms-overflow-style: none;
   scrollbar-width: none;
   margin-left: 5px;
+
   &::-webkit-scrollbar {
     display: none;
   }
-  &.focuseable{
+
+  &.focuseable {
     border-color: #535bf2;
-    &.not-focused{
+
+    &.not-focused {
       border-color: #6F6F6F;
-      filter:blur(2px);
+      filter: blur(2px);
       transform: scale(0.99);
     }
   }
@@ -447,10 +451,25 @@ label {
 }
 
 #agregar-proveedor-container,
-#agregar-producto-container,
 #cambiar-configs-container {
   flex-direction: column;
   align-items: center;
+
+
+}
+
+#agregar-producto-container {
+  display: grid;
+  grid-template-columns: 65% 35%;
+  & form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    & section {
+      display: inline-block;
+    }
+  }
 }
 
 #cerrar-agregar-proveedor,
@@ -550,13 +569,13 @@ button {
     color: #666666;
     background-color: #2f2f2f;
   }
-  
-  .main-screen{
+
+  .main-screen {
     border: solid 2px #8f8f8f;
   }
 
-  
-  *:disabled:hover{
+
+  *:disabled:hover {
     background-color: #2f2f2f;
   }
 
