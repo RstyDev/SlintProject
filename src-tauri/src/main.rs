@@ -47,6 +47,7 @@ fn agregar_proveedor(
 }
 #[tauri::command]
 fn agregar_producto(
+    window:tauri::Window,
     sistema: State<Mutex<Sistema>>,
     proveedores: Vec<String>,
     codigos_prov: Vec<String>,
@@ -94,7 +95,7 @@ fn agregar_producto(
             // let save = async_runtime::spawn(save_producto(producto.clone()));
             // let _ = async_runtime::block_on(save);
             sis.agregar_producto(proveedores, codigos_prov, producto.clone())?;
-
+            window.close();
             Ok(producto.get_nombre_completo())
         }
         Err(a) => Err(a.to_string()),
@@ -380,12 +381,12 @@ fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
 }
 
 #[tauri::command]
-async fn open_docs(handle: tauri::AppHandle) {
+async fn open_add_product(handle: tauri::AppHandle) {
     let docs_window = tauri::WindowBuilder::new(
         &handle,
         "add-product", /* the unique window label */
         tauri::WindowUrl::App("/pages/add-product.html".parse().unwrap()),
-    )
+    ).always_on_top(true).resizable(false)
     .build();
 }
 
@@ -414,7 +415,7 @@ fn main() {
             set_configs,
             get_medios_pago,
             get_descripcion_valuable,
-            open_docs,
+            open_add_product,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
