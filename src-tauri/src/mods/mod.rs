@@ -1,16 +1,24 @@
+use serde::{Deserialize, Serialize};
+use crate::redondeo;
+use self::lib::{crear_file, leer_file};
+mod lib;
 use std::{
     borrow::BorrowMut,
     fmt::{self, Display},
 };
-
-use serde::{Deserialize, Serialize};
-
-use crate::redondeo;
-
-use self::lib::{crear_file, leer_file};
-
-mod lib;
-
+pub struct Sistema {
+    configs: Config,
+    productos: Vec<Valuable>,
+    ventas: (Venta, Venta),
+    proveedores: Vec<Proveedor>,
+    path_productos: String,
+    path_proveedores: String,
+    path_relaciones: String,
+    path_configs: String,
+    relaciones: Vec<RelacionProdProv>,
+    stash: Vec<Venta>,
+    registro: Vec<Venta>,
+}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     politica_redondeo: f64,
@@ -32,6 +40,56 @@ pub enum Mayusculas {
     Lower,
     Camel,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Valuable {
+    Prod((u16, Producto)),
+    Pes((f32, Pesable)),
+    Rub((u16, Rubro)),
+}
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct Producto {
+    pub id: i64,
+    pub codigos_de_barras: Vec<i64>,
+    pub precio_de_venta: f64,
+    pub porcentaje: f64,
+    pub precio_de_costo: f64,
+    pub tipo_producto: String,
+    pub marca: String,
+    pub variedad: String,
+    pub presentacion: Presentacion,
+}
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub enum Presentacion {
+    Gr(f32),
+    Un(i16),
+    Lt(f32),
+    Ml(i16),
+    Cc(i16),
+    Kg(f32),
+}
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct Pesable {
+    pub id: i64,
+    pub codigo: i64,
+    pub precio_peso: f64,
+    pub porcentaje: f64,
+    pub costo_kilo: f64,
+    pub descripcion: String,
+}
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct Rubro {
+    pub id: i64,
+    pub monto: f64,
+    pub descripcion: String,
+}
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct Venta {
+    monto_total: f64,
+    productos: Vec<Valuable>,
+    pagos: Vec<Pago>,
+    monto_pagado: f64,
+}
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Pago {
     medio_pago: String,
@@ -43,68 +101,16 @@ impl Pago {
     }
 }
 
-pub struct Sistema {
-    configs: Config,
-    productos: Vec<Valuable>,
-    ventas: (Venta, Venta),
-    proveedores: Vec<Proveedor>,
-    path_prods: String,
-    path_proveedores: String,
-    path_relaciones: String,
-    path_configs: String,
-    relaciones: Vec<Relacion>,
-    stash: Vec<Venta>,
-    registro: Vec<Venta>,
-}
 #[derive(Clone, Serialize, Deserialize)]
-pub struct Relacion {
-    id_producto: usize,
-    id_proveedor: usize,
-    codigo_interno: Option<u128>,
-}
-#[derive(Debug, Clone, Default, Serialize)]
-pub struct Venta {
-    monto_total: f64,
-    productos: Vec<Valuable>,
-    pagos: Vec<Pago>,
-    monto_pagado: f64,
+pub struct RelacionProdProv {
+    id_producto: i64,
+    id_proveedor: i64,
+    codigo_interno: Option<i64>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
-pub struct Producto {
-    pub id: i64,
-    pub codigos_de_barras: Vec<u128>,
-    pub precio_de_venta: f64,
-    pub porcentaje: f64,
-    pub precio_de_costo: f64,
-    pub tipo_producto: String,
-    pub marca: String,
-    pub variedad: String,
-    pub presentacion: Presentacion,
-}
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct Pesable {
-    pub id: i64,
-    pub codigo: u128,
-    pub precio_peso: f64,
-    pub porcentaje: f64,
-    pub costo_kilo: f64,
-    pub descripcion: String,
-}
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct Rubro {
-    pub id: i64,
-    pub monto: f64,
-    pub descripcion: String,
-}
-#[derive(Debug, Clone, Serialize, Deserialize)]
 
-pub enum Valuable {
-    Prod((u32, Producto)),
-    Pes((f64, Pesable)),
-    Rub((u32, Rubro)),
-}
+
 impl Default for Valuable {
     fn default() -> Self {
         Valuable::Prod((1, Producto::default()))
@@ -128,7 +134,7 @@ pub trait ValuableTrait {
 impl Valuable {
     pub fn get_price(&self, politica: f64) -> f64 {
         match self {
-            Valuable::Pes(a) => redondeo(politica, a.0 * a.1.precio_peso),
+            Valuable::Pes(a) => redondeo(politica, a.0 as f64*  a.1.precio_peso),
             Valuable::Prod(a) => a.1.redondear(politica).precio_de_venta,
             Valuable::Rub(a) => a.1.redondear(politica).monto,
         }
@@ -230,19 +236,11 @@ impl ValuableTrait for Rubro {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
+    id:i64,
     nombre: String,
-    contacto: Option<u64>,
+    contacto: Option<i64>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-pub enum Presentacion {
-    Gr(f64),
-    Un(i32),
-    Lt(f64),
-    Ml(i32),
-    Cc(i32),
-    Kg(f64),
-}
 
 //-----------------------------------Implementations---------------------------------
 impl Display for Presentacion {
@@ -280,9 +278,9 @@ impl Default for Config {
         }
     }
 }
-impl Relacion {
-    pub fn new(id_producto: usize, id_proveedor: usize, codigo_interno: Option<u128>) -> Self {
-        Relacion {
+impl RelacionProdProv {
+    pub fn new(id_producto: i64, id_proveedor: i64, codigo_interno: Option<i64>) -> Self {
+        RelacionProdProv {
             id_producto,
             id_proveedor,
             codigo_interno,
@@ -332,7 +330,7 @@ impl<'a> Venta {
         self.monto_total = 0.0;
         for i in &self.productos {
             match &i {
-                Valuable::Pes(a) => self.monto_total += redondeo(politica, a.0 * a.1.precio_peso),
+                Valuable::Pes(a) => self.monto_total += redondeo(politica, a.0 as f64* a.1.precio_peso),
                 Valuable::Prod(a) => self.monto_total += a.1.precio_de_venta * a.0 as f64,
                 Valuable::Rub(a) => self.monto_total += a.1.monto * a.0 as f64,
             }
@@ -392,7 +390,7 @@ impl<'a> Venta {
 
 impl<'a> Sistema {
     pub fn new() -> Sistema {
-        let path_prods = String::from("Productos.json");
+        let path_productos = String::from("Productos.json");
         let path_proveedores = String::from("Proveedores.json");
         let path_relaciones = String::from("Relaciones.json");
         let path_configs = String::from("Configs.json");
@@ -409,7 +407,7 @@ impl<'a> Sistema {
         if let Err(e) = leer_file(&mut pesables, &path_pesables) {
             panic!("{}", e);
         }
-        if let Err(e) = leer_file(&mut productos, &path_prods) {
+        if let Err(e) = leer_file(&mut productos, &path_productos) {
             panic!("{}", e);
         }
         
@@ -452,7 +450,7 @@ impl<'a> Sistema {
             productos,
             ventas: (Venta::new(), Venta::new()),
             proveedores,
-            path_prods,
+            path_productos,
             path_proveedores,
             path_relaciones,
             path_configs,
@@ -549,13 +547,13 @@ impl<'a> Sistema {
         self.productos.push(Valuable::Prod((0, producto)));
 
         for i in 0..proveedores.len() {
-            match codigos_prov[i].parse::<u128>() {
+            match codigos_prov[i].parse::<i64>() {
                 Ok(a) => self
                     .relaciones
-                    .push(Relacion::new(self.productos.len() - 1, i, Some(a))),
+                    .push(RelacionProdProv::new(self.productos.len() as i64 - 1, i as i64, Some(a))),
                 Err(_) => self
                     .relaciones
-                    .push(Relacion::new(self.productos.len() - 1, i, None)),
+                    .push(RelacionProdProv::new(self.productos.len() as i64 - 1, i as i64, None)),
             };
         }
         let productos: Vec<Producto> = self
@@ -568,7 +566,7 @@ impl<'a> Sistema {
             }
         }).flatten()
             .collect();
-        match crear_file(&self.path_prods, &productos) {
+        match crear_file(&self.path_productos, &productos) {
             Ok(_) => (),
             Err(e) => res = Err(e.to_string()),
         }
@@ -593,10 +591,10 @@ impl<'a> Sistema {
                     Err(_) => return Err("Error al convertir el numero".to_owned()),
                 };
                 self.proveedores
-                    .push(Proveedor::new(proveedor.to_owned(), contacto));
+                    .push(Proveedor::new(self.proveedores.len() as i64,proveedor.to_owned(), contacto));
             } else {
                 self.proveedores
-                    .push(Proveedor::new(proveedor.to_owned(), None));
+                    .push(Proveedor::new(self.proveedores.len() as i64,proveedor.to_owned(), None));
             }
             if let Err(e) = crear_file(&self.path_proveedores, &self.proveedores) {
                 res = Err(e.to_string());
@@ -796,7 +794,7 @@ impl<'a> Sistema {
 
 impl Default for Presentacion {
     fn default() -> Self {
-        Presentacion::Un(i32::default())
+        Presentacion::Un(i16::default())
     }
 }
 
@@ -821,7 +819,7 @@ impl Producto {
         };
         let codigos = codigos
             .iter()
-            .map(|code| -> u128 { code.parse().unwrap() })
+            .map(|code| -> i64 { code.parse().unwrap() })
             .collect();
         Producto {
             id,
@@ -856,8 +854,8 @@ impl PartialEq for Producto {
 }
 
 impl Proveedor {
-    pub fn new(nombre: String, contacto: Option<u64>) -> Self {
-        Proveedor { nombre, contacto }
+    pub fn new(id:i64,nombre: String, contacto: Option<i64>) -> Self {
+        Proveedor { id, nombre, contacto }
     }
 }
 impl ToString for Proveedor {

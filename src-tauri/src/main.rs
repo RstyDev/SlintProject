@@ -151,7 +151,7 @@ fn get_productos_filtrado(
             res = Ok(b
                 .into_iter()
                 .filter(|x| {
-                    let codigo = filtro.parse::<u128>();
+                    let codigo = filtro.parse::<i64>();
                     match x {
                         Valuable::Prod(a) => {
                             if (codigo.is_ok() && a.1.codigos_de_barras.contains(&codigo.unwrap()))
