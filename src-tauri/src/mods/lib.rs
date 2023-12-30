@@ -12,6 +12,7 @@ pub fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Res
 pub fn camalize(data: &mut String) {
     let mut es = true;
     let iter = data.clone();
+    
     for (i, a) in iter.char_indices() {
         if es {
             data.replace_range(i..i + 1, a.to_ascii_uppercase().to_string().as_str())

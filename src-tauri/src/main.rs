@@ -21,6 +21,7 @@ fn imprimir(sistema: State<Mutex<Sistema>>) {
 }
 #[tauri::command]
 fn agregar_proveedor(
+    window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     proveedor: &str,
     contacto: &str,
@@ -28,6 +29,9 @@ fn agregar_proveedor(
     match sistema.lock() {
         Ok(mut sis) => {
             sis.agregar_proveedor(proveedor, contacto)?;
+            if let Err(e) = window.close() {
+                return Err(e.to_string());
+            }
             Ok(())
         }
         Err(e) => Err(e.to_string()),
@@ -68,20 +72,7 @@ fn agregar_producto(
                 cantidad,
                 presentacion,
             );
-            // let prods:Vec<Producto> = sis.get_productos().iter().map(|x|{
-            //     match x{
-            //         Valuable::Prod(a)=>Some(a.1.clone()),
-            //         _=>None,
-            //     }
-            // }).flatten().collect();
 
-            // for i in 0..prods.len() {
-            //     let save = async_runtime::spawn(save_producto(prods[i].clone()));
-            //     let _ = async_runtime::block_on(save);
-            // }
-
-            // let save = async_runtime::spawn(save_producto(producto.clone()));
-            // let _ = async_runtime::block_on(save);
             sis.agregar_producto(proveedores, codigos_prov, producto.clone())?;
             if let Err(e) = window.close() {
                 return Err(e.to_string());
@@ -107,20 +98,7 @@ fn agregar_pesable(
         Ok(mut sis) => {
             let pesable =
                 Pesable::new(id, codigo, precio_peso, porcentaje, costo_kilo, descripcion);
-            // let prods:Vec<Producto> = sis.get_productos().iter().map(|x|{
-            //     match x{
-            //         Valuable::Prod(a)=>Some(a.1.clone()),
-            //         _=>None,
-            //     }
-            // }).flatten().collect();
 
-            // for i in 0..prods.len() {
-            //     let save = async_runtime::spawn(save_producto(prods[i].clone()));
-            //     let _ = async_runtime::block_on(save);
-            // }
-
-            // let save = async_runtime::spawn(save_producto(producto.clone()));
-            // let _ = async_runtime::block_on(save);
             sis.agregar_pesable(pesable.clone())?;
             if let Err(e) = window.close() {
                 return Err(e.to_string());
@@ -141,20 +119,6 @@ fn agregar_rubro(
     match sistema.lock() {
         Ok(mut sis) => {
             let rubro = Rubro::new(id, monto, descripcion);
-            // let prods:Vec<Producto> = sis.get_productos().iter().map(|x|{
-            //     match x{
-            //         Valuable::Prod(a)=>Some(a.1.clone()),
-            //         _=>None,
-            //     }
-            // }).flatten().collect();
-
-            // for i in 0..prods.len() {
-            //     let save = async_runtime::spawn(save_producto(prods[i].clone()));
-            //     let _ = async_runtime::block_on(save);
-            // }
-
-            // let save = async_runtime::spawn(save_producto(producto.clone()));
-            // let _ = async_runtime::block_on(save);
             sis.agregar_rubro(rubro.clone())?;
             if let Err(e) = window.close() {
                 return Err(e.to_string());
@@ -408,14 +372,29 @@ fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config, String> {
     res
 }
 #[tauri::command]
-fn set_configs(sistema: State<Mutex<Sistema>>, configs: Config) -> Result<(), String> {
+fn set_configs(window: tauri::Window,sistema: State<Mutex<Sistema>>, configs: Config) -> Result<(), String> {
     let mut res = Ok(());
     match sistema.lock() {
-        Ok(mut sis) => sis.set_configs(configs),
+        Ok(mut sis) => {
+            sis.set_configs(configs);
+            if let Err(e) = window.close() {
+                return Err(e.to_string());
+            }
+        },
         Err(e) => res = Err(e.to_string()),
     }
+    
     res
 }
+
+#[tauri::command]
+fn close_window(window: tauri::Window) -> Result<(), String> {
+    if let Err(e) = window.close() {
+        return Err(e.to_string());
+    }
+    Ok(())
+}
+
 
 #[tauri::command]
 fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> {
@@ -472,7 +451,38 @@ async fn open_add_product(handle: tauri::AppHandle) -> Result<(), String> {
         Err(e) => Err(e.to_string()),
     }
 }
-
+#[tauri::command]
+async fn open_add_prov(handle: tauri::AppHandle) -> Result<(), String> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "add-product", /* the unique window label */
+        tauri::WindowUrl::App("/pages/add-prov.html".parse().unwrap()),
+    )
+    .always_on_top(true)
+    .resizable(false)
+    .inner_size(800.0, 180.0)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
+async fn open_edit_settings(handle: tauri::AppHandle) -> Result<(), String> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "add-product", /* the unique window label */
+        tauri::WindowUrl::App("/pages/edit-settings.html".parse().unwrap()),
+    )
+    .always_on_top(true)
+    .resizable(false)
+    .inner_size(750.0, 360.0)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
 fn main() {
     let app = tauri::Builder::default()
         .manage(Mutex::new(Sistema::new()))
@@ -482,6 +492,7 @@ fn main() {
             agregar_pesable,
             agregar_rubro,
             agregar_proveedor,
+            close_window,
             imprimir,
             get_proveedores,
             get_productos,
@@ -500,6 +511,8 @@ fn main() {
             get_medios_pago,
             get_descripcion_valuable,
             open_add_product,
+            open_add_prov,
+            open_edit_settings,
             stash_sale,
             unstash_sale,
             get_stash,

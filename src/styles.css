@@ -41,10 +41,7 @@ input:disabled {
   background-color: #666;
 }
 
-#agregar-proveedor-container,
-#cambiar-configs-container {
-  display: none;
-}
+
 
 
 

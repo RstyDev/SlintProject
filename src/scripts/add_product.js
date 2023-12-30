@@ -235,21 +235,17 @@ function costPriceHandle() {
     });
 }
 
-function mostrarContainerHandle(s2) {
-    let elemento = document.getElementsByClassName("main-screen");
-    for (let i = 0; i < elemento.length; i++) {
-        elemento[i].style.display = "none"
-    }
-    document.getElementById(s2).style.display = "inline-flex";
-    document.getElementById("barra-de-opciones").classList.remove('visible');
 
-}
-function cerrarContainerHandle(s1, s2) {
-    document.getElementById(s1).onclick = function () {
-        document.getElementById(s2).style.display = "none";
-        document.querySelector('#cuadro-principal').style.display = 'grid';
-    }
-}
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+document.addEventListener('keydown',(e)=>{
+    if (e.keyCode==27){
+        close_window();
+    }
+})
+
+
+async function close_window() {
+    return await invoke("close_window");
 }

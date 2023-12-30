@@ -3,7 +3,6 @@ const mensaje1 = document.querySelector('#mensaje1-msg');
 let posicionVenta = 0;
 let focuseado;
 let timeoutId;
-let proveedores_producto = [];
 let codigosProv = [];
 let codigosProd = [];
 let configs;
@@ -51,6 +50,12 @@ async function get_configs() {
 async function open_add_product() {
   return await invoke("open_add_product");
 }
+async function open_add_prov() {
+  return await invoke("open_add_prov");
+}
+async function open_edit_settings() {
+  return await invoke("open_edit_settings");
+}
 
 function incrementarProducto(e) {
   incrementarProdVentaAct(e.target.parentNode.parentNode.id).then(venta=>{
@@ -81,10 +86,7 @@ function eliminarProducto(e) {
     setFoco(buscador, document.getElementById('productos'));
   });
 }
-function camalize(str) {
-  return str.replace(/(\w)(\w*)/g,
-    function (g0, g1, g2) { return g1.toUpperCase() + g2.toLowerCase(); });
-}
+
 function formatear_descripcion(producto) {
   let pres;
   
@@ -131,16 +133,7 @@ function formatear_descripcion(producto) {
 
 }
 
-function formatear_strings(strings) {
-  switch (configs.modo_mayus) {
-    case "Upper":
-      return strings.toUpperCase();
-    case "Lower":
-      return strings.toLowerCase();
-    case "Camel":
-      return camalize(strings);
-  }
-}
+
 function cambiar_venta(boton) {
   if (boton.nextElementSibling && posicionVenta == 1) {
     boton.classList.toggle('v-actual');
@@ -212,7 +205,6 @@ function dibujar_venta(venta) {
     } else {
       disabled = '';
     }
-    strings = formatear_strings(formatear_descripcion(producto.Prod[1]))
     get_descripcion_valuable(producto, configs).then(strings=>{
       let art=document.createElement('article');
       art.id=producto.Prod[1].id;
@@ -604,7 +596,10 @@ function menuButtonHandle() {
 
 function agrProdContHandle() {
   document.getElementById("agregar-producto-mostrar").onclick = function () {
-    mostrarContainerHandle("agregar-producto-container");
+    open_add_product();
+    let barra=document.querySelector('#barra-de-opciones');
+    barra.classList.remove('visible');
+    barra.classList.remove('para-hamburguesa');
   }
 
 }
@@ -612,70 +607,22 @@ function agrProdContHandle() {
 
 function cambiarConfHandle() {
   document.getElementById("cambiar-configs-mostrar").onclick = function () {
-    mostrarContainerHandle("cambiar-configs-container");
-    document.querySelector('#input-politica-redondeo').value = configs.politica_redondeo;
-    let inputFormatoProducto = document.querySelector('#input-formato-producto')
-    inputFormatoProducto.innerHTML = '';
-    inputFormatoProducto.innerHTML += `<option value="Tmv">Tipo - Marca - Variedad</option>
-    <option value="Mtv">Marca - Tipo - Variedad</option>`
-    document.querySelector('#input-modo-mayus').innerHTML = '';
-    switch (configs.modo_mayus) {
-      case "Upper": {
-        document.querySelector('#input-modo-mayus').innerHTML += `
-        <option value="Upper" >MAYÚSCULAS</option>
-        <option value="Camel" >Pimera Letra Mayúscula</option>
-        <option value="Lower" >minúsculas</option>
-        `;
-        break;
-      }
-      case "Camel": {
-        document.querySelector('#input-modo-mayus').innerHTML += `
-        <option value="Camel" >Pimera Letra Mayúscula</option>
-        <option value="Upper" >MAYÚSCULAS</option>
-        <option value="Lower" >minúsculas</option>
-        `;
-        break;
-      }
-      case "Lower": {
-        document.querySelector('#input-modo-mayus').innerHTML += `
-        <option value="Lower" >minúsculas</option>
-        <option value="Camel" >Pimera Letra Mayúscula</option>
-        <option value="Upper" >MAYÚSCULAS</option>
-        `;
-        break;
-      }
-    }
-    document.querySelector('#input-cantidad-productos').value = configs.cantidad_productos;
-
+    open_edit_settings();
+    let barra=document.querySelector('#barra-de-opciones');
+    barra.classList.remove('visible');
+    barra.classList.remove('para-hamburguesa');
 
   }
 }
 
-function changeConfigsHandle() {
-  document.querySelector('#cambiar-configs-submit').addEventListener('submit', (e) => {
-    e.preventDefault();
-    let configs2 = {
-      "politica_redondeo": parseFloat(e.target.children[1].value),
-      "formato_producto": "" + e.target.children[3].value,
-      "modo_mayus": "" + e.target.children[5].value,
-      "cantidad_productos": parseInt(e.target.children[7].value),
-      "medios_pago": configs.medios_pago
-    }
-    set_configs(configs2)
-  })
-}
+
 function mostrarContainerHandle(s2) {
   open_add_product();
   let barra=document.querySelector('#barra-de-opciones');
   barra.classList.remove('visible');
   barra.classList.remove('para-hamburguesa');
 }
-function cerrarContainerHandle(s1, s2) {
-  document.getElementById(s1).onclick = function () {
-    document.getElementById(s2).style.display = "none";
-    document.querySelector('#cuadro-principal').style.display = 'grid';
-  }
-}
+
 function setFoco(foco,focuseable){
   let focos=document.querySelectorAll('.focuseable');
   for (let i=0;i<focos.length;i++){
@@ -696,15 +643,16 @@ window.addEventListener("DOMContentLoaded", () => {
   buscadorHandle();
   optionBarHandle()
   menuButtonHandle();
-  changeConfigsHandle();
   cambiarConfHandle();
-  cerrarContainerHandle("cerrar-cambiar-configs", "cambiar-configs-container");
   escYf10Press();
 
   document.getElementById("agregar-proveedor-mostrar").onclick = function () {
-    mostrarContainerHandle("agregar-proveedor-container");
+    open_add_prov();
+    let barra=document.querySelector('#barra-de-opciones');
+    barra.classList.remove('visible');
+    barra.classList.remove('para-hamburguesa');
+  
   }
-  cerrarContainerHandle("cerrar-agregar-proveedor", "agregar-proveedor-container")
 
 
 });
@@ -716,13 +664,7 @@ async function buscarProducto(filtrado) {
     dibujarProductos(objetos);
   }
 }
-async function agregarProveedor() {
-  let prov = document.querySelector('#input-nombre-proveedor');
-  let cont = document.querySelector('#input-contacto-proveedor');
-  mensaje1.textContent = await invoke("agregar_proveedor", { proveedor: prov.value, contacto: cont.value });
-  prov.value = '';
-  cont.value = '';
-}
+
 
 
 

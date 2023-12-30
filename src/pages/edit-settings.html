@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="../scripts/edit-settings.js" defer></script>
+    <title>Document</title>
+</head>
+<body>
+    <div id="cambiar-configs-container" class="main-screen">
+        <form id="cambiar-configs-submit">
+  
+          <label for="input-politica-redondeo">Política de redondeo: </label>
+          <input type="number" id="input-politica-redondeo" step="0.01" placeholder="Política de redondeo" required>
+  
+          <label for="input-formato-producto">Formato del producto: </label>
+          <select name="formato" id="input-formato-producto"></select>
+  
+          <label for="input-modo-mayus">Modo de mayúsculas:</label>
+          <select name="modo-mayus" id="input-modo-mayus"></select>
+  
+          <label for="input-cantidad-productos">Cantidad de productos a mostrar en el buscador:</label>
+          <input type="number" id="input-cantidad-productos"  placeholder="Cantidad de productos a mostrar en el buscador" required>
+  
+          <button type="submit">Guardar</button>
+        </form>
+  
+      </div>
+</body>
+</html>

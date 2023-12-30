@@ -223,9 +223,9 @@ impl<'a> Sistema {
             res = Err(e.to_string());
         }
         if res.is_ok() {
-            if let Err(e) = async_runtime::block_on(producto.clone().save()) {
-                return Err(e.to_string());
-            }
+            // if let Err(e) = async_runtime::block_on(producto.clone().save()) {
+            //     return Err(e.to_string());
+            // }
             self.productos.push(Valuable::Prod((0, producto)));
         }
         res
@@ -246,9 +246,9 @@ impl<'a> Sistema {
             res = Err(e.to_string());
         }
         if res.is_ok() {
-            if let Err(e) = async_runtime::block_on(pesable.clone().save()) {
-                return Err(e.to_string());
-            }
+            // if let Err(e) = async_runtime::block_on(pesable.clone().save()) {
+            //     return Err(e.to_string());
+            // }
             self.productos.push(Valuable::Pes((0.0, pesable)));
         }
         res
@@ -269,9 +269,9 @@ impl<'a> Sistema {
             res = Err(e.to_string());
         }
         if res.is_ok() {
-            if let Err(e) = async_runtime::block_on(rubro.clone().save()) {
-                return Err(e.to_string());
-            }
+            // if let Err(e) = async_runtime::block_on(rubro.clone().save()) {
+            //     return Err(e.to_string());
+            // }
             self.productos.push(Valuable::Rub((0, rubro)));
         }
         res
@@ -292,16 +292,16 @@ impl<'a> Sistema {
                     Err(_) => return Err("Error al convertir el numero".to_owned()),
                 };
                 prov = Proveedor::new(
-                    self.proveedores.len() as i64,
+                    self.proveedores.len() as i64 +1,
                     proveedor.to_owned(),
                     contacto,
                 );
             } else {
-                prov = Proveedor::new(self.proveedores.len() as i64, proveedor.to_owned(), None);
+                prov = Proveedor::new(self.proveedores.len() as i64 +1, proveedor.to_owned(), None);
             }
-            if let Err(e) = async_runtime::block_on(prov.save()) {
-                return Err(e.to_string());
-            }
+            // if let Err(e) = async_runtime::block_on(prov.save()) {
+            //     return Err(e.to_string());
+            // }
             self.proveedores.push(prov);
             if let Err(e) = crear_file(&self.path_proveedores, &self.proveedores) {
                 res = Err(e.to_string());

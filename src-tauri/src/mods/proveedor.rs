@@ -1,4 +1,4 @@
-use entity::proveedor;
+// use entity::proveedor;
 use sea_orm::{Set, Database, ActiveModelTrait};
 use serde::{Serialize, Deserialize};
 
@@ -17,24 +17,24 @@ impl Proveedor {
             contacto,
         }
     }
-    pub async fn save(&self) -> Result<(), String> {
-        let model = proveedor::ActiveModel {
-            id: Set(self.id),
-            nombre: Set(self.nombre.clone()),
-            contacto: Set(self.contacto),
-        };
-        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-            Ok(db) => {
-                println!("conectado");
-                if let Err(e) = model.insert(&db).await {
-                    Err(e.to_string())
-                } else {
-                    Ok(())
-                }
-            }
-            Err(e) => Err(e.to_string()),
-        }
-    }
+    // pub async fn save(&self) -> Result<(), String> {
+    //     let model = proveedor::ActiveModel {
+    //         id: Set(self.id),
+    //         nombre: Set(self.nombre.clone()),
+    //         contacto: Set(self.contacto),
+    //     };
+    //     match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+    //         Ok(db) => {
+    //             println!("conectado");
+    //             if let Err(e) = model.insert(&db).await {
+    //                 Err(e.to_string())
+    //             } else {
+    //                 Ok(())
+    //             }
+    //         }
+    //         Err(e) => Err(e.to_string()),
+    //     }
+    // }
     pub fn get_nombre(&self)->String{
         self.nombre.clone()
     }
