@@ -553,7 +553,16 @@ function escYf10Press(){
     }else if(e.keyCode==121){
       e.preventDefault();
       pasarAPagar();
-    }
+    }else if (e.ctrlKey) {
+      if (e.keyCode == 9 || e.keyCode == 97) {
+        let boton=document.querySelector('#v-b');
+        if (posicionVenta==0){
+          cambiar_venta(boton)
+        }else{
+          cambiar_venta(boton.nextElementSibling)
+        }
+      }
+   }
   })
 }
 
