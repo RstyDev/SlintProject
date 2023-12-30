@@ -1,4 +1,9 @@
-use super::*;
+use crate::{Config, Producto,mods::{Formato, Mayusculas,pesable::Pesable,camalize}};
+
+use serde::{Deserialize, Serialize};
+use std::fmt::{self, Display};
+
+use super::rubro::Rubro;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {
     Prod((u16, Producto)),
@@ -7,13 +12,13 @@ pub enum Valuable {
 }
 
 impl Valuable {
-    pub fn get_price(&self, politica: f64) -> f64 {
-        match self {
-            Valuable::Pes(a) => redondeo(politica, a.0 as f64 * a.1.precio_peso),
-            Valuable::Prod(a) => a.1.redondear(politica).precio_de_venta,
-            Valuable::Rub(a) => a.1.redondear(politica).monto,
-        }
-    }
+    // pub fn get_price(&self, politica: f64) -> f64 {
+    //     match self {
+    //         Valuable::Pes(a) => redondeo(politica, a.0 as f64 * a.1.precio_peso),
+    //         Valuable::Prod(a) => a.1.redondear(politica).precio_de_venta,
+    //         Valuable::Rub(a) => a.1.redondear(politica).monto,
+    //     }
+    // }
     pub fn get_descripcion(&self, conf: Config) -> String {
         let mut res = match self {
             Valuable::Pes(a) => a.1.descripcion.clone(),
@@ -51,7 +56,7 @@ impl Valuable {
         match conf.modo_mayus {
             Mayusculas::Lower => res = res.to_lowercase(),
             Mayusculas::Upper => res = res.to_uppercase(),
-            Mayusculas::Camel => res = camalize(res),
+            Mayusculas::Camel => camalize(&mut res),
         }
         res
     }
@@ -72,22 +77,7 @@ impl PartialEq for Valuable {
     }
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct Pesable {
-    pub id: i64,
-    pub codigo: i64,
-    pub precio_peso: f64,
-    pub porcentaje: f64,
-    pub costo_kilo: f64,
-    pub descripcion: String,
-}
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct Rubro {
-    pub id: i64,
-    pub monto: f64,
-    pub descripcion: String,
-}
 
 pub trait ValuableTrait {
     fn redondear(&self, politica: f64) -> Self;
@@ -102,42 +92,8 @@ impl ValuableTrait for Valuable {
         }
     }
 }
-impl PartialEq for Producto {
-    fn eq(&self, other: &Self) -> bool {
-        let mut esta = false;
-        for code in &self.codigos_de_barras {
-            if other.codigos_de_barras.contains(&code) {
-                esta = true;
-            }
-        }
-        esta
-    }
-}
 
-impl ValuableTrait for Producto {
-    fn redondear(&self, politica: f64) -> Producto {
-        Producto {
-            id: self.id,
-            codigos_de_barras: self.codigos_de_barras.clone(),
-            precio_de_venta: redondeo(politica, self.precio_de_venta),
-            porcentaje: self.porcentaje,
-            precio_de_costo: self.precio_de_costo,
-            tipo_producto: self.tipo_producto.clone(),
-            marca: self.marca.clone(),
-            variedad: self.variedad.clone(),
-            presentacion: self.presentacion.clone(),
-        }
-    }
-}
-impl ValuableTrait for Rubro {
-    fn redondear(&self, politica: f64) -> Rubro {
-        Rubro {
-            id: self.id,
-            monto: redondeo(politica, self.monto),
-            descripcion: self.descripcion.clone(),
-        }
-    }
-}
+
 
 impl Display for Presentacion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

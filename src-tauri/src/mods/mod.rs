@@ -1,21 +1,13 @@
+pub mod pesable;
 pub mod producto;
+pub mod proveedor;
+pub mod rubro;
 pub mod sistema;
 pub mod valuable;
-use self::lib::{crear_file, leer_file};
-use self::producto::Producto;
 use self::valuable::Valuable;
 use crate::redondeo;
 use serde::{Deserialize, Serialize};
 mod lib;
-use entity::*;
-use sea_orm::ActiveModelTrait;
-use sea_orm::ActiveValue::Set;
-use sea_orm::Database;
-use std::{
-    borrow::BorrowMut,
-    fmt::{self, Display},
-};
-use tauri::async_runtime;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -38,9 +30,6 @@ pub enum Mayusculas {
     Lower,
     Camel,
 }
-
-
-
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
@@ -67,35 +56,19 @@ pub struct RelacionProdProv {
     codigo_interno: Option<i64>,
 }
 
-
-
-
-
-
-
-fn camalize(data: String) -> String {
-    let mut es: bool = true;
-    for i in data.chars() {
+fn camalize(data: &mut String) {
+    let mut es = true;
+    let iter = data.clone();
+    for (i, a) in iter.char_indices() {
         if es {
-            i.to_uppercase();
-        } else {
-            i.to_lowercase();
+            data.replace_range(i..i + 1, a.to_ascii_uppercase().to_string().as_str())
         }
-        if i == ' ' {
+        if a == ' ' {
             es = true;
         } else {
-            es = false;
+            es = false
         }
     }
-    data.to_string()
-}
-
-
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-pub struct Proveedor {
-    id: i64,
-    nombre: String,
-    contacto: Option<i64>,
 }
 
 //-----------------------------------Implementations---------------------------------
@@ -147,7 +120,7 @@ impl<'a> Venta {
         self.monto_pagado += monto;
         self.monto_total - self.monto_pagado
     }
-    fn agregar_producto(&mut self, producto: Valuable, politica: f64) {
+    fn agregar_producto(&mut self, producto: Valuable, politica: f64) -> Venta {
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -170,6 +143,7 @@ impl<'a> Venta {
             self.productos.push(prod);
         }
         self.update_monto_total(politica);
+        self.clone()
     }
     fn update_monto_total(&mut self, politica: f64) {
         self.monto_total = 0.0;
@@ -187,27 +161,45 @@ impl<'a> Venta {
         let pago = self.pagos.remove(index);
         self.monto_pagado -= pago.monto;
     }
-    fn restar_producto(&mut self, producto: Valuable, politica: f64) -> Result<(), String> {
+    fn restar_producto(&mut self, producto: Valuable, politica: f64) -> Result<Venta, String> {
         let mut res = Err("Producto no encontrado".to_string());
+        let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
                 let mut prod = self.productos.remove(i);
                 match &prod {
-                    Valuable::Pes(a) => prod = Valuable::Pes((a.0 - 1.0, a.1.clone())),
-                    Valuable::Prod(a) => prod = Valuable::Prod((a.0 - 1, a.1.clone())),
-                    Valuable::Rub(a) => prod = Valuable::Rub((a.0 - 1, a.1.clone())),
+                    Valuable::Pes(a) => {
+                        if a.0 > 1.0 {
+                            prod = Valuable::Pes((a.0 - 1.0, a.1.clone()))
+                        }
+                    }
+                    Valuable::Prod(a) => {
+                        if a.0 > 1 {
+                            prod = Valuable::Prod((a.0 - 1, a.1.clone()))
+                        }
+                    }
+                    Valuable::Rub(a) => {
+                        if a.0 > 1 {
+                            prod = Valuable::Rub((a.0 - 1, a.1.clone()))
+                        }
+                    }
                 }
                 self.productos.insert(i, prod);
-                res = Ok(());
+                esta = true;
             }
         }
         self.update_monto_total(politica);
+        if esta {
+            res = Ok(self.clone());
+        }
         res
     }
-    fn incrementar_producto(&mut self, producto: Valuable, politica: f64) -> Result<(), String> {
+    fn incrementar_producto(&mut self, producto: Valuable, politica: f64) -> Result<Venta, String> {
         let mut res = Err("Producto no encontrado".to_string());
+        let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
+                esta = true;
                 let mut prod = self.productos.remove(i);
                 match &prod {
                     Valuable::Pes(a) => prod = Valuable::Pes((a.0 + 1.0, a.1.clone())),
@@ -215,62 +207,27 @@ impl<'a> Venta {
                     Valuable::Rub(a) => prod = Valuable::Rub((a.0 + 1, a.1.clone())),
                 }
                 self.productos.insert(i, prod);
-                res = Ok(());
             }
         }
         self.update_monto_total(politica);
+        if esta {
+            res = Ok(self.clone());
+        }
         res
     }
-    fn eliminar_producto(&mut self, producto: Valuable, politica: f64) -> Result<(), String> {
+    fn eliminar_producto(&mut self, producto: Valuable, politica: f64) -> Result<Venta, String> {
         let mut res = Err("Producto no encontrado".to_string());
+        let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
                 self.productos.remove(i);
-                res = Ok(());
+                esta = true;
                 break;
             }
         }
         self.update_monto_total(politica);
-        res
-    }
-}
-
-
-
-
-impl Proveedor {
-    pub fn new(id: i64, nombre: String, contacto: Option<i64>) -> Self {
-        Proveedor {
-            id,
-            nombre,
-            contacto,
-        }
-    }
-    pub async fn save(&self) -> Result<(), String> {
-        let model = proveedor::ActiveModel {
-            id: Set(self.id),
-            nombre: Set(self.nombre.clone()),
-            contacto: Set(self.contacto),
-        };
-        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-            Ok(db) => {
-                println!("conectado");
-                if let Err(e) = model.insert(&db).await {
-                    Err(e.to_string())
-                } else {
-                    Ok(())
-                }
-            }
-            Err(e) => Err(e.to_string()),
-        }
-    }
-}
-impl ToString for Proveedor {
-    fn to_string(&self) -> String {
-        let res;
-        match self.contacto {
-            Some(a) => res = format!("{} {}", self.nombre, a),
-            None => res = format!("{}", self.nombre),
+        if esta {
+            res = Ok(self.clone());
         }
         res
     }

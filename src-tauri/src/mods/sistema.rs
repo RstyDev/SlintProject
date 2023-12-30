@@ -1,4 +1,10 @@
-use super::{*, producto::Producto, valuable::{Rubro, Pesable, ValuableTrait}};
+use std::borrow::BorrowMut;
+
+use tauri::async_runtime;
+
+use super::{
+    pesable::Pesable, producto::Producto, proveedor::Proveedor, valuable::{ValuableTrait, Valuable}, rubro::Rubro, Config, Venta, RelacionProdProv, lib::{leer_file, crear_file},
+};
 pub struct Sistema {
     configs: Config,
     productos: Vec<Valuable>,
@@ -51,7 +57,7 @@ impl<'a> Sistema {
         productos.append(&mut pesables);
         productos.append(&mut rubros);
 
-        let mut proveedores:Vec<Proveedor> = Vec::new();
+        let mut proveedores: Vec<Proveedor> = Vec::new();
         if let Err(e) = leer_file(&mut proveedores, &path_proveedores) {
             panic!("{}", e);
         }
@@ -154,7 +160,7 @@ impl<'a> Sistema {
     fn proveedor_esta(&self, proveedor: &str) -> bool {
         let mut res = false;
         for i in &self.proveedores {
-            if i.nombre.eq_ignore_ascii_case(proveedor) {
+            if i.get_nombre().eq_ignore_ascii_case(proveedor) {
                 res = true;
             }
         }
@@ -219,19 +225,15 @@ impl<'a> Sistema {
                     Ok(a) => Some(a),
                     Err(_) => return Err("Error al convertir el numero".to_owned()),
                 };
-                prov=Proveedor::new(
+                prov = Proveedor::new(
                     self.proveedores.len() as i64,
                     proveedor.to_owned(),
                     contacto,
                 );
             } else {
-                prov=Proveedor::new(
-                    self.proveedores.len() as i64,
-                    proveedor.to_owned(),
-                    None,
-                );
+                prov = Proveedor::new(self.proveedores.len() as i64, proveedor.to_owned(), None);
             }
-            if let Err(e)=async_runtime::block_on(prov.save()){
+            if let Err(e) = async_runtime::block_on(prov.save()) {
                 return Err(e.to_string());
             }
             self.proveedores.push(prov);
@@ -264,76 +266,88 @@ impl<'a> Sistema {
         }
         res
     }
-    pub fn agregar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<(), String> {
+    pub fn agregar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta, String> {
         let res = self
             .get_producto(id)?
             .redondear(self.configs.politica_redondeo);
+        let result;
         match pos {
             0 => {
-                self.ventas
+                result = Ok(self
+                    .ventas
                     .0
-                    .agregar_producto(res, self.configs.politica_redondeo);
+                    .agregar_producto(res, self.configs.politica_redondeo))
             }
             1 => {
-                self.ventas
+                result = Ok(self
+                    .ventas
                     .1
-                    .agregar_producto(res, self.configs.politica_redondeo);
+                    .agregar_producto(res, self.configs.politica_redondeo))
             }
-            _ => return Err("Numero de venta incorrecto".to_string()),
+            _ => result = Err("Numero de venta incorrecto".to_string()),
         }
 
-        Ok(())
+        result
     }
-    pub fn descontar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<(), String> {
+    pub fn descontar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, String> {
         let res = self.get_producto(id)?;
+        let result;
         match pos {
             0 => {
-                self.ventas
+                result = self
+                    .ventas
                     .0
-                    .restar_producto(res, self.configs.politica_redondeo)?;
+                    .restar_producto(res, self.configs.politica_redondeo);
             }
             1 => {
-                self.ventas
+                result = self
+                    .ventas
                     .1
-                    .restar_producto(res, self.configs.politica_redondeo)?;
+                    .restar_producto(res, self.configs.politica_redondeo);
             }
-            _ => return Err("Numero de venta incorrecto".to_string()),
+            _ => result = Err("Numero de venta incorrecto".to_string()),
         }
-        Ok(())
+        result
     }
-    pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<(), String> {
+    pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta, String> {
         let res = self.get_producto(id)?;
+        let result;
         match pos {
             0 => {
-                self.ventas
+                result = self
+                    .ventas
                     .0
-                    .incrementar_producto(res, self.configs.politica_redondeo)?;
+                    .incrementar_producto(res, self.configs.politica_redondeo);
             }
             1 => {
-                self.ventas
+                result = self
+                    .ventas
                     .1
-                    .incrementar_producto(res, self.configs.politica_redondeo)?;
+                    .incrementar_producto(res, self.configs.politica_redondeo);
             }
-            _ => return Err("Numero de venta incorrecto".to_string()),
+            _ => result = Err("Numero de venta incorrecto".to_string()),
         }
-        Ok(())
+        result
     }
-    pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<(), String> {
+    pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, String> {
         let res = self.get_producto(id)?;
+        let result;
         match pos {
             0 => {
-                self.ventas
+                result = self
+                    .ventas
                     .0
-                    .eliminar_producto(res, self.configs.politica_redondeo)?;
+                    .eliminar_producto(res, self.configs.politica_redondeo);
             }
             1 => {
-                self.ventas
+                result = self
+                    .ventas
                     .1
-                    .eliminar_producto(res, self.configs.politica_redondeo)?;
+                    .eliminar_producto(res, self.configs.politica_redondeo);
             }
-            _ => return Err("Numero de venta incorrecto".to_string()),
+            _ => result = Err("Numero de venta incorrecto".to_string()),
         }
-        Ok(())
+        result
     }
     pub fn get_venta(&self, pos: usize) -> Venta {
         let res;

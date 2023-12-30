@@ -1,16 +1,15 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use core::panic;
 use mods::producto::Producto;
 use mods::sistema::Sistema;
 use mods::valuable::Valuable;
 use mods::Config;
 use mods::Venta;
+
 use std::sync::Mutex;
 use tauri::async_runtime;
 use tauri::State;
 mod mods;
-
 
 #[tauri::command]
 fn buscador(name: &str) -> String {
@@ -179,64 +178,84 @@ fn get_productos_filtrado(
     res
 }
 
-
-
 #[tauri::command]
-fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
+fn agregar_producto_a_venta(
+    sistema: State<Mutex<Sistema>>,
+    id: String,
+    pos: String,
+) -> Result<Venta, String> {
     // let algo = async_runtime::spawn(connect());
     // let _ = async_runtime::block_on(algo);
-
+    let res;
     match sistema.lock() {
         Ok(mut a) => {
             let pos = pos.parse().unwrap();
-            match a.agregar_producto_a_venta(id.parse().unwrap(), pos) {
-                Ok(_) => println!("{:?}", a.get_venta(pos)),
-                Err(e) => panic!("{}", e),
-            }
+            res = a.agregar_producto_a_venta(id.parse().unwrap(), pos)
         }
-        Err(e) => panic!("{}", e),
+        Err(e) => res = Err(e.to_string()),
     };
+    res
 }
 #[tauri::command]
-fn descontar_producto_de_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
+fn descontar_producto_de_venta(
+    sistema: State<Mutex<Sistema>>,
+    id: String,
+    pos: String,
+) -> Result<Venta, String> {
+    let res;
     match sistema.lock() {
         Ok(mut a) => {
             let pos = pos.parse().unwrap();
             match a.descontar_producto_de_venta(id.parse().unwrap(), pos) {
-                Ok(_) => println!("{:?}", a.get_venta(pos)),
-                Err(e) => panic!("{}", e),
+                Ok(a) => {
+                    println!("{:?}", a);
+                    res = Ok(a)
+                }
+                Err(e) => res = Err(e),
             }
         }
-        Err(e) => panic!("{}", e),
+        Err(e) => res = Err(e.to_string()),
     };
+    res
 }
 #[tauri::command]
-fn incrementar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
+fn incrementar_producto_a_venta(
+    sistema: State<Mutex<Sistema>>,
+    id: String,
+    pos: String,
+) -> Result<Venta, String> {
+    let res;
     match sistema.lock() {
         Ok(mut a) => {
             let pos = pos.parse().unwrap();
             match a.incrementar_producto_a_venta(id.parse().unwrap(), pos) {
-                Ok(_) => println!("{:?}", a.get_venta(pos)),
-                Err(e) => panic!("{}", e),
+                Ok(a) => {
+                    println!("{:?}", a);
+                    res = Ok(a)
+                }
+                Err(e) => res = Err(e),
             }
         }
-        Err(e) => panic!("{}", e),
+        Err(e) => res = Err(e.to_string()),
     };
+    res
 }
 
 #[tauri::command]
-fn eliminar_producto_de_venta(sistema: State<Mutex<Sistema>>, id: String, pos: String) {
+fn eliminar_producto_de_venta(
+    sistema: State<Mutex<Sistema>>,
+    id: String,
+    pos: String,
+) -> Result<Venta, String> {
+    let res;
     match sistema.lock() {
         Ok(mut a) => {
             let pos = pos.parse().unwrap();
-            match a.eliminar_producto_de_venta(id.parse().unwrap(), pos) {
-                Ok(_) => println!("{:?}", a.get_venta(pos)),
-                Err(e) => panic!("{}", e),
-            }
+            res = a.eliminar_producto_de_venta(id.parse().unwrap(), pos);
         }
-        Err(e) => panic!("{}", e),
+        Err(e) => res = Err(e.to_string()),
     };
-    println!("pago eliminado");
+    res
 }
 
 #[tauri::command]
@@ -353,7 +372,29 @@ fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
 }
 
 #[tauri::command]
-async fn open_add_product(handle: tauri::AppHandle)->Result<(),String> {
+fn stash_sale(sistema: State<Mutex<Sistema>>, pos: usize) {
+    match sistema.lock() {
+        Ok(mut sis) => sis.stash_sale(pos),
+        Err(_) => (),
+    };
+}
+#[tauri::command]
+fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<(), String> {
+    match sistema.lock() {
+        Ok(mut sis) => sis.unstash_sale(pos, index),
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
+fn get_stash(sistema: State<Mutex<Sistema>>) -> Result<Vec<Venta>, String> {
+    match sistema.lock() {
+        Ok(sis) => Ok(sis.get_stash()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+async fn open_add_product(handle: tauri::AppHandle) -> Result<(), String> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-product", /* the unique window label */
@@ -362,9 +403,10 @@ async fn open_add_product(handle: tauri::AppHandle)->Result<(),String> {
     .always_on_top(true)
     .resizable(false)
     .inner_size(800.0, 380.0)
-    .build(){
-        Ok(_)=>Ok(()),
-        Err(e)=>Err(e.to_string())
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
     }
 }
 
@@ -393,6 +435,9 @@ fn main() {
             get_medios_pago,
             get_descripcion_valuable,
             open_add_product,
+            stash_sale,
+            unstash_sale,
+            get_stash,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
