@@ -253,6 +253,7 @@ impl<'a> Sistema {
         }
         res
     }
+    
     pub fn agregar_rubro(&mut self, rubro: Rubro) -> Result<(), String> {
         let mut res = Ok(());
         let mut rubros: Vec<Rubro> = self
