@@ -1,9 +1,11 @@
-use crate::{Config, Producto,mods::{Formato, Mayusculas,pesable::Pesable,camalize}};
-
+use crate::{
+    mods::{ Formato, Mayusculas},
+    Producto,
+};
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
+use super::{config::Config, rubro::Rubro, lib::camalize, pesable::Pesable};
 
-use super::rubro::Rubro;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {
     Prod((u16, Producto)),
@@ -23,7 +25,7 @@ impl Valuable {
         let mut res = match self {
             Valuable::Pes(a) => a.1.descripcion.clone(),
             Valuable::Rub(a) => a.1.descripcion.clone(),
-            Valuable::Prod(a) => match conf.formato_producto {
+            Valuable::Prod(a) => match conf.get_formato() {
                 Formato::Mtv => match a.1.presentacion {
                     Presentacion::Gr(cant) => format!(
                         "{} {} {} {} Gr",
@@ -53,7 +55,7 @@ impl Valuable {
                 Formato::Tmv => format!("{} {} {}", a.1.tipo_producto, a.1.marca, a.1.variedad),
             },
         };
-        match conf.modo_mayus {
+        match conf.get_modo_mayus() {
             Mayusculas::Lower => res = res.to_lowercase(),
             Mayusculas::Upper => res = res.to_uppercase(),
             Mayusculas::Camel => camalize(&mut res),
@@ -77,8 +79,6 @@ impl PartialEq for Valuable {
     }
 }
 
-
-
 pub trait ValuableTrait {
     fn redondear(&self, politica: f64) -> Self;
 }
@@ -92,8 +92,6 @@ impl ValuableTrait for Valuable {
         }
     }
 }
-
-
 
 impl Display for Presentacion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

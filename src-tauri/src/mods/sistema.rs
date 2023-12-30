@@ -1,9 +1,14 @@
-use std::borrow::BorrowMut;
-
 use tauri::async_runtime;
 
 use super::{
-    pesable::Pesable, producto::Producto, proveedor::Proveedor, valuable::{ValuableTrait, Valuable}, rubro::Rubro, Config, Venta, RelacionProdProv, lib::{leer_file, crear_file},
+    config::Config,
+    lib::{crear_file, leer_file},
+    pesable::Pesable,
+    producto::Producto,
+    proveedor::Proveedor,
+    rubro::Rubro,
+    valuable::{Valuable, ValuableTrait},
+    venta::Venta, relacion_prod_prov::RelacionProdProv,
 };
 pub struct Sistema {
     configs: Config,
@@ -101,13 +106,13 @@ impl<'a> Sistema {
     pub fn get_configs(&self) -> &Config {
         &self.configs
     }
-    pub fn get_venta_mut(&mut self, pos: usize) -> &mut Venta {
-        if pos == 1 {
-            self.ventas.1.borrow_mut()
-        } else {
-            self.ventas.0.borrow_mut()
-        }
-    }
+    // pub fn get_venta_mut(&mut self, pos: usize) -> &mut Venta {
+    //     if pos == 1 {
+    //         self.ventas.1.borrow_mut()
+    //     } else {
+    //         self.ventas.0.borrow_mut()
+    //     }
+    // }
     pub fn agregar_pago(
         &mut self,
         medio_pago: String,
@@ -119,7 +124,7 @@ impl<'a> Sistema {
         match pos {
             0 => {
                 if !medio_pago.eq("Efectivo")
-                    && self.ventas.0.monto_pagado + monto > self.ventas.0.monto_total
+                    && self.ventas.0.get_monto_pagado() + monto > self.ventas.0.get_monto_total()
                 {
                     res = Err(format!(
                         "El monto no puede ser superior al resto con {medio_pago}"
@@ -130,7 +135,7 @@ impl<'a> Sistema {
             }
             1 => {
                 if !medio_pago.eq("Efectivo")
-                    && self.ventas.1.monto_pagado + monto > self.ventas.1.monto_total
+                    && self.ventas.1.get_monto_pagado() + monto > self.ventas.1.get_monto_total()
                 {
                     res = Err(format!(
                         "El monto no puede ser superior al resto con {medio_pago}"
@@ -147,6 +152,14 @@ impl<'a> Sistema {
             }
         }
         res
+    }
+    pub fn eliminar_pago(&mut self, pos: usize, index: usize)->Result<(),String> {
+        match pos {
+            0 => self.ventas.0.eliminar_pago(index),
+            1 => self.ventas.1.eliminar_pago(index),
+            _ => return Err("numero de venta incorrecto".to_string()),
+        }
+        Ok(())
     }
     pub fn set_configs(&mut self, configs: Config) {
         self.configs = configs;
@@ -269,20 +282,20 @@ impl<'a> Sistema {
     pub fn agregar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta, String> {
         let res = self
             .get_producto(id)?
-            .redondear(self.configs.politica_redondeo);
+            .redondear(self.get_configs().get_politica());
         let result;
         match pos {
             0 => {
                 result = Ok(self
                     .ventas
                     .0
-                    .agregar_producto(res, self.configs.politica_redondeo))
+                    .agregar_producto(res, self.get_configs().get_politica()))
             }
             1 => {
                 result = Ok(self
                     .ventas
                     .1
-                    .agregar_producto(res, self.configs.politica_redondeo))
+                    .agregar_producto(res, self.get_configs().get_politica()))
             }
             _ => result = Err("Numero de venta incorrecto".to_string()),
         }
@@ -297,13 +310,13 @@ impl<'a> Sistema {
                 result = self
                     .ventas
                     .0
-                    .restar_producto(res, self.configs.politica_redondeo);
+                    .restar_producto(res, self.get_configs().get_politica());
             }
             1 => {
                 result = self
                     .ventas
                     .1
-                    .restar_producto(res, self.configs.politica_redondeo);
+                    .restar_producto(res, self.get_configs().get_politica());
             }
             _ => result = Err("Numero de venta incorrecto".to_string()),
         }
@@ -317,13 +330,13 @@ impl<'a> Sistema {
                 result = self
                     .ventas
                     .0
-                    .incrementar_producto(res, self.configs.politica_redondeo);
+                    .incrementar_producto(res, self.get_configs().get_politica());
             }
             1 => {
                 result = self
                     .ventas
                     .1
-                    .incrementar_producto(res, self.configs.politica_redondeo);
+                    .incrementar_producto(res, self.get_configs().get_politica());
             }
             _ => result = Err("Numero de venta incorrecto".to_string()),
         }
@@ -337,13 +350,13 @@ impl<'a> Sistema {
                 result = self
                     .ventas
                     .0
-                    .eliminar_producto(res, self.configs.politica_redondeo);
+                    .eliminar_producto(res, self.get_configs().get_politica());
             }
             1 => {
                 result = self
                     .ventas
                     .1
-                    .eliminar_producto(res, self.configs.politica_redondeo);
+                    .eliminar_producto(res, self.get_configs().get_politica());
             }
             _ => result = Err("Numero de venta incorrecto".to_string()),
         }

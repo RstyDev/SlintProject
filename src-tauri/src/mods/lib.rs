@@ -1,7 +1,6 @@
 use serde::{de::DeserializeOwned, Serialize};
 use std::fs::File;
-use std::io::{Read,Write};
-
+use std::io::{Read, Write};
 
 pub fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
@@ -10,17 +9,20 @@ pub fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Res
     Ok(())
 }
 
-// pub fn push(pr: Producto, path: &String) {
-//     let mut prods = Vec::new();
-//     if let Err(e) = leer_file(&mut prods, path) {
-//         panic!("{}", e);
-//     }
-//     prods.push(pr);
-//     match crear_file(&path, &prods) {
-//         Ok(_) => (),
-//         Err(e) => panic!("No se pudo pushear porque {}", e),
-//     };
-// }
+pub fn camalize(data: &mut String) {
+    let mut es = true;
+    let iter = data.clone();
+    for (i, a) in iter.char_indices() {
+        if es {
+            data.replace_range(i..i + 1, a.to_ascii_uppercase().to_string().as_str())
+        }
+        if a == ' ' {
+            es = true;
+        } else {
+            es = false
+        }
+    }
+}
 
 pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     buf: &mut T,
@@ -47,4 +49,14 @@ pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     Ok(())
 }
 
-
+// pub fn push(pr: Producto, path: &String) {
+//     let mut prods = Vec::new();
+//     if let Err(e) = leer_file(&mut prods, path) {
+//         panic!("{}", e);
+//     }
+//     prods.push(pr);
+//     match crear_file(&path, &prods) {
+//         Ok(_) => (),
+//         Err(e) => panic!("No se pudo pushear porque {}", e),
+//     };
+// }

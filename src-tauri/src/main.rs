@@ -1,10 +1,10 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use mods::config::Config;
 use mods::producto::Producto;
 use mods::sistema::Sistema;
 use mods::valuable::Valuable;
-use mods::Config;
-use mods::Venta;
+use mods::venta::Venta;
 
 use std::sync::Mutex;
 use tauri::async_runtime;
@@ -276,14 +276,10 @@ fn agregar_pago(
 #[tauri::command]
 fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<(), String> {
     match sistema.lock() {
-        Ok(mut a) => match pos {
-            0 => a.get_venta_mut(0).eliminar_pago(index),
-            1 => a.get_venta_mut(1).eliminar_pago(index),
-            _ => return Err("numero de venta incorrecto".to_string()),
-        },
-        Err(e) => return Err(e.to_string()),
+        Ok(mut a) => a.eliminar_pago(pos, index),
+        Err(e) => Err(e.to_string()),
     }
-    Ok(())
+    
 }
 
 #[tauri::command]
