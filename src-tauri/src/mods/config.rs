@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use super::{Formato, Mayusculas};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -42,4 +41,18 @@ impl Default for Config {
             ],
         }
     }
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub enum Formato {
+    #[default]
+    Tmv,
+    Mtv,
+}
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub enum Mayusculas {
+    #[default]
+    Upper,
+    Lower,
+    Camel,
 }

@@ -1,13 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use mods::config::Config;
-use mods::producto::Producto;
-use mods::sistema::Sistema;
-use mods::valuable::Valuable;
-use mods::venta::Venta;
+use mods::{
+    config::Config, pesable::Pesable, producto::Producto, rubro::Rubro, sistema::Sistema,
+    valuable::Valuable, venta::Venta,
+};
 
 use std::sync::Mutex;
-use tauri::async_runtime;
 use tauri::State;
 mod mods;
 
@@ -81,9 +79,7 @@ fn agregar_producto(
             //     let save = async_runtime::spawn(save_producto(prods[i].clone()));
             //     let _ = async_runtime::block_on(save);
             // }
-            if let Err(e) = async_runtime::block_on(producto.clone().save()) {
-                return Err(e.to_string());
-            }
+
             // let save = async_runtime::spawn(save_producto(producto.clone()));
             // let _ = async_runtime::block_on(save);
             sis.agregar_producto(proveedores, codigos_prov, producto.clone())?;
@@ -96,6 +92,78 @@ fn agregar_producto(
     }
 }
 
+#[tauri::command]
+fn agregar_pesable(
+    window: tauri::Window,
+    sistema: State<Mutex<Sistema>>,
+    id: i64,
+    codigo: i64,
+    precio_peso: f64,
+    porcentaje: f64,
+    costo_kilo: f64,
+    descripcion: String,
+) -> Result<String, String> {
+    match sistema.lock() {
+        Ok(mut sis) => {
+            let pesable =
+                Pesable::new(id, codigo, precio_peso, porcentaje, costo_kilo, descripcion);
+            // let prods:Vec<Producto> = sis.get_productos().iter().map(|x|{
+            //     match x{
+            //         Valuable::Prod(a)=>Some(a.1.clone()),
+            //         _=>None,
+            //     }
+            // }).flatten().collect();
+
+            // for i in 0..prods.len() {
+            //     let save = async_runtime::spawn(save_producto(prods[i].clone()));
+            //     let _ = async_runtime::block_on(save);
+            // }
+
+            // let save = async_runtime::spawn(save_producto(producto.clone()));
+            // let _ = async_runtime::block_on(save);
+            sis.agregar_pesable(pesable.clone())?;
+            if let Err(e) = window.close() {
+                return Err(e.to_string());
+            }
+            Ok(pesable.descripcion.clone())
+        }
+        Err(a) => Err(a.to_string()),
+    }
+}
+#[tauri::command]
+fn agregar_rubro(
+    window: tauri::Window,
+    sistema: State<Mutex<Sistema>>,
+    id: i64,
+    monto: f64,
+    descripcion: String,
+) -> Result<String, String> {
+    match sistema.lock() {
+        Ok(mut sis) => {
+            let rubro = Rubro::new(id, monto, descripcion);
+            // let prods:Vec<Producto> = sis.get_productos().iter().map(|x|{
+            //     match x{
+            //         Valuable::Prod(a)=>Some(a.1.clone()),
+            //         _=>None,
+            //     }
+            // }).flatten().collect();
+
+            // for i in 0..prods.len() {
+            //     let save = async_runtime::spawn(save_producto(prods[i].clone()));
+            //     let _ = async_runtime::block_on(save);
+            // }
+
+            // let save = async_runtime::spawn(save_producto(producto.clone()));
+            // let _ = async_runtime::block_on(save);
+            sis.agregar_rubro(rubro.clone())?;
+            if let Err(e) = window.close() {
+                return Err(e.to_string());
+            }
+            Ok(rubro.descripcion.clone())
+        }
+        Err(a) => Err(a.to_string()),
+    }
+}
 #[tauri::command]
 fn get_proveedores(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> {
     let res;
@@ -279,7 +347,6 @@ fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Re
         Ok(mut a) => a.eliminar_pago(pos, index),
         Err(e) => Err(e.to_string()),
     }
-    
 }
 
 #[tauri::command]
@@ -412,6 +479,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             buscador,
             agregar_producto,
+            agregar_pesable,
+            agregar_rubro,
             agregar_proveedor,
             imprimir,
             get_proveedores,

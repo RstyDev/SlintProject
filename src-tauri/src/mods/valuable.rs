@@ -1,10 +1,6 @@
-use crate::{
-    mods::{ Formato, Mayusculas},
-    Producto,
-};
+use super::{config::{Config, Formato, Mayusculas}, lib::camalize, pesable::Pesable, rubro::Rubro, producto::Producto};
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
-use super::{config::Config, rubro::Rubro, lib::camalize, pesable::Pesable};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {

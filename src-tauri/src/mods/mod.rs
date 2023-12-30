@@ -9,20 +9,3 @@ pub mod rubro;
 pub mod sistema;
 pub mod valuable;
 pub mod venta;
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub enum Formato {
-    #[default]
-    Tmv,
-    Mtv,
-}
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub enum Mayusculas {
-    #[default]
-    Upper,
-    Lower,
-    Camel,
-}
-
-//-----------------------------------Implementations---------------------------------

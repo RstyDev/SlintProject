@@ -6,9 +6,10 @@ use super::{
     pesable::Pesable,
     producto::Producto,
     proveedor::Proveedor,
+    relacion_prod_prov::RelacionProdProv,
     rubro::Rubro,
     valuable::{Valuable, ValuableTrait},
-    venta::Venta, relacion_prod_prov::RelacionProdProv,
+    venta::Venta,
 };
 pub struct Sistema {
     configs: Config,
@@ -19,6 +20,8 @@ pub struct Sistema {
     path_proveedores: String,
     path_relaciones: String,
     path_configs: String,
+    path_pesables: String,
+    path_rubros: String,
     relaciones: Vec<RelacionProdProv>,
     stash: Vec<Venta>,
     registro: Vec<Venta>,
@@ -89,6 +92,8 @@ impl<'a> Sistema {
             path_proveedores,
             path_relaciones,
             path_configs,
+            path_pesables,
+            path_rubros,
             relaciones,
             stash,
             registro,
@@ -153,7 +158,7 @@ impl<'a> Sistema {
         }
         res
     }
-    pub fn eliminar_pago(&mut self, pos: usize, index: usize)->Result<(),String> {
+    pub fn eliminar_pago(&mut self, pos: usize, index: usize) -> Result<(), String> {
         match pos {
             0 => self.ventas.0.eliminar_pago(index),
             1 => self.ventas.1.eliminar_pago(index),
@@ -187,39 +192,87 @@ impl<'a> Sistema {
     ) -> Result<(), String> {
         let mut res = Ok(());
 
-        self.productos.push(Valuable::Prod((0, producto)));
-
         for i in 0..proveedores.len() {
             match codigos_prov[i].parse::<i64>() {
                 Ok(a) => self.relaciones.push(RelacionProdProv::new(
-                    self.productos.len() as i64 - 1,
+                    self.productos.len() as i64,
                     i as i64,
                     Some(a),
                 )),
                 Err(_) => self.relaciones.push(RelacionProdProv::new(
-                    self.productos.len() as i64 - 1,
+                    self.productos.len() as i64,
                     i as i64,
                     None,
                 )),
             };
         }
-        let productos: Vec<Producto> = self
+        let mut productos: Vec<Producto> = self
             .productos
             .iter()
             .map(|x| match x {
                 Valuable::Prod(a) => Some(a.1.clone()),
-                Valuable::Pes(_) => None,
-                Valuable::Rub(_) => None,
+                _ => None,
             })
             .flatten()
             .collect();
-        match crear_file(&self.path_productos, &productos) {
-            Ok(_) => (),
-            Err(e) => res = Err(e.to_string()),
+        productos.push(producto.clone());
+        if let Err(e) = crear_file(&self.path_productos, &productos) {
+            res = Err(e.to_string());
         }
-        match crear_file(&self.path_relaciones, &self.relaciones) {
-            Ok(_) => (),
-            Err(e) => res = Err(e.to_string()),
+        if let Err(e) = crear_file(&self.path_relaciones, &self.relaciones) {
+            res = Err(e.to_string());
+        }
+        if res.is_ok() {
+            if let Err(e) = async_runtime::block_on(producto.clone().save()) {
+                return Err(e.to_string());
+            }
+            self.productos.push(Valuable::Prod((0, producto)));
+        }
+        res
+    }
+    pub fn agregar_pesable(&mut self, pesable: Pesable) -> Result<(), String> {
+        let mut res = Ok(());
+        let mut pesables: Vec<Pesable> = self
+            .productos
+            .iter()
+            .map(|x| match x {
+                Valuable::Pes(a) => Some(a.1.clone()),
+                _ => None,
+            })
+            .flatten()
+            .collect();
+        pesables.push(pesable.clone());
+        if let Err(e) = crear_file(&self.path_pesables, &pesables) {
+            res = Err(e.to_string());
+        }
+        if res.is_ok() {
+            if let Err(e) = async_runtime::block_on(pesable.clone().save()) {
+                return Err(e.to_string());
+            }
+            self.productos.push(Valuable::Pes((0.0, pesable)));
+        }
+        res
+    }
+    pub fn agregar_rubro(&mut self, rubro: Rubro) -> Result<(), String> {
+        let mut res = Ok(());
+        let mut rubros: Vec<Rubro> = self
+            .productos
+            .iter()
+            .map(|x| match x {
+                Valuable::Rub(a) => Some(a.1.clone()),
+                _ => None,
+            })
+            .flatten()
+            .collect();
+        rubros.push(rubro.clone());
+        if let Err(e) = crear_file(&self.path_rubros, &rubros) {
+            res = Err(e.to_string());
+        }
+        if res.is_ok() {
+            if let Err(e) = async_runtime::block_on(rubro.clone().save()) {
+                return Err(e.to_string());
+            }
+            self.productos.push(Valuable::Rub((0, rubro)));
         }
         res
     }
