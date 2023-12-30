@@ -28,10 +28,11 @@ function navigate(e) {
       focus(focuseado.nextElementSibling);
 
     } else if (e.keyCode == 13) {
-      agregarProdVentaAct(focuseado.id);
-      e.preventDefault();
-      buscador.value = '';
-      get_venta_actual().then(venta => dibujar_venta(venta));
+      agregarProdVentaAct(focuseado.id).then(venta=>{
+        e.preventDefault();
+        buscador.value = '';
+        dibujar_venta(venta)
+      });
     } 
   }
 }
@@ -52,30 +53,33 @@ async function open_add_product() {
 }
 
 function incrementarProducto(e) {
-  console.log(e);
-  incrementarProdVentaAct(e.target.parentNode.parentNode.id);
-  get_venta_actual().then(venta => dibujar_venta(venta));
-  setFoco(buscador, document.getElementById('productos'));
+  incrementarProdVentaAct(e.target.parentNode.parentNode.id).then(venta=>{
+    dibujar_venta(venta);
+    setFoco(buscador, document.getElementById('productos'));
+  });
 }
 
 
 
 function sumarProducto(e) {
-  agregarProdVentaAct(e.target.parentNode.parentNode.id);
-  get_venta_actual().then(venta => dibujar_venta(venta));
-  setFoco(buscador, document.getElementById('productos'));
+  agregarProdVentaAct(e.target.parentNode.parentNode.id).then(venta => {
+    dibujar_venta(venta);
+    setFoco(buscador, document.getElementById('productos'));
+  });
 }
 function restarProducto(e) {
   let cantidad = e.target.nextElementSibling;
-  descontarProdVentaAct(e.target.parentNode.parentNode.id);
-  get_venta_actual().then(venta => dibujar_venta(venta));
-  setFoco(buscador, document.getElementById('productos'));
+  descontarProdVentaAct(e.target.parentNode.parentNode.id).then(venta=>{
+    dibujar_venta(venta);
+    setFoco(buscador, document.getElementById('productos'));
+  });
 }
 
 function eliminarProducto(e) {
-  eliminarProdVentaAct(e.target.parentNode.parentNode.id);
-  get_venta_actual().then(venta => dibujar_venta(venta));
-  setFoco(buscador, document.getElementById('productos'));
+  eliminarProdVentaAct(e.target.parentNode.parentNode.id).then(venta=>{
+    dibujar_venta(venta);
+    setFoco(buscador, document.getElementById('productos'));
+  });
 }
 function camalize(str) {
   return str.replace(/(\w)(\w*)/g,
@@ -161,7 +165,7 @@ function dibujar_venta(venta) {
   let cuadro = document.querySelector('#cuadro-principal');
 
   cuadro.replaceChildren([]);
-  let disabled = "";
+  
   
   
   let strings = "";
@@ -202,7 +206,7 @@ function dibujar_venta(venta) {
     </section>
      </article>`;
   for (let producto of venta.productos) {
-    
+    let disabled;
     if (producto.Prod[0] < 2) {
       disabled = 'disabled';
     } else {
@@ -237,7 +241,6 @@ function dibujar_venta(venta) {
       
       art.children[1].children[2].addEventListener('click', (e) => {
           e.preventDefault();
-          console.log(e.target);
           incrementarProducto(e);
         });
       
@@ -314,7 +317,6 @@ function dibujar_venta(venta) {
           console.log('error '+pago);
         }else{
           if (pago>0){
-            get_venta_actual().then(venta => dibujar_venta(venta));
             pasarAPagar();
           }else{
             if (posicionVenta==0){
@@ -372,29 +374,27 @@ function dibujar_venta(venta) {
 
 async function get_venta_actual() {
   let res = await invoke("get_venta_actual", { pos: posicionVenta });
-  let ret = await res;
   // console.log(ret)
-  return ret;
+  return res;
 }
 async function incrementarProdVentaAct(id) {
-  await invoke("incrementar_producto_a_venta", { id: "" + id, pos: "" + posicionVenta });
+  return await invoke("incrementar_producto_a_venta", { id: "" + id, pos: "" + posicionVenta });
 }
 async function agregarProdVentaAct(id) {
-  await invoke("agregar_producto_a_venta", { id: "" + id, pos: "" + posicionVenta });
+  return await invoke("agregar_producto_a_venta", { id: "" + id, pos: "" + posicionVenta });
 }
 async function descontarProdVentaAct(id) {
-  await invoke("descontar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta });
+  return await invoke("descontar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta });
 }
 
 async function eliminarProdVentaAct(id) {
-  await invoke("eliminar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta })
+  return await invoke("eliminar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta })
 }
 function borrarBusqueda() {
   buscador.value = '';
   document.querySelector('#cuadro-principal').replaceChildren([]);
   get_venta_actual().then(venta => {dibujar_venta(venta)
     setFoco(buscador, document.getElementById('productos'));});
-  
 } 
 async function get_filtrado(filtro, tipo_filtro, objetivo) {
   let res = await invoke("get_filtrado", { filtro: filtro, tipoFiltro: tipo_filtro });
@@ -494,8 +494,10 @@ function dibujarProductos(objetos) {
 
     });
     tr2.addEventListener('dblclick', () => {
-      agregarProdVentaAct(focuseado.id);
-      borrarBusqueda();
+      agregarProdVentaAct(focuseado.id).then(venta => {
+        dibujar_venta(venta);
+        setFoco(buscador, document.getElementById('productos'));
+      });
     });
     tr2.addEventListener('keydown', (e) => {
       navigate(e)
@@ -538,12 +540,12 @@ function buscadorHandle() {
 
 function pasarAPagar(){
   buscador.value='';
-      get_venta_actual().then(venta => {
-        dibujar_venta(venta);
-        let input=document.querySelector('#input-activo');
-        input.value=venta.monto_total-venta.monto_pagado;
-        setFoco(input, document.getElementById('pagos'));
-      });
+  get_venta_actual().then(venta => {
+    dibujar_venta(venta);
+    let input=document.querySelector('#input-activo');
+    input.value=venta.monto_total-venta.monto_pagado;
+    setFoco(input, document.getElementById('pagos'));
+  });
 }
 
 function escYf10Press(){
