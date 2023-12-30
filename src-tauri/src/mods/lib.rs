@@ -1,4 +1,3 @@
-use super::Producto;
 use serde::{de::DeserializeOwned, Serialize};
 use std::fs::File;
 use std::io::{Read,Write};
