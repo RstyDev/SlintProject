@@ -1,6 +1,6 @@
 use crate::redondeo;
 use super::{valuable::Presentacion, valuable::ValuableTrait};
-// use entity::{codigo_barras, producto};
+use entity::{codigo_barras, producto};
 use sea_orm::{Database, Set, ActiveModelTrait};
 use serde::{Deserialize, Serialize};
 
@@ -59,38 +59,38 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
-    // pub async fn save(&self) -> Result<(), String> {
-    //     match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-    //         Ok(db) => {
-    //             println!("conectado");
-    //             let model = producto::ActiveModel {
-    //                 id: Set(self.id),
-    //                 precio_de_venta: Set(self.precio_de_venta),
-    //                 porcentaje: Set(self.porcentaje),
-    //                 precio_de_costo: Set(self.precio_de_costo),
-    //                 tipo_producto: Set(self.tipo_producto.clone()),
-    //                 marca: Set(self.marca.clone()),
-    //                 variedad: Set(self.variedad.clone()),
-    //                 presentacion: Set(self.presentacion.to_string()),
-    //             };
-    //             if let Err(e) = model.insert(&db).await {
-    //                 return Err(e.to_string());
-    //             }
-    //             for codigo in &self.codigos_de_barras {
-    //                 let cod_model = codigo_barras::ActiveModel {
-    //                     id: Set(*codigo),
-    //                     producto: Set(self.id),
-    //                 };
-    //                 if let Err(e)=cod_model.insert(&db).await{
-    //                     return Err(e.to_string());
-    //                 }
-    //             }
-    //         }
-    //         Err(e) => return Err(e.to_string()),
-    //     }
+    pub async fn save(&self) -> Result<(), String> {
+        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+            Ok(db) => {
+                println!("conectado");
+                let model = producto::ActiveModel {
+                    id: Set(self.id),
+                    precio_de_venta: Set(self.precio_de_venta),
+                    porcentaje: Set(self.porcentaje),
+                    precio_de_costo: Set(self.precio_de_costo),
+                    tipo_producto: Set(self.tipo_producto.clone()),
+                    marca: Set(self.marca.clone()),
+                    variedad: Set(self.variedad.clone()),
+                    presentacion: Set(self.presentacion.to_string()),
+                };
+                if let Err(e) = model.insert(&db).await {
+                    return Err(e.to_string());
+                }
+                for codigo in &self.codigos_de_barras {
+                    let cod_model = codigo_barras::ActiveModel {
+                        id: Set(*codigo),
+                        producto: Set(self.id),
+                    };
+                    if let Err(e)=cod_model.insert(&db).await{
+                        return Err(e.to_string());
+                    }
+                }
+            }
+            Err(e) => return Err(e.to_string()),
+        }
 
-    //     Ok(())
-    // }
+        Ok(())
+    }
 }
 
 impl PartialEq for Producto {

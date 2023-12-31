@@ -1,4 +1,6 @@
-use serde::{Serialize, Deserialize};
+use entity::relacion_prod_prov;
+use sea_orm::{Set, Database, ActiveModelTrait};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct RelacionProdProv {
@@ -13,6 +15,25 @@ impl RelacionProdProv {
             id_producto,
             id_proveedor,
             codigo_interno,
+        }
+    }
+    pub async fn save(&self) -> Result<(), String> {
+        let model = relacion_prod_prov::ActiveModel {
+            producto: Set(self.id_producto),
+            proveedor: Set(self.id_proveedor),
+            codigo: Set(self.codigo_interno),
+            ..Default::default()
+        };
+        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+            Ok(db) => {
+                println!("conectado");
+                if let Err(e) = model.insert(&db).await {
+                    Err(e.to_string())
+                } else {
+                    Ok(())
+                }
+            }
+            Err(e) => Err(e.to_string()),
         }
     }
 }

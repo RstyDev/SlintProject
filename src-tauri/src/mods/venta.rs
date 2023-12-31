@@ -1,8 +1,10 @@
+use entity::venta;
+use sea_orm::{ActiveModelTrait, Database, Set};
 use serde::Serialize;
 
 use crate::redondeo;
 
-use super::{valuable::Valuable, pago::Pago};
+use super::{pago::Pago, valuable::Valuable};
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
@@ -156,5 +158,23 @@ impl<'a> Venta {
             res = Ok(self.clone());
         }
         res
+    }
+    pub async fn save(&self) -> Result<(), String> {
+        let model = venta::ActiveModel {
+            monto_total: Set(self.monto_total),
+            monto_pagado: Set(self.monto_pagado),
+            ..Default::default()
+        };
+        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+            Ok(db) => {
+                println!("conectado");
+                if let Err(e) = model.insert(&db).await {
+                    Err(e.to_string())
+                } else {
+                    Ok(())
+                }
+            }
+            Err(e) => Err(e.to_string()),
+        }
     }
 }

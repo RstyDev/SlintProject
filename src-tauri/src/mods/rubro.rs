@@ -1,4 +1,4 @@
-// use entity::rubro;
+use entity::rubro;
 use sea_orm::{Database, Set, ActiveModelTrait};
 use serde::{Deserialize, Serialize};
 
@@ -21,24 +21,24 @@ impl Rubro {
             descripcion,
         }
     }
-    // pub async fn save(&self) -> Result<(), String> {
-    //     match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-    //         Ok(db) => {
-    //             println!("conectado");
-    //             let model = rubro::ActiveModel {
-    //                 id: Set(self.id),
-    //                 monto: Set(self.monto),
-    //                 descripcion: Set(self.descripcion.clone()),
-    //             };
-    //             if let Err(e) = model.insert(&db).await {
-    //                 return Err(e.to_string());
-    //             }
-    //         }
-    //         Err(e) => return Err(e.to_string()),
-    //     }
+    pub async fn save(&self) -> Result<(), String> {
+        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+            Ok(db) => {
+                println!("conectado");
+                let model = rubro::ActiveModel {
+                    id: Set(self.id),
+                    monto: Set(self.monto),
+                    descripcion: Set(self.descripcion.clone()),
+                };
+                if let Err(e) = model.insert(&db).await {
+                    return Err(e.to_string());
+                }
+            }
+            Err(e) => return Err(e.to_string()),
+        }
 
-    //     Ok(())
-    // }
+        Ok(())
+    }
 }
 
 impl ValuableTrait for Rubro {

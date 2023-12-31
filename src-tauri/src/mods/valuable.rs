@@ -58,6 +58,13 @@ impl Valuable {
         }
         res
     }
+    pub async fn save(&self)->Result<(),String>{
+        match self{
+            Valuable::Pes(a)=>a.1.save().await,
+            Valuable::Prod(a)=>a.1.save().await,
+            Valuable::Rub(a)=>a.1.save().await,
+        }
+    }
 }
 impl Default for Valuable {
     fn default() -> Self {
