@@ -1,3 +1,5 @@
+use entity::producto::{Entity, Model};
+use sea_orm::{Database, EntityTrait, DatabaseConnection};
 use tauri::async_runtime;
 
 use super::{
@@ -83,6 +85,7 @@ impl<'a> Sistema {
                 panic!("{}", e);
             }
         }
+        
         Sistema {
             configs: configs[0].clone(),
             productos,
@@ -509,5 +512,22 @@ impl<'a> Sistema {
     }
     pub fn get_stash(&self) -> Vec<Venta> {
         self.stash.clone()
+    }
+    pub async fn get_data(&mut self) -> Result<Vec<Model>, String> {
+        let productos;
+        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+            Ok(db) => {
+               productos=self.get_productos_from_db(db).await; 
+            }
+            Err(e) => return Err(e.to_string()),
+        }
+        
+        productos
+    }
+    pub async fn get_productos_from_db(&self, db:DatabaseConnection)->Result<Vec<Model>, String>{
+        match entity::producto::Entity::find().all(&db).await{
+                    Ok(a)=>Ok(a),
+                    Err(e)=>Err(e.to_string()),
+                }
     }
 }
