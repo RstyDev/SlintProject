@@ -71,7 +71,7 @@ impl Producto {
                     tipo_producto: Set(self.tipo_producto.clone()),
                     marca: Set(self.marca.clone()),
                     variedad: Set(self.variedad.clone()),
-                    presentacion: Set(self.presentacion.to_string()),
+                    presentacion: Set(format!("{}",self.presentacion)),
                 };
                 if let Err(e) = model.insert(&db).await {
                     return Err(e.to_string());
@@ -90,6 +90,18 @@ impl Producto {
         }
 
         Ok(())
+    }
+    pub fn unifica_codes(&mut self){
+        let mut e=0;
+        for i in 0..self.codigos_de_barras.len(){
+            let act=self.codigos_de_barras[i];
+            for j in i..self.codigos_de_barras.len(){
+                if act==self.codigos_de_barras[j-e]{
+                    self.codigos_de_barras.remove(j-e);
+                    e+=1;
+                }
+            }
+        }
     }
 }
 

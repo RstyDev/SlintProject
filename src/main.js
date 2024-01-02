@@ -27,11 +27,15 @@ function navigate(e) {
       focus(focuseado.nextElementSibling);
 
     } else if (e.keyCode == 13) {
-      agregarProdVentaAct(focuseado.id).then(venta=>{
-        e.preventDefault();
-        buscador.value = '';
-        dibujar_venta(venta)
-      });
+      if (document.getElementById('tabla-productos').children.length>1){
+        agregarProdVentaAct(focuseado.id).then(venta=>{
+          e.preventDefault();
+          buscador.value = '';
+          dibujar_venta(venta)
+        });
+      }else{
+        borrarBusqueda();
+      }
     } 
   }
 }
@@ -559,7 +563,7 @@ function escYf10Press(){
         if (posicionVenta==0){
           cambiar_venta(boton)
         }else{
-          cambiar_venta(boton.nextElementSibling)
+          cambiar_venta(boton.previousElementSibling)
         }
       }
    }
