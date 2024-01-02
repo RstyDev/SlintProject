@@ -10,6 +10,7 @@ use sea_orm::Set;
 use sea_orm::{Database, DatabaseConnection, EntityTrait};
 use tauri::async_runtime;
 
+use super::lib::get_updated_time;
 use super::{
     config::Config,
     lib::{crear_file, leer_file},
@@ -92,6 +93,9 @@ impl<'a> Sistema {
             if let Err(e) = crear_file(&path_configs, &mut configs) {
                 panic!("{}", e);
             }
+        }
+        if let Err(e)=get_updated_time(&path_productos){
+            panic!("{}",e)
         }
         let mut sis = Sistema {
             configs: configs[0].clone(),

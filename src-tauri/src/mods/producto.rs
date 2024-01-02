@@ -1,7 +1,7 @@
 use crate::redondeo;
 use super::{valuable::Presentacion, valuable::ValuableTrait};
 use entity::{codigo_barras, producto};
-use sea_orm::{Database, Set, ActiveModelTrait};
+use sea_orm::{Database, Set, ActiveModelTrait, prelude::{DateTimeUtc, ChronoDateTimeUtc}};
 use serde::{Deserialize, Serialize};
 
 
@@ -16,6 +16,7 @@ pub struct Producto {
     pub marca: String,
     pub variedad: String,
     pub presentacion: Presentacion,
+
 }
 
 impl Producto {
@@ -72,6 +73,7 @@ impl Producto {
                     marca: Set(self.marca.clone()),
                     variedad: Set(self.variedad.clone()),
                     presentacion: Set(format!("{}",self.presentacion)),
+                    updated_at:Set()
                 };
                 if let Err(e) = model.insert(&db).await {
                     return Err(e.to_string());

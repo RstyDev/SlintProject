@@ -1,6 +1,11 @@
+use chrono::naive::NaiveDateTime;
+use chrono::Duration;
+use sea_orm::prelude::{ChronoDateTimeLocal, DateTimeUtc};
 use serde::{de::DeserializeOwned, Serialize};
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{Read, Write};
+use std::time::{SystemTime};
+use std::time;
 
 pub fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
@@ -12,7 +17,7 @@ pub fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Res
 pub fn camalize(data: &mut String) {
     let mut es = true;
     let iter = data.clone();
-    
+
     for (i, a) in iter.char_indices() {
         if es {
             data.replace_range(i..i + 1, a.to_ascii_uppercase().to_string().as_str())
@@ -48,6 +53,27 @@ pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
         }
     }
     Ok(())
+}
+pub fn get_updated_time(path: &String) -> Result<std::time::Duration, String> {
+    let res = match fs::metadata(path) {
+        Ok(a) => match a.modified() {
+            Ok(a) => {
+                match a.duration_since(std::time::SystemTime::UNIX_EPOCH){
+                    Ok(a)=>Ok(a),
+                    Err(e)=>Err(e.to_string()),
+                }
+            }
+            Err(e) => Err(e.to_string()),
+        },
+        Err(e) => Err(e.to_string()),
+    };
+
+    res
+}
+fn make_elapsed_to_date(date: std::time::Duration)->Option<DateTimeUtc> {
+    let (sec,nsec)=(date.as_secs() as i64,date.subsec_nanos() );
+    DateTimeUtc::from_timestamp(sec, nsec)
+    
 }
 
 // pub fn push(pr: Producto, path: &String) {
