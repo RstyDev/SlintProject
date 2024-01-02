@@ -534,67 +534,67 @@ impl<'a> Sistema {
     pub fn get_stash(&self) -> Vec<Venta> {
         self.stash.clone()
     }
-    pub async fn set_data_valuable(&self) -> Result<(), String> {
-        println!("Guardando productos en DB");
-        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-            Ok(db) => {
-                for producto in &self.productos {
-                    match producto {
-                        Valuable::Prod(a) => {
-                            let model = producto::ActiveModel {
-                                id: Set(a.1.id),
-                                precio_de_venta: Set(a.1.precio_de_venta),
-                                porcentaje: Set(a.1.porcentaje),
-                                precio_de_costo: Set(a.1.precio_de_costo),
-                                tipo_producto: Set(a.1.tipo_producto.clone()),
-                                marca: Set(a.1.marca.clone()),
-                                variedad: Set(a.1.variedad.clone()),
-                                presentacion: Set(format!("{}", a.1.presentacion)),
-                            };
-                            if let Err(e) = model.insert(&db).await {
-                                return Err(e.to_string());
-                            }
-                            for codigo in &a.1.codigos_de_barras {
-                                let cod_model = codigo_barras::ActiveModel {
-                                    id: Set(*codigo),
-                                    producto: Set(a.1.id),
-                                };
-                                if let Err(e) = cod_model.insert(&db).await {
-                                    return Err(e.to_string());
-                                }
-                            }
-                        }
-                        Valuable::Pes(a)=>{
-                            let model=pesable::ActiveModel{
-                                id: Set(a.1.id),
-                                codigo: Set(a.1.codigo),
-                                precio_peso: Set(a.1.precio_peso),
-                                porcentaje: Set(a.1.porcentaje),
-                                costo_kilo: Set(a.1.costo_kilo),
-                                descripcion: Set(a.1.descripcion.clone()),
-                            };
-                            if let Err(e) = model.insert(&db).await {
-                                return Err(e.to_string());
-                            }
-                        }
-                        Valuable::Rub(a)=>{
-                            let model= rubro::ActiveModel{
-                                id: Set(a.1.id),
-                                monto: Set(a.1.monto),
-                                descripcion: Set(a.1.descripcion.clone()),
-                            };
-                            if let Err(e) = model.insert(&db).await {
-                                return Err(e.to_string());
-                            }
-                        }
-                    }
-                }
-            }
-            Err(e)=>return Err(e.to_string())
-        }
+    // pub async fn set_data_valuable(&self) -> Result<(), String> {
+    //     println!("Guardando productos en DB");
+    //     match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+    //         Ok(db) => {
+    //             for producto in &self.productos {
+    //                 match producto {
+    //                     Valuable::Prod(a) => {
+    //                         let model = producto::ActiveModel {
+    //                             id: Set(a.1.id),
+    //                             precio_de_venta: Set(a.1.precio_de_venta),
+    //                             porcentaje: Set(a.1.porcentaje),
+    //                             precio_de_costo: Set(a.1.precio_de_costo),
+    //                             tipo_producto: Set(a.1.tipo_producto.clone()),
+    //                             marca: Set(a.1.marca.clone()),
+    //                             variedad: Set(a.1.variedad.clone()),
+    //                             presentacion: Set(format!("{}", a.1.presentacion)),
+    //                         };
+    //                         if let Err(e) = model.insert(&db).await {
+    //                             return Err(e.to_string());
+    //                         }
+    //                         for codigo in &a.1.codigos_de_barras {
+    //                             let cod_model = codigo_barras::ActiveModel {
+    //                                 id: Set(*codigo),
+    //                                 producto: Set(a.1.id),
+    //                             };
+    //                             if let Err(e) = cod_model.insert(&db).await {
+    //                                 return Err(e.to_string());
+    //                             }
+    //                         }
+    //                     }
+    //                     Valuable::Pes(a)=>{
+    //                         let model=pesable::ActiveModel{
+    //                             id: Set(a.1.id),
+    //                             codigo: Set(a.1.codigo),
+    //                             precio_peso: Set(a.1.precio_peso),
+    //                             porcentaje: Set(a.1.porcentaje),
+    //                             costo_kilo: Set(a.1.costo_kilo),
+    //                             descripcion: Set(a.1.descripcion.clone()),
+    //                         };
+    //                         if let Err(e) = model.insert(&db).await {
+    //                             return Err(e.to_string());
+    //                         }
+    //                     }
+    //                     Valuable::Rub(a)=>{
+    //                         let model= rubro::ActiveModel{
+    //                             id: Set(a.1.id),
+    //                             monto: Set(a.1.monto),
+    //                             descripcion: Set(a.1.descripcion.clone()),
+    //                         };
+    //                         if let Err(e) = model.insert(&db).await {
+    //                             return Err(e.to_string());
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         Err(e)=>return Err(e.to_string())
+    //     }
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
     pub async fn get_data_valuable(&mut self) -> Result<(), String> {
         let mut prods: Vec<Valuable>;
         match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
@@ -602,18 +602,18 @@ impl<'a> Sistema {
                 match self.get_productos_from_db(&db).await {
                     Ok(a) => prods = a.iter().map(|x| Valuable::Prod((0, x.clone()))).collect(),
 
-                    Err(e) => return Err(e.to_string()),
+                    Err(e) => return Err(format!("Error gettings products: {}",e.to_string())),
                 };
                 match self.get_pesables_from_db(&db).await {
                     Ok(a) => prods
                         .append(&mut a.iter().map(|x| Valuable::Pes((0.0, x.clone()))).collect()),
-                    Err(e) => return Err(e),
+                    Err(e) => return Err(format!("Error getting pesables: {}",e)),
                 }
                 match self.get_rubro_from_db(&db).await {
                     Ok(a) => {
                         prods.append(&mut a.iter().map(|x| Valuable::Rub((0, x.clone()))).collect())
                     }
-                    Err(e) => return Err(e),
+                    Err(e) => return Err(format!("Error getting rubros {}",e)),
                 }
                 if self.productos.len() < prods.len() {
                     self.productos = prods;
@@ -630,15 +630,19 @@ impl<'a> Sistema {
         db: &DatabaseConnection,
     ) -> Result<Vec<Producto>, String> {
         match entity::producto::Entity::find().all(db).await {
-            Ok(a) => Ok(a
-                .iter()
-                .filter_map(|prod| {
-                    match self.get_codigos_db_filtrado(&db, prod.id).await {
-                        Ok(a) => map_model_prod(prod.clone(), a).ok(),
-                        Err(_) => None,
+            Ok(a) => {
+                let mut res=Vec::new();
+                for i in 0..a.len(){
+                    match entity::codigo_barras::Entity::find().filter(Condition::all()
+                    .add(entity::codigo_barras::Column::Producto.eq(a[i].id))).all(db).await{
+                        Ok(b)=>{
+                            res.push(map_model_prod(&a[i], b.iter().map(|x|x.id).collect())?)
+                        }
+                        Err(e)=>return Err(e.to_string()),
                     }
-                })
-                .collect()),
+                }
+                Ok(res)
+        },
             Err(e) => Err(e.to_string()),
         }
     }
@@ -673,8 +677,11 @@ impl<'a> Sistema {
     }
 }
 
-fn map_model_prod(prod: entity::producto::Model, cods: Vec<i64>) -> Result<Producto, String> {
-    let presentacion = serde_json::from_str(&prod.presentacion).unwrap();
+fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Result<Producto, String> {
+    let presentacion = match serde_json::from_str(&prod.presentacion){
+        Ok(a)=>a,
+        Err(e)=>return Err(e.to_string()),
+    };
 
     Ok(Producto {
         id: prod.id,
@@ -682,9 +689,9 @@ fn map_model_prod(prod: entity::producto::Model, cods: Vec<i64>) -> Result<Produ
         precio_de_venta: prod.precio_de_venta,
         porcentaje: prod.porcentaje,
         precio_de_costo: prod.precio_de_costo,
-        tipo_producto: prod.tipo_producto,
-        marca: prod.marca,
-        variedad: prod.variedad,
+        tipo_producto: prod.tipo_producto.clone(),
+        marca: prod.marca.clone(),
+        variedad: prod.variedad.clone(),
         presentacion: presentacion,
     })
 }
