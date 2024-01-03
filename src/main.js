@@ -27,16 +27,16 @@ function navigate(e) {
       focus(focuseado.nextElementSibling);
 
     } else if (e.keyCode == 13) {
-      if (document.getElementById('tabla-productos').children.length>1){
-        agregarProdVentaAct(focuseado.id).then(venta=>{
+      if (document.getElementById('tabla-productos').children.length > 1) {
+        agregarProdVentaAct(focuseado.id).then(venta => {
           e.preventDefault();
           buscador.value = '';
           dibujar_venta(venta)
         });
-      }else{
+      } else {
         borrarBusqueda();
       }
-    } 
+    }
   }
 }
 
@@ -62,7 +62,7 @@ async function open_edit_settings() {
 }
 
 function incrementarProducto(e) {
-  incrementarProdVentaAct(e.target.parentNode.parentNode.id).then(venta=>{
+  incrementarProdVentaAct(e.target.parentNode.parentNode.id).then(venta => {
     dibujar_venta(venta);
     setFoco(buscador, document.getElementById('productos'));
   });
@@ -78,14 +78,14 @@ function sumarProducto(e) {
 }
 function restarProducto(e) {
   let cantidad = e.target.nextElementSibling;
-  descontarProdVentaAct(e.target.parentNode.parentNode.id).then(venta=>{
+  descontarProdVentaAct(e.target.parentNode.parentNode.id).then(venta => {
     dibujar_venta(venta);
     setFoco(buscador, document.getElementById('productos'));
   });
 }
 
 function eliminarProducto(e) {
-  eliminarProdVentaAct(e.target.parentNode.parentNode.id).then(venta=>{
+  eliminarProdVentaAct(e.target.parentNode.parentNode.id).then(venta => {
     dibujar_venta(venta);
     setFoco(buscador, document.getElementById('productos'));
   });
@@ -93,7 +93,7 @@ function eliminarProducto(e) {
 
 function formatear_descripcion(producto) {
   let pres;
-  
+
   let cant;
   switch (Object.keys(producto.presentacion)[0]) {
     case 'Gr': {
@@ -116,9 +116,9 @@ function formatear_descripcion(producto) {
       cant = producto.presentacion.Ml;
       break;
     }
-    case "Cc": {
-      pres = "Cc";
-      cant = producto.presentacion.Cc;
+    case "CC": {
+      pres = "CC";
+      cant = producto.presentacion.CC;
       break;
     }
     case "Kg": {
@@ -154,17 +154,17 @@ function cambiar_venta(boton) {
   }
 }
 
-async function get_descripcion_valuable(prod,conf){
-  return await invoke("get_descripcion_valuable", { "prod": prod, "conf": conf});
+async function get_descripcion_valuable(prod, conf) {
+  return await invoke("get_descripcion_valuable", { "prod": prod, "conf": conf });
 }
 
 function dibujar_venta(venta) {
   let cuadro = document.querySelector('#cuadro-principal');
 
   cuadro.replaceChildren([]);
-  
-  
-  
+
+
+
   let strings = "";
   cuadro.innerHTML = `
   <section class="ayb">
@@ -184,9 +184,9 @@ function dibujar_venta(venta) {
     </div>
     <p>Resta pagar: ${venta.monto_total - venta.monto_pagado}</p>        
   </section>`;
-  let hijos =document.getElementById('productos');
+  let hijos = document.getElementById('productos');
   let hijosRes = document.getElementById('resumen');
-   hijos.innerHTML+=`<article class="articulo">
+  hijos.innerHTML += `<article class="articulo">
      <section class="descripcion">
         <p> DESCRIPCION </p>
      </section>
@@ -209,11 +209,11 @@ function dibujar_venta(venta) {
     } else {
       disabled = '';
     }
-    get_descripcion_valuable(producto, configs).then(strings=>{
-      let art=document.createElement('article');
-      art.id=producto.Prod[1].id;
+    get_descripcion_valuable(producto, configs).then(strings => {
+      let art = document.createElement('article');
+      art.id = producto.Prod[1].id;
       art.classList.add('articulo');
-      art.innerHTML=`
+      art.innerHTML = `
       <section class="descripcion">
          <p> ${strings} </p>
       </section>
@@ -233,36 +233,36 @@ function dibujar_venta(venta) {
      </section>
       `;
       ///----
-      
-      
+
+
       art.children[1].children[2].addEventListener('click', (e) => {
-          e.preventDefault();
-          incrementarProducto(e);
-        });
-      
+        e.preventDefault();
+        incrementarProducto(e);
+      });
+
       art.children[1].children[0].addEventListener('click', (e) => {
         e.preventDefault();
         restarProducto(e);
       });
-    
+
       art.children[4].children[0].addEventListener('click', (e) => {
         e.preventDefault();
         eliminarProducto(e);
       });
-      
-      
-      
-      
+
+
+
+
       hijos.appendChild(art);
-      
+
       hijosRes.innerHTML += `<p>${strings}</p>`
     });
-    
-    
+
+
   }
 
 
-  
+
   hijosRes.style.fontSize = `${calcFont(hijosRes.offsetHeight, hijosRes.children.length * 2)}px`;
   for (let i = 0; i < hijosRes.length; i++) {
     hijosRes[i].style.height = `${calcFont(hijosRes.offsetHeight, hijosRes.children.length)}px`;
@@ -292,9 +292,9 @@ function dibujar_venta(venta) {
   <input id="boton-agregar-pago" value="Cash" type="submit">
     </form>
   `
-  let input=document.querySelector('#input-activo');
-  input.addEventListener('focus',()=>{
-    setFoco(input,pagos)
+  let input = document.querySelector('#input-activo');
+  input.addEventListener('focus', () => {
+    setFoco(input, pagos)
   })
   for (let i = 0; i < venta.pagos.length; i++) {
     let btns = document.getElementsByClassName('boton-eliminar-pago');
@@ -308,28 +308,28 @@ function dibujar_venta(venta) {
   document.getElementById('boton-agregar-pago').addEventListener('click', (e) => {
     e.preventDefault();
     if (parseFloat(e.target.parentNode.children[0].value) > 0) {
-      agregar_pago(e.target.parentNode.children[1].value, e.target.parentNode.children[0].value).then(pago=>{
-        if (isNaN(pago)){
-          console.log('error '+pago);
-        }else{
-          if (pago>0){
+      agregar_pago(e.target.parentNode.children[1].value, e.target.parentNode.children[0].value).then(pago => {
+        if (isNaN(pago)) {
+          console.log('error ' + pago);
+        } else {
+          if (pago > 0) {
             pasarAPagar();
-          }else{
-            if (posicionVenta==0){
-              posicionVenta=1;
-            }else{
-              posicionVenta=0;
+          } else {
+            if (posicionVenta == 0) {
+              posicionVenta = 1;
+            } else {
+              posicionVenta = 0;
             }
             get_venta_actual().then(venta => {
               dibujar_venta(venta);
               setFoco(buscador, document.getElementById('productos'));
             });
-            
+
           }
         }
-        
 
-        
+
+
       })
     }
 
@@ -350,11 +350,11 @@ function dibujar_venta(venta) {
     cambiar_venta(vb);
   })
 
-  
+
   // pagos.firstChild.addEventListener('submit', () => {
   //   console.log('hacer pago')
   // })
-  
+
   let opciones = document.getElementsByClassName('opciones-pagos');
   for (let i = 0; i < configs.medios_pago.length; i++) {
     opciones[opciones.length - 1].innerHTML += `<option>${configs.medios_pago[i]}</option>`
@@ -362,9 +362,9 @@ function dibujar_venta(venta) {
   for (let i = 0; i < venta.pagos; i++) {
     pagos.innerHTML += venta.pagos[i];
   }
-  
-  
-  
+
+
+
 }
 
 
@@ -389,9 +389,11 @@ async function eliminarProdVentaAct(id) {
 function borrarBusqueda() {
   buscador.value = '';
   document.querySelector('#cuadro-principal').replaceChildren([]);
-  get_venta_actual().then(venta => {dibujar_venta(venta)
-    setFoco(buscador, document.getElementById('productos'));});
-} 
+  get_venta_actual().then(venta => {
+    dibujar_venta(venta)
+    setFoco(buscador, document.getElementById('productos'));
+  });
+}
 async function get_filtrado(filtro, tipo_filtro, objetivo) {
   let res = await invoke("get_filtrado", { filtro: filtro, tipoFiltro: tipo_filtro });
   let ops = document.getElementById(objetivo);
@@ -441,7 +443,7 @@ function dibujarProductos(objetos) {
     let tr2 = document.createElement('tr')
     tr2.style.maxHeight = '1.5em';
     tr2.tabIndex = 2;
-    tr2.id=objetos[i].Prod[1].id;
+    tr2.id = objetos[i].Prod[1].id;
     let cantidad;
     let presentacion;
     switch (Object.keys(objetos[i].Prod[1].presentacion)[0]) {
@@ -461,14 +463,14 @@ function dibujarProductos(objetos) {
         cantidad = objetos[i].Prod[1].presentacion.Ml;
         presentacion = 'Ml';
         break;
-      case 'Cc':
-        cantidad = objetos[i].Prod[1].presentacion.Cc;
-        presentacion = 'Cc';
+      case 'CC':
+        cantidad = objetos[i].Prod[1].presentacion.CC;
+        presentacion = 'CC';
         break;
       case 'Kg':
         cantidad = objetos[i].Prod[1].presentacion.Kg;
         presentacion = 'Kg';
-        break;                  
+        break;
     }
     let id = document.createElement('td');
     id.innerHTML = objetos[i].Prod[1].id;
@@ -534,39 +536,39 @@ function buscadorHandle() {
   });
 }
 
-function pasarAPagar(){
-  buscador.value='';
+function pasarAPagar() {
+  buscador.value = '';
   get_venta_actual().then(venta => {
     dibujar_venta(venta);
-    let input=document.querySelector('#input-activo');
-    input.value=venta.monto_total-venta.monto_pagado;
+    let input = document.querySelector('#input-activo');
+    input.value = venta.monto_total - venta.monto_pagado;
     setFoco(input, document.getElementById('pagos'));
   });
 }
 
-function escYf10Press(){
-  document.body.addEventListener('keydown', (e)=>{
-    if (e.keyCode == 27){
+function escYf10Press() {
+  document.body.addEventListener('keydown', (e) => {
+    if (e.keyCode == 27) {
       e.preventDefault();
       buscador.value = '';
       get_venta_actual().then(venta => {
         dibujar_venta(venta)
         setFoco(buscador, document.getElementById('productos'));
       });
-      
-    }else if(e.keyCode==121){
+
+    } else if (e.keyCode == 121) {
       e.preventDefault();
       pasarAPagar();
-    }else if (e.ctrlKey) {
+    } else if (e.ctrlKey) {
       if (e.keyCode == 9 || e.keyCode == 97) {
-        let boton=document.querySelector('#v-b');
-        if (posicionVenta==0){
+        let boton = document.querySelector('#v-b');
+        if (posicionVenta == 0) {
           cambiar_venta(boton)
-        }else{
+        } else {
           cambiar_venta(boton.previousElementSibling)
         }
       }
-   }
+    }
   })
 }
 
@@ -610,7 +612,7 @@ function menuButtonHandle() {
 function agrProdContHandle() {
   document.getElementById("agregar-producto-mostrar").onclick = function () {
     open_add_product();
-    let barra=document.querySelector('#barra-de-opciones');
+    let barra = document.querySelector('#barra-de-opciones');
     barra.classList.remove('visible');
     barra.classList.remove('para-hamburguesa');
   }
@@ -621,7 +623,7 @@ function agrProdContHandle() {
 function cambiarConfHandle() {
   document.getElementById("cambiar-configs-mostrar").onclick = function () {
     open_edit_settings();
-    let barra=document.querySelector('#barra-de-opciones');
+    let barra = document.querySelector('#barra-de-opciones');
     barra.classList.remove('visible');
     barra.classList.remove('para-hamburguesa');
 
@@ -631,24 +633,24 @@ function cambiarConfHandle() {
 
 function mostrarContainerHandle(s2) {
   open_add_product();
-  let barra=document.querySelector('#barra-de-opciones');
+  let barra = document.querySelector('#barra-de-opciones');
   barra.classList.remove('visible');
   barra.classList.remove('para-hamburguesa');
 }
 
-function setFoco(foco,focuseable){
-  let focos=document.querySelectorAll('.focuseable');
-  for (let i=0;i<focos.length;i++){
-    focos[i].classList.toggle('not-focused',true);
+function setFoco(foco, focuseable) {
+  let focos = document.querySelectorAll('.focuseable');
+  for (let i = 0; i < focos.length; i++) {
+    focos[i].classList.toggle('not-focused', true);
   }
-  focuseable.classList.toggle('not-focused',false);
+  focuseable.classList.toggle('not-focused', false);
   foco.focus();
   foco.select();
 }
 
 window.addEventListener("DOMContentLoaded", () => {
   buscador = document.querySelector('#buscador');
-  buscador.addEventListener('focus',()=>{
+  buscador.addEventListener('focus', () => {
     setFoco(buscador, document.getElementById('productos'))
   });
   borrarBusqueda();
@@ -661,10 +663,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("agregar-proveedor-mostrar").onclick = function () {
     open_add_prov();
-    let barra=document.querySelector('#barra-de-opciones');
+    let barra = document.querySelector('#barra-de-opciones');
     barra.classList.remove('visible');
     barra.classList.remove('para-hamburguesa');
-  
+
   }
 
 
