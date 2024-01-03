@@ -1,16 +1,12 @@
-use entity::codigo_barras;
-use entity::pesable;
-use entity::producto;
-use entity::rubro;
-use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
 use sea_orm::Condition;
 use sea_orm::QueryFilter;
-use sea_orm::Set;
 use sea_orm::{Database, DatabaseConnection, EntityTrait};
 use tauri::async_runtime;
 
-use super::lib::get_updated_time;
+use super::lib::get_updated_time_db;
+use super::lib::get_updated_time_file;
+use super::valuable::Presentacion;
 use super::{
     config::Config,
     lib::{crear_file, leer_file},
@@ -46,7 +42,7 @@ impl<'a> Sistema {
         let path_configs = String::from("Configs.json");
         let path_rubros = String::from("Rubros.json");
         let path_pesables = String::from("Pesables.json");
-        let mut productos: Vec<Producto> = Vec::new();
+        let mut productos2: Vec<Producto> = Vec::new();
         let mut rubros: Vec<Rubro> = Vec::new();
         let mut pesables: Vec<Pesable> = Vec::new();
         let stash = Vec::new();
@@ -57,7 +53,7 @@ impl<'a> Sistema {
         if let Err(e) = leer_file(&mut pesables, &path_pesables) {
             panic!("{}", e);
         }
-        if let Err(e) = leer_file(&mut productos, &path_productos) {
+        if let Err(e) = leer_file(&mut productos2, &path_productos) {
             panic!("{}", e);
         }
 
@@ -69,7 +65,7 @@ impl<'a> Sistema {
             .iter()
             .map(|a| Valuable::Pes((0.0, a.to_owned())))
             .collect();
-        let mut productos: Vec<Valuable> = productos
+        let mut productos: Vec<Valuable> = productos2.clone()
             .iter()
             .map(|a| Valuable::Prod((0, a.to_owned())))
             .collect();
@@ -94,15 +90,13 @@ impl<'a> Sistema {
                 panic!("{}", e);
             }
         }
-        if let Err(e)=get_updated_time(&path_productos){
-            panic!("{}",e)
-        }
+
         let mut sis = Sistema {
             configs: configs[0].clone(),
-            productos,
+            productos:productos.clone(),
             ventas: (Venta::new(), Venta::new()),
             proveedores,
-            path_productos,
+            path_productos:path_productos.clone(),
             path_proveedores,
             path_relaciones,
             path_configs,
@@ -112,10 +106,10 @@ impl<'a> Sistema {
             stash,
             registro,
         };
-        for i in 0..sis.productos.len(){
+        for i in 0..sis.productos.len() {
             sis.productos[i].unifica_codes()
         }
-        if let Err(e) = async_runtime::block_on(sis.get_data_valuable()) {
+        if let Err(e) = async_runtime::block_on(sis.update_data_valuable(&path_productos,productos2)) {
             println!("{e}");
         }
         // if let Err(e) = async_runtime::block_on(sis.set_data_valuable()) {
@@ -554,6 +548,7 @@ impl<'a> Sistema {
     //                             marca: Set(a.1.marca.clone()),
     //                             variedad: Set(a.1.variedad.clone()),
     //                             presentacion: Set(format!("{}", a.1.presentacion)),
+    //                             updated_at: Set(Utc::now().naive_utc()),
     //                         };
     //                         if let Err(e) = model.insert(&db).await {
     //                             return Err(e.to_string());
@@ -568,8 +563,8 @@ impl<'a> Sistema {
     //                             }
     //                         }
     //                     }
-    //                     Valuable::Pes(a)=>{
-    //                         let model=pesable::ActiveModel{
+    //                     Valuable::Pes(a) => {
+    //                         let model = pesable::ActiveModel {
     //                             id: Set(a.1.id),
     //                             codigo: Set(a.1.codigo),
     //                             precio_peso: Set(a.1.precio_peso),
@@ -581,8 +576,8 @@ impl<'a> Sistema {
     //                             return Err(e.to_string());
     //                         }
     //                     }
-    //                     Valuable::Rub(a)=>{
-    //                         let model= rubro::ActiveModel{
+    //                     Valuable::Rub(a) => {
+    //                         let model = rubro::ActiveModel {
     //                             id: Set(a.1.id),
     //                             monto: Set(a.1.monto),
     //                             descripcion: Set(a.1.descripcion.clone()),
@@ -594,30 +589,30 @@ impl<'a> Sistema {
     //                 }
     //             }
     //         }
-    //         Err(e)=>return Err(e.to_string())
+    //         Err(e) => return Err(e.to_string()),
     //     }
 
     //     Ok(())
     // }
-    pub async fn get_data_valuable(&mut self) -> Result<(), String> {
+    pub async fn update_data_valuable(&mut self,path_productos: &String,productos:Vec<Producto>) -> Result<(), String> {
         let mut prods: Vec<Valuable>;
         match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
             Ok(db) => {
-                match self.get_productos_from_db(&db).await {
+                match self.update_productos_from_db(&db,path_productos,productos).await {
                     Ok(a) => prods = a.iter().map(|x| Valuable::Prod((0, x.clone()))).collect(),
 
-                    Err(e) => return Err(format!("Error gettings products: {}",e.to_string())),
+                    Err(e) => return Err(format!("Error gettings products: {}", e.to_string())),
                 };
                 match self.get_pesables_from_db(&db).await {
                     Ok(a) => prods
                         .append(&mut a.iter().map(|x| Valuable::Pes((0.0, x.clone()))).collect()),
-                    Err(e) => return Err(format!("Error getting pesables: {}",e)),
+                    Err(e) => return Err(format!("Error getting pesables: {}", e)),
                 }
                 match self.get_rubro_from_db(&db).await {
                     Ok(a) => {
                         prods.append(&mut a.iter().map(|x| Valuable::Rub((0, x.clone()))).collect())
                     }
-                    Err(e) => return Err(format!("Error getting rubros {}",e)),
+                    Err(e) => return Err(format!("Error getting rubros {}", e)),
                 }
                 if self.productos.len() < prods.len() {
                     self.productos = prods;
@@ -629,24 +624,32 @@ impl<'a> Sistema {
 
         Ok(())
     }
-    pub async fn get_productos_from_db(
+    pub async fn update_productos_from_db(
         &self,
         db: &DatabaseConnection,
+        path_productos: &String,
+        productos:Vec<Producto>
     ) -> Result<Vec<Producto>, String> {
         match entity::producto::Entity::find().all(db).await {
             Ok(a) => {
-                let mut res=Vec::new();
-                for i in 0..a.len(){
-                    match entity::codigo_barras::Entity::find().filter(Condition::all()
-                    .add(entity::codigo_barras::Column::Producto.eq(a[i].id))).all(db).await{
-                        Ok(b)=>{
-                            res.push(map_model_prod(&a[i], b.iter().map(|x|x.id).collect())?)
-                        }
-                        Err(e)=>return Err(e.to_string()),
+                let mut res = Vec::new();
+                for i in 0..a.len() {
+                    match self.get_codigos_db_filtrado(db, a[i].id).await {
+                        Ok(b) => res.push(map_model_prod(&a[i], b)?),
+                        Err(e) => return Err(format!("en get filtrado {}", e.to_string())),
+                    }
+                }
+                if let Ok(date) = get_updated_time_file(path_productos) {
+                    let model_vec=get_updated_time_db(a).await;
+                    if date>model_vec{
+                        println!("Ultimo actualizado: productos de archivo");
+                        res=productos;
+                    }else{
+                        println!("Ultimo actualizado: productos de bases de datos");
                     }
                 }
                 Ok(res)
-        },
+            }
             Err(e) => Err(e.to_string()),
         }
     }
@@ -682,9 +685,19 @@ impl<'a> Sistema {
 }
 
 fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Result<Producto, String> {
-    let presentacion = match serde_json::from_str(&prod.presentacion){
-        Ok(a)=>a,
-        Err(e)=>return Err(e.to_string()),
+    let mut parts = prod.presentacion.split(' ');
+    let p1 = parts.next().unwrap();
+    let p2 = parts.next().unwrap();
+    let presentacion = match p2 {
+        "Gr" => Presentacion::Gr(p1.parse().unwrap()),
+        "Un" => Presentacion::Un(p1.parse().unwrap()),
+        "Lt" => Presentacion::Lt(p1.parse().unwrap()),
+        "Ml" => Presentacion::Ml(p1.parse().unwrap()),
+        "CC" => Presentacion::CC(p1.parse().unwrap()),
+        "Kg" => Presentacion::Kg(p1.parse().unwrap()),
+        _ => {
+            panic!("Error formateando Presentacion")
+        }
     };
 
     Ok(Producto {

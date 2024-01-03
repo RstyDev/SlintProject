@@ -1,11 +1,9 @@
-use chrono::naive::NaiveDateTime;
-use chrono::Duration;
-use sea_orm::prelude::{ChronoDateTimeLocal, DateTimeUtc};
+use entity::producto::Model;
+
+use sea_orm::prelude::DateTimeUtc;
 use serde::{de::DeserializeOwned, Serialize};
 use std::fs::{self, File};
 use std::io::{Read, Write};
-use std::time::{SystemTime};
-use std::time;
 
 pub fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
@@ -48,32 +46,37 @@ pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     file2.read_to_string(&mut buf2)?;
     match serde_json::from_str::<T>(&buf2.clone()) {
         Ok(a) => *buf = a.clone(),
-        Err(e) => {
-            panic!("No se pudo porque {}", e)
-        }
+        Err(e) => panic!("No se pudo porque {}", e),
     }
     Ok(())
 }
-pub fn get_updated_time(path: &String) -> Result<std::time::Duration, String> {
+pub fn get_updated_time_file(path: &String) -> Result<DateTimeUtc, String> {
     let res = match fs::metadata(path) {
         Ok(a) => match a.modified() {
-            Ok(a) => {
-                match a.duration_since(std::time::SystemTime::UNIX_EPOCH){
-                    Ok(a)=>Ok(a),
-                    Err(e)=>Err(e.to_string()),
-                }
-            }
+            Ok(a) => match a.duration_since(std::time::SystemTime::UNIX_EPOCH) {
+                Ok(a) => Ok(a),
+                Err(e) => Err(e.to_string()),
+            },
             Err(e) => Err(e.to_string()),
         },
         Err(e) => Err(e.to_string()),
     };
-
-    res
+    let date=match res{
+        Ok(a)=>a,
+        Err(e)=>return Err(e.to_string()),
+    };
+    match make_elapsed_to_date(date){
+        Some(a)=>Ok(a),
+        None=>Err("No se pudo convertir".to_string())
+    }
 }
-fn make_elapsed_to_date(date: std::time::Duration)->Option<DateTimeUtc> {
-    let (sec,nsec)=(date.as_secs() as i64,date.subsec_nanos() );
+pub async fn get_updated_time_db(vec:Vec<Model>)->DateTimeUtc{
+    vec.iter().max_by_key(|x|{x.updated_at}).unwrap().updated_at.and_utc()
+}
+
+fn make_elapsed_to_date(date: std::time::Duration) -> Option<DateTimeUtc> {
+    let (sec, nsec) = (date.as_secs() as i64, date.subsec_nanos());
     DateTimeUtc::from_timestamp(sec, nsec)
-    
 }
 
 // pub fn push(pr: Producto, path: &String) {

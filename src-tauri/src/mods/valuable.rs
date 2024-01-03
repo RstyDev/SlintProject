@@ -1,4 +1,10 @@
-use super::{config::{Config, Formato, Mayusculas}, lib::camalize, pesable::Pesable, rubro::Rubro, producto::Producto};
+use super::{
+    config::{Config, Formato, Mayusculas},
+    lib::camalize,
+    pesable::Pesable,
+    producto::Producto,
+    rubro::Rubro,
+};
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 
@@ -17,10 +23,10 @@ impl Valuable {
     //         Valuable::Rub(a) => a.1.redondear(politica).monto,
     //     }
     // }
-    pub fn unifica_codes(&mut self){
-        match self{
-            Valuable::Prod(a)=>a.1.unifica_codes(),
-            _=>(),
+    pub fn unifica_codes(&mut self) {
+        match self {
+            Valuable::Prod(a) => a.1.unifica_codes(),
+            _ => (),
         }
     }
     pub fn get_descripcion(&self, conf: Config) -> String {
@@ -33,8 +39,8 @@ impl Valuable {
                         "{} {} {} {} Gr",
                         a.1.marca, a.1.tipo_producto, a.1.variedad, cant
                     ),
-                    Presentacion::Cc(cant) => format!(
-                        "{} {} {} {} Cc",
+                    Presentacion::CC(cant) => format!(
+                        "{} {} {} {} CC",
                         a.1.marca, a.1.tipo_producto, a.1.variedad, cant
                     ),
                     Presentacion::Kg(cant) => format!(
@@ -64,11 +70,11 @@ impl Valuable {
         }
         res
     }
-    pub async fn save(&self)->Result<(),String>{
-        match self{
-            Valuable::Pes(a)=>a.1.save().await,
-            Valuable::Prod(a)=>a.1.save().await,
-            Valuable::Rub(a)=>a.1.save().await,
+    pub async fn save(&self) -> Result<(), String> {
+        match self {
+            Valuable::Pes(a) => a.1.save().await,
+            Valuable::Prod(a) => a.1.save().await,
+            Valuable::Rub(a) => a.1.save().await,
         }
     }
 }
@@ -109,7 +115,7 @@ impl Display for Presentacion {
             Self::Lt(a) => write!(f, "{} Lt", a),
             Self::Un(a) => write!(f, "{} Un", a),
             Self::Ml(a) => write!(f, "{} Ml", a),
-            Self::Cc(a) => write!(f, "{} CC", a),
+            Self::CC(a) => write!(f, "{} CC", a),
             Self::Kg(a) => write!(f, "{} Kg", a),
         }
     }
@@ -126,6 +132,6 @@ pub enum Presentacion {
     Un(i16),
     Lt(f32),
     Ml(i16),
-    Cc(i16),
+    CC(i16),
     Kg(f32),
 }

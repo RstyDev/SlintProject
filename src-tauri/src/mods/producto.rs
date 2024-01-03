@@ -1,9 +1,9 @@
-use crate::redondeo;
 use super::{valuable::Presentacion, valuable::ValuableTrait};
+use crate::redondeo;
+use chrono::Utc;
 use entity::{codigo_barras, producto};
-use sea_orm::{Database, Set, ActiveModelTrait, prelude::{DateTimeUtc, ChronoDateTimeUtc}};
+use sea_orm::{ActiveModelTrait, Database, Set};
 use serde::{Deserialize, Serialize};
-
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Producto {
@@ -16,7 +16,6 @@ pub struct Producto {
     pub marca: String,
     pub variedad: String,
     pub presentacion: Presentacion,
-
 }
 
 impl Producto {
@@ -36,6 +35,9 @@ impl Producto {
             "Gr" => Presentacion::Gr(cantidad.parse().unwrap()),
             "Un" => Presentacion::Un(cantidad.parse().unwrap()),
             "Lt" => Presentacion::Lt(cantidad.parse().unwrap()),
+            "Ml" => Presentacion::Ml(cantidad.parse().unwrap()),
+            "CC" => Presentacion::CC(cantidad.parse().unwrap()),
+            "Kg" => Presentacion::Kg(cantidad.parse().unwrap()),
             _ => panic!("no posible {presentacion}"),
         };
         let codigos = codigos
@@ -64,6 +66,7 @@ impl Producto {
         match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
             Ok(db) => {
                 println!("conectado");
+
                 let model = producto::ActiveModel {
                     id: Set(self.id),
                     precio_de_venta: Set(self.precio_de_venta),
@@ -72,8 +75,8 @@ impl Producto {
                     tipo_producto: Set(self.tipo_producto.clone()),
                     marca: Set(self.marca.clone()),
                     variedad: Set(self.variedad.clone()),
-                    presentacion: Set(format!("{}",self.presentacion)),
-                    updated_at:Set()
+                    presentacion: Set(format!("{}", self.presentacion)),
+                    updated_at: Set(Utc::now().naive_utc()),
                 };
                 if let Err(e) = model.insert(&db).await {
                     return Err(e.to_string());
@@ -83,7 +86,7 @@ impl Producto {
                         id: Set(*codigo),
                         producto: Set(self.id),
                     };
-                    if let Err(e)=cod_model.insert(&db).await{
+                    if let Err(e) = cod_model.insert(&db).await {
                         return Err(e.to_string());
                     }
                 }
@@ -93,14 +96,14 @@ impl Producto {
 
         Ok(())
     }
-    pub fn unifica_codes(&mut self){
-        let mut e=0;
-        for i in 0..self.codigos_de_barras.len(){
-            let act=self.codigos_de_barras[i];
-            for j in i..self.codigos_de_barras.len(){
-                if act==self.codigos_de_barras[j-e]{
-                    self.codigos_de_barras.remove(j-e);
-                    e+=1;
+    pub fn unifica_codes(&mut self) {
+        let mut e = 0;
+        for i in 0..self.codigos_de_barras.len() {
+            let act = self.codigos_de_barras[i];
+            for j in i..self.codigos_de_barras.len() {
+                if act == self.codigos_de_barras[j - e] {
+                    self.codigos_de_barras.remove(j - e);
+                    e += 1;
                 }
             }
         }
