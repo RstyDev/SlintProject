@@ -65,7 +65,7 @@ impl Producto {
     pub async fn save(&self) -> Result<(), String> {
         match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
             Ok(db) => {
-                println!("conectado");
+                println!("Guardando producto en DB");
 
                 let model = producto::ActiveModel {
                     id: Set(self.id),

@@ -66,7 +66,7 @@ impl Valuable {
         match conf.get_modo_mayus() {
             Mayusculas::Lower => res = res.to_lowercase(),
             Mayusculas::Upper => res = res.to_uppercase(),
-            Mayusculas::Camel => camalize(&mut res),
+            Mayusculas::Camel => res= camalize( res),
         }
         res
     }

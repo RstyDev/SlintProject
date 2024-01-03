@@ -65,7 +65,8 @@ impl<'a> Sistema {
             .iter()
             .map(|a| Valuable::Pes((0.0, a.to_owned())))
             .collect();
-        let mut productos: Vec<Valuable> = productos2.clone()
+        let mut productos: Vec<Valuable> = productos2
+            .clone()
             .iter()
             .map(|a| Valuable::Prod((0, a.to_owned())))
             .collect();
@@ -93,10 +94,10 @@ impl<'a> Sistema {
 
         let mut sis = Sistema {
             configs: configs[0].clone(),
-            productos:productos.clone(),
+            productos: productos.clone(),
             ventas: (Venta::new(), Venta::new()),
             proveedores,
-            path_productos:path_productos.clone(),
+            path_productos: path_productos.clone(),
             path_proveedores,
             path_relaciones,
             path_configs,
@@ -109,12 +110,16 @@ impl<'a> Sistema {
         for i in 0..sis.productos.len() {
             sis.productos[i].unifica_codes()
         }
-        if let Err(e) = async_runtime::block_on(sis.update_data_valuable(&path_productos,productos2)) {
+        if let Err(e) =
+            async_runtime::block_on(sis.update_data_valuable(&path_productos, productos2))
+        {
             println!("{e}");
         }
+
         // if let Err(e) = async_runtime::block_on(sis.set_data_valuable()) {
         //     println!("{e}");
         // }
+
         sis
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
@@ -224,6 +229,7 @@ impl<'a> Sistema {
                 )),
             };
         }
+        
         let mut productos: Vec<Producto> = self
             .productos
             .iter()
@@ -594,11 +600,18 @@ impl<'a> Sistema {
 
     //     Ok(())
     // }
-    pub async fn update_data_valuable(&mut self,path_productos: &String,productos:Vec<Producto>) -> Result<(), String> {
+    pub async fn update_data_valuable(
+        &mut self,
+        path_productos: &String,
+        productos: Vec<Producto>,
+    ) -> Result<(), String> {
         let mut prods: Vec<Valuable>;
         match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
             Ok(db) => {
-                match self.update_productos_from_db(&db,path_productos,productos).await {
+                match self
+                    .update_productos_from_db(&db, path_productos, productos)
+                    .await
+                {
                     Ok(a) => prods = a.iter().map(|x| Valuable::Prod((0, x.clone()))).collect(),
 
                     Err(e) => return Err(format!("Error gettings products: {}", e.to_string())),
@@ -628,7 +641,7 @@ impl<'a> Sistema {
         &self,
         db: &DatabaseConnection,
         path_productos: &String,
-        productos:Vec<Producto>
+        productos: Vec<Producto>,
     ) -> Result<Vec<Producto>, String> {
         match entity::producto::Entity::find().all(db).await {
             Ok(a) => {
@@ -640,11 +653,11 @@ impl<'a> Sistema {
                     }
                 }
                 if let Ok(date) = get_updated_time_file(path_productos) {
-                    let model_vec=get_updated_time_db(a).await;
-                    if date>model_vec{
+                    let model_vec = get_updated_time_db(a).await;
+                    if date > model_vec {
                         println!("Ultimo actualizado: productos de archivo");
-                        res=productos;
-                    }else{
+                        res = productos;
+                    } else {
                         println!("Ultimo actualizado: productos de bases de datos");
                     }
                 }

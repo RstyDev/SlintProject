@@ -12,20 +12,61 @@ pub fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Res
     Ok(())
 }
 
-pub fn camalize(data: &mut String) {
+pub fn camalize(data: String)->String {
     let mut es = true;
-    let iter = data.clone();
-
-    for (i, a) in iter.char_indices() {
-        if es {
-            data.replace_range(i..i + 1, a.to_ascii_uppercase().to_string().as_str())
+    let mut datos=String::new();
+    println!("llegando");
+    for i in 0..data.len() {
+        println!("llego");
+        if es{
+            if data.chars().nth(i)==None{
+                datos.push('Ñ');
+            }else{
+                datos.push(data.chars().nth(i).unwrap().to_uppercase().to_string().chars().last().unwrap())
+            }
+        }else{
+            if data.chars().nth(i)==None{
+                datos.push('ñ');
+            }else{
+                datos.push(data.chars().nth(i).unwrap().to_lowercase().to_string().chars().last().unwrap())
+            }
         }
-        if a == ' ' {
-            es = true;
-        } else {
-            es = false
+        
+        if data.chars().nth(i).is_some()&&data.chars().nth(i).unwrap()==' '{
+            es=true;
+        }else{
+            es=false;
         }
     }
+    
+    // for (i, mut a) in iter.char_indices() {
+    //     println!("llego");
+    //     if es {
+    //         if a == 'ñ' || a == 'Ñ' {
+    //             println!("es {}", a);
+    //             data.replace_range(i..i + 1, 'Ñ'.to_string().as_str());
+    //             println!("reemplazado");
+    //         } else {
+    //             a.make_ascii_uppercase();
+    //             data.replace_range(i..i + 1, a.to_string().as_str());
+    //         }
+    //     } else {
+    //         if a == 'ñ' || a == 'Ñ' {
+    //             println!("es {}", a);
+    //             data.replace_range(i..i + 1, 'ñ'.to_string().as_str());
+    //             println!("reemplazado");
+    //         } else {
+    //             a.make_ascii_lowercase();
+    //             data.replace_range(i..i + 1, a.to_string().as_str());
+    //         }
+    //     }
+    //     if a == ' ' {
+    //         es = true;
+    //     } else {
+    //         es = false
+    //     }
+    // }
+    datos
 }
 
 pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
@@ -61,17 +102,21 @@ pub fn get_updated_time_file(path: &String) -> Result<DateTimeUtc, String> {
         },
         Err(e) => Err(e.to_string()),
     };
-    let date=match res{
-        Ok(a)=>a,
-        Err(e)=>return Err(e.to_string()),
+    let date = match res {
+        Ok(a) => a,
+        Err(e) => return Err(e.to_string()),
     };
-    match make_elapsed_to_date(date){
-        Some(a)=>Ok(a),
-        None=>Err("No se pudo convertir".to_string())
+    match make_elapsed_to_date(date) {
+        Some(a) => Ok(a),
+        None => Err("No se pudo convertir".to_string()),
     }
 }
-pub async fn get_updated_time_db(vec:Vec<Model>)->DateTimeUtc{
-    vec.iter().max_by_key(|x|{x.updated_at}).unwrap().updated_at.and_utc()
+pub async fn get_updated_time_db(vec: Vec<Model>) -> DateTimeUtc {
+    vec.iter()
+        .max_by_key(|x| x.updated_at)
+        .unwrap()
+        .updated_at
+        .and_utc()
 }
 
 fn make_elapsed_to_date(date: std::time::Duration) -> Option<DateTimeUtc> {

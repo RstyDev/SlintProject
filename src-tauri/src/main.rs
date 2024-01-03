@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use mods::{
     config::Config, pesable::Pesable, producto::Producto, rubro::Rubro, sistema::Sistema,
-    valuable::Valuable, venta::Venta,
+    valuable::Valuable, venta::Venta, lib::camalize,
 };
 
 use std::sync::Mutex;
@@ -60,6 +60,15 @@ fn agregar_producto(
                     return Err(e.to_string());
                 }
             }
+            let mut tipo = tipo_producto.to_owned();
+            let mut marca = marca.to_owned();
+            let mut var = variedad.to_owned();
+            tipo=camalize(tipo);
+            marca=camalize(marca);
+            var=camalize(var);
+            let tipo_producto=tipo.as_str();
+            let marca=marca.as_str();
+            let variedad=var.as_str();
             let producto = Producto::new(
                 sis.get_productos().len() as i64,
                 codigos_de_barras,
@@ -372,7 +381,11 @@ fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config, String> {
     res
 }
 #[tauri::command]
-fn set_configs(window: tauri::Window,sistema: State<Mutex<Sistema>>, configs: Config) -> Result<(), String> {
+fn set_configs(
+    window: tauri::Window,
+    sistema: State<Mutex<Sistema>>,
+    configs: Config,
+) -> Result<(), String> {
     let mut res = Ok(());
     match sistema.lock() {
         Ok(mut sis) => {
@@ -380,10 +393,10 @@ fn set_configs(window: tauri::Window,sistema: State<Mutex<Sistema>>, configs: Co
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
-        },
+        }
         Err(e) => res = Err(e.to_string()),
     }
-    
+
     res
 }
 
@@ -394,7 +407,6 @@ fn close_window(window: tauri::Window) -> Result<(), String> {
     }
     Ok(())
 }
-
 
 #[tauri::command]
 fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> {
