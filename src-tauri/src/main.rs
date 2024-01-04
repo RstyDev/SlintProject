@@ -472,7 +472,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Result<(), String> {
     )
     .always_on_top(true)
     .resizable(false)
-    .inner_size(800.0, 180.0)
+    .inner_size(800.0, 110.0)
     .build()
     {
         Ok(_) => Ok(()),

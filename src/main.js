@@ -91,51 +91,6 @@ function eliminarProducto(e) {
   });
 }
 
-function formatear_descripcion(producto) {
-  let pres;
-
-  let cant;
-  switch (Object.keys(producto.presentacion)[0]) {
-    case 'Gr': {
-      pres = "Gr";
-      cant = producto.presentacion.Gr;
-      break;
-    }
-    case 'Un': {
-      pres = "Un";
-      cant = producto.presentacion.Un;
-      break;
-    }
-    case "Lt": {
-      pres = "Lt";
-      cant = producto.presentacion.Lt;
-      break;
-    }
-    case "Ml": {
-      pres = "Ml";
-      cant = producto.presentacion.Ml;
-      break;
-    }
-    case "CC": {
-      pres = "CC";
-      cant = producto.presentacion.CC;
-      break;
-    }
-    case "Kg": {
-      pres = "Kg";
-      cant = producto.presentacion.Kg;
-      break;
-    }
-  }
-  switch (configs.formato_producto) {
-    case "Tmv":
-      return `${producto.tipo_producto} ${producto.marca} ${producto.variedad} ${cant} ${pres}`;
-    case "Mtv":
-      return `${producto.marca} ${producto.tipo_producto} ${producto.variedad} ${cant} ${pres}`;
-  }
-
-
-}
 
 
 function cambiar_venta(boton) {

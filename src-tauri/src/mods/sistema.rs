@@ -4,15 +4,17 @@ use sea_orm::QueryFilter;
 use sea_orm::{Database, DatabaseConnection, EntityTrait};
 use tauri::async_runtime;
 
+
 use super::lib::get_updated_time_db;
 use super::lib::get_updated_time_file;
+use super::proveedor::Proveedor;
 use super::valuable::Presentacion;
 use super::{
     config::Config,
     lib::{crear_file, leer_file},
     pesable::Pesable,
     producto::Producto,
-    proveedor::Proveedor,
+    
     relacion_prod_prov::RelacionProdProv,
     rubro::Rubro,
     valuable::{Valuable, ValuableTrait},
@@ -120,6 +122,9 @@ impl<'a> Sistema {
         //     println!("{e}");
         // }
 
+        // if let Err(e) = async_runtime::block_on(sis.cargar_todos_los_provs()) {
+        //     println!("{e}");
+        // }
         sis
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
@@ -695,6 +700,31 @@ impl<'a> Sistema {
             Err(e) => Err(e.to_string()),
         }
     }
+    // async fn cargar_todos_los_provs(&self)->Result<(),String>{
+    //     let res;
+    //     match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await{
+    //         Ok(db)=>{
+    //             let provs:Vec<ActiveModel>=self.proveedores.iter().map(|x|{
+    //                 let contacto=match x.get_contacto(){
+    //                     Some(a)=>Some(*a),
+    //                     None=>None,
+    //                 };
+    //                 ActiveModel{
+    //                     id: Set(*x.get_id()),
+    //                     nombre: Set(x.get_nombre().clone()),
+    //                     contacto: Set(contacto),
+    //                 }
+    //             }).collect();
+    //             match entity::proveedor::Entity::insert_many(provs).exec(&db).await{
+    //                 Ok(_)=>res=Ok(()),
+    //                 Err(e)=>res=Err(e.to_string()),
+    //             }
+                
+    //         }
+    //         Err(e)=>res=Err(e.to_string()),
+    //     }
+    //     res
+    // }
 }
 
 fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Result<Producto, String> {

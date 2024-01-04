@@ -51,14 +51,22 @@
       <button id="agregar-producto-button">Agregar producto</button>
     </form>
     <form id="agregar-proveedor-a-producto">
-      Pesable<input type="checkbox" id="es-pesable" placeholder="Pesable">
+      <section id="clase">
+        <select name="Clase" id="clase" required>
+          <option value="Producto" selected>Producto</option>
+          <option value="Rubro">Rubro</option>
+        </select>
+      </section>
+      <label class="contenedor">Pesable
+        <input type="checkbox">
+        <span class="checkmark"></span>
+      </label>
       <section id="agr-codigo">
         <select name="Proveedor" id="proveedor" required>
           <option value="" selected disabled hidden>Seleccione una opción</option>
-          
         </select>
         <input type="number" id="codigo_prov" placeholder="Codigo interno del proveedor">
-        
+
         <button type="submit">Agregar</button>
       </section>
     </form>

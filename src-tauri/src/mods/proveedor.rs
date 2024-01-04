@@ -17,6 +17,15 @@ impl Proveedor {
             contacto,
         }
     }
+    pub fn get_nombre(&self)->&String{
+        &self.nombre
+    }
+    // pub fn get_id(&self)->&i64{
+    //     &self.id
+    // }
+    // pub fn get_contacto(&self)->&Option<i64>{
+    //     &self.contacto
+    // }
     pub async fn save(&self) -> Result<(), String> {
         let model = proveedor::ActiveModel {
             id: Set(self.id),
@@ -35,9 +44,7 @@ impl Proveedor {
             Err(e) => Err(e.to_string()),
         }
     }
-    pub fn get_nombre(&self)->String{
-        self.nombre.clone()
-    }
+
 }
 impl ToString for Proveedor {
     fn to_string(&self) -> String {
