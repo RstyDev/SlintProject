@@ -1,5 +1,8 @@
-use entity::venta;
-use sea_orm::{ActiveModelTrait, Database, Set};
+use entity::{
+    pago,
+    venta::{self},
+};
+use sea_orm::{Database, EntityTrait, Set};
 use serde::Serialize;
 
 use crate::redondeo;
@@ -165,14 +168,45 @@ impl<'a> Venta {
             monto_pagado: Set(self.monto_pagado),
             ..Default::default()
         };
+
         match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
             Ok(db) => {
+                let mut res = Ok(());
                 println!("conectado");
-                if let Err(e) = model.insert(&db).await {
-                    Err(e.to_string())
-                } else {
-                    Ok(())
+                match entity::venta::Entity::insert(model.clone()).exec(&db).await {
+                    Ok(result) => {
+                        match entity::venta::Entity::find_by_id(result.last_insert_id)
+                            .one(&db)
+                            .await
+                        {
+                            Ok(a) => {
+                                if let Some(model) = a {
+                                    let pay_models: Vec<pago::ActiveModel> = self
+                                        .pagos
+                                        .iter()
+                                        .map(|x| pago::ActiveModel {
+                                            medio_pago: Set(x.get_medio().clone()),
+                                            monto: Set(x.get_monto()),
+                                            venta: Set(model.clone().id),
+                                            ..Default::default()
+                                        })
+                                        .collect();
+
+                                    if let Err(e)= entity::pago::Entity::insert_many(pay_models)
+                                        .exec(&db)
+                                        .await
+                                    {
+                                        res= Err(e.to_string());
+                                    }
+                                }
+                            }
+                            Err(e) => res= Err(e.to_string()),
+                        }
+                    }
+                    Err(e) => res= Err(e.to_string()),
                 }
+
+                res
             }
             Err(e) => Err(e.to_string()),
         }

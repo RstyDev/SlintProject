@@ -3,6 +3,7 @@ use sea_orm::Condition;
 use sea_orm::QueryFilter;
 use sea_orm::{Database, DatabaseConnection, EntityTrait};
 use tauri::async_runtime;
+use tauri::async_runtime::block_on;
 
 
 use super::lib::get_updated_time_db;
@@ -181,7 +182,7 @@ impl<'a> Sistema {
         }
         if let Ok(a) = res {
             if a <= 0.0 {
-                self.cerrar_venta(pos);
+                self.cerrar_venta(pos)?
             }
         }
         res
@@ -500,18 +501,25 @@ impl<'a> Sistema {
         res.dedup();
         res
     }
-    fn cerrar_venta(&mut self, pos: usize) {
+    fn cerrar_venta(&mut self, pos: usize)->Result<(),String> {
         match pos {
             0 => {
+                if let Err(e)=block_on(self.ventas.0.save()){
+                    return Err(e.to_string());
+                }
                 self.registro.push(self.ventas.0.clone());
                 self.ventas.0 = Venta::new();
             }
             1 => {
+                if let Err(e)=block_on(self.ventas.1.save()){
+                    return Err(e.to_string());
+                }
                 self.registro.push(self.ventas.1.clone());
                 self.ventas.1 = Venta::new();
             }
             _ => panic!("error, solo hay 2 posiciones para ventas"),
         };
+        Ok(())
     }
     pub fn stash_sale(&mut self, pos: usize) {
         match pos {

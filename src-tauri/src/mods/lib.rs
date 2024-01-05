@@ -15,9 +15,7 @@ pub fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Res
 pub fn camalize(data: String)->String {
     let mut es = true;
     let mut datos=String::new();
-    println!("llegando");
     for i in 0..data.len() {
-        println!("llego");
         if es{
             if data.chars().nth(i)==None{
                 datos.push('Ñ');
