@@ -87,7 +87,7 @@ impl PartialEq for Valuable {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Valuable::Pes(a), Valuable::Pes(b)) => a.1.id == b.1.id,
-            (Valuable::Prod(a), Valuable::Prod(b)) => a.1.id == b.1.id,
+            (Valuable::Prod(a), Valuable::Prod(b)) => a.1.get_id() == b.1.get_id(),
             (Valuable::Rub(a), Valuable::Rub(b)) => a.1.id == b.1.id,
             (_, _) => false,
         }

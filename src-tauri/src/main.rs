@@ -55,34 +55,7 @@ fn agregar_producto(
 ) -> Result<String, String> {
     match sistema.lock() {
         Ok(mut sis) => {
-            for code in &codigos_de_barras {
-                if let Err(e) = code.parse::<u128>() {
-                    return Err(e.to_string());
-                }
-            }
-            let mut tipo = tipo_producto.to_owned();
-            let mut marca = marca.to_owned();
-            let mut var = variedad.to_owned();
-            tipo=camalize(tipo);
-            marca=camalize(marca);
-            var=camalize(var);
-            let tipo_producto=tipo.as_str();
-            let marca=marca.as_str();
-            let variedad=var.as_str();
-            let producto = Producto::new(
-                sis.get_productos().len() as i64,
-                codigos_de_barras,
-                precio_de_venta,
-                porcentaje,
-                precio_de_costo,
-                tipo_producto,
-                marca,
-                variedad,
-                cantidad,
-                presentacion,
-            );
-
-            sis.agregar_producto(proveedores, codigos_prov, producto.clone())?;
+            let producto=sis.agregar_producto(proveedores,codigos_prov,codigos_de_barras,precio_de_venta.to_string(),porcentaje.to_string(),precio_de_costo.to_string(),tipo_producto.to_string(),marca.to_string(),variedad.to_string(),cantidad.to_string(),presentacion.to_string())?;
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }

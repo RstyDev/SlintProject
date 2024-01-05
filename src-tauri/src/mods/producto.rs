@@ -2,12 +2,12 @@ use super::{valuable::Presentacion, valuable::ValuableTrait};
 use crate::redondeo;
 use chrono::Utc;
 use entity::{codigo_barras, producto};
-use sea_orm::{ActiveModelTrait, Database, Set};
+use sea_orm::{ActiveModelTrait, Database, Set, EntityTrait};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Producto {
-    pub id: i64,
+    id:i64,
     pub codigos_de_barras: Vec<i64>,
     pub precio_de_venta: f64,
     pub porcentaje: f64,
@@ -19,7 +19,28 @@ pub struct Producto {
 }
 
 impl Producto {
-    pub fn new(
+    pub fn new(id: i64,
+        codigos_de_barras: Vec<i64>,
+        precio_de_venta: f64,
+        porcentaje: f64,
+        precio_de_costo: f64,
+        tipo_producto: String,
+        marca: String,
+        variedad: String,
+        presentacion: Presentacion)->Producto{
+            Producto{
+                id,
+                codigos_de_barras,
+                precio_de_venta,
+                porcentaje,
+                precio_de_costo,
+                tipo_producto,
+                marca,
+                variedad,
+                presentacion,
+            }
+        }
+    pub fn new2(
         id: i64,
         codigos: Vec<&str>,
         precio_de_venta: &str,
@@ -56,6 +77,9 @@ impl Producto {
             presentacion: cant,
         }
     }
+    pub fn get_id(&self)->i64{
+        self.id
+    }
     pub fn get_nombre_completo(&self) -> String {
         format!(
             "{} {} {} {}",
@@ -68,7 +92,6 @@ impl Producto {
                 println!("Guardando producto en DB");
 
                 let model = producto::ActiveModel {
-                    id: Set(self.id),
                     precio_de_venta: Set(self.precio_de_venta),
                     porcentaje: Set(self.porcentaje),
                     precio_de_costo: Set(self.precio_de_costo),
@@ -77,18 +100,22 @@ impl Producto {
                     variedad: Set(self.variedad.clone()),
                     presentacion: Set(format!("{}", self.presentacion)),
                     updated_at: Set(Utc::now().naive_utc()),
+                    ..Default::default()
                 };
-                if let Err(e) = model.insert(&db).await {
-                    return Err(e.to_string());
-                }
-                for codigo in &self.codigos_de_barras {
-                    let cod_model = codigo_barras::ActiveModel {
-                        id: Set(*codigo),
-                        producto: Set(self.id),
-                    };
-                    if let Err(e) = cod_model.insert(&db).await {
-                        return Err(e.to_string());
+                match entity::producto::Entity::insert(model).exec(&db).await {
+                    Ok(res)=>{
+                        for codigo in &self.codigos_de_barras {
+                            let cod_model = codigo_barras::ActiveModel {
+                                id: Set(*codigo),
+                                producto: Set(res.last_insert_id),
+                            };
+                            if let Err(e) = cod_model.insert(&db).await {
+                                return Err(e.to_string());
+                            }
+                        }
+
                     }
+                    Err(e)=>return Err(e.to_string())
                 }
             }
             Err(e) => return Err(e.to_string()),
