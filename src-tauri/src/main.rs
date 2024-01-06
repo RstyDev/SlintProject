@@ -5,8 +5,8 @@ use mods::{
     valuable::Valuable, venta::Venta, lib::camalize,
 };
 
-use std::sync::Mutex;
-use tauri::State;
+use std::{sync::Mutex, error::Error};
+use tauri::{State, async_runtime::block_on};
 mod mods;
 
 #[tauri::command]
@@ -53,16 +53,19 @@ fn agregar_producto(
     cantidad: &str,
     presentacion: &str,
 ) -> Result<String, String> {
-    match sistema.lock() {
-        Ok(mut sis) => {
-            let producto=sis.agregar_producto(proveedores,codigos_prov,codigos_de_barras,precio_de_venta.to_string(),porcentaje.to_string(),precio_de_costo.to_string(),tipo_producto.to_string(),marca.to_string(),variedad.to_string(),cantidad.to_string(),presentacion.to_string())?;
-            if let Err(e) = window.close() {
-                return Err(e.to_string());
+    match sistema.lock(){
+        Ok(mut sis)=>{
+            let producto=match block_on(sis.agregar_producto(proveedores,codigos_prov,codigos_de_barras,precio_de_venta.to_string(),porcentaje.to_string(),precio_de_costo.to_string(),tipo_producto.to_string(),marca.to_string(),variedad.to_string(),cantidad.to_string(),presentacion)){
+                Ok(a)=>a,
+                Err(e)=>return Err(e.to_string())
+            };
+            if let Err(e)= window.close(){
+                return Err(e.to_string())
             }
             Ok(producto.get_nombre_completo())
         }
-        Err(a) => Err(a.to_string()),
-    }
+        Err(e)=>Err(e.to_string())
+    }  
 }
 
 #[tauri::command]

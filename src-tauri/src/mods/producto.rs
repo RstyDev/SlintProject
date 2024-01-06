@@ -106,8 +106,9 @@ impl Producto {
                     Ok(res)=>{
                         for codigo in &self.codigos_de_barras {
                             let cod_model = codigo_barras::ActiveModel {
-                                id: Set(*codigo),
+                                codigo: Set(*codigo),
                                 producto: Set(res.last_insert_id),
+                                ..Default::default()
                             };
                             if let Err(e) = cod_model.insert(&db).await {
                                 return Err(e.to_string());

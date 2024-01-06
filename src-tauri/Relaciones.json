@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "id_producto": 1461,
+    "id_proveedor": 0,
+    "codigo_interno": 96581
+  },
+  {
+    "id_producto": 1461,
+    "id_proveedor": 1,
+    "codigo_interno": 15151
+  },
+  {
+    "id_producto": 1462,
+    "id_proveedor": 0,
+    "codigo_interno": 9581
+  },
+  {
+    "id_producto": 1462,
+    "id_proveedor": 1,
+    "codigo_interno": 9555
+  }
+]
