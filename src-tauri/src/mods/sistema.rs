@@ -2,9 +2,9 @@ use std::error::Error;
 
 use chrono::Utc;
 use entity::codigo_barras;
-use entity::codigo_barras::ActiveModel;
 use entity::pesable;
 use entity::producto;
+use entity::proveedor;
 use entity::relacion_prod_prov;
 use entity::rubro;
 use sea_orm::ColumnTrait;
@@ -119,22 +119,24 @@ impl<'a> Sistema {
             stash,
             registro,
         };
-        for i in 0..sis.productos.len() {
-            // sis.productos[i].unifica_codes()
-        }
+        // for i in 0..sis.productos.len() {
+        // sis.productos[i].unifica_codes()
+        // }
         if let Err(e) =
             async_runtime::block_on(sis.update_data_valuable(&path_productos, productos2))
         {
             println!("{e}");
         }
 
+        if let Err(e) = async_runtime::block_on(sis.cargar_todos_los_provs()) {
+            println!("{e}");
+        }
         if let Err(e) = async_runtime::block_on(sis.cargar_todos_los_valuables()) {
             println!("{e}");
         }
-
-        // if let Err(e) = async_runtime::block_on(sis.cargar_todos_los_provs()) {
-        //     println!("{e}");
-        // }
+        if let Err(e) = async_runtime::block_on(sis.cargar_todas_las_relaciones_prod_prov()) {
+            println!("{e}");
+        }
         sis
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
@@ -271,7 +273,7 @@ impl<'a> Sistema {
         let res_prod = entity::producto::Entity::insert(prod_model)
             .exec(&db)
             .await?;
-        let codigos_model: Vec<ActiveModel> = codigos_de_barras
+        let codigos_model: Vec<codigo_barras::ActiveModel> = codigos_de_barras
             .iter()
             .map(|x| codigo_barras::ActiveModel {
                 codigo: Set(*x),
@@ -418,7 +420,7 @@ impl<'a> Sistema {
                 };
                 prov = Proveedor::new(
                     self.proveedores.len() as i64 + 1,
-                    proveedor.to_owned(),
+                    camalize(proveedor.to_owned()),
                     contacto,
                 );
             } else {
@@ -677,7 +679,7 @@ impl<'a> Sistema {
                     let res_prod = entity::producto::Entity::insert(prod_model)
                         .exec(&db)
                         .await?;
-                    let codigos_model: Vec<ActiveModel> =
+                    let codigos_model: Vec<codigo_barras::ActiveModel> =
                         a.1.codigos_de_barras
                             .iter()
                             .map(|x| codigo_barras::ActiveModel {
@@ -731,7 +733,7 @@ impl<'a> Sistema {
                     _ => None,
                 })
                 .collect();
-            if pesables.len() > 1 {                
+            if pesables.len() > 1 {
                 entity::pesable::Entity::insert_many(pesables)
                     .exec(&db)
                     .await?;
@@ -740,10 +742,8 @@ impl<'a> Sistema {
                     .exec(&db)
                     .await?;
             }
-            if rubros.len() > 1 {                
-                entity::rubro::Entity::insert_many(rubros)
-                    .exec(&db)
-                    .await?;
+            if rubros.len() > 1 {
+                entity::rubro::Entity::insert_many(rubros).exec(&db).await?;
             } else if rubros.len() == 1 {
                 entity::rubro::Entity::insert(rubros[0].to_owned())
                     .exec(&db)
@@ -751,6 +751,30 @@ impl<'a> Sistema {
             }
         }
 
+        Ok(())
+    }
+    async fn cargar_todas_las_relaciones_prod_prov(&self) -> Result<(), Box<dyn Error>> {
+        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        let mut relaciones_model = Vec::new();
+        for x in &self.relaciones {
+            let a = entity::producto::Entity::find_by_id(x.get_id_producto())
+                .one(&db)
+                .await?
+                .is_some();
+            let b = entity::proveedor::Entity::find_by_id(x.get_id_proveedor())
+                .one(&db)
+                .await?
+                .is_some();
+            if a && b {
+                relaciones_model.push(entity::relacion_prod_prov::ActiveModel {
+                    producto: Set(x.get_id_producto()),
+                    proveedor: Set(x.get_id_proveedor()),
+                    codigo: Set(x.get_codigo_interno()),
+                    ..Default::default()
+                })
+            }
+        }
+        entity::relacion_prod_prov::Entity::insert_many(relaciones_model).exec(&db).await?;
         Ok(())
     }
     pub async fn update_data_valuable(
@@ -848,31 +872,34 @@ impl<'a> Sistema {
             Err(e) => Err(e.to_string()),
         }
     }
-    // async fn cargar_todos_los_provs(&self)->Result<(),String>{
-    //     let res;
-    //     match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await{
-    //         Ok(db)=>{
-    //             let provs:Vec<ActiveModel>=self.proveedores.iter().map(|x|{
-    //                 let contacto=match x.get_contacto(){
-    //                     Some(a)=>Some(*a),
-    //                     None=>None,
-    //                 };
-    //                 ActiveModel{
-    //                     id: Set(*x.get_id()),
-    //                     nombre: Set(x.get_nombre().clone()),
-    //                     contacto: Set(contacto),
-    //                 }
-    //             }).collect();
-    //             match entity::proveedor::Entity::insert_many(provs).exec(&db).await{
-    //                 Ok(_)=>res=Ok(()),
-    //                 Err(e)=>res=Err(e.to_string()),
-    //             }
-
-    //         }
-    //         Err(e)=>res=Err(e.to_string()),
-    //     }
-    //     res
-    // }
+    async fn cargar_todos_los_provs(&self) -> Result<(), String> {
+        let res;
+        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
+            Ok(db) => {
+                let provs: Vec<proveedor::ActiveModel> = self
+                    .proveedores
+                    .iter()
+                    .map(|x| {
+                        let contacto = match x.get_contacto() {
+                            Some(a) => Some(*a),
+                            None => None,
+                        };
+                        proveedor::ActiveModel {
+                            id: Set(*x.get_id()),
+                            nombre: Set(x.get_nombre().clone()),
+                            contacto: Set(contacto),
+                        }
+                    })
+                    .collect();
+                match proveedor::Entity::insert_many(provs).exec(&db).await {
+                    Ok(_) => res = Ok(()),
+                    Err(e) => res = Err(e.to_string()),
+                }
+            }
+            Err(e) => res = Err(e.to_string()),
+        }
+        res
+    }
 }
 
 fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Result<Producto, String> {

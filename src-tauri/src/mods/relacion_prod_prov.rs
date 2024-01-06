@@ -17,6 +17,15 @@ impl RelacionProdProv {
             codigo_interno,
         }
     }
+    pub fn get_id_producto(&self)->i64{
+        self.id_producto
+    }
+    pub fn get_id_proveedor(&self)->i64{
+        self.id_proveedor
+    }
+    pub fn get_codigo_interno(&self)->Option<i64>{
+        self.codigo_interno
+    }
     pub async fn save(&self) -> Result<(), String> {
         let model = relacion_prod_prov::ActiveModel {
             producto: Set(self.id_producto),
