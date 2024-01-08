@@ -51,11 +51,8 @@ impl std::error::Error for ProductNotFoundError {}
 
 use chrono::Utc;
 use entity::codigo_barras;
-use entity::pesable;
-use entity::producto;
-use entity::proveedor;
-use entity::relacion_prod_prov;
-use entity::rubro;
+use entity::*;
+use sea_orm::prelude::DateTimeUtc;
 use sea_orm::ColumnTrait;
 use sea_orm::Condition;
 use sea_orm::QueryFilter;
@@ -761,11 +758,9 @@ impl<'a> Sistema {
     }
     pub async fn update_data_valuable(&mut self) -> Result<()> {
         let mut prods: Vec<Valuable>;
-        
+
         let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-        let updated_prods = self
-            .update_productos_from_db(&db)
-            .await?;
+        let updated_prods = self.update_productos_from_db(&db).await?;
         prods = updated_prods
             .iter()
             .map(|x| Valuable::Prod((0, x.clone())))
@@ -793,40 +788,104 @@ impl<'a> Sistema {
 
         Ok(())
     }
-    pub async fn update_productos_from_db(
-        &self,
-        db: &DatabaseConnection,
-        
-    ) -> Result<Vec<Producto>> {
-        let a = entity::producto::Entity::find().all(db).await?;
-        let productos = self
-            .productos
-            .iter()
-            .filter_map(|x| match x {
-                Valuable::Prod(a) => Some(a.1.clone()),
-                _ => None,
-            })
-            .collect();
-        let mut res = Vec::new();
-        for i in 0..a.len() {
-            let b = self.get_codigos_db_filtrado(db, a[i].id).await?;
-            res.push(map_model_prod(&a[i], b)?);
+    pub async fn update_productos_from_db(&self, db: &DatabaseConnection) -> Result<Vec<Producto>> {
+        let mut res;
+        let prods_db_model = entity::producto::Entity::find().all(db).await?;
+        let date_local = get_updated_time_file(&self.path_productos)?;
+        let mut date_db = DateTimeUtc::MIN_UTC;
+        if prods_db_model.len() > 0 {
+            date_db = get_updated_time_db_producto(prods_db_model.clone()).await;
         }
-        let date = get_updated_time_file(&self.path_productos)?;
-        let model_vec = get_updated_time_db_producto(a).await;
-        if date > model_vec {
+        if date_local > date_db {
             println!("Ultimo actualizado: productos de archivo");
-            res = productos;
+            let productos_db = self
+                .productos
+                .iter()
+                .filter_map(|x| match x {
+                    Valuable::Prod(a) => Some(a.1.clone()),
+                    _ => None,
+                })
+                .collect();
+            res = productos_db;
         } else {
+            res = Vec::new();
             println!("Ultimo actualizado: productos de bases de datos");
+            for i in 0..prods_db_model.len() {
+                let b = self
+                    .get_codigos_db_filtrado(db, prods_db_model[i].id)
+                    .await?;
+                res.push(map_model_prod(&prods_db_model[i], b)?);
+            }
         }
-
         Ok(res)
     }
-    pub async fn update_pesables_from_db(&self, db: &DatabaseConnection) -> Result<Vec<Pesable>> {
-        let pesables_db = entity::pesable::Entity::find().all(db).await?;
-        let date_db=get_updated_time_db_pesable(pesables_db.clone()).await;
-        Ok(pesables_db.iter().map(|x| map_model_pes(x.clone())).collect())
+    pub async fn update_pesables_from_db(
+        &self,
+        db: &DatabaseConnection,
+    ) -> Result<Vec<super::pesable::Pesable>> {
+        let mut res;
+        let pesables_db_model = entity::pesable::Entity::find().all(db).await?;
+        let mut date_db = DateTimeUtc::MIN_UTC;
+        if pesables_db_model.len() > 0 {
+            date_db = get_updated_time_db_pesable(pesables_db_model.clone()).await;
+        }
+        let date_local = get_updated_time_file(&self.path_pesables)?;
+        if date_db < date_local {
+            let pesables_db: Vec<Pesable> = self
+                .productos
+                .iter()
+                .filter_map(|x| match x {
+                    Valuable::Pes(a) => Some(a.1.clone()),
+                    _ => None,
+                })
+                .collect();
+            res = pesables_db
+        } else {
+            res = Vec::new();
+            for i in 0..pesables_db_model.len() {
+                res.push(Pesable {
+                    id: pesables_db_model[i].id,
+                    codigo: pesables_db_model[i].codigo,
+                    precio_peso: pesables_db_model[i].precio_peso,
+                    porcentaje: pesables_db_model[i].porcentaje,
+                    costo_kilo: pesables_db_model[i].costo_kilo,
+                    descripcion: pesables_db_model[i].descripcion.clone(),
+                });
+            }
+        }
+        Ok(res)
+    }
+    pub async fn update_rubros_from_db(
+        &self,
+        db: &DatabaseConnection,
+    ) -> Result<Vec<super::rubro::Rubro>> {
+        let mut res = Vec::new();
+        let rubros_db_model = entity::rubro::Entity::find().all(db).await?;
+        let mut date_db = DateTimeUtc::MIN_UTC;
+        if rubros_db_model.len() > 0 {
+            date_db = get_updated_time_db_rubro(rubros_db_model.clone()).await;
+        }
+        let date_local = get_updated_time_file(&self.path_rubros)?;
+        if date_db < date_local {
+            let rubros_db: Vec<Rubro> = self
+                .productos
+                .iter()
+                .filter_map(|x| match x {
+                    Valuable::Rub(a) => Some(a.1.clone()),
+                    _ => None,
+                })
+                .collect();
+            res = rubros_db
+        } else {
+            for i in 0..rubros_db_model.len() {
+                res.push(Rubro {
+                    id: rubros_db_model[i].id,
+                    monto: rubros_db_model[i].monto,
+                    descripcion: rubros_db_model[i].descripcion.clone(),
+                });
+            }
+        }
+        Ok(res)
     }
     pub async fn update_rubro_from_db(&self, db: &DatabaseConnection) -> Result<Vec<Rubro>> {
         let a = entity::rubro::Entity::find().all(db).await?;
@@ -885,9 +944,9 @@ fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Result<Prod
         prod.precio_de_venta,
         prod.porcentaje,
         prod.precio_de_costo,
-        prod.tipo_producto,
-        prod.marca,
-        prod.variedad,
+        prod.tipo_producto.clone(),
+        prod.marca.clone(),
+        prod.variedad.clone(),
         presentacion,
     ))
 }

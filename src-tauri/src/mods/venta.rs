@@ -1,6 +1,6 @@
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
-use std::{error::Error};
+use std::error::Error;
 
 use entity::{
     pago,
@@ -33,7 +33,7 @@ impl<'a> Venta {
     pub fn get_monto_total(&self) -> f64 {
         self.monto_total
     }
-    pub fn get_productos(&self)->Vec<Valuable>{
+    pub fn get_productos(&self) -> Vec<Valuable> {
         self.productos.clone()
     }
     // pub fn get_pagos(&self)->Vec<Pago>{
@@ -43,7 +43,7 @@ impl<'a> Venta {
         self.monto_pagado
     }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> f64 {
-        self.pagos.push(Pago::new(medio_pago, monto));
+        self.pagos.push(Pago::new(medio_pago.to_string(), monto));
         self.monto_pagado += monto;
         self.monto_total - self.monto_pagado
     }

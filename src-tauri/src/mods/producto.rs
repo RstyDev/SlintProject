@@ -40,47 +40,10 @@ impl Producto {
             precio_de_venta,
             porcentaje,
             precio_de_costo,
-            tipo_producto:tipo_producto,
-            marca:marca,
-            variedad:variedad,
+            tipo_producto: tipo_producto,
+            marca: marca,
+            variedad: variedad,
             presentacion,
-        }
-    }
-    pub fn new2(
-        id: i64,
-        codigos: Vec<&str>,
-        precio_de_venta: &str,
-        porcentaje: &str,
-        precio_de_costo: &str,
-        tipo_producto: &str,
-        marca: &str,
-        variedad: &str,
-        cantidad: &str,
-        presentacion: &str,
-    ) -> Producto {
-        let cant = match presentacion {
-            "Gr" => Presentacion::Gr(cantidad.parse().unwrap()),
-            "Un" => Presentacion::Un(cantidad.parse().unwrap()),
-            "Lt" => Presentacion::Lt(cantidad.parse().unwrap()),
-            "Ml" => Presentacion::Ml(cantidad.parse().unwrap()),
-            "CC" => Presentacion::CC(cantidad.parse().unwrap()),
-            "Kg" => Presentacion::Kg(cantidad.parse().unwrap()),
-            _ => panic!("no posible {presentacion}"),
-        };
-        let codigos = codigos
-            .iter()
-            .map(|code| -> i64 { code.parse().unwrap() })
-            .collect();
-        Producto {
-            id,
-            codigos_de_barras: codigos,
-            precio_de_venta: precio_de_venta.parse().unwrap(),
-            porcentaje: porcentaje.parse().unwrap(),
-            precio_de_costo: precio_de_costo.parse().unwrap(),
-            tipo_producto: tipo_producto.to_string(),
-            marca: marca.to_string(),
-            variedad: variedad.to_string(),
-            presentacion: cant,
         }
     }
     pub fn get_id(&self) -> i64 {

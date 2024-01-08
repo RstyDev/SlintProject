@@ -97,7 +97,7 @@ fn agregar_pesable(
     match sistema.lock() {
         Ok(mut sis) => {
             let pesable =
-                Pesable::new(id, codigo, precio_peso, porcentaje, costo_kilo, descripcion);
+                Pesable::new(id, codigo, precio_peso, porcentaje, costo_kilo, descripcion.to_string());
 
             if let Err(e)=sis.agregar_pesable(pesable.clone()){
                 return Err(e.to_string())
@@ -120,7 +120,7 @@ fn agregar_rubro(
 ) -> Result<String> {
     match sistema.lock() {
         Ok(mut sis) => {
-            let rubro = Rubro::new(id, monto, descripcion);
+            let rubro = Rubro::new(id, monto, descripcion.to_string());
             if let Err(e)=sis.agregar_rubro(rubro.clone()){
                 return Err(e.to_string())
             }
