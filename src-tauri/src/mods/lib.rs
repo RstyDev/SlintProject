@@ -176,7 +176,7 @@ pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Result
         .filter(Condition::all().add(entity::codigo_barras::Column::Producto.eq(id)))
         .all(db)
         .await?;
-    Ok(a.iter().map(|x| x.id).collect())
+    Ok(a.iter().map(|x| x.codigo).collect())
 }
 
 pub async fn update_data_valuable(
@@ -186,41 +186,51 @@ pub async fn update_data_valuable(
     path_rubros: &str,
     path_pesables: &str,
     path_productos: &str,
-) -> Result<Vec<Valuable>> {
+) -> Result<bool> {
     let mut prods: Vec<Valuable>;
+    let mut hay_cambios_desde_db=false;
 
     let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-    update_productos_from_db(productos_local, path_productos, &db).await?;
+    let aux=update_productos_from_db(productos_local, path_productos, &db).await?;
     prods = productos_local
         .iter()
         .map(|x| Valuable::Prod((0, x.clone())))
         .collect();
-
-    update_pesables_from_db(pesables_local, path_pesables, &db).await?;
+    if !hay_cambios_desde_db{
+        hay_cambios_desde_db=aux;
+    }
+    let aux=update_pesables_from_db(pesables_local, path_pesables, &db).await?;
     prods.append(
         &mut pesables_local
             .iter()
             .map(|x| Valuable::Pes((0.0, x.clone())))
             .collect(),
     );
-    update_rubros_from_db(rubros_local, path_rubros, &db).await?;
+    if !hay_cambios_desde_db{
+        hay_cambios_desde_db=aux;
+    }
+    let aux=update_rubros_from_db(rubros_local, path_rubros, &db).await?;
     prods.append(
         &mut rubros_local
             .iter()
             .map(|x| Valuable::Rub((0, x.clone())))
             .collect(),
     );
+    if !hay_cambios_desde_db{
+        hay_cambios_desde_db=aux;
+    }
 
     println!("Cantidad de propductos: {}", prods.len());
 
-    Ok(prods)
+    Ok(hay_cambios_desde_db)
 }
 
 pub async fn update_rubros_from_db(
     rubros_local: &mut Vec<Rubro>,
     path_rubros: &str,
     db: &DatabaseConnection,
-) -> Result<()> {
+) -> Result<bool> {
+    let mut hay_cambios_desde_db=false;
     let rubros_db_model = entity::rubro::Entity::find().all(db).await?;
     let mut date_db = DateTimeUtc::MIN_UTC;
     if rubros_db_model.len() > 0 {
@@ -233,18 +243,20 @@ pub async fn update_rubros_from_db(
         for i in 0..rubros_db_model.len() {
             rubros_local.push(map_model_rub(&rubros_db_model[i]));
         }
+        hay_cambios_desde_db=true;
     } else if date_db == date_local {
         println!("Rubros sincronizados")
     } else {
         println!("Ultimo actualizado: rubros local");
     }
-    Ok(())
+    Ok(hay_cambios_desde_db)
 }
 pub async fn update_pesables_from_db(
     pesables_local: &mut Vec<Pesable>,
     path_pesables: &str,
     db: &DatabaseConnection,
-) -> Result<()> {
+) -> Result<bool> {
+    let mut hay_cambios_desde_db=false;
     let pesables_db_model = entity::pesable::Entity::find().all(db).await?;
     let mut date_db = DateTimeUtc::MIN_UTC;
     if pesables_db_model.len() > 0 {
@@ -257,18 +269,20 @@ pub async fn update_pesables_from_db(
         for i in 0..pesables_db_model.len() {
             pesables_local.push(map_model_pes(&pesables_db_model[i]));
         }
+        hay_cambios_desde_db=true;
     } else if date_db == date_local {
         println!("Pesables sincronizados")
     } else {
         println!("Ultimo actualizado: pesables local");
     }
-    Ok(())
+    Ok(hay_cambios_desde_db)
 }
 pub async fn update_productos_from_db(
     productos_local: &mut Vec<Producto>,
     path_productos: &str,
     db: &DatabaseConnection,
-) -> Result<()> {
+) -> Result<bool> {
+    let mut hay_cambios_desde_db=false;
     let prods_db_model = entity::producto::Entity::find().all(db).await?;
     let date_local = get_updated_time_file(path_productos)?;
     let mut date_db = DateTimeUtc::MIN_UTC;
@@ -282,12 +296,13 @@ pub async fn update_productos_from_db(
             let b = get_codigos_db_filtrado(db, prods_db_model[i].id).await?;
             productos_local.push(map_model_prod(&prods_db_model[i], b)?);
         }
+        hay_cambios_desde_db=true;
     } else if date_db == date_local {
         println!("Productos sincronizados")
     } else {
         println!("Ultimo actualizado: productos local");
     }
-    Ok(())
+    Ok(hay_cambios_desde_db)
 }
 
 fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Result<Producto> {

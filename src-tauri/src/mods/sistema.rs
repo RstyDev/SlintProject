@@ -51,16 +51,18 @@ impl std::error::Error for ProductNotFoundError {}
 
 use chrono::Utc;
 use entity::codigo_barras;
+use entity::producto::ActiveModel;
 use entity::*;
+use sea_orm::prelude::DateTimeUtc;
+use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
 use sea_orm::Condition;
 use sea_orm::QueryFilter;
+use sea_orm::Related;
 use sea_orm::Set;
 use sea_orm::{Database, DatabaseConnection, EntityTrait};
 use tauri::async_runtime;
 use tauri::async_runtime::block_on;
-
-
 
 use super::lib::camalize;
 
@@ -109,7 +111,7 @@ impl<'a> Sistema {
         leer_file(&mut rubros, path_rubros)?;
         leer_file(&mut pesables, path_pesables)?;
         leer_file(&mut productos, path_productos)?;
-        async_runtime::block_on(update_data_valuable(
+        let hay_cambios_desde_db = async_runtime::block_on(update_data_valuable(
             &mut rubros,
             &mut pesables,
             &mut productos,
@@ -118,11 +120,11 @@ impl<'a> Sistema {
             path_productos,
         ))?;
 
-        let mut rubros2: Vec<Valuable> = rubros
+        let mut rubros_valuable: Vec<Valuable> = rubros
             .iter()
             .map(|a| Valuable::Rub((0, a.to_owned())))
             .collect();
-        let mut pesables2: Vec<Valuable> = pesables
+        let mut pesables_valuable: Vec<Valuable> = pesables
             .iter()
             .map(|a| Valuable::Pes((0.0, a.to_owned())))
             .collect();
@@ -131,8 +133,8 @@ impl<'a> Sistema {
             .iter()
             .map(|a| Valuable::Prod((0, a.to_owned())))
             .collect();
-        valuables.append(&mut pesables2);
-        valuables.append(&mut rubros2);
+        valuables.append(&mut pesables_valuable);
+        valuables.append(&mut rubros_valuable);
 
         let mut proveedores: Vec<Proveedor> = Vec::new();
         leer_file(&mut proveedores, path_proveedores)?;
@@ -163,8 +165,13 @@ impl<'a> Sistema {
         // for i in 0..sis.productos.len() {
         // sis.productos[i].unifica_codes()
         // }
+        async_runtime::block_on(sis.cargar_todos_los_valuables())?;
+        if hay_cambios_desde_db {
+            crear_file(path_pesables, &pesables)?;
+            crear_file(path_productos, &productos)?;
+            crear_file(path_rubros, &rubros)?;
+        }
         // async_runtime::block_on(sis.cargar_todos_los_provs())?;
-        // async_runtime::block_on(sis.cargar_todos_los_valuables())?;
         // async_runtime::block_on(sis.cargar_todas_las_relaciones_prod_prov())?;
         Ok(sis)
     }
@@ -649,37 +656,88 @@ impl<'a> Sistema {
         for producto in &self.productos {
             match producto {
                 Valuable::Prod(a) => {
-                    let prod_model = producto::ActiveModel {
-                        precio_de_venta: Set(a.1.precio_de_venta),
-                        porcentaje: Set(a.1.porcentaje),
-                        precio_de_costo: Set(a.1.precio_de_costo),
-                        tipo_producto: Set(a.1.tipo_producto.clone()),
-                        marca: Set(a.1.marca.clone()),
-                        variedad: Set(a.1.variedad.clone()),
-                        presentacion: Set(a.1.presentacion.to_string()),
-                        updated_at: Set(Utc::now().naive_utc()),
-                        ..Default::default()
-                    };
-                    let res_prod = entity::producto::Entity::insert(prod_model)
-                        .exec(db)
+                    let encontrado = entity::producto::Entity::find_by_id(a.1.get_id())
+                        .one(db)
                         .await?;
-                    let codigos_model: Vec<codigo_barras::ActiveModel> =
-                        a.1.codigos_de_barras
-                            .iter()
-                            .map(|x| codigo_barras::ActiveModel {
-                                codigo: Set(*x),
-                                producto: Set(res_prod.last_insert_id),
+                    let mut model: ActiveModel;
+                    let codigo_prod: i64;
+                    match encontrado {
+                        Some(m) => {
+                            model = m.into();
+                            model.marca = Set(a.1.marca.clone());
+                            model.porcentaje = Set(a.1.porcentaje);
+                            model.precio_de_costo = Set(a.1.precio_de_costo);
+                            model.precio_de_venta = Set(a.1.precio_de_venta);
+                            model.presentacion = Set(a.1.presentacion.to_string());
+                            model.tipo_producto = Set(a.1.tipo_producto.clone());
+                            model.updated_at = Set(Utc::now().naive_utc());
+                            model.variedad = Set(a.1.variedad.clone());
+                            codigo_prod = model.id.clone().unwrap();
+                            model.update(db).await?;
+                        }
+                        None => {
+                            model = producto::ActiveModel {
+                                precio_de_venta: Set(a.1.precio_de_venta),
+                                porcentaje: Set(a.1.porcentaje),
+                                precio_de_costo: Set(a.1.precio_de_costo),
+                                tipo_producto: Set(a.1.tipo_producto.clone()),
+                                marca: Set(a.1.marca.clone()),
+                                variedad: Set(a.1.variedad.clone()),
+                                presentacion: Set(a.1.presentacion.to_string()),
+                                updated_at: Set(Utc::now().naive_utc()),
                                 ..Default::default()
-                            })
-                            .collect();
-                    if codigos_model.len() > 1 {
-                        entity::codigo_barras::Entity::insert_many(codigos_model)
+                            };
+
+                            codigo_prod = entity::producto::Entity::insert(model)
+                                .exec(db)
+                                .await?
+                                .last_insert_id;
+                        }
+                    }
+                    let db_codes = entity::codigo_barras::Entity::find()
+                        .filter(
+                            Condition::all()
+                                .add(entity::codigo_barras::Column::Producto.eq(codigo_prod)),
+                        )
+                        .all(db)
+                        .await?;
+                    if db_codes.len() == a.1.codigos_de_barras.len() {
+                        for i in 0..db_codes.len() {
+                            entity::codigo_barras::ActiveModel {
+                                id: Set(db_codes[i].id),
+                                codigo: Set(a.1.codigos_de_barras[i]),
+                                producto: Set(db_codes[i].producto),
+                            }
+                            .update(db)
+                            .await?;
+                        }
+                    } else {
+                        entity::codigo_barras::Entity::delete_many()
+                            .filter(
+                                Condition::all()
+                                    .add(entity::codigo_barras::Column::Producto.eq(codigo_prod)),
+                            )
                             .exec(db)
                             .await?;
-                    } else if codigos_model.len() == 1 {
-                        entity::codigo_barras::Entity::insert(codigos_model[0].to_owned())
-                            .exec(db)
-                            .await?;
+                        let codigos_model: Vec<codigo_barras::ActiveModel> =
+                            a.1.codigos_de_barras
+                                .iter()
+                                .map(|x| codigo_barras::ActiveModel {
+                                    codigo: Set(*x),
+                                    producto: Set(codigo_prod),
+                                    ..Default::default()
+                                })
+                                .collect();
+
+                        if codigos_model.len() > 1 {
+                            entity::codigo_barras::Entity::insert_many(codigos_model)
+                                .exec(db)
+                                .await?;
+                        } else if codigos_model.len() == 1 {
+                            entity::codigo_barras::Entity::insert(codigos_model[0].to_owned())
+                                .exec(db)
+                                .await?;
+                        }
                     }
                 }
                 _ => (),
@@ -688,51 +746,47 @@ impl<'a> Sistema {
         Ok(())
     }
     async fn cargar_todos_los_pesables(&self, db: &DatabaseConnection) -> Result<()> {
-        let pesables: Vec<pesable::ActiveModel> = self
-            .productos
-            .iter()
-            .filter_map(|x| match x {
-                Valuable::Pes(a) => Some(pesable::ActiveModel {
-                    codigo: Set(a.1.codigo),
-                    precio_peso: Set(a.1.precio_peso),
-                    porcentaje: Set(a.1.porcentaje),
-                    costo_kilo: Set(a.1.costo_kilo),
-                    descripcion: Set(a.1.descripcion.clone()),
-                    ..Default::default()
-                }),
-                _ => None,
-            })
-            .collect();
-        if pesables.len() > 1 {
-            entity::pesable::Entity::insert_many(pesables)
-                .exec(db)
-                .await?;
-        } else if pesables.len() == 1 {
-            entity::pesable::Entity::insert(pesables[0].to_owned())
-                .exec(db)
-                .await?;
+        for i in &self.productos {
+            match i {
+                Valuable::Pes(a) => {
+                    let model = pesable::ActiveModel {
+                        codigo: Set(a.1.codigo),
+                        precio_peso: Set(a.1.precio_peso),
+                        porcentaje: Set(a.1.porcentaje),
+                        costo_kilo: Set(a.1.costo_kilo),
+                        descripcion: Set(a.1.descripcion.clone()),
+                        updated_at: Set(Utc::now().naive_utc()),
+                        id: Set(a.1.id),
+                    };
+                    if entity::pesable::Entity::find_by_id(a.1.id).one(db).await?.is_some(){
+                        model.update(db).await?;
+                    }else{
+                        model.insert(db).await?;
+                    }
+                }
+                _ => (),
+            }
         }
         Ok(())
     }
     async fn cargar_todos_los_rubros(&self, db: &DatabaseConnection) -> Result<()> {
-        let rubros: Vec<rubro::ActiveModel> = self
-            .productos
-            .iter()
-            .filter_map(|x| match x {
-                Valuable::Rub(a) => Some(rubro::ActiveModel {
-                    monto: Set(a.1.monto),
-                    descripcion: Set(a.1.descripcion.clone()),
-                    ..Default::default()
-                }),
-                _ => None,
-            })
-            .collect();
-        if rubros.len() > 1 {
-            entity::rubro::Entity::insert_many(rubros).exec(db).await?;
-        } else if rubros.len() == 1 {
-            entity::rubro::Entity::insert(rubros[0].to_owned())
-                .exec(db)
-                .await?;
+        for i in &self.productos{
+            match i{
+                Valuable::Rub(a)=>{
+                    let model=entity::rubro::ActiveModel{
+                        id: Set(a.1.id),
+                        monto: Set(a.1.monto),
+                        descripcion: Set(a.1.descripcion.clone()),
+                        updated_at: Set(Utc::now().naive_utc()),
+                    };
+                    if entity::rubro::Entity::find_by_id(a.1.id).one(db).await?.is_some(){
+                        model.update(db).await?;
+                    }else{
+                        model.insert(db).await?;
+                    }
+                }
+                _=>(),
+            }
         }
         Ok(())
     }
