@@ -1,6 +1,10 @@
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
+
+use std::error::Error;
+
 use entity::proveedor;
-use sea_orm::{Set, Database, ActiveModelTrait};
-use serde::{Serialize, Deserialize};
+use sea_orm::{ActiveModelTrait, Database, Set};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
@@ -17,34 +21,26 @@ impl Proveedor {
             contacto,
         }
     }
-    pub fn get_nombre(&self)->&String{
+    pub fn get_nombre(&self) -> &String {
         &self.nombre
     }
-    pub fn get_id(&self)->&i64{
+    pub fn get_id(&self) -> &i64 {
         &self.id
     }
-    pub fn get_contacto(&self)->&Option<i64>{
+    pub fn get_contacto(&self) -> &Option<i64> {
         &self.contacto
     }
-    pub async fn save(&self) -> Result<(), String> {
+    pub async fn save(&self) -> Result<()> {
         let model = proveedor::ActiveModel {
             id: Set(self.id),
             nombre: Set(self.nombre.clone()),
             contacto: Set(self.contacto),
         };
-        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-            Ok(db) => {
-                println!("conectado");
-                if let Err(e) = model.insert(&db).await {
-                    Err(e.to_string())
-                } else {
-                    Ok(())
-                }
-            }
-            Err(e) => Err(e.to_string()),
-        }
+        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        println!("conectado");
+        model.insert(&db).await?;
+        Ok(())
     }
-
 }
 impl ToString for Proveedor {
     fn to_string(&self) -> String {

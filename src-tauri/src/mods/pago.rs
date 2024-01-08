@@ -1,3 +1,8 @@
+
+// use std::error::Error;
+// use entity::pago;
+// use sea_orm::{Database, Set, ActiveModelTrait};
+// type Result<T>=std::result::Result<T,Box<dyn Error>>;
 use serde::Serialize;
 
 #[derive(Debug, Clone, Default, Serialize)]
@@ -15,22 +20,15 @@ impl Pago {
     pub fn get_monto(&self)->f64{
         self.monto
     }
-    // pub async fn save(&self) -> Result<(), String> {
-    //     match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-    //         Ok(db) => {
-    //             println!("conectado");
-    //             let model = pago::ActiveModel {
-    //                 medio_pago: Set(self.medio_pago.clone()),
-    //                 monto: Set(self.monto),
-    //                     ..Default::default()
-    //             };
-    //             if let Err(e) = model.insert(&db).await {
-    //                 return Err(e.to_string());
-    //             }
-    //         }
-    //         Err(e) => return Err(e.to_string()),
-    //     }
-
+    // pub async fn save(&self) -> Result<()> {
+    //     let db= Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;     
+    //     println!("conectado");
+    //     let model = pago::ActiveModel {
+    //         medio_pago: Set(self.medio_pago.clone()),
+    //         monto: Set(self.monto),
+    //             ..Default::default()
+    //     };
+    //     model.insert(&db).await?;
     //     Ok(())
     // }
 }

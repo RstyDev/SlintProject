@@ -1,42 +1,72 @@
 use entity::producto::Model;
-
+use core::fmt;
 use sea_orm::prelude::DateTimeUtc;
 use serde::{de::DeserializeOwned, Serialize};
 use std::fs::{self, File};
 use std::io::{Read, Write};
 
-pub fn crear_file<'a>(path: &String, escritura: &impl Serialize) -> std::io::Result<()> {
+type Result<T>=std::result::Result<T,Box<dyn Error>>;
+use std::error::Error;
+#[derive(Debug)]
+pub struct DateFormatError;
+impl fmt::Display for DateFormatError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "No se pudo formatear de Systemtime a DatetimeUTC")
+    }
+}
+impl std::error::Error for DateFormatError {}
+
+
+pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
     let buf = serde_json::to_string_pretty(escritura)?;
     write!(f, "{}", format!("{}", buf))?;
     Ok(())
 }
 
-pub fn camalize(data: String)->String {
+pub fn camalize(data: &str) -> String {
     let mut es = true;
-    let mut datos=String::new();
+    let mut datos = String::new();
     for i in 0..data.len() {
-        if es{
-            if data.chars().nth(i)==None{
+        if es {
+            if data.chars().nth(i) == None {
                 datos.push('Ñ');
-            }else{
-                datos.push(data.chars().nth(i).unwrap().to_uppercase().to_string().chars().last().unwrap())
+            } else {
+                datos.push(
+                    data.chars()
+                        .nth(i)
+                        .unwrap()
+                        .to_uppercase()
+                        .to_string()
+                        .chars()
+                        .last()
+                        .unwrap(),
+                )
             }
-        }else{
-            if data.chars().nth(i)==None{
+        } else {
+            if data.chars().nth(i) == None {
                 datos.push('ñ');
-            }else{
-                datos.push(data.chars().nth(i).unwrap().to_lowercase().to_string().chars().last().unwrap())
+            } else {
+                datos.push(
+                    data.chars()
+                        .nth(i)
+                        .unwrap()
+                        .to_lowercase()
+                        .to_string()
+                        .chars()
+                        .last()
+                        .unwrap(),
+                )
             }
         }
-        
-        if data.chars().nth(i).is_some()&&data.chars().nth(i).unwrap()==' '{
-            es=true;
-        }else{
-            es=false;
+
+        if data.chars().nth(i).is_some() && data.chars().nth(i).unwrap() == ' ' {
+            es = true;
+        } else {
+            es = false;
         }
     }
-    
+
     // for (i, mut a) in iter.char_indices() {
     //     println!("llego");
     //     if es {
@@ -69,7 +99,7 @@ pub fn camalize(data: String)->String {
 
 pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     buf: &mut T,
-    path: &String,
+    path: &str,
 ) -> std::io::Result<()> {
     let file2 = File::open(path.clone());
     let mut file2 = match file2 {
@@ -89,27 +119,27 @@ pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     }
     Ok(())
 }
-pub fn get_updated_time_file(path: &String) -> Result<DateTimeUtc, String> {
-    let res = match fs::metadata(path) {
-        Ok(a) => match a.modified() {
-            Ok(a) => match a.duration_since(std::time::SystemTime::UNIX_EPOCH) {
-                Ok(a) => Ok(a),
-                Err(e) => Err(e.to_string()),
-            },
-            Err(e) => Err(e.to_string()),
-        },
-        Err(e) => Err(e.to_string()),
-    };
-    let date = match res {
-        Ok(a) => a,
-        Err(e) => return Err(e.to_string()),
-    };
-    match make_elapsed_to_date(date) {
-        Some(a) => Ok(a),
-        None => Err("No se pudo convertir".to_string()),
-    }
+pub fn get_updated_time_file(path: &str) -> Result<DateTimeUtc> {
+    let a = fs::metadata(path)?.modified()?;
+    let res = a.duration_since(std::time::SystemTime::UNIX_EPOCH)?;
+
+    make_elapsed_to_date(res).ok_or_else(|| DateFormatError.into())
 }
-pub async fn get_updated_time_db(vec: Vec<Model>) -> DateTimeUtc {
+pub async fn get_updated_time_db_producto(vec: Vec<Model>) -> DateTimeUtc {
+    vec.iter()
+        .max_by_key(|x| x.updated_at)
+        .unwrap()
+        .updated_at
+        .and_utc()
+}
+pub async fn get_updated_time_db_pesable(vec: Vec<entity::pesable::Model>) -> DateTimeUtc {
+    vec.iter()
+        .max_by_key(|x| x.updated_at)
+        .unwrap()
+        .updated_at
+        .and_utc()
+}
+pub async fn get_updated_time_db_rubro(vec: Vec<entity::rubro::Model>) -> DateTimeUtc {
     vec.iter()
         .max_by_key(|x| x.updated_at)
         .unwrap()

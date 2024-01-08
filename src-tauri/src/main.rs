@@ -1,12 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use mods::{
-    config::Config, pesable::Pesable, producto::Producto, rubro::Rubro, sistema::Sistema,
-    valuable::Valuable, venta::Venta, lib::camalize,
+    config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, valuable::Valuable,
+    venta::Venta,
 };
+type Result<T> = std::result::Result<T, String>;
 
-use std::{sync::Mutex, error::Error};
-use tauri::{State, async_runtime::block_on};
+use std::sync::Mutex;
+use tauri::{async_runtime::block_on, State};
 mod mods;
 
 #[tauri::command]
@@ -25,10 +26,12 @@ fn agregar_proveedor(
     sistema: State<Mutex<Sistema>>,
     proveedor: &str,
     contacto: &str,
-) -> Result<(), String> {
+) -> Result<()> {
     match sistema.lock() {
         Ok(mut sis) => {
-            sis.agregar_proveedor(proveedor, contacto)?;
+            if let Err(e)=sis.agregar_proveedor(proveedor, contacto){
+                return Err(e.to_string())
+            }
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
@@ -41,8 +44,8 @@ fn agregar_proveedor(
 fn agregar_producto(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-    proveedores: Vec<String>,
-    codigos_prov: Vec<String>,
+    proveedores: Vec<&str>,
+    codigos_prov: Vec<&str>,
     codigos_de_barras: Vec<&str>,
     precio_de_venta: &str,
     porcentaje: &str,
@@ -52,20 +55,32 @@ fn agregar_producto(
     variedad: &str,
     cantidad: &str,
     presentacion: &str,
-) -> Result<String, String> {
-    match sistema.lock(){
-        Ok(mut sis)=>{
-            let producto=match block_on(sis.agregar_producto(proveedores,codigos_prov,codigos_de_barras,precio_de_venta.to_string(),porcentaje.to_string(),precio_de_costo.to_string(),tipo_producto.to_string(),marca.to_string(),variedad.to_string(),cantidad.to_string(),presentacion)){
-                Ok(a)=>a,
-                Err(e)=>return Err(e.to_string())
+) -> Result<String> {
+    match sistema.lock() {
+        Ok(mut sis) => {
+            let producto = match block_on(sis.agregar_producto(
+                proveedores,
+                codigos_prov,
+                codigos_de_barras,
+                precio_de_venta,
+                porcentaje,
+                precio_de_costo,
+                tipo_producto,
+                marca,
+                variedad,
+                cantidad,
+                presentacion,
+            )) {
+                Ok(a) => a,
+                Err(e) => return Err(e.to_string()),
             };
-            if let Err(e)= window.close(){
-                return Err(e.to_string())
+            if let Err(e) = window.close() {
+                return Err(e.to_string());
             }
             Ok(producto.get_nombre_completo())
         }
-        Err(e)=>Err(e.to_string())
-    }  
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 #[tauri::command]
@@ -77,14 +92,16 @@ fn agregar_pesable(
     precio_peso: f64,
     porcentaje: f64,
     costo_kilo: f64,
-    descripcion: String,
-) -> Result<String, String> {
+    descripcion: &str,
+) -> Result<String> {
     match sistema.lock() {
         Ok(mut sis) => {
             let pesable =
                 Pesable::new(id, codigo, precio_peso, porcentaje, costo_kilo, descripcion);
 
-            sis.agregar_pesable(pesable.clone())?;
+            if let Err(e)=sis.agregar_pesable(pesable.clone()){
+                return Err(e.to_string())
+            }
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
@@ -99,12 +116,14 @@ fn agregar_rubro(
     sistema: State<Mutex<Sistema>>,
     id: i64,
     monto: f64,
-    descripcion: String,
-) -> Result<String, String> {
+    descripcion: &str,
+) -> Result<String> {
     match sistema.lock() {
         Ok(mut sis) => {
             let rubro = Rubro::new(id, monto, descripcion);
-            sis.agregar_rubro(rubro.clone())?;
+            if let Err(e)=sis.agregar_rubro(rubro.clone()){
+                return Err(e.to_string())
+            }
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
@@ -114,7 +133,7 @@ fn agregar_rubro(
     }
 }
 #[tauri::command]
-fn get_proveedores(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> {
+fn get_proveedores(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
     let res;
     match sistema.lock() {
         Ok(a) => {
@@ -134,8 +153,8 @@ fn get_proveedores(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String
 }
 
 #[tauri::command]
-fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> {
-    let res: Result<Vec<String>, String>;
+fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
+    let res: Result<Vec<String>>;
     match sistema.lock() {
         Ok(a) => {
             res = Ok(a
@@ -152,8 +171,8 @@ fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> 
 #[tauri::command]
 fn get_productos_filtrado(
     sistema: State<Mutex<Sistema>>,
-    filtro: String,
-) -> Result<Vec<Valuable>, String> {
+    filtro: &str,
+) -> Result<Vec<Valuable>> {
     let filtros = filtro.split(' ').collect::<Vec<&str>>();
     let res;
     match sistema.lock() {
@@ -198,16 +217,17 @@ fn get_productos_filtrado(
 #[tauri::command]
 fn agregar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
-    id: String,
-    pos: String,
-) -> Result<Venta, String> {
-    // let algo = async_runtime::spawn(connect());
-    // let _ = async_runtime::block_on(algo);
+    id: &str,
+    pos: &str,
+) -> Result<Venta> {
     let res;
     match sistema.lock() {
         Ok(mut a) => {
             let pos = pos.parse().unwrap();
-            res = a.agregar_producto_a_venta(id.parse().unwrap(), pos)
+            res = match a.agregar_producto_a_venta(id.parse().unwrap(), pos){
+                Ok(a)=>Ok(a),
+                Err(e)=>Err(e.to_string())
+            }
         }
         Err(e) => res = Err(e.to_string()),
     };
@@ -216,9 +236,9 @@ fn agregar_producto_a_venta(
 #[tauri::command]
 fn descontar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
-    id: String,
-    pos: String,
-) -> Result<Venta, String> {
+    id: &str,
+    pos: &str,
+) -> Result<Venta> {
     let res;
     match sistema.lock() {
         Ok(mut a) => {
@@ -228,7 +248,7 @@ fn descontar_producto_de_venta(
                     println!("{:?}", a);
                     res = Ok(a)
                 }
-                Err(e) => res = Err(e),
+                Err(e) => res = Err(e.to_string()),
             }
         }
         Err(e) => res = Err(e.to_string()),
@@ -238,9 +258,9 @@ fn descontar_producto_de_venta(
 #[tauri::command]
 fn incrementar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
-    id: String,
-    pos: String,
-) -> Result<Venta, String> {
+    id: &str,
+    pos: &str,
+) -> Result<Venta> {
     let res;
     match sistema.lock() {
         Ok(mut a) => {
@@ -250,7 +270,7 @@ fn incrementar_producto_a_venta(
                     println!("{:?}", a);
                     res = Ok(a)
                 }
-                Err(e) => res = Err(e),
+                Err(e) => res = Err(e.to_string()),
             }
         }
         Err(e) => res = Err(e.to_string()),
@@ -261,14 +281,17 @@ fn incrementar_producto_a_venta(
 #[tauri::command]
 fn eliminar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
-    id: String,
-    pos: String,
-) -> Result<Venta, String> {
+    id: &str,
+    pos: &str,
+) -> Result<Venta> {
     let res;
     match sistema.lock() {
         Ok(mut a) => {
             let pos = pos.parse().unwrap();
-            res = a.eliminar_producto_de_venta(id.parse().unwrap(), pos);
+            res =match a.eliminar_producto_de_venta(id.parse().unwrap(), pos){
+                Ok(a)=>Ok(a),
+                Err(e)=>Err(e.to_string())
+            }
         }
         Err(e) => res = Err(e.to_string()),
     };
@@ -278,22 +301,28 @@ fn eliminar_producto_de_venta(
 #[tauri::command]
 fn agregar_pago(
     sistema: State<Mutex<Sistema>>,
-    medio_pago: String,
+    medio_pago: &str,
     monto: f64,
     pos: usize,
-) -> Result<f64, String> {
+) -> Result<f64> {
     let res;
     match sistema.lock() {
-        Ok(mut a) => res = a.agregar_pago(medio_pago, monto, pos),
+        Ok(mut a) => res =match a.agregar_pago(medio_pago, monto, pos){
+            Ok(a)=>Ok(a),
+            Err(e)=>Err(e.to_string()),
+        },
         Err(e) => res = Err(e.to_string()),
     }
     res
 }
 
 #[tauri::command]
-fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<(), String> {
+fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<()> {
     match sistema.lock() {
-        Ok(mut a) => a.eliminar_pago(pos, index),
+        Ok(mut a) => match a.eliminar_pago(pos, index){
+            Ok(a)=>Ok(a),
+            Err(e)=>Err(e.to_string()),
+        },
         Err(e) => Err(e.to_string()),
     }
 }
@@ -301,9 +330,9 @@ fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Re
 #[tauri::command]
 fn get_filtrado(
     sistema: State<Mutex<Sistema>>,
-    filtro: String,
-    tipo_filtro: String,
-) -> Result<Vec<String>, String> {
+    filtro: &str,
+    tipo_filtro: &str,
+) -> Result<Vec<String>> {
     let mut res = Err("No inicializado".to_string());
     match sistema.lock() {
         Ok(a) => {
@@ -332,7 +361,7 @@ fn redondeo(politica: f64, numero: f64) -> f64 {
     res
 }
 #[tauri::command]
-fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta, String> {
+fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta> {
     let res;
     match sistema.lock() {
         Ok(a) => {
@@ -347,7 +376,7 @@ fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta, S
     res
 }
 #[tauri::command]
-fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config, String> {
+fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config> {
     let res;
     match sistema.lock() {
         Ok(sis) => res = Ok(sis.get_configs().clone()),
@@ -361,7 +390,7 @@ fn set_configs(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     configs: Config,
-) -> Result<(), String> {
+) -> Result<()> {
     let mut res = Ok(());
     match sistema.lock() {
         Ok(mut sis) => {
@@ -377,7 +406,7 @@ fn set_configs(
 }
 
 #[tauri::command]
-fn close_window(window: tauri::Window) -> Result<(), String> {
+fn close_window(window: tauri::Window) -> Result<()> {
     if let Err(e) = window.close() {
         return Err(e.to_string());
     }
@@ -385,7 +414,7 @@ fn close_window(window: tauri::Window) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String> {
+fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
     let res;
     match sistema.lock() {
         Ok(sis) => res = Ok(sis.get_configs().get_medios_pago()),
@@ -396,35 +425,41 @@ fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>, String
 
 #[tauri::command]
 fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
-    let res: String;
+    let res;
     res = prod.get_descripcion(conf);
     res
 }
 
 #[tauri::command]
-fn stash_sale(sistema: State<Mutex<Sistema>>, pos: usize) {
+fn stash_sale(sistema: State<Mutex<Sistema>>, pos: usize)->Result<()> {
     match sistema.lock() {
-        Ok(mut sis) => sis.stash_sale(pos),
-        Err(_) => (),
-    };
-}
-#[tauri::command]
-fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<(), String> {
-    match sistema.lock() {
-        Ok(mut sis) => sis.unstash_sale(pos, index),
+        Ok(mut sis) => match sis.stash_sale(pos){
+            Ok(a)=>Ok(a),
+            Err(e)=>Err(e.to_string()),
+        },
         Err(e) => Err(e.to_string()),
     }
 }
 #[tauri::command]
-fn get_stash(sistema: State<Mutex<Sistema>>) -> Result<Vec<Venta>, String> {
+fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<()> {
     match sistema.lock() {
-        Ok(sis) => Ok(sis.get_stash()),
+        Ok(mut sis) => match sis.unstash_sale(pos, index){
+            Ok(a)=>Ok(a),
+            Err(e)=>Err(e.to_string()),
+        },
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
+fn get_stash(sistema: State<Mutex<Sistema>>) -> Result<Vec<Venta>> {
+    match sistema.lock() {
+        Ok(sis) => Ok(sis.get_stash().clone()),
         Err(e) => Err(e.to_string()),
     }
 }
 
 #[tauri::command]
-async fn open_add_product(handle: tauri::AppHandle) -> Result<(), String> {
+async fn open_add_product(handle: tauri::AppHandle) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-product", /* the unique window label */
@@ -440,7 +475,7 @@ async fn open_add_product(handle: tauri::AppHandle) -> Result<(), String> {
     }
 }
 #[tauri::command]
-async fn open_add_prov(handle: tauri::AppHandle) -> Result<(), String> {
+async fn open_add_prov(handle: tauri::AppHandle) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-product", /* the unique window label */
@@ -456,7 +491,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Result<(), String> {
     }
 }
 #[tauri::command]
-async fn open_edit_settings(handle: tauri::AppHandle) -> Result<(), String> {
+async fn open_edit_settings(handle: tauri::AppHandle) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-product", /* the unique window label */
@@ -473,7 +508,7 @@ async fn open_edit_settings(handle: tauri::AppHandle) -> Result<(), String> {
 }
 fn main() {
     let app = tauri::Builder::default()
-        .manage(Mutex::new(Sistema::new()))
+        .manage(Mutex::new(Sistema::new().unwrap()))
         .invoke_handler(tauri::generate_handler![
             buscador,
             agregar_producto,

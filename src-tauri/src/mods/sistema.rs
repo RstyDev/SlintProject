@@ -1,4 +1,53 @@
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 use std::error::Error;
+use std::fmt;
+#[derive(Debug)]
+pub struct SaleSelectionError;
+impl fmt::Display for SaleSelectionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Error, hay solo dos posiciones para ventas")
+    }
+}
+
+#[derive(Debug)]
+pub struct ProductNotFoundError;
+impl fmt::Display for ProductNotFoundError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Error, producto no encontrado")
+    }
+}
+#[derive(Debug)]
+pub struct ExistingProviderError;
+impl fmt::Display for ExistingProviderError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Error, proveedor existente")
+    }
+}
+#[derive(Debug)]
+pub struct AmountError;
+impl fmt::Display for AmountError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "El monto no puede ser superior al resto con el medio de pago actual"
+        )
+    }
+}
+#[derive(Debug)]
+pub struct SizeSelecionError;
+impl fmt::Display for SizeSelecionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Error, las presentaciones habilitadas son: Gr Un Lt Ml CC Kg"
+        )
+    }
+}
+impl std::error::Error for SaleSelectionError {}
+impl std::error::Error for ExistingProviderError {}
+impl std::error::Error for SizeSelecionError {}
+impl std::error::Error for AmountError {}
+impl std::error::Error for ProductNotFoundError {}
 
 use chrono::Utc;
 use entity::codigo_barras;
@@ -16,7 +65,9 @@ use tauri::async_runtime;
 use tauri::async_runtime::block_on;
 
 use super::lib::camalize;
-use super::lib::get_updated_time_db;
+use super::lib::get_updated_time_db_pesable;
+use super::lib::get_updated_time_db_producto;
+use super::lib::get_updated_time_db_rubro;
 use super::lib::get_updated_time_file;
 use super::proveedor::Proveedor;
 use super::valuable::Presentacion;
@@ -47,27 +98,21 @@ pub struct Sistema {
 }
 
 impl<'a> Sistema {
-    pub fn new() -> Sistema {
-        let path_productos = String::from("Productos.json");
-        let path_proveedores = String::from("Proveedores.json");
-        let path_relaciones = String::from("Relaciones.json");
-        let path_configs = String::from("Configs.json");
-        let path_rubros = String::from("Rubros.json");
-        let path_pesables = String::from("Pesables.json");
-        let mut productos2: Vec<Producto> = Vec::new();
+    pub fn new() -> Result<Sistema> {
+        let path_productos = "Productos.json";
+        let path_proveedores = "Proveedores.json";
+        let path_relaciones = "Relaciones.json";
+        let path_configs = "Configs.json";
+        let path_rubros = "Rubros.json";
+        let path_pesables = "Pesables.json";
+        let mut productos: Vec<Producto> = Vec::new();
         let mut rubros: Vec<Rubro> = Vec::new();
         let mut pesables: Vec<Pesable> = Vec::new();
         let stash = Vec::new();
         let registro = Vec::new();
-        if let Err(e) = leer_file(&mut rubros, &path_rubros) {
-            panic!("{}", e);
-        }
-        if let Err(e) = leer_file(&mut pesables, &path_pesables) {
-            panic!("{}", e);
-        }
-        if let Err(e) = leer_file(&mut productos2, &path_productos) {
-            panic!("{}", e);
-        }
+        leer_file(&mut rubros, path_rubros)?;
+        leer_file(&mut pesables, path_pesables)?;
+        leer_file(&mut productos, path_productos)?;
 
         let mut rubros: Vec<Valuable> = rubros
             .iter()
@@ -77,44 +122,36 @@ impl<'a> Sistema {
             .iter()
             .map(|a| Valuable::Pes((0.0, a.to_owned())))
             .collect();
-        let mut productos: Vec<Valuable> = productos2
+        let mut valuables: Vec<Valuable> = productos
             .clone()
             .iter()
             .map(|a| Valuable::Prod((0, a.to_owned())))
             .collect();
-        productos.append(&mut pesables);
-        productos.append(&mut rubros);
+        valuables.append(&mut pesables);
+        valuables.append(&mut rubros);
 
         let mut proveedores: Vec<Proveedor> = Vec::new();
-        if let Err(e) = leer_file(&mut proveedores, &path_proveedores) {
-            panic!("{}", e);
-        }
+        leer_file(&mut proveedores, path_proveedores)?;
         let mut relaciones = Vec::new();
-        if let Err(e) = leer_file(&mut relaciones, &path_relaciones) {
-            panic!("{}", e);
-        }
+        leer_file(&mut relaciones, path_relaciones)?;
         let mut configs = Vec::<Config>::new();
-        if let Err(e) = leer_file(&mut configs, &path_configs) {
-            panic!("{}", e);
-        }
+        leer_file(&mut configs, path_configs)?;
         if configs.len() == 0 {
             configs.push(Config::default());
-            if let Err(e) = crear_file(&path_configs, &mut configs) {
-                panic!("{}", e);
-            }
+            crear_file(path_configs, &mut configs)?;
         }
 
         let mut sis = Sistema {
             configs: configs[0].clone(),
-            productos: productos.clone(),
+            productos: valuables.clone(),
             ventas: (Venta::new(), Venta::new()),
             proveedores,
-            path_productos: path_productos.clone(),
-            path_proveedores,
-            path_relaciones,
-            path_configs,
-            path_pesables,
-            path_rubros,
+            path_productos: path_productos.to_string(),
+            path_proveedores: path_proveedores.to_string(),
+            path_relaciones: path_relaciones.to_string(),
+            path_configs: path_configs.to_string(),
+            path_pesables: path_pesables.to_string(),
+            path_rubros: path_rubros.to_string(),
             relaciones,
             stash,
             registro,
@@ -122,22 +159,11 @@ impl<'a> Sistema {
         // for i in 0..sis.productos.len() {
         // sis.productos[i].unifica_codes()
         // }
-        if let Err(e) =
-            async_runtime::block_on(sis.update_data_valuable(&path_productos, productos2))
-        {
-            println!("{e}");
-        }
-
-        if let Err(e) = async_runtime::block_on(sis.cargar_todos_los_provs()) {
-            println!("{e}");
-        }
-        if let Err(e) = async_runtime::block_on(sis.cargar_todos_los_valuables()) {
-            println!("{e}");
-        }
-        if let Err(e) = async_runtime::block_on(sis.cargar_todas_las_relaciones_prod_prov()) {
-            println!("{e}");
-        }
-        sis
+        async_runtime::block_on(sis.update_data_valuable())?;
+        async_runtime::block_on(sis.cargar_todos_los_provs())?;
+        async_runtime::block_on(sis.cargar_todos_los_valuables())?;
+        async_runtime::block_on(sis.cargar_todas_las_relaciones_prod_prov())?;
+        Ok(sis)
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
         &self.productos
@@ -151,29 +177,14 @@ impl<'a> Sistema {
     pub fn get_configs(&self) -> &Config {
         &self.configs
     }
-    // pub fn get_venta_mut(&mut self, pos: usize) -> &mut Venta {
-    //     if pos == 1 {
-    //         self.ventas.1.borrow_mut()
-    //     } else {
-    //         self.ventas.0.borrow_mut()
-    //     }
-    // }
-    pub fn agregar_pago(
-        &mut self,
-        medio_pago: String,
-        monto: f64,
-        pos: usize,
-    ) -> Result<f64, String> {
-        let error_msj = "error, hay solo dos posiciones para ventas".to_string();
+    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64, pos: usize) -> Result<f64> {
         let res;
         match pos {
             0 => {
                 if !medio_pago.eq("Efectivo")
                     && self.ventas.0.get_monto_pagado() + monto > self.ventas.0.get_monto_total()
                 {
-                    res = Err(format!(
-                        "El monto no puede ser superior al resto con {medio_pago}"
-                    ));
+                    return Err(AmountError.into());
                 } else {
                     res = Ok(self.ventas.0.agregar_pago(medio_pago, monto));
                 }
@@ -182,14 +193,12 @@ impl<'a> Sistema {
                 if !medio_pago.eq("Efectivo")
                     && self.ventas.1.get_monto_pagado() + monto > self.ventas.1.get_monto_total()
                 {
-                    res = Err(format!(
-                        "El monto no puede ser superior al resto con {medio_pago}"
-                    ));
+                    return Err(AmountError.into());
                 } else {
                     res = Ok(self.ventas.1.agregar_pago(medio_pago, monto));
                 }
             }
-            _ => res = Err(error_msj),
+            _ => return Err(SaleSelectionError.into()),
         }
         if let Ok(a) = res {
             if a <= 0.0 {
@@ -198,11 +207,11 @@ impl<'a> Sistema {
         }
         res
     }
-    pub fn eliminar_pago(&mut self, pos: usize, index: usize) -> Result<(), String> {
+    pub fn eliminar_pago(&mut self, pos: usize, index: usize) -> Result<()> {
         match pos {
             0 => self.ventas.0.eliminar_pago(index),
             1 => self.ventas.1.eliminar_pago(index),
-            _ => return Err("numero de venta incorrecto".to_string()),
+            _ => return Err(SaleSelectionError.into()),
         }
         Ok(())
     }
@@ -226,18 +235,18 @@ impl<'a> Sistema {
     }
     pub async fn agregar_producto(
         &mut self,
-        proveedores: Vec<String>,
-        codigos_prov: Vec<String>,
+        proveedores: Vec<&str>,
+        codigos_prov: Vec<&str>,
         codigos_de_barras: Vec<&str>,
-        precio_de_venta: String,
-        porcentaje: String,
-        precio_de_costo: String,
-        tipo_producto: String,
-        marca: String,
-        variedad: String,
-        cantidad: String,
+        precio_de_venta: &str,
+        porcentaje: &str,
+        precio_de_costo: &str,
+        tipo_producto: &str,
+        marca: &str,
+        variedad: &str,
+        cantidad: &str,
         presentacion: &str,
-    ) -> Result<Producto, Box<dyn Error>> {
+    ) -> Result<Producto> {
         let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
 
         let tipo_producto = camalize(tipo_producto);
@@ -263,9 +272,9 @@ impl<'a> Sistema {
             precio_de_venta: Set(precio_de_venta),
             porcentaje: Set(porcentaje),
             precio_de_costo: Set(precio_de_costo),
-            tipo_producto: Set(tipo_producto.clone()),
-            marca: Set(marca.clone()),
-            variedad: Set(variedad.clone()),
+            tipo_producto: Set(tipo_producto.to_string()),
+            marca: Set(marca.to_owned()),
+            variedad: Set(variedad.to_owned()),
             presentacion: Set(presentacion.to_string()),
             updated_at: Set(Utc::now().naive_utc()),
             ..Default::default()
@@ -356,8 +365,7 @@ impl<'a> Sistema {
 
         result
     }
-    pub fn agregar_pesable(&mut self, pesable: Pesable) -> Result<(), String> {
-        let mut res = Ok(());
+    pub fn agregar_pesable(&mut self, pesable: Pesable) -> Result<()> {
         let mut pesables: Vec<Pesable> = self
             .productos
             .iter()
@@ -368,20 +376,13 @@ impl<'a> Sistema {
             .flatten()
             .collect();
         pesables.push(pesable.clone());
-        if let Err(e) = crear_file(&self.path_pesables, &pesables) {
-            res = Err(e.to_string());
-        }
-        if res.is_ok() {
-            if let Err(e) = async_runtime::block_on(pesable.clone().save()) {
-                return Err(e.to_string());
-            }
-            self.productos.push(Valuable::Pes((0.0, pesable)));
-        }
-        res
+        crear_file(&self.path_pesables, &pesables)?;
+        async_runtime::block_on(pesable.clone().save())?;
+        self.productos.push(Valuable::Pes((0.0, pesable)));
+        Ok(())
     }
 
-    pub fn agregar_rubro(&mut self, rubro: Rubro) -> Result<(), String> {
-        let mut res = Ok(());
+    pub fn agregar_rubro(&mut self, rubro: Rubro) -> Result<()> {
         let mut rubros: Vec<Rubro> = self
             .productos
             .iter()
@@ -392,21 +393,14 @@ impl<'a> Sistema {
             .flatten()
             .collect();
         rubros.push(rubro.clone());
-        if let Err(e) = crear_file(&self.path_rubros, &rubros) {
-            res = Err(e.to_string());
-        }
-        if res.is_ok() {
-            if let Err(e) = async_runtime::block_on(rubro.clone().save()) {
-                return Err(e.to_string());
-            }
-            self.productos.push(Valuable::Rub((0, rubro)));
-        }
-        res
+        crear_file(&self.path_rubros, &rubros)?;
+        async_runtime::block_on(rubro.clone().save())?;
+        self.productos.push(Valuable::Rub((0, rubro)));
+        Ok(())
     }
-    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: &str) -> Result<(), String> {
-        let mut res = Ok(());
+    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: &str) -> Result<()> {
         if self.proveedor_esta(&proveedor) {
-            res = Err("Proveedor existente".to_owned());
+            return Err(ExistingProviderError.into());
         } else {
             let prov;
             if contacto.len() > 0 {
@@ -414,34 +408,27 @@ impl<'a> Sistema {
                     .chars()
                     .filter(|x| -> bool { x.is_numeric() })
                     .collect();
-                let contacto = match contacto.parse() {
-                    Ok(a) => Some(a),
-                    Err(_) => return Err("Error al convertir el numero".to_owned()),
-                };
+                let contacto = Some(contacto.parse()?);
                 prov = Proveedor::new(
                     self.proveedores.len() as i64 + 1,
-                    camalize(proveedor.to_owned()),
+                    camalize(proveedor),
                     contacto,
                 );
             } else {
                 prov = Proveedor::new(
                     self.proveedores.len() as i64 + 1,
-                    proveedor.to_owned(),
+                    proveedor.to_string(),
                     None,
                 );
             }
-            if let Err(e) = async_runtime::block_on(prov.save()) {
-                return Err(e.to_string());
-            }
+            async_runtime::block_on(prov.save())?;
             self.proveedores.push(prov);
-            if let Err(e) = crear_file(&self.path_proveedores, &self.proveedores) {
-                res = Err(e.to_string());
-            }
+            crear_file(&self.path_proveedores, &self.proveedores)?;
         }
-        res
+        Ok(())
     }
-    fn get_producto(&mut self, id: i64) -> Result<Valuable, String> {
-        let mut res = Err("Producto no encontrado".to_string());
+    fn get_producto(&mut self, id: i64) -> Result<Valuable> {
+        let mut res = Err(ProductNotFoundError.into());
         for p in &self.productos {
             match p {
                 Valuable::Pes(a) => {
@@ -463,7 +450,7 @@ impl<'a> Sistema {
         }
         res
     }
-    pub fn agregar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta, String> {
+    pub fn agregar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta> {
         let res = self
             .get_producto(id)?
             .redondear(self.get_configs().get_politica());
@@ -481,32 +468,26 @@ impl<'a> Sistema {
                     .1
                     .agregar_producto(res, self.get_configs().get_politica()))
             }
-            _ => result = Err("Numero de venta incorrecto".to_string()),
+            _ => result = Err(SaleSelectionError.into()),
         }
 
         result
     }
-    pub fn descontar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, String> {
+    pub fn descontar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta> {
         let res = self.get_producto(id)?;
-        let result;
         match pos {
-            0 => {
-                result = self
-                    .ventas
-                    .0
-                    .restar_producto(res, self.get_configs().get_politica());
-            }
-            1 => {
-                result = self
-                    .ventas
-                    .1
-                    .restar_producto(res, self.get_configs().get_politica());
-            }
-            _ => result = Err("Numero de venta incorrecto".to_string()),
+            0 => self
+                .ventas
+                .0
+                .restar_producto(res, self.get_configs().get_politica()),
+            1 => self
+                .ventas
+                .1
+                .restar_producto(res, self.get_configs().get_politica()),
+            _ => Err(SaleSelectionError.into()),
         }
-        result
     }
-    pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta, String> {
+    pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta> {
         let res = self.get_producto(id)?;
         let result;
         match pos {
@@ -522,11 +503,11 @@ impl<'a> Sistema {
                     .1
                     .incrementar_producto(res, self.get_configs().get_politica());
             }
-            _ => result = Err("Numero de venta incorrecto".to_string()),
+            _ => result = Err(SaleSelectionError.into()),
         }
         result
     }
-    pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, String> {
+    pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta> {
         let res = self.get_producto(id)?;
         let result;
         match pos {
@@ -542,7 +523,7 @@ impl<'a> Sistema {
                     .1
                     .eliminar_producto(res, self.get_configs().get_politica());
             }
-            _ => result = Err("Numero de venta incorrecto".to_string()),
+            _ => result = Err(SaleSelectionError.into()),
         }
         result
     }
@@ -597,27 +578,23 @@ impl<'a> Sistema {
         res.dedup();
         res
     }
-    fn cerrar_venta(&mut self, pos: usize) -> Result<(), String> {
+    fn cerrar_venta(&mut self, pos: usize) -> Result<()> {
         match pos {
             0 => {
-                if let Err(e) = block_on(self.ventas.0.save()) {
-                    return Err(e.to_string());
-                }
+                block_on(self.ventas.0.save())?;
                 self.registro.push(self.ventas.0.clone());
                 self.ventas.0 = Venta::new();
             }
             1 => {
-                if let Err(e) = block_on(self.ventas.1.save()) {
-                    return Err(e.to_string());
-                }
+                block_on(self.ventas.1.save())?;
                 self.registro.push(self.ventas.1.clone());
                 self.ventas.1 = Venta::new();
             }
-            _ => panic!("error, solo hay 2 posiciones para ventas"),
+            _ => return Err(SaleSelectionError.into()),
         };
         Ok(())
     }
-    pub fn stash_sale(&mut self, pos: usize) {
+    pub fn stash_sale(&mut self, pos: usize) -> Result<()> {
         match pos {
             0 => {
                 self.stash.push(self.ventas.0.clone());
@@ -627,44 +604,48 @@ impl<'a> Sistema {
                 self.stash.push(self.ventas.1.clone());
                 self.ventas.1 = Venta::new();
             }
-            _ => panic!("error, solo hay 2 posiciones para ventas"),
+            _ => return Err(SaleSelectionError.into()),
         };
+        Ok(())
     }
-    pub fn unstash_sale(&mut self, pos: usize, index: usize) -> Result<(), String> {
-        match pos {
-            0 => {
-                self.ventas.0 = self.stash.remove(index);
-                Ok(())
+    pub fn unstash_sale(&mut self, pos: usize, index: usize) -> Result<()> {
+        if index < self.stash.len() {
+            match pos {
+                0 => {
+                    if self.ventas.0.get_productos().len() > 0 {
+                        self.stash.push(self.ventas.0.to_owned());
+                    }
+                    self.ventas.0 = self.stash.remove(index);
+                    Ok(())
+                }
+                1 => {
+                    if self.ventas.1.get_productos().len() > 0 {
+                        self.stash.push(self.ventas.1.to_owned());
+                    }
+                    self.ventas.1 = self.stash.remove(index);
+                    Ok(())
+                }
+                _ => Err(SaleSelectionError.into()),
             }
-            1 => {
-                self.stash.push(self.ventas.1.clone());
-                self.ventas.1 = self.stash.remove(index);
-                Ok(())
-            }
-            _ => Err("error, solo hay 2 posiciones para ventas".to_string()),
+        } else {
+            Err(SaleSelectionError.into())
         }
     }
-    pub fn get_stash(&self) -> Vec<Venta> {
-        self.stash.clone()
+    pub fn get_stash(&self) -> &Vec<Venta> {
+        &self.stash
     }
-    pub async fn cargar_todos_los_valuables(&self) -> Result<(), Box<dyn Error>> {
+    pub async fn cargar_todos_los_valuables(&self) -> Result<()> {
         println!("Guardando productos en DB");
         let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        self.cargar_todos_los_productos(&db).await?;
+        self.cargar_todos_los_pesables(&db).await?;
+        self.cargar_todos_los_rubros(&db).await?;
+        Ok(())
+    }
+    async fn cargar_todos_los_productos(&self, db: &DatabaseConnection) -> Result<()> {
         for producto in &self.productos {
             match producto {
                 Valuable::Prod(a) => {
-                    // let model = producto::ActiveModel {
-                    //     precio_de_venta: Set(a.1.precio_de_venta),
-                    //     porcentaje: Set(a.1.porcentaje),
-                    //     precio_de_costo: Set(a.1.precio_de_costo),
-                    //     tipo_producto: Set(a.1.tipo_producto.clone()),
-                    //     marca: Set(a.1.marca.clone()),
-                    //     variedad: Set(a.1.variedad.clone()),
-                    //     presentacion: Set(a.1.presentacion.to_string()),
-                    //     updated_at: Set(Utc::now().naive_utc()),
-                    //     ..Default::default()
-                    // };
-
                     let prod_model = producto::ActiveModel {
                         precio_de_venta: Set(a.1.precio_de_venta),
                         porcentaje: Set(a.1.porcentaje),
@@ -677,7 +658,7 @@ impl<'a> Sistema {
                         ..Default::default()
                     };
                     let res_prod = entity::producto::Entity::insert(prod_model)
-                        .exec(&db)
+                        .exec(db)
                         .await?;
                     let codigos_model: Vec<codigo_barras::ActiveModel> =
                         a.1.codigos_de_barras
@@ -690,70 +671,69 @@ impl<'a> Sistema {
                             .collect();
                     if codigos_model.len() > 1 {
                         entity::codigo_barras::Entity::insert_many(codigos_model)
-                            .exec(&db)
+                            .exec(db)
                             .await?;
                     } else if codigos_model.len() == 1 {
                         entity::codigo_barras::Entity::insert(codigos_model[0].to_owned())
-                            .exec(&db)
+                            .exec(db)
                             .await?;
                     }
-
-                    // let res = entity::producto::Entity::insert(model)
-                    //     .exec(&db)
-                    //     .await?
-                    //     .last_insert_id;
                 }
                 _ => (),
             }
-
-            let pesables: Vec<pesable::ActiveModel> = self
-                .productos
-                .iter()
-                .filter_map(|x| match x {
-                    Valuable::Pes(a) => Some(pesable::ActiveModel {
-                        codigo: Set(a.1.codigo),
-                        precio_peso: Set(a.1.precio_peso),
-                        porcentaje: Set(a.1.porcentaje),
-                        costo_kilo: Set(a.1.costo_kilo),
-                        descripcion: Set(a.1.descripcion.clone()),
-                        ..Default::default()
-                    }),
-                    _ => None,
-                })
-                .collect();
-            let rubros: Vec<rubro::ActiveModel> = self
-                .productos
-                .iter()
-                .filter_map(|x| match x {
-                    Valuable::Rub(a) => Some(rubro::ActiveModel {
-                        monto: Set(a.1.monto),
-                        descripcion: Set(a.1.descripcion.clone()),
-                        ..Default::default()
-                    }),
-                    _ => None,
-                })
-                .collect();
-            if pesables.len() > 1 {
-                entity::pesable::Entity::insert_many(pesables)
-                    .exec(&db)
-                    .await?;
-            } else if pesables.len() == 1 {
-                entity::pesable::Entity::insert(pesables[0].to_owned())
-                    .exec(&db)
-                    .await?;
-            }
-            if rubros.len() > 1 {
-                entity::rubro::Entity::insert_many(rubros).exec(&db).await?;
-            } else if rubros.len() == 1 {
-                entity::rubro::Entity::insert(rubros[0].to_owned())
-                    .exec(&db)
-                    .await?;
-            }
         }
-
         Ok(())
     }
-    async fn cargar_todas_las_relaciones_prod_prov(&self) -> Result<(), Box<dyn Error>> {
+    async fn cargar_todos_los_pesables(&self, db: &DatabaseConnection) -> Result<()> {
+        let pesables: Vec<pesable::ActiveModel> = self
+            .productos
+            .iter()
+            .filter_map(|x| match x {
+                Valuable::Pes(a) => Some(pesable::ActiveModel {
+                    codigo: Set(a.1.codigo),
+                    precio_peso: Set(a.1.precio_peso),
+                    porcentaje: Set(a.1.porcentaje),
+                    costo_kilo: Set(a.1.costo_kilo),
+                    descripcion: Set(a.1.descripcion.clone()),
+                    ..Default::default()
+                }),
+                _ => None,
+            })
+            .collect();
+        if pesables.len() > 1 {
+            entity::pesable::Entity::insert_many(pesables)
+                .exec(db)
+                .await?;
+        } else if pesables.len() == 1 {
+            entity::pesable::Entity::insert(pesables[0].to_owned())
+                .exec(db)
+                .await?;
+        }
+        Ok(())
+    }
+    async fn cargar_todos_los_rubros(&self, db: &DatabaseConnection) -> Result<()> {
+        let rubros: Vec<rubro::ActiveModel> = self
+            .productos
+            .iter()
+            .filter_map(|x| match x {
+                Valuable::Rub(a) => Some(rubro::ActiveModel {
+                    monto: Set(a.1.monto),
+                    descripcion: Set(a.1.descripcion.clone()),
+                    ..Default::default()
+                }),
+                _ => None,
+            })
+            .collect();
+        if rubros.len() > 1 {
+            entity::rubro::Entity::insert_many(rubros).exec(db).await?;
+        } else if rubros.len() == 1 {
+            entity::rubro::Entity::insert(rubros[0].to_owned())
+                .exec(db)
+                .await?;
+        }
+        Ok(())
+    }
+    async fn cargar_todas_las_relaciones_prod_prov(&self) -> Result<()> {
         let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
         let mut relaciones_model = Vec::new();
         for x in &self.relaciones {
@@ -774,148 +754,130 @@ impl<'a> Sistema {
                 })
             }
         }
-        entity::relacion_prod_prov::Entity::insert_many(relaciones_model).exec(&db).await?;
+        entity::relacion_prod_prov::Entity::insert_many(relaciones_model)
+            .exec(&db)
+            .await?;
         Ok(())
     }
-    pub async fn update_data_valuable(
-        &mut self,
-        path_productos: &String,
-        productos: Vec<Producto>,
-    ) -> Result<(), String> {
+    pub async fn update_data_valuable(&mut self) -> Result<()> {
         let mut prods: Vec<Valuable>;
-        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-            Ok(db) => {
-                match self
-                    .update_productos_from_db(&db, path_productos, productos)
-                    .await
-                {
-                    Ok(a) => prods = a.iter().map(|x| Valuable::Prod((0, x.clone()))).collect(),
+        
+        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        let updated_prods = self
+            .update_productos_from_db(&db)
+            .await?;
+        prods = updated_prods
+            .iter()
+            .map(|x| Valuable::Prod((0, x.clone())))
+            .collect();
 
-                    Err(e) => return Err(format!("Error gettings products: {}", e.to_string())),
-                };
-                match self.get_pesables_from_db(&db).await {
-                    Ok(a) => prods
-                        .append(&mut a.iter().map(|x| Valuable::Pes((0.0, x.clone()))).collect()),
-                    Err(e) => return Err(format!("Error getting pesables: {}", e)),
-                }
-                match self.get_rubro_from_db(&db).await {
-                    Ok(a) => {
-                        prods.append(&mut a.iter().map(|x| Valuable::Rub((0, x.clone()))).collect())
-                    }
-                    Err(e) => return Err(format!("Error getting rubros {}", e)),
-                }
-                if self.productos.len() < prods.len() {
-                    self.productos = prods;
-                }
-                println!("Cantidad de propductos: {}", self.productos.len());
-            }
-            Err(e) => return Err(e.to_string()),
-        };
+        let updated_pes = self.update_pesables_from_db(&db).await?;
+        prods.append(
+            &mut updated_pes
+                .iter()
+                .map(|x| Valuable::Pes((0.0, x.clone())))
+                .collect(),
+        );
+        let updated_rub = self.update_rubro_from_db(&db).await?;
+        prods.append(
+            &mut updated_rub
+                .iter()
+                .map(|x| Valuable::Rub((0, x.clone())))
+                .collect(),
+        );
+
+        if self.productos.len() != prods.len() {
+            self.productos = prods;
+        }
+        println!("Cantidad de propductos: {}", self.productos.len());
 
         Ok(())
     }
     pub async fn update_productos_from_db(
         &self,
         db: &DatabaseConnection,
-        path_productos: &String,
-        productos: Vec<Producto>,
-    ) -> Result<Vec<Producto>, String> {
-        match entity::producto::Entity::find().all(db).await {
-            Ok(a) => {
-                let mut res = Vec::new();
-                for i in 0..a.len() {
-                    match self.get_codigos_db_filtrado(db, a[i].id).await {
-                        Ok(b) => res.push(map_model_prod(&a[i], b)?),
-                        Err(e) => return Err(format!("en get filtrado {}", e.to_string())),
-                    }
-                }
-                if let Ok(date) = get_updated_time_file(path_productos) {
-                    // let model_vec = get_updated_time_db(a).await;
-                    // if date > model_vec {
-                    //     println!("Ultimo actualizado: productos de archivo");
-                    //     res = productos;
-                    // } else {
-                    //     println!("Ultimo actualizado: productos de bases de datos");
-                    // }
-                }
-                Ok(res)
-            }
-            Err(e) => Err(e.to_string()),
+        
+    ) -> Result<Vec<Producto>> {
+        let a = entity::producto::Entity::find().all(db).await?;
+        let productos = self
+            .productos
+            .iter()
+            .filter_map(|x| match x {
+                Valuable::Prod(a) => Some(a.1.clone()),
+                _ => None,
+            })
+            .collect();
+        let mut res = Vec::new();
+        for i in 0..a.len() {
+            let b = self.get_codigos_db_filtrado(db, a[i].id).await?;
+            res.push(map_model_prod(&a[i], b)?);
         }
+        let date = get_updated_time_file(&self.path_productos)?;
+        let model_vec = get_updated_time_db_producto(a).await;
+        if date > model_vec {
+            println!("Ultimo actualizado: productos de archivo");
+            res = productos;
+        } else {
+            println!("Ultimo actualizado: productos de bases de datos");
+        }
+
+        Ok(res)
     }
-    pub async fn get_pesables_from_db(
-        &self,
-        db: &DatabaseConnection,
-    ) -> Result<Vec<Pesable>, String> {
-        match entity::pesable::Entity::find().all(db).await {
-            Ok(a) => Ok(a.iter().map(|x| map_model_pes(x.clone())).collect()),
-            Err(e) => Err(e.to_string()),
-        }
+    pub async fn update_pesables_from_db(&self, db: &DatabaseConnection) -> Result<Vec<Pesable>> {
+        let pesables_db = entity::pesable::Entity::find().all(db).await?;
+        let date_db=get_updated_time_db_pesable(pesables_db.clone()).await;
+        Ok(pesables_db.iter().map(|x| map_model_pes(x.clone())).collect())
     }
-    pub async fn get_rubro_from_db(&self, db: &DatabaseConnection) -> Result<Vec<Rubro>, String> {
-        match entity::rubro::Entity::find().all(db).await {
-            Ok(a) => Ok(a.iter().map(|x| map_model_rub(x.clone())).collect()),
-            Err(e) => Err(e.to_string()),
-        }
+    pub async fn update_rubro_from_db(&self, db: &DatabaseConnection) -> Result<Vec<Rubro>> {
+        let a = entity::rubro::Entity::find().all(db).await?;
+        Ok(a.iter().map(|x| map_model_rub(x.clone())).collect())
     }
     pub async fn get_codigos_db_filtrado(
         &self,
         db: &DatabaseConnection,
         id: i64,
-    ) -> Result<Vec<i64>, String> {
-        match entity::codigo_barras::Entity::find()
+    ) -> Result<Vec<i64>> {
+        let a = entity::codigo_barras::Entity::find()
             .filter(Condition::all().add(entity::codigo_barras::Column::Producto.eq(id)))
             .all(db)
-            .await
-        {
-            Ok(a) => Ok(a.iter().map(|x| x.id).collect()),
-            Err(e) => Err(e.to_string()),
-        }
+            .await?;
+        Ok(a.iter().map(|x| x.id).collect())
     }
-    async fn cargar_todos_los_provs(&self) -> Result<(), String> {
-        let res;
-        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-            Ok(db) => {
-                let provs: Vec<proveedor::ActiveModel> = self
-                    .proveedores
-                    .iter()
-                    .map(|x| {
-                        let contacto = match x.get_contacto() {
-                            Some(a) => Some(*a),
-                            None => None,
-                        };
-                        proveedor::ActiveModel {
-                            id: Set(*x.get_id()),
-                            nombre: Set(x.get_nombre().clone()),
-                            contacto: Set(contacto),
-                        }
-                    })
-                    .collect();
-                match proveedor::Entity::insert_many(provs).exec(&db).await {
-                    Ok(_) => res = Ok(()),
-                    Err(e) => res = Err(e.to_string()),
+    async fn cargar_todos_los_provs(&self) -> Result<()> {
+        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        let provs: Vec<proveedor::ActiveModel> = self
+            .proveedores
+            .iter()
+            .map(|x| {
+                let contacto = match x.get_contacto() {
+                    Some(a) => Some(*a),
+                    None => None,
+                };
+                proveedor::ActiveModel {
+                    id: Set(*x.get_id()),
+                    nombre: Set(x.get_nombre().clone()),
+                    contacto: Set(contacto),
                 }
-            }
-            Err(e) => res = Err(e.to_string()),
-        }
-        res
+            })
+            .collect();
+        proveedor::Entity::insert_many(provs).exec(&db).await?;
+
+        Ok(())
     }
 }
 
-fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Result<Producto, String> {
+fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Result<Producto> {
     let mut parts = prod.presentacion.split(' ');
     let p1 = parts.next().unwrap();
     let p2 = parts.next().unwrap();
     let presentacion = match p2 {
-        "Gr" => Presentacion::Gr(p1.parse().unwrap()),
-        "Un" => Presentacion::Un(p1.parse().unwrap()),
-        "Lt" => Presentacion::Lt(p1.parse().unwrap()),
-        "Ml" => Presentacion::Ml(p1.parse().unwrap()),
-        "CC" => Presentacion::CC(p1.parse().unwrap()),
-        "Kg" => Presentacion::Kg(p1.parse().unwrap()),
-        _ => {
-            panic!("Error formateando Presentacion")
-        }
+        "Gr" => Presentacion::Gr(p1.parse()?),
+        "Un" => Presentacion::Un(p1.parse()?),
+        "Lt" => Presentacion::Lt(p1.parse()?),
+        "Ml" => Presentacion::Ml(p1.parse()?),
+        "CC" => Presentacion::CC(p1.parse()?),
+        "Kg" => Presentacion::Kg(p1.parse()?),
+        _ => return Err(SizeSelecionError.into()),
     };
     Ok(Producto::new(
         prod.id,
@@ -923,9 +885,9 @@ fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Result<Prod
         prod.precio_de_venta,
         prod.porcentaje,
         prod.precio_de_costo,
-        prod.tipo_producto.clone(),
-        prod.marca.clone(),
-        prod.variedad.clone(),
+        prod.tipo_producto,
+        prod.marca,
+        prod.variedad,
         presentacion,
     ))
 }

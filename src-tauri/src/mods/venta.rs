@@ -1,3 +1,7 @@
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
+
+use std::{error::Error};
+
 use entity::{
     pago,
     venta::{self},
@@ -7,7 +11,7 @@ use serde::Serialize;
 
 use crate::redondeo;
 
-use super::{pago::Pago, valuable::Valuable};
+use super::{pago::Pago, sistema::ProductNotFoundError, valuable::Valuable};
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
@@ -29,16 +33,16 @@ impl<'a> Venta {
     pub fn get_monto_total(&self) -> f64 {
         self.monto_total
     }
-    // pub fn get_productos(&self)->Vec<Valuable>{
-    //     self.productos.clone()
-    // }
+    pub fn get_productos(&self)->Vec<Valuable>{
+        self.productos.clone()
+    }
     // pub fn get_pagos(&self)->Vec<Pago>{
     //     self.pagos.clone()
     // }
     pub fn get_monto_pagado(&self) -> f64 {
         self.monto_pagado
     }
-    pub fn agregar_pago(&mut self, medio_pago: String, monto: f64) -> f64 {
+    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> f64 {
         self.pagos.push(Pago::new(medio_pago, monto));
         self.monto_pagado += monto;
         self.monto_total - self.monto_pagado
@@ -84,8 +88,8 @@ impl<'a> Venta {
         let pago = self.pagos.remove(index);
         self.monto_pagado -= pago.get_monto();
     }
-    pub fn restar_producto(&mut self, producto: Valuable, politica: f64) -> Result<Venta, String> {
-        let mut res = Err("Producto no encontrado".to_string());
+    pub fn restar_producto(&mut self, producto: Valuable, politica: f64) -> Result<Venta> {
+        let mut res = Err(ProductNotFoundError.into());
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -117,12 +121,8 @@ impl<'a> Venta {
         }
         res
     }
-    pub fn incrementar_producto(
-        &mut self,
-        producto: Valuable,
-        politica: f64,
-    ) -> Result<Venta, String> {
-        let mut res = Err("Producto no encontrado".to_string());
+    pub fn incrementar_producto(&mut self, producto: Valuable, politica: f64) -> Result<Venta> {
+        let mut res = Err(ProductNotFoundError.into());
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -142,12 +142,8 @@ impl<'a> Venta {
         }
         res
     }
-    pub fn eliminar_producto(
-        &mut self,
-        producto: Valuable,
-        politica: f64,
-    ) -> Result<Venta, String> {
-        let mut res = Err("Producto no encontrado".to_string());
+    pub fn eliminar_producto(&mut self, producto: Valuable, politica: f64) -> Result<Venta> {
+        let mut res = Err(ProductNotFoundError.into());
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -162,53 +158,40 @@ impl<'a> Venta {
         }
         res
     }
-    pub async fn save(&self) -> Result<(), String> {
+    pub async fn save(&self) -> Result<()> {
         let model = venta::ActiveModel {
             monto_total: Set(self.monto_total),
             monto_pagado: Set(self.monto_pagado),
             ..Default::default()
         };
 
-        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-            Ok(db) => {
-                let mut res = Ok(());
-                println!("conectado");
-                match entity::venta::Entity::insert(model.clone()).exec(&db).await {
-                    Ok(result) => {
-                        match entity::venta::Entity::find_by_id(result.last_insert_id)
-                            .one(&db)
-                            .await
-                        {
-                            Ok(a) => {
-                                if let Some(model) = a {
-                                    let pay_models: Vec<pago::ActiveModel> = self
-                                        .pagos
-                                        .iter()
-                                        .map(|x| pago::ActiveModel {
-                                            medio_pago: Set(x.get_medio().clone()),
-                                            monto: Set(x.get_monto()),
-                                            venta: Set(model.clone().id),
-                                            ..Default::default()
-                                        })
-                                        .collect();
+        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
 
-                                    if let Err(e)= entity::pago::Entity::insert_many(pay_models)
-                                        .exec(&db)
-                                        .await
-                                    {
-                                        res= Err(e.to_string());
-                                    }
-                                }
-                            }
-                            Err(e) => res= Err(e.to_string()),
-                        }
-                    }
-                    Err(e) => res= Err(e.to_string()),
-                }
+        println!("conectado");
+        let result = entity::venta::Entity::insert(model.clone())
+            .exec(&db)
+            .await?;
 
-                res
-            }
-            Err(e) => Err(e.to_string()),
+        let a = entity::venta::Entity::find_by_id(result.last_insert_id)
+            .one(&db)
+            .await?;
+
+        if let Some(model) = a {
+            let pay_models: Vec<pago::ActiveModel> = self
+                .pagos
+                .iter()
+                .map(|x| pago::ActiveModel {
+                    medio_pago: Set(x.get_medio().clone()),
+                    monto: Set(x.get_monto()),
+                    venta: Set(model.clone().id),
+                    ..Default::default()
+                })
+                .collect();
+
+            entity::pago::Entity::insert_many(pay_models)
+                .exec(&db)
+                .await?;
         }
+        Ok(())
     }
 }

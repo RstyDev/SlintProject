@@ -1,5 +1,8 @@
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
+use std::error::Error;
+
 use entity::relacion_prod_prov;
-use sea_orm::{Set, Database, ActiveModelTrait};
+use sea_orm::{ActiveModelTrait, Database, Set};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -17,32 +20,25 @@ impl RelacionProdProv {
             codigo_interno,
         }
     }
-    pub fn get_id_producto(&self)->i64{
+    pub fn get_id_producto(&self) -> i64 {
         self.id_producto
     }
-    pub fn get_id_proveedor(&self)->i64{
+    pub fn get_id_proveedor(&self) -> i64 {
         self.id_proveedor
     }
-    pub fn get_codigo_interno(&self)->Option<i64>{
+    pub fn get_codigo_interno(&self) -> Option<i64> {
         self.codigo_interno
     }
-    pub async fn save(&self) -> Result<(), String> {
+    pub async fn save(&self) -> Result<()> {
         let model = relacion_prod_prov::ActiveModel {
             producto: Set(self.id_producto),
             proveedor: Set(self.id_proveedor),
             codigo: Set(self.codigo_interno),
             ..Default::default()
         };
-        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-            Ok(db) => {
-                println!("conectado");
-                if let Err(e) = model.insert(&db).await {
-                    Err(e.to_string())
-                } else {
-                    Ok(())
-                }
-            }
-            Err(e) => Err(e.to_string()),
-        }
+        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        println!("conectado");
+        model.insert(&db).await?;
+        Ok(())
     }
 }

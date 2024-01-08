@@ -1,3 +1,8 @@
+type Result<T>=std::result::Result<T,Box<dyn Error>>;
+use std::error::Error;
+
+
+use chrono::Utc;
 use entity::pesable;
 use sea_orm::{Database, Set, ActiveModelTrait};
 use serde::{Deserialize, Serialize};
@@ -29,25 +34,19 @@ impl Pesable {
             descripcion,
         }
     }
-    pub async fn save(&self) -> Result<(), String> {
-        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-            Ok(db) => {
-                println!("conectado");
-                let model = pesable::ActiveModel {
-                    id: Set(self.id),
-                    codigo: Set(self.codigo),
-                    precio_peso: Set(self.precio_peso),
-                    porcentaje: Set(self.porcentaje),
-                    costo_kilo: Set(self.costo_kilo),
-                    descripcion: Set(self.descripcion.clone()),
-                };
-                if let Err(e) = model.insert(&db).await {
-                    return Err(e.to_string());
-                }
-            }
-            Err(e) => return Err(e.to_string()),
-        }
-
+    pub async fn save(&self) -> Result<()> {
+        let db= Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        println!("conectado");
+        let model = pesable::ActiveModel {
+            id: Set(self.id),
+            codigo: Set(self.codigo),
+            precio_peso: Set(self.precio_peso),
+            porcentaje: Set(self.porcentaje),
+            costo_kilo: Set(self.costo_kilo),
+            descripcion: Set(self.descripcion.clone()),
+            updated_at: Set(Utc::now().naive_utc()),
+        };
+        model.insert(&db).await?;                        
         Ok(())
     }
 }

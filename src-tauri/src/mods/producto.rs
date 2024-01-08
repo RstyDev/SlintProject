@@ -1,13 +1,17 @@
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
+
+use std::error::Error;
+
 use super::{valuable::Presentacion, valuable::ValuableTrait};
 use crate::redondeo;
 use chrono::Utc;
 use entity::{codigo_barras, producto};
-use sea_orm::{ActiveModelTrait, Database, Set, EntityTrait};
+use sea_orm::{ActiveModelTrait, Database, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Producto {
-    id:i64,
+    id: i64,
     pub codigos_de_barras: Vec<i64>,
     pub precio_de_venta: f64,
     pub porcentaje: f64,
@@ -19,7 +23,8 @@ pub struct Producto {
 }
 
 impl Producto {
-    pub fn new(id: i64,
+    pub fn new(
+        id: i64,
         codigos_de_barras: Vec<i64>,
         precio_de_venta: f64,
         porcentaje: f64,
@@ -27,19 +32,20 @@ impl Producto {
         tipo_producto: String,
         marca: String,
         variedad: String,
-        presentacion: Presentacion)->Producto{
-            Producto{
-                id,
-                codigos_de_barras,
-                precio_de_venta,
-                porcentaje,
-                precio_de_costo,
-                tipo_producto,
-                marca,
-                variedad,
-                presentacion,
-            }
+        presentacion: Presentacion,
+    ) -> Producto {
+        Producto {
+            id,
+            codigos_de_barras,
+            precio_de_venta,
+            porcentaje,
+            precio_de_costo,
+            tipo_producto:tipo_producto,
+            marca:marca,
+            variedad:variedad,
+            presentacion,
         }
+    }
     pub fn new2(
         id: i64,
         codigos: Vec<&str>,
@@ -77,7 +83,7 @@ impl Producto {
             presentacion: cant,
         }
     }
-    pub fn get_id(&self)->i64{
+    pub fn get_id(&self) -> i64 {
         self.id
     }
     pub fn get_nombre_completo(&self) -> String {
@@ -86,42 +92,29 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
-    pub async fn save(&self) -> Result<(), String> {
-        match Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await {
-            Ok(db) => {
-                println!("Guardando producto en DB");
-
-                let model = producto::ActiveModel {
-                    precio_de_venta: Set(self.precio_de_venta),
-                    porcentaje: Set(self.porcentaje),
-                    precio_de_costo: Set(self.precio_de_costo),
-                    tipo_producto: Set(self.tipo_producto.clone()),
-                    marca: Set(self.marca.clone()),
-                    variedad: Set(self.variedad.clone()),
-                    presentacion: Set(format!("{}", self.presentacion)),
-                    updated_at: Set(Utc::now().naive_utc()),
-                    ..Default::default()
-                };
-                match entity::producto::Entity::insert(model).exec(&db).await {
-                    Ok(res)=>{
-                        for codigo in &self.codigos_de_barras {
-                            let cod_model = codigo_barras::ActiveModel {
-                                codigo: Set(*codigo),
-                                producto: Set(res.last_insert_id),
-                                ..Default::default()
-                            };
-                            if let Err(e) = cod_model.insert(&db).await {
-                                return Err(e.to_string());
-                            }
-                        }
-
-                    }
-                    Err(e)=>return Err(e.to_string())
-                }
-            }
-            Err(e) => return Err(e.to_string()),
+    pub async fn save(&self) -> Result<()> {
+        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        println!("Guardando producto en DB");
+        let model = producto::ActiveModel {
+            precio_de_venta: Set(self.precio_de_venta),
+            porcentaje: Set(self.porcentaje),
+            precio_de_costo: Set(self.precio_de_costo),
+            tipo_producto: Set(self.tipo_producto.clone()),
+            marca: Set(self.marca.clone()),
+            variedad: Set(self.variedad.clone()),
+            presentacion: Set(format!("{}", self.presentacion)),
+            updated_at: Set(Utc::now().naive_utc()),
+            ..Default::default()
+        };
+        let res = entity::producto::Entity::insert(model).exec(&db).await?;
+        for codigo in &self.codigos_de_barras {
+            let cod_model = codigo_barras::ActiveModel {
+                codigo: Set(*codigo),
+                producto: Set(res.last_insert_id),
+                ..Default::default()
+            };
+            cod_model.insert(&db).await?;
         }
-
         Ok(())
     }
     pub fn unifica_codes(&mut self) {
