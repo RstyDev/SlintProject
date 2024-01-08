@@ -1,12 +1,21 @@
-use entity::producto::Model;
 use core::fmt;
+use entity::producto::Model;
 use sea_orm::prelude::DateTimeUtc;
+use sea_orm::{ColumnTrait, Condition, Database, DatabaseConnection, EntityTrait, QueryFilter};
 use serde::{de::DeserializeOwned, Serialize};
 use std::fs::{self, File};
 use std::io::{Read, Write};
 
-type Result<T>=std::result::Result<T,Box<dyn Error>>;
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 use std::error::Error;
+
+use crate::mods::valuable::Valuable;
+
+use super::pesable::Pesable;
+use super::producto::Producto;
+use super::rubro::Rubro;
+use super::sistema::SizeSelecionError;
+use super::valuable::Presentacion;
 #[derive(Debug)]
 pub struct DateFormatError;
 impl fmt::Display for DateFormatError {
@@ -15,7 +24,6 @@ impl fmt::Display for DateFormatError {
     }
 }
 impl std::error::Error for DateFormatError {}
-
 
 pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
@@ -163,3 +171,165 @@ fn make_elapsed_to_date(date: std::time::Duration) -> Option<DateTimeUtc> {
 //         Err(e) => panic!("No se pudo pushear porque {}", e),
 //     };
 // }
+pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Result<Vec<i64>> {
+    let a = entity::codigo_barras::Entity::find()
+        .filter(Condition::all().add(entity::codigo_barras::Column::Producto.eq(id)))
+        .all(db)
+        .await?;
+    Ok(a.iter().map(|x| x.id).collect())
+}
+
+pub async fn update_data_valuable(
+    rubros_local: &mut Vec<Rubro>,
+    pesables_local: &mut Vec<Pesable>,
+    productos_local: &mut Vec<Producto>,
+    path_rubros: &str,
+    path_pesables: &str,
+    path_productos: &str,
+) -> Result<Vec<Valuable>> {
+    let mut prods: Vec<Valuable>;
+
+    let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+    update_productos_from_db(productos_local, path_productos, &db).await?;
+    prods = productos_local
+        .iter()
+        .map(|x| Valuable::Prod((0, x.clone())))
+        .collect();
+
+    update_pesables_from_db(pesables_local, path_pesables, &db).await?;
+    prods.append(
+        &mut pesables_local
+            .iter()
+            .map(|x| Valuable::Pes((0.0, x.clone())))
+            .collect(),
+    );
+    update_rubros_from_db(rubros_local, path_rubros, &db).await?;
+    prods.append(
+        &mut rubros_local
+            .iter()
+            .map(|x| Valuable::Rub((0, x.clone())))
+            .collect(),
+    );
+
+    println!("Cantidad de propductos: {}", prods.len());
+
+    Ok(prods)
+}
+
+pub async fn update_rubros_from_db(
+    rubros_local: &mut Vec<Rubro>,
+    path_rubros: &str,
+    db: &DatabaseConnection,
+) -> Result<()> {
+    let rubros_db_model = entity::rubro::Entity::find().all(db).await?;
+    let mut date_db = DateTimeUtc::MIN_UTC;
+    if rubros_db_model.len() > 0 {
+        date_db = get_updated_time_db_rubro(rubros_db_model.clone()).await;
+    }
+    let date_local = get_updated_time_file(path_rubros)?;
+    if date_db > date_local {
+        rubros_local.clear();
+        println!("Ultimo actualizado: rubros de bases de datos");
+        for i in 0..rubros_db_model.len() {
+            rubros_local.push(map_model_rub(&rubros_db_model[i]));
+        }
+    } else if date_db == date_local {
+        println!("Rubros sincronizados")
+    } else {
+        println!("Ultimo actualizado: rubros local");
+    }
+    Ok(())
+}
+pub async fn update_pesables_from_db(
+    pesables_local: &mut Vec<Pesable>,
+    path_pesables: &str,
+    db: &DatabaseConnection,
+) -> Result<()> {
+    let pesables_db_model = entity::pesable::Entity::find().all(db).await?;
+    let mut date_db = DateTimeUtc::MIN_UTC;
+    if pesables_db_model.len() > 0 {
+        date_db = get_updated_time_db_pesable(pesables_db_model.clone()).await;
+    }
+    let date_local = get_updated_time_file(path_pesables)?;
+    if date_db > date_local {
+        pesables_local.clear();
+        println!("Ultimo actualizado: pesables de bases de datos");
+        for i in 0..pesables_db_model.len() {
+            pesables_local.push(map_model_pes(&pesables_db_model[i]));
+        }
+    } else if date_db == date_local {
+        println!("Pesables sincronizados")
+    } else {
+        println!("Ultimo actualizado: pesables local");
+    }
+    Ok(())
+}
+pub async fn update_productos_from_db(
+    productos_local: &mut Vec<Producto>,
+    path_productos: &str,
+    db: &DatabaseConnection,
+) -> Result<()> {
+    let prods_db_model = entity::producto::Entity::find().all(db).await?;
+    let date_local = get_updated_time_file(path_productos)?;
+    let mut date_db = DateTimeUtc::MIN_UTC;
+    if prods_db_model.len() > 0 {
+        date_db = get_updated_time_db_producto(prods_db_model.clone()).await;
+    }
+    if date_local < date_db {
+        productos_local.clear();
+        println!("Ultimo actualizado: productos de bases de datos");
+        for i in 0..prods_db_model.len() {
+            let b = get_codigos_db_filtrado(db, prods_db_model[i].id).await?;
+            productos_local.push(map_model_prod(&prods_db_model[i], b)?);
+        }
+    } else if date_db == date_local {
+        println!("Productos sincronizados")
+    } else {
+        println!("Ultimo actualizado: productos local");
+    }
+    Ok(())
+}
+
+fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Result<Producto> {
+    let mut parts = prod.presentacion.split(' ');
+    let p1 = parts.next().unwrap();
+    let p2 = parts.next().unwrap();
+    let presentacion = match p2 {
+        "Gr" => Presentacion::Gr(p1.parse()?),
+        "Un" => Presentacion::Un(p1.parse()?),
+        "Lt" => Presentacion::Lt(p1.parse()?),
+        "Ml" => Presentacion::Ml(p1.parse()?),
+        "CC" => Presentacion::CC(p1.parse()?),
+        "Kg" => Presentacion::Kg(p1.parse()?),
+        _ => return Err(SizeSelecionError.into()),
+    };
+    Ok(Producto::new(
+        prod.id,
+        cods,
+        prod.precio_de_venta,
+        prod.porcentaje,
+        prod.precio_de_costo,
+        prod.tipo_producto.clone(),
+        prod.marca.clone(),
+        prod.variedad.clone(),
+        presentacion,
+    ))
+}
+fn map_model_rub(rub: &entity::rubro::Model) -> Rubro {
+    Rubro {
+        id: rub.id,
+        monto: rub.monto,
+        descripcion: rub.descripcion.clone(),
+    }
+}
+
+fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
+    Pesable {
+        id: pes.id,
+        codigo: pes.codigo,
+        precio_peso: pes.precio_peso,
+        porcentaje: pes.porcentaje,
+        costo_kilo: pes.costo_kilo,
+        descripcion: pes.descripcion.clone(),
+    }
+}
