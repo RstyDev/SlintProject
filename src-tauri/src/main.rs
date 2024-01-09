@@ -8,6 +8,7 @@ type Result<T> = std::result::Result<T, String>;
 
 use std::sync::Mutex;
 use tauri::{async_runtime::block_on, State};
+
 mod mods;
 
 #[tauri::command]
@@ -426,7 +427,7 @@ fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
 #[tauri::command]
 fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
     let res;
-    res = prod.get_descripcion(conf);
+    res = prod.get_descripcion(&conf);
     res
 }
 

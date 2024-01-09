@@ -1,10 +1,9 @@
-type Result<T>=std::result::Result<T,Box<dyn Error>>;
 use std::error::Error;
 
 
 use chrono::Utc;
 use entity::pesable;
-use sea_orm::{Database, Set, ActiveModelTrait};
+use sea_orm::{Database, Set, ActiveModelTrait, DbErr};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -34,7 +33,7 @@ impl Pesable {
             descripcion,
         }
     }
-    pub async fn save(&self) -> Result<()> {
+    pub async fn save(&self) -> Result<(),DbErr> {
         let db= Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
         println!("conectado");
         let model = pesable::ActiveModel {

@@ -1,8 +1,7 @@
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 use std::error::Error;
 
 use entity::relacion_prod_prov;
-use sea_orm::{ActiveModelTrait, Database, Set};
+use sea_orm::{ActiveModelTrait, Database, Set, DbErr};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -29,7 +28,7 @@ impl RelacionProdProv {
     pub fn get_codigo_interno(&self) -> Option<i64> {
         self.codigo_interno
     }
-    pub async fn save(&self) -> Result<()> {
+    pub async fn save(&self) -> Result<(),DbErr> {
         let model = relacion_prod_prov::ActiveModel {
             producto: Set(self.id_producto),
             proveedor: Set(self.id_proveedor),

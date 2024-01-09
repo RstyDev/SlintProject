@@ -1,12 +1,10 @@
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
-
 use std::error::Error;
 
 use super::{valuable::Presentacion, valuable::ValuableTrait};
 use crate::redondeo;
 use chrono::Utc;
 use entity::{codigo_barras, producto};
-use sea_orm::{ActiveModelTrait, Database, EntityTrait, Set};
+use sea_orm::{ActiveModelTrait, Database, EntityTrait, Set, DbErr};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -55,7 +53,7 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
-    pub async fn save(&self) -> Result<()> {
+    pub async fn save(&self) -> Result<(),DbErr> {
         let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
         println!("Guardando producto en DB");
         let model = producto::ActiveModel {

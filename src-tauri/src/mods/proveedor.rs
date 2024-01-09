@@ -1,9 +1,7 @@
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
-
 use std::error::Error;
 
 use entity::proveedor;
-use sea_orm::{ActiveModelTrait, Database, Set};
+use sea_orm::{ActiveModelTrait, Database, Set, DbErr};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -30,7 +28,7 @@ impl Proveedor {
     pub fn get_contacto(&self) -> &Option<i64> {
         &self.contacto
     }
-    pub async fn save(&self) -> Result<()> {
+    pub async fn save(&self) -> Result<(),DbErr> {
         let model = proveedor::ActiveModel {
             id: Set(self.id),
             nombre: Set(self.nombre.clone()),

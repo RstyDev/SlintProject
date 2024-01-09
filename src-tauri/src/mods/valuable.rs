@@ -1,4 +1,4 @@
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
+type Res<T> = std::result::Result<T, Box<dyn Error>>;
 use super::{
     config::{Config, Formato, Mayusculas},
     lib::camalize,
@@ -6,6 +6,7 @@ use super::{
     producto::Producto,
     rubro::Rubro,
 };
+use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
 use std::{fmt::{self, Display}, error::Error};
 
@@ -30,7 +31,7 @@ impl Valuable {
             _ => (),
         }
     }
-    pub fn get_descripcion(&self, conf: Config) -> String {
+    pub fn get_descripcion(&self, conf: &Config) -> String {
         let mut res = match self {
             Valuable::Pes(a) => a.1.descripcion.clone(),
             Valuable::Rub(a) => a.1.descripcion.clone(),
@@ -71,7 +72,7 @@ impl Valuable {
         }
         res
     }
-    pub async fn save(&self) -> Result<()> {
+    pub async fn save(&self) -> Result<(),DbErr> {
         match self {
             Valuable::Pes(a) => a.1.save().await,
             Valuable::Prod(a) => a.1.save().await,

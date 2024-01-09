@@ -1,17 +1,14 @@
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
-
-use std::error::Error;
 
 use entity::{
     pago,
     venta::{self},
 };
-use sea_orm::{Database, EntityTrait, Set};
+use sea_orm::{Database, EntityTrait, Set, DbErr};
 use serde::Serialize;
 
 use crate::redondeo;
 
-use super::{pago::Pago, sistema::ProductNotFoundError, valuable::Valuable};
+use super::{pago::Pago, valuable::Valuable, error::{ProductNotFoundError, AppError}, config::Config};
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
@@ -88,8 +85,8 @@ impl<'a> Venta {
         let pago = self.pagos.remove(index);
         self.monto_pagado -= pago.get_monto();
     }
-    pub fn restar_producto(&mut self, producto: Valuable, politica: f64) -> Result<Venta> {
-        let mut res = Err(ProductNotFoundError.into());
+    pub fn restar_producto(&mut self, producto: Valuable, politica: f64,conf:&Config) -> Result<Venta,AppError> {
+        let mut res = Err(AppError::ProductNotFound(producto.get_descripcion(conf)));
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -121,8 +118,8 @@ impl<'a> Venta {
         }
         res
     }
-    pub fn incrementar_producto(&mut self, producto: Valuable, politica: f64) -> Result<Venta> {
-        let mut res = Err(ProductNotFoundError.into());
+    pub fn incrementar_producto(&mut self, producto: Valuable, politica: f64, conf:&Config) -> Result<Venta,AppError> {
+        let mut res = Err(AppError::ProductNotFound(producto.get_descripcion(conf)));
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -142,8 +139,8 @@ impl<'a> Venta {
         }
         res
     }
-    pub fn eliminar_producto(&mut self, producto: Valuable, politica: f64) -> Result<Venta> {
-        let mut res = Err(ProductNotFoundError.into());
+    pub fn eliminar_producto(&mut self, producto: Valuable, politica: f64,conf:&Config) -> Result<Venta,AppError> {
+        let mut res = Err(AppError::ProductNotFound(producto.get_descripcion(conf)));
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -158,7 +155,7 @@ impl<'a> Venta {
         }
         res
     }
-    pub async fn save(&self) -> Result<()> {
+    pub async fn save(&self) -> Result<(),DbErr> {
         let model = venta::ActiveModel {
             monto_total: Set(self.monto_total),
             monto_pagado: Set(self.monto_pagado),

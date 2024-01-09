@@ -9,3 +9,4 @@ pub mod rubro;
 pub mod sistema;
 pub mod valuable;
 pub mod venta;
+pub mod error;
