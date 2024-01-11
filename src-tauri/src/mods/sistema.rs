@@ -1,16 +1,16 @@
 type Res<T> = std::result::Result<T, Box<dyn Error>>;
-use std::error::Error;
 use chrono::Utc;
 use entity::codigo_barras;
 use entity::producto::ActiveModel;
 use entity::*;
-use sea_orm::DbErr;
 use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
 use sea_orm::Condition;
+use sea_orm::DbErr;
 use sea_orm::QueryFilter;
 use sea_orm::Set;
 use sea_orm::{Database, DatabaseConnection, EntityTrait};
+use std::error::Error;
 use tauri::async_runtime;
 use tauri::async_runtime::block_on;
 
@@ -27,6 +27,9 @@ use super::lib::camalize;
 use super::lib::cargar_todas_las_relaciones_prod_prov;
 use super::lib::cargar_todos_los_provs;
 use super::lib::cargar_todos_los_valuables;
+use super::lib::save_pesable;
+use super::lib::save_rubro;
+use super::lib::save_venta;
 use super::lib::update_data_valuable;
 use super::proveedor::Proveedor;
 use super::valuable::Presentacion;
@@ -127,9 +130,13 @@ impl<'a> Sistema {
         // for i in 0..sis.productos.len() {
         // sis.productos[i].unifica_codes()
         // }
-        let prod_load_handle= async_runtime::spawn(cargar_todos_los_valuables(sis.productos.clone()));
-        let prov_load_handle=async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
-        let rel_load_handle=async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(sis.relaciones.clone()));
+        let prod_load_handle =
+            async_runtime::spawn(cargar_todos_los_valuables(sis.productos.clone()));
+        let prov_load_handle =
+            async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
+        let rel_load_handle = async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(
+            sis.relaciones.clone(),
+        ));
 
         if hay_cambios_desde_db {
             crear_file(path_pesables, &pesables)?;
@@ -353,7 +360,7 @@ impl<'a> Sistema {
             .collect();
         pesables.push(pesable.clone());
         crear_file(&self.path_pesables, &pesables)?;
-        async_runtime::spawn(pesable.clone().save());
+        async_runtime::spawn(save_pesable(pesable.clone()));
         self.productos.push(Valuable::Pes((0.0, pesable)));
         Ok(())
     }
@@ -369,7 +376,7 @@ impl<'a> Sistema {
             .flatten()
             .collect();
         rubros.push(rubro.clone());
-        let handle=async_runtime::spawn(rubro.clone().save());
+        let handle = async_runtime::spawn(save_rubro(rubro.clone()));
         crear_file(&self.path_rubros, &rubros)?;
         self.productos.push(Valuable::Rub((0, rubro)));
         async_runtime::block_on(handle)?;
@@ -404,7 +411,7 @@ impl<'a> Sistema {
         }
         Ok(())
     }
-    fn get_producto(&mut self, id: i64) -> Result<Valuable,AppError> {
+    fn get_producto(&mut self, id: i64) -> Result<Valuable, AppError> {
         let mut res = Err(AppError::ProductNotFound(id.to_string()));
         for p in &self.productos {
             match p {
@@ -450,55 +457,61 @@ impl<'a> Sistema {
 
         result
     }
-    pub fn descontar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta,AppError> {
+    pub fn descontar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
         let res = self.get_producto(id)?;
         Ok(match pos {
-            0 => self
-                .ventas
-                .0
-                .restar_producto(res, self.get_configs().get_politica(),&self.configs)?,
-            1 => self
-                .ventas
-                .1
-                .restar_producto(res, self.get_configs().get_politica(),&self.configs)?,
+            0 => self.ventas.0.restar_producto(
+                res,
+                self.get_configs().get_politica(),
+                &self.configs,
+            )?,
+            1 => self.ventas.1.restar_producto(
+                res,
+                self.get_configs().get_politica(),
+                &self.configs,
+            )?,
             _ => return Err(AppError::SaleSelecion.into()),
         })
     }
-    pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta,AppError> {
+    pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
         let res = self.get_producto(id)?;
         let result;
         match pos {
             0 => {
-                result = self
-                    .ventas
-                    .0
-                    .incrementar_producto(res, self.get_configs().get_politica(),&self.configs);
+                result = self.ventas.0.incrementar_producto(
+                    res,
+                    self.get_configs().get_politica(),
+                    &self.configs,
+                );
             }
             1 => {
-                result = self
-                    .ventas
-                    .1
-                    .incrementar_producto(res, self.get_configs().get_politica(),&self.configs);
+                result = self.ventas.1.incrementar_producto(
+                    res,
+                    self.get_configs().get_politica(),
+                    &self.configs,
+                );
             }
             _ => result = Err(AppError::SaleSelecion),
         }
         result
     }
-    pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta,AppError> {
+    pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
         let res = self.get_producto(id)?;
         let result;
         match pos {
             0 => {
-                result = self
-                    .ventas
-                    .0
-                    .eliminar_producto(res, self.get_configs().get_politica(),&self.configs);
+                result = self.ventas.0.eliminar_producto(
+                    res,
+                    self.get_configs().get_politica(),
+                    &self.configs,
+                );
             }
             1 => {
-                result = self
-                    .ventas
-                    .1
-                    .eliminar_producto(res, self.get_configs().get_politica(),&self.configs);
+                result = self.ventas.1.eliminar_producto(
+                    res,
+                    self.get_configs().get_politica(),
+                    &self.configs,
+                );
             }
             _ => result = Err(AppError::SaleSelecion),
         }
@@ -558,12 +571,12 @@ impl<'a> Sistema {
     fn cerrar_venta(&mut self, pos: usize) -> Res<()> {
         match pos {
             0 => {
-                async_runtime::spawn(self.ventas.0.save());
+                async_runtime::spawn(save_venta(self.ventas.0.clone()));
                 self.registro.push(self.ventas.0.clone());
                 self.ventas.0 = Venta::new();
             }
             1 => {
-                block_on(self.ventas.1.save())?;
+                block_on(save_venta(self.ventas.1.clone()))?;
                 self.registro.push(self.ventas.1.clone());
                 self.ventas.1 = Venta::new();
             }
@@ -611,10 +624,4 @@ impl<'a> Sistema {
     pub fn get_stash(&self) -> &Vec<Venta> {
         &self.stash
     }
-    
-    
-    
-    
-    
-    
 }

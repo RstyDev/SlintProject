@@ -22,6 +22,7 @@ use super::proveedor::Proveedor;
 use super::relacion_prod_prov::RelacionProdProv;
 use super::rubro::Rubro;
 use super::valuable::Presentacion;
+use super::venta::Venta;
 
 pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
@@ -30,6 +31,15 @@ pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result
     Ok(())
 }
 
+pub async fn save_pesable(pes:Pesable)->Result<(),DbErr>{
+    pes.save().await
+}
+pub async fn save_rubro(rub:Rubro)->Result<(),DbErr>{
+    rub.save().await
+}
+pub async fn save_venta(venta:Venta)->Result<(),DbErr>{
+    venta.save().await
+}
 pub fn camalize(data: &str) -> String {
     let mut es = true;
     let mut datos = String::new();

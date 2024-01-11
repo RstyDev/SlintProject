@@ -4,7 +4,7 @@ use super::{valuable::Presentacion, valuable::ValuableTrait};
 use crate::redondeo;
 use chrono::Utc;
 use entity::{codigo_barras, producto};
-use sea_orm::{ActiveModelTrait, Database, EntityTrait, Set, DbErr};
+use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -53,31 +53,31 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
-    pub async fn save(&self) -> Result<(),DbErr> {
-        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-        println!("Guardando producto en DB");
-        let model = producto::ActiveModel {
-            precio_de_venta: Set(self.precio_de_venta),
-            porcentaje: Set(self.porcentaje),
-            precio_de_costo: Set(self.precio_de_costo),
-            tipo_producto: Set(self.tipo_producto.clone()),
-            marca: Set(self.marca.clone()),
-            variedad: Set(self.variedad.clone()),
-            presentacion: Set(format!("{}", self.presentacion)),
-            updated_at: Set(Utc::now().naive_utc()),
-            ..Default::default()
-        };
-        let res = entity::producto::Entity::insert(model).exec(&db).await?;
-        for codigo in &self.codigos_de_barras {
-            let cod_model = codigo_barras::ActiveModel {
-                codigo: Set(*codigo),
-                producto: Set(res.last_insert_id),
+        pub async fn save(&self) -> Result<(), DbErr> {
+            let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+            println!("Guardando producto en DB");
+            let model = producto::ActiveModel {
+                precio_de_venta: Set(self.precio_de_venta),
+                porcentaje: Set(self.porcentaje),
+                precio_de_costo: Set(self.precio_de_costo),
+                tipo_producto: Set(self.tipo_producto.clone()),
+                marca: Set(self.marca.clone()),
+                variedad: Set(self.variedad.clone()),
+                presentacion: Set(format!("{}", self.presentacion)),
+                updated_at: Set(Utc::now().naive_utc()),
                 ..Default::default()
             };
-            cod_model.insert(&db).await?;
+            let res = entity::producto::Entity::insert(model).exec(&db).await?;
+            for codigo in &self.codigos_de_barras {
+                let cod_model = codigo_barras::ActiveModel {
+                    codigo: Set(*codigo),
+                    producto: Set(res.last_insert_id),
+                    ..Default::default()
+                };
+                cod_model.insert(&db).await?;
+            }
+            Ok(())
         }
-        Ok(())
-    }
     pub fn unifica_codes(&mut self) {
         let mut e = 0;
         for i in 0..self.codigos_de_barras.len() {
