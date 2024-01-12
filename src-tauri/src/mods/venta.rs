@@ -1,5 +1,5 @@
 use entity::{
-    pago,
+    pago, relacion_venta_prod,
     venta::{self},
 };
 use sea_orm::{Database, DbErr, EntityTrait, Set};
@@ -204,6 +204,19 @@ impl Save for Venta {
             entity::pago::Entity::insert_many(pay_models)
                 .exec(&db)
                 .await?;
+            let prod_models:Vec<entity::relacion_venta_prod::ActiveModel> = self
+                .productos
+                .iter()
+                .map(|x| entity::relacion_venta_prod::ActiveModel {
+                    producto: Set(match x {
+                        Valuable::Prod(a) => a.1.get_id(),
+                        Valuable::Pes(a) => a.1.id,
+                        Valuable::Rub(a) => a.1.id,
+                    }),
+                    venta: Set(model.clone().id),
+                    ..Default::default()
+                })
+                .collect();
         }
         Ok(())
     }

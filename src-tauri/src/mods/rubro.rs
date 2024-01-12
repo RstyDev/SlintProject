@@ -2,7 +2,6 @@ use chrono::Utc;
 use entity::rubro;
 use sea_orm::{ActiveModelTrait, Database, DbErr, Set};
 use serde::{Deserialize, Serialize};
-use std::error::Error;
 
 use crate::redondeo;
 

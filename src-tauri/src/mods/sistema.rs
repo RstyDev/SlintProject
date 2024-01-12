@@ -10,9 +10,6 @@ use sea_orm::{Database, EntityTrait};
 use std::error::Error;
 use tauri::async_runtime;
 
-use crate::mods::lib::cargar_todos_los_pesables;
-use crate::mods::lib::cargar_todos_los_productos;
-use crate::mods::lib::cargar_todos_los_rubros;
 
 use super::error::AmountError;
 use super::error::AppError;

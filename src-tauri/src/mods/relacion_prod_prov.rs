@@ -1,8 +1,10 @@
-use std::error::Error;
+
 
 use entity::relacion_prod_prov;
 use sea_orm::{ActiveModelTrait, Database, Set, DbErr};
 use serde::{Deserialize, Serialize};
+
+use super::lib::Save;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct RelacionProdProv {
@@ -38,6 +40,17 @@ impl RelacionProdProv {
         let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
         println!("conectado");
         model.insert(&db).await?;
+        Ok(())
+    }
+}
+impl Save for RelacionProdProv{
+    async fn save(&self)->Result<(),DbErr>{
+        let model=relacion_prod_prov::ActiveModel{
+            producto: Set(self.get_id_producto()),
+            proveedor: Set(self.get_id_producto()),
+            codigo: Set(self.codigo_interno),
+            ..Default::default()
+        };
         Ok(())
     }
 }

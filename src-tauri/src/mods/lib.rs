@@ -191,6 +191,7 @@ pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Res<Ve
     Ok(a.iter().map(|x| x.codigo).collect())
 }
 
+
 pub async fn update_data_valuable(
     rubros_local: &mut Vec<Rubro>,
     pesables_local: &mut Vec<Pesable>,
