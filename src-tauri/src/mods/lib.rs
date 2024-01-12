@@ -22,7 +22,20 @@ use super::proveedor::Proveedor;
 use super::relacion_prod_prov::RelacionProdProv;
 use super::rubro::Rubro;
 use super::valuable::Presentacion;
-use super::venta::Venta;
+
+pub trait Save {
+    async fn save(&self) -> Result<(), DbErr>;
+}
+
+pub async fn save<T: Save>(dato: T) -> Result<(), DbErr> {
+    dato.save().await
+}
+pub async fn save_many<T: Save>(datos: Vec<T>) -> Result<(), DbErr> {
+    for dato in datos {
+        dato.save().await?;
+    }
+    Ok(())
+}
 
 pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
@@ -31,15 +44,6 @@ pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result
     Ok(())
 }
 
-pub async fn save_pesable(pes:Pesable)->Result<(),DbErr>{
-    pes.save().await
-}
-pub async fn save_rubro(rub:Rubro)->Result<(),DbErr>{
-    rub.save().await
-}
-pub async fn save_venta(venta:Venta)->Result<(),DbErr>{
-    venta.save().await
-}
 pub fn camalize(data: &str) -> String {
     let mut es = true;
     let mut datos = String::new();
@@ -540,29 +544,31 @@ pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>) -> Result<(), D
     Ok(())
 }
 
-pub async fn cargar_todas_las_relaciones_prod_prov(relaciones:Vec<RelacionProdProv>) -> Result<(),DbErr> {
-        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-        let mut relaciones_model = Vec::new();
-        for x in relaciones {
-            let a = entity::producto::Entity::find_by_id(x.get_id_producto())
-                .one(&db)
-                .await?
-                .is_some();
-            let b = entity::proveedor::Entity::find_by_id(x.get_id_proveedor())
-                .one(&db)
-                .await?
-                .is_some();
-            if a && b {
-                relaciones_model.push(entity::relacion_prod_prov::ActiveModel {
-                    producto: Set(x.get_id_producto()),
-                    proveedor: Set(x.get_id_proveedor()),
-                    codigo: Set(x.get_codigo_interno()),
-                    ..Default::default()
-                })
-            }
+pub async fn cargar_todas_las_relaciones_prod_prov(
+    relaciones: Vec<RelacionProdProv>,
+) -> Result<(), DbErr> {
+    let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+    let mut relaciones_model = Vec::new();
+    for x in relaciones {
+        let a = entity::producto::Entity::find_by_id(x.get_id_producto())
+            .one(&db)
+            .await?
+            .is_some();
+        let b = entity::proveedor::Entity::find_by_id(x.get_id_proveedor())
+            .one(&db)
+            .await?
+            .is_some();
+        if a && b {
+            relaciones_model.push(entity::relacion_prod_prov::ActiveModel {
+                producto: Set(x.get_id_producto()),
+                proveedor: Set(x.get_id_proveedor()),
+                codigo: Set(x.get_codigo_interno()),
+                ..Default::default()
+            })
         }
-        entity::relacion_prod_prov::Entity::insert_many(relaciones_model)
-            .exec(&db)
-            .await?;
-        Ok(())
     }
+    entity::relacion_prod_prov::Entity::insert_many(relaciones_model)
+        .exec(&db)
+        .await?;
+    Ok(())
+}

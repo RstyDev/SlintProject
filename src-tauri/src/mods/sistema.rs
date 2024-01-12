@@ -1,18 +1,14 @@
 type Res<T> = std::result::Result<T, Box<dyn Error>>;
 use chrono::Utc;
 use entity::codigo_barras;
-use entity::producto::ActiveModel;
 use entity::*;
-use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
 use sea_orm::Condition;
-use sea_orm::DbErr;
 use sea_orm::QueryFilter;
 use sea_orm::Set;
-use sea_orm::{Database, DatabaseConnection, EntityTrait};
+use sea_orm::{Database, EntityTrait};
 use std::error::Error;
 use tauri::async_runtime;
-use tauri::async_runtime::block_on;
 
 use crate::mods::lib::cargar_todos_los_pesables;
 use crate::mods::lib::cargar_todos_los_productos;
@@ -21,15 +17,12 @@ use crate::mods::lib::cargar_todos_los_rubros;
 use super::error::AmountError;
 use super::error::AppError;
 use super::error::ExistingProviderError;
-use super::error::ProductNotFoundError;
 use super::lib::camalize;
 
 use super::lib::cargar_todas_las_relaciones_prod_prov;
 use super::lib::cargar_todos_los_provs;
 use super::lib::cargar_todos_los_valuables;
-use super::lib::save_pesable;
-use super::lib::save_rubro;
-use super::lib::save_venta;
+use super::lib::save;
 use super::lib::update_data_valuable;
 use super::proveedor::Proveedor;
 use super::valuable::Presentacion;
@@ -143,9 +136,9 @@ impl<'a> Sistema {
             crear_file(path_productos, &productos)?;
             crear_file(path_rubros, &rubros)?;
         }
-        async_runtime::block_on(prod_load_handle)?;
-        async_runtime::block_on(prov_load_handle)?;
-        async_runtime::block_on(rel_load_handle)?;
+        async_runtime::block_on(prod_load_handle)??;
+        async_runtime::block_on(prov_load_handle)??;
+        async_runtime::block_on(rel_load_handle)??;
         Ok(sis)
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
@@ -284,10 +277,7 @@ impl<'a> Sistema {
                 Some(codigos_prov[i].parse::<i64>()?)
             };
             if let Some(prov) = entity::proveedor::Entity::find()
-                .filter(
-                    Condition::all()
-                        .add(entity::proveedor::Column::Nombre.eq(proveedores[i].clone())),
-                )
+                .filter(Condition::all().add(entity::proveedor::Column::Nombre.eq(proveedores[i])))
                 .one(&db)
                 .await?
             {
@@ -360,9 +350,9 @@ impl<'a> Sistema {
             .collect();
         pesables.push(pesable.clone());
         crear_file(&self.path_pesables, &pesables)?;
-        async_runtime::spawn(save_pesable(pesable.clone()));
+        let handle = async_runtime::spawn(save(pesable.clone()));
         self.productos.push(Valuable::Pes((0.0, pesable)));
-        Ok(())
+        Ok(async_runtime::block_on(handle)??)
     }
 
     pub fn agregar_rubro(&mut self, rubro: Rubro) -> Res<()> {
@@ -376,13 +366,13 @@ impl<'a> Sistema {
             .flatten()
             .collect();
         rubros.push(rubro.clone());
-        let handle = async_runtime::spawn(save_rubro(rubro.clone()));
+        let handle = async_runtime::spawn(save(rubro.clone()));
         crear_file(&self.path_rubros, &rubros)?;
         self.productos.push(Valuable::Rub((0, rubro)));
-        async_runtime::block_on(handle)?;
-        Ok(())
+        Ok(async_runtime::block_on(handle)??)
     }
     pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: &str) -> Res<()> {
+        let handle;
         if self.proveedor_esta(&proveedor) {
             return Err(ExistingProviderError.into());
         } else {
@@ -405,11 +395,11 @@ impl<'a> Sistema {
                     None,
                 );
             }
-            async_runtime::block_on(prov.save())?;
+            handle = async_runtime::spawn(save(prov.clone()));
             self.proveedores.push(prov);
             crear_file(&self.path_proveedores, &self.proveedores)?;
         }
-        Ok(())
+        Ok(async_runtime::block_on(handle)??)
     }
     fn get_producto(&mut self, id: i64) -> Result<Valuable, AppError> {
         let mut res = Err(AppError::ProductNotFound(id.to_string()));
@@ -569,20 +559,22 @@ impl<'a> Sistema {
         res
     }
     fn cerrar_venta(&mut self, pos: usize) -> Res<()> {
+        let handle;
         match pos {
             0 => {
-                async_runtime::spawn(save_venta(self.ventas.0.clone()));
+                handle = async_runtime::spawn(save(self.ventas.0.clone()));
                 self.registro.push(self.ventas.0.clone());
                 self.ventas.0 = Venta::new();
             }
             1 => {
-                block_on(save_venta(self.ventas.1.clone()))?;
+                handle = async_runtime::spawn(save(self.ventas.1.clone()));
                 self.registro.push(self.ventas.1.clone());
                 self.ventas.1 = Venta::new();
             }
             _ => return Err(AppError::SaleSelecion.into()),
         };
-        Ok(())
+
+        Ok(async_runtime::block_on(handle)??)
     }
     pub fn stash_sale(&mut self, pos: usize) -> Res<()> {
         match pos {

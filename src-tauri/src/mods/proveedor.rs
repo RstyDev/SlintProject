@@ -4,6 +4,8 @@ use entity::proveedor;
 use sea_orm::{ActiveModelTrait, Database, Set, DbErr};
 use serde::{Deserialize, Serialize};
 
+use super::lib::Save;
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
     id: i64,
@@ -28,7 +30,9 @@ impl Proveedor {
     pub fn get_contacto(&self) -> &Option<i64> {
         &self.contacto
     }
-    pub async fn save(&self) -> Result<(),DbErr> {
+}
+impl Save for Proveedor{
+    async fn save(&self) -> Result<(),DbErr> {
         let model = proveedor::ActiveModel {
             id: Set(self.id),
             nombre: Set(self.nombre.clone()),

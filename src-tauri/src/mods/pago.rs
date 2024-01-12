@@ -4,6 +4,8 @@ use entity::pago;
 use sea_orm::{Database, Set, ActiveModelTrait, DbErr};
 use serde::Serialize;
 
+use super::lib::Save;
+
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Pago {
     medio_pago: String,
@@ -19,7 +21,10 @@ impl Pago {
     pub fn get_monto(&self)->f64{
         self.monto
     }
-    pub async fn save(&self) -> Result<(),DbErr> {
+    
+}
+impl Save for Pago{
+    async fn save(&self) -> Result<(),DbErr> {
         let db= Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;     
         println!("conectado");
         let model = pago::ActiveModel {

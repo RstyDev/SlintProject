@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use super::{valuable::Presentacion, valuable::ValuableTrait};
+use super::{valuable::Presentacion, valuable::ValuableTrait, lib::Save};
 use crate::redondeo;
 use chrono::Utc;
 use entity::{codigo_barras, producto};
@@ -53,7 +53,22 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
-        pub async fn save(&self) -> Result<(), DbErr> {
+        
+    pub fn unifica_codes(&mut self) {
+        let mut e = 0;
+        for i in 0..self.codigos_de_barras.len() {
+            let act = self.codigos_de_barras[i];
+            for j in i..self.codigos_de_barras.len() {
+                if act == self.codigos_de_barras[j - e] {
+                    self.codigos_de_barras.remove(j - e);
+                    e += 1;
+                }
+            }
+        }
+    }
+}
+impl Save for Producto{
+    async fn save(&self) -> Result<(), DbErr> {
             let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
             println!("Guardando producto en DB");
             let model = producto::ActiveModel {
@@ -78,18 +93,6 @@ impl Producto {
             }
             Ok(())
         }
-    pub fn unifica_codes(&mut self) {
-        let mut e = 0;
-        for i in 0..self.codigos_de_barras.len() {
-            let act = self.codigos_de_barras[i];
-            for j in i..self.codigos_de_barras.len() {
-                if act == self.codigos_de_barras[j - e] {
-                    self.codigos_de_barras.remove(j - e);
-                    e += 1;
-                }
-            }
-        }
-    }
 }
 
 impl PartialEq for Producto {

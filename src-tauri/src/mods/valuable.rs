@@ -1,14 +1,13 @@
-type Res<T> = std::result::Result<T, Box<dyn Error>>;
 use super::{
     config::{Config, Formato, Mayusculas},
-    lib::camalize,
+    lib::{camalize, Save},
     pesable::Pesable,
     producto::Producto,
     rubro::Rubro,
 };
 use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
-use std::{fmt::{self, Display}, error::Error};
+use std::fmt::{self, Display};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {
@@ -68,11 +67,13 @@ impl Valuable {
         match conf.get_modo_mayus() {
             Mayusculas::Lower => res = res.to_lowercase(),
             Mayusculas::Upper => res = res.to_uppercase(),
-            Mayusculas::Camel => res= camalize(res.as_str()).to_string(),
+            Mayusculas::Camel => res = camalize(res.as_str()).to_string(),
         }
         res
     }
-    pub async fn save(&self) -> Result<(),DbErr> {
+}
+impl Save for Valuable {
+    async fn save(&self) -> Result<(), DbErr> {
         match self {
             Valuable::Pes(a) => a.1.save().await,
             Valuable::Prod(a) => a.1.save().await,

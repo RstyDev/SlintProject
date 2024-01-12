@@ -1,14 +1,13 @@
-
 use entity::{
     pago,
     venta::{self},
 };
-use sea_orm::{Database, EntityTrait, Set, DbErr};
+use sea_orm::{Database, DbErr, EntityTrait, Set};
 use serde::Serialize;
 
 use crate::redondeo;
 
-use super::{pago::Pago, valuable::Valuable, error::{ProductNotFoundError, AppError}, config::Config};
+use super::{config::Config, error::AppError, lib::Save, pago::Pago, valuable::Valuable};
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
@@ -85,7 +84,12 @@ impl<'a> Venta {
         let pago = self.pagos.remove(index);
         self.monto_pagado -= pago.get_monto();
     }
-    pub fn restar_producto(&mut self, producto: Valuable, politica: f64,conf:&Config) -> Result<Venta,AppError> {
+    pub fn restar_producto(
+        &mut self,
+        producto: Valuable,
+        politica: f64,
+        conf: &Config,
+    ) -> Result<Venta, AppError> {
         let mut res = Err(AppError::ProductNotFound(producto.get_descripcion(conf)));
         let mut esta = false;
         for i in 0..self.productos.len() {
@@ -118,7 +122,12 @@ impl<'a> Venta {
         }
         res
     }
-    pub fn incrementar_producto(&mut self, producto: Valuable, politica: f64, conf:&Config) -> Result<Venta,AppError> {
+    pub fn incrementar_producto(
+        &mut self,
+        producto: Valuable,
+        politica: f64,
+        conf: &Config,
+    ) -> Result<Venta, AppError> {
         let mut res = Err(AppError::ProductNotFound(producto.get_descripcion(conf)));
         let mut esta = false;
         for i in 0..self.productos.len() {
@@ -139,7 +148,12 @@ impl<'a> Venta {
         }
         res
     }
-    pub fn eliminar_producto(&mut self, producto: Valuable, politica: f64,conf:&Config) -> Result<Venta,AppError> {
+    pub fn eliminar_producto(
+        &mut self,
+        producto: Valuable,
+        politica: f64,
+        conf: &Config,
+    ) -> Result<Venta, AppError> {
         let mut res = Err(AppError::ProductNotFound(producto.get_descripcion(conf)));
         let mut esta = false;
         for i in 0..self.productos.len() {
@@ -155,7 +169,9 @@ impl<'a> Venta {
         }
         res
     }
-    pub async fn save(&self) -> Result<(),DbErr> {
+}
+impl Save for Venta {
+    async fn save(&self) -> Result<(), DbErr> {
         let model = venta::ActiveModel {
             monto_total: Set(self.monto_total),
             monto_pagado: Set(self.monto_pagado),

@@ -6,6 +6,8 @@ use entity::pesable;
 use sea_orm::{Database, Set, ActiveModelTrait, DbErr};
 use serde::{Deserialize, Serialize};
 
+use super::lib::Save;
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Pesable {
     pub id: i64,
@@ -33,7 +35,10 @@ impl Pesable {
             descripcion,
         }
     }
-    pub async fn save(&self) -> Result<(),DbErr> {
+}
+
+impl Save for Pesable{
+    async fn save(&self) -> Result<(),DbErr> {
         let db= Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
         println!("conectado");
         let model = pesable::ActiveModel {
