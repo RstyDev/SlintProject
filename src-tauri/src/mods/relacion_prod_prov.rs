@@ -30,18 +30,6 @@ impl RelacionProdProv {
     pub fn get_codigo_interno(&self) -> Option<i64> {
         self.codigo_interno
     }
-    pub async fn save(&self) -> Result<(),DbErr> {
-        let model = relacion_prod_prov::ActiveModel {
-            producto: Set(self.id_producto),
-            proveedor: Set(self.id_proveedor),
-            codigo: Set(self.codigo_interno),
-            ..Default::default()
-        };
-        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-        println!("conectado");
-        model.insert(&db).await?;
-        Ok(())
-    }
 }
 impl Save for RelacionProdProv{
     async fn save(&self)->Result<(),DbErr>{
@@ -51,6 +39,9 @@ impl Save for RelacionProdProv{
             codigo: Set(self.codigo_interno),
             ..Default::default()
         };
+        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        println!("conectado");
+        model.insert(&db).await?;
         Ok(())
     }
 }

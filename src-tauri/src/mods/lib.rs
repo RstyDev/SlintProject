@@ -537,6 +537,8 @@ pub async fn cargar_todos_los_provs(
         date_db = last_db_model.updated_at.and_utc()
     };
     let date_local = get_updated_time_file(path_provs).unwrap(); //todo!
+    println!("{}",date_db);
+    println!("{}",date_local);
     if date_db > date_local {
         crear_file(path_provs, &proveedores).unwrap(); //todo!
     } else {
