@@ -10,12 +10,11 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::fs::{self, File};
 use std::io::{Read, Write};
 
-type Res<T> = std::result::Result<T, Box<dyn Error>>;
-use std::error::Error;
+type Res<T> = std::result::Result<T, AppError>;
 
 use crate::mods::valuable::Valuable;
 
-use super::error::{AppError, SizeSelecionError};
+use super::error::AppError;
 use super::pesable::Pesable;
 use super::producto::Producto;
 use super::proveedor::Proveedor;
@@ -121,13 +120,13 @@ pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     buf: &mut T,
     path: &str,
 ) -> std::io::Result<()> {
-    let file2 = File::open(path.clone());
+    let file2 = File::open(path);
     let mut file2 = match file2 {
         Ok(file) => file,
         Err(_) => {
             let esc: Vec<String> = Vec::new();
             crear_file(path, &esc)?;
-            File::open(path.clone())?
+            File::open(path)?
         }
     };
 
@@ -190,7 +189,6 @@ pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Res<Ve
         .await?;
     Ok(a.iter().map(|x| x.codigo).collect())
 }
-
 
 pub async fn update_data_valuable(
     rubros_local: &mut Vec<Rubro>,
@@ -329,7 +327,7 @@ fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Res<Product
         "Ml" => Presentacion::Ml(p1.parse()?),
         "CC" => Presentacion::CC(p1.parse()?),
         "Kg" => Presentacion::Kg(p1.parse()?),
-        _ => return Err(SizeSelecionError.into()),
+        a => return Err(AppError::SizeSelection(a.to_string())),
     };
     Ok(Producto::new(
         prod.id,
@@ -524,23 +522,42 @@ pub async fn cargar_todos_los_valuables(productos: Vec<Valuable>) -> Result<(), 
     cargar_todos_los_rubros(&productos, &db).await?;
     Ok(())
 }
-pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>) -> Result<(), DbErr> {
+pub async fn cargar_todos_los_provs(
+    proveedores: Vec<Proveedor>,
+    path_provs: &str,
+) -> Result<(), DbErr> {
     let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-    let provs: Vec<proveedor::ActiveModel> = proveedores
+    let mut date_db = DateTimeUtc::MIN_UTC;
+    if let Some(last_db_model) = entity::proveedor::Entity::find()
+        .all(&db)
+        .await?
         .iter()
-        .map(|x| {
-            let contacto = match x.get_contacto() {
-                Some(a) => Some(*a),
-                None => None,
-            };
-            proveedor::ActiveModel {
-                id: Set(*x.get_id()),
-                nombre: Set(x.get_nombre().clone()),
-                contacto: Set(contacto),
-            }
-        })
-        .collect();
-    proveedor::Entity::insert_many(provs).exec(&db).await?;
+        .max_by(|x, y| x.updated_at.cmp(&y.updated_at))
+    {
+        date_db = last_db_model.updated_at.and_utc()
+    };
+    let date_local = get_updated_time_file(path_provs).unwrap(); //todo!
+    if date_db > date_local {
+        crear_file(path_provs, &proveedores).unwrap(); //todo!
+    } else {
+        entity::proveedor::Entity::delete_many().exec(&db).await?;
+        let provs: Vec<proveedor::ActiveModel> = proveedores
+            .iter()
+            .map(|x| {
+                let contacto = match x.get_contacto() {
+                    Some(a) => Some(*a),
+                    None => None,
+                };
+                proveedor::ActiveModel {
+                    id: Set(*x.get_id()),
+                    nombre: Set(x.get_nombre().clone()),
+                    contacto: Set(contacto),
+                    updated_at: Set(Utc::now().naive_utc()),
+                }
+            })
+            .collect();
+        proveedor::Entity::insert_many(provs).exec(&db).await?;
+    }
 
     Ok(())
 }

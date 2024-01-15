@@ -1,4 +1,4 @@
-type Res<T> = std::result::Result<T, Box<dyn Error>>;
+type Res<T> = std::result::Result<T, AppError>;
 use chrono::Utc;
 use entity::codigo_barras;
 use entity::*;
@@ -7,13 +7,9 @@ use sea_orm::Condition;
 use sea_orm::QueryFilter;
 use sea_orm::Set;
 use sea_orm::{Database, EntityTrait};
-use std::error::Error;
 use tauri::async_runtime;
 
-
-use super::error::AmountError;
 use super::error::AppError;
-use super::error::ExistingProviderError;
 use super::lib::camalize;
 
 use super::lib::cargar_todas_las_relaciones_prod_prov;
@@ -102,7 +98,7 @@ impl<'a> Sistema {
             crear_file(path_configs, &mut configs)?;
         }
 
-        let sis = Sistema {
+        let mut sis = Sistema {
             configs: configs[0].clone(),
             productos: valuables,
             ventas: (Venta::new(), Venta::new()),
@@ -117,25 +113,26 @@ impl<'a> Sistema {
             stash,
             registro,
         };
-        // for i in 0..sis.productos.len() {
-        // sis.productos[i].unifica_codes()
-        // }
+        for i in 0..sis.productos.len() {
+            sis.productos[i].unifica_codes()
+        }
+        let prov_load_handle = async_runtime::spawn(cargar_todos_los_provs(
+            sis.proveedores.clone(),
+            &path_proveedores,
+        ));
         let prod_load_handle =
             async_runtime::spawn(cargar_todos_los_valuables(sis.productos.clone()));
-        let prov_load_handle =
-            async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
         let rel_load_handle = async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(
             sis.relaciones.clone(),
         ));
-
+        async_runtime::block_on(prov_load_handle)??;
+        async_runtime::block_on(prod_load_handle)??;
+        async_runtime::block_on(rel_load_handle)??;
         if hay_cambios_desde_db {
             crear_file(path_pesables, &pesables)?;
             crear_file(path_productos, &productos)?;
             crear_file(path_rubros, &rubros)?;
         }
-        async_runtime::block_on(prod_load_handle)??;
-        async_runtime::block_on(prov_load_handle)??;
-        async_runtime::block_on(rel_load_handle)??;
         Ok(sis)
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
@@ -157,7 +154,7 @@ impl<'a> Sistema {
                 if !medio_pago.eq("Efectivo")
                     && self.ventas.0.get_monto_pagado() + monto > self.ventas.0.get_monto_total()
                 {
-                    return Err(AmountError.into());
+                    return Err(AppError::AmountError{ a_pagar: self.ventas.0.get_monto_total()-self.ventas.0.get_monto_pagado(), pagado: monto });
                 } else {
                     res = Ok(self.ventas.0.agregar_pago(medio_pago, monto));
                 }
@@ -166,12 +163,12 @@ impl<'a> Sistema {
                 if !medio_pago.eq("Efectivo")
                     && self.ventas.1.get_monto_pagado() + monto > self.ventas.1.get_monto_total()
                 {
-                    return Err(AmountError.into());
+                    return Err(AppError::AmountError { a_pagar: self.ventas.1.get_monto_total()-self.ventas.1.get_monto_pagado(), pagado: monto });
                 } else {
                     res = Ok(self.ventas.1.agregar_pago(medio_pago, monto));
                 }
             }
-            _ => return Err(AppError::SaleSelecion.into()),
+            _ => return Err(AppError::SaleSelection),
         }
         if let Ok(a) = res {
             if a <= 0.0 {
@@ -184,7 +181,7 @@ impl<'a> Sistema {
         match pos {
             0 => self.ventas.0.eliminar_pago(index),
             1 => self.ventas.1.eliminar_pago(index),
-            _ => return Err(AppError::SaleSelecion.into()),
+            _ => return Err(AppError::SaleSelection.into()),
         }
         Ok(())
     }
@@ -371,7 +368,7 @@ impl<'a> Sistema {
     pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: &str) -> Res<()> {
         let handle;
         if self.proveedor_esta(&proveedor) {
-            return Err(ExistingProviderError.into());
+            return Err(AppError::ExistingProviderError(proveedor.to_string()));
         } else {
             let prov;
             if contacto.len() > 0 {
@@ -439,7 +436,7 @@ impl<'a> Sistema {
                     .1
                     .agregar_producto(res, self.get_configs().get_politica()))
             }
-            _ => result = Err(AppError::SaleSelecion.into()),
+            _ => result = Err(AppError::SaleSelection.into()),
         }
 
         result
@@ -457,7 +454,7 @@ impl<'a> Sistema {
                 self.get_configs().get_politica(),
                 &self.configs,
             )?,
-            _ => return Err(AppError::SaleSelecion.into()),
+            _ => return Err(AppError::SaleSelection.into()),
         })
     }
     pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
@@ -478,7 +475,7 @@ impl<'a> Sistema {
                     &self.configs,
                 );
             }
-            _ => result = Err(AppError::SaleSelecion),
+            _ => result = Err(AppError::SaleSelection),
         }
         result
     }
@@ -500,7 +497,7 @@ impl<'a> Sistema {
                     &self.configs,
                 );
             }
-            _ => result = Err(AppError::SaleSelecion),
+            _ => result = Err(AppError::SaleSelection),
         }
         result
     }
@@ -568,7 +565,7 @@ impl<'a> Sistema {
                 self.registro.push(self.ventas.1.clone());
                 self.ventas.1 = Venta::new();
             }
-            _ => return Err(AppError::SaleSelecion.into()),
+            _ => return Err(AppError::SaleSelection.into()),
         };
 
         Ok(async_runtime::block_on(handle)??)
@@ -583,7 +580,7 @@ impl<'a> Sistema {
                 self.stash.push(self.ventas.1.clone());
                 self.ventas.1 = Venta::new();
             }
-            _ => return Err(AppError::SaleSelecion.into()),
+            _ => return Err(AppError::SaleSelection.into()),
         };
         Ok(())
     }
@@ -604,10 +601,10 @@ impl<'a> Sistema {
                     self.ventas.1 = self.stash.remove(index);
                     Ok(())
                 }
-                _ => Err(AppError::SaleSelecion.into()),
+                _ => Err(AppError::SaleSelection.into()),
             }
         } else {
-            Err(AppError::SaleSelecion.into())
+            Err(AppError::SaleSelection.into())
         }
     }
     pub fn get_stash(&self) -> &Vec<Venta> {

@@ -1,5 +1,5 @@
 use entity::{
-    pago, relacion_venta_prod,
+    pago,
     venta::{self},
 };
 use sea_orm::{Database, DbErr, EntityTrait, Set};
@@ -172,7 +172,7 @@ impl<'a> Venta {
 }
 impl Save for Venta {
     async fn save(&self) -> Result<(), DbErr> {
-        let model = venta::ActiveModel {
+        let model_venta = venta::ActiveModel {
             monto_total: Set(self.monto_total),
             monto_pagado: Set(self.monto_pagado),
             ..Default::default()
@@ -181,22 +181,20 @@ impl Save for Venta {
         let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
 
         println!("conectado");
-        let result = entity::venta::Entity::insert(model.clone())
-            .exec(&db)
-            .await?;
+        let result = entity::venta::Entity::insert(model_venta).exec(&db).await?;
 
-        let a = entity::venta::Entity::find_by_id(result.last_insert_id)
+        let saved_sale = entity::venta::Entity::find_by_id(result.last_insert_id)
             .one(&db)
             .await?;
 
-        if let Some(model) = a {
+        if let Some(saved_model) = saved_sale {
             let pay_models: Vec<pago::ActiveModel> = self
                 .pagos
                 .iter()
                 .map(|x| pago::ActiveModel {
                     medio_pago: Set(x.get_medio().clone()),
                     monto: Set(x.get_monto()),
-                    venta: Set(model.clone().id),
+                    venta: Set(saved_model.clone().id),
                     ..Default::default()
                 })
                 .collect();
@@ -204,19 +202,53 @@ impl Save for Venta {
             entity::pago::Entity::insert_many(pay_models)
                 .exec(&db)
                 .await?;
-            let prod_models:Vec<entity::relacion_venta_prod::ActiveModel> = self
+            let prod_models: Vec<entity::relacion_venta_prod::ActiveModel> = self
                 .productos
                 .iter()
-                .map(|x| entity::relacion_venta_prod::ActiveModel {
-                    producto: Set(match x {
-                        Valuable::Prod(a) => a.1.get_id(),
-                        Valuable::Pes(a) => a.1.id,
-                        Valuable::Rub(a) => a.1.id,
+                .filter_map(|x| match x {
+                    Valuable::Prod(a) => Some(entity::relacion_venta_prod::ActiveModel {
+                        producto: Set(a.1.get_id()),
+                        venta: Set(saved_model.id),
+                        ..Default::default()
                     }),
-                    venta: Set(model.clone().id),
-                    ..Default::default()
+                    _ => None,
                 })
                 .collect();
+            entity::relacion_venta_prod::Entity::insert_many(prod_models)
+                .exec(&db)
+                .await?;
+            let rub_models: Vec<entity::relacion_venta_rub::ActiveModel> = self
+                .productos
+                .iter()
+                .filter_map(|x| match x {
+                    Valuable::Rub(a) => Some(entity::relacion_venta_rub::ActiveModel {
+                        cantidad: Set(a.0 as i16),
+                        rubro: Set(a.1.id),
+                        venta: Set(saved_model.id),
+                        ..Default::default()
+                    }),
+                    _ => None,
+                })
+                .collect();
+            entity::relacion_venta_rub::Entity::insert_many(rub_models)
+                .exec(&db)
+                .await?;
+            let pes_models: Vec<entity::relacion_venta_pes::ActiveModel> = self
+                .productos
+                .iter()
+                .filter_map(|x| match x {
+                    Valuable::Pes(a) => Some(entity::relacion_venta_pes::ActiveModel {
+                        cantidad: Set(a.0),
+                        pesable: Set(a.1.id),
+                        venta: Set(saved_model.id),
+                        ..Default::default()
+                    }),
+                    _ => None,
+                })
+                .collect();
+            entity::relacion_venta_pes::Entity::insert_many(pes_models)
+                .exec(&db)
+                .await?;
         }
         Ok(())
     }

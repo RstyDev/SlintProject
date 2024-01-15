@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use chrono::Utc;
 use entity::proveedor;
 use sea_orm::{ActiveModelTrait, Database, Set, DbErr};
 use serde::{Deserialize, Serialize};
@@ -37,6 +38,7 @@ impl Save for Proveedor{
             id: Set(self.id),
             nombre: Set(self.nombre.clone()),
             contacto: Set(self.contacto),
+            updated_at: Set(Utc::now().naive_utc()),
         };
         let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
         println!("conectado");

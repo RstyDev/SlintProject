@@ -55,15 +55,18 @@ impl Producto {
     }
         
     pub fn unifica_codes(&mut self) {
-        let mut e = 0;
-        for i in 0..self.codigos_de_barras.len() {
-            let act = self.codigos_de_barras[i];
-            for j in i..self.codigos_de_barras.len() {
-                if act == self.codigos_de_barras[j - e] {
-                    self.codigos_de_barras.remove(j - e);
-                    e += 1;
+        let mut i=0;
+        while i<self.codigos_de_barras.len(){
+            let act=self.codigos_de_barras[i];
+            let mut j=i;
+            while j<self.codigos_de_barras.len(){
+                if act==self.codigos_de_barras[j]{
+                    self.codigos_de_barras.remove(j);
+                }else{
+                    j+=1;
                 }
             }
+            i+=1;
         }
     }
 }
