@@ -4,7 +4,6 @@ use mods::{
     config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, valuable::Valuable,
     venta::Venta,
 };
-use sea_orm::ColumnTrait;
 type Result<T> = std::result::Result<T, String>;
 
 use std::sync::Mutex;

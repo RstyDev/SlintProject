@@ -1,6 +1,6 @@
 use chrono::Utc;
 use entity::producto::{self, ActiveModel, Model};
-use entity::{codigo_barras, pesable, proveedor};
+use entity::{codigo_barras, pesable};
 use sea_orm::prelude::DateTimeUtc;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, Database, DatabaseConnection, DbErr, EntityTrait,
@@ -38,6 +38,7 @@ pub async fn save_many<T: Save>(datos: Vec<T>) -> Result<(), DbErr> {
 
 pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
+    println!("Path que se actualiza: {}", path);
     let buf = serde_json::to_string_pretty(escritura)?;
     write!(f, "{}", format!("{}", buf))?;
     Ok(())
@@ -188,6 +189,42 @@ pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Res<Ve
         .all(db)
         .await?;
     Ok(a.iter().map(|x| x.codigo).collect())
+}
+pub async fn update_data_provs(
+    provs_local: &mut Vec<Proveedor>,
+    path_provs: &str
+)->Res<bool>{
+    let mut hay_cambios=false;
+    let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+    //....
+
+    let provs_db_model = entity::proveedor::Entity::find().all(&db).await?;
+    let mut date_db = DateTimeUtc::MIN_UTC;
+    if provs_db_model.len() > 0 {
+        date_db = provs_db_model.iter()
+        .max_by_key(|x| x.updated_at)
+        .unwrap()
+        .updated_at
+        .and_utc();
+    }
+    let date_local = get_updated_time_file(path_provs)?;
+    if date_db > date_local {
+        provs_local.clear();
+        println!("Ultimo actualizado: provs de bases de datos");
+        for i in 0..provs_db_model.len() {
+            provs_local.push(map_model_prov(&provs_db_model[i]));
+        }
+        hay_cambios = true;
+    } else if date_db == date_local {
+        println!("Rubros sincronizados")
+    } else {
+        println!("Ultimo actualizado: rubros local");
+    }
+
+
+
+    //.....
+    Ok(hay_cambios)
 }
 
 pub async fn update_data_valuable(
@@ -359,6 +396,9 @@ fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
         descripcion: pes.descripcion.clone(),
     }
 }
+fn map_model_prov(prov: &entity::proveedor::Model)->Proveedor{
+    Proveedor::new(prov.id, prov.nombre.clone(), prov.contacto)
+}
 pub async fn cargar_todos_los_productos(
     productos: &Vec<Valuable>,
     db: &DatabaseConnection,
@@ -524,43 +564,21 @@ pub async fn cargar_todos_los_valuables(productos: Vec<Valuable>) -> Result<(), 
 }
 pub async fn cargar_todos_los_provs(
     proveedores: Vec<Proveedor>,
-    path_provs: &str,
 ) -> Result<(), DbErr> {
     let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-    let mut date_db = DateTimeUtc::MIN_UTC;
-    if let Some(last_db_model) = entity::proveedor::Entity::find()
-        .all(&db)
-        .await?
-        .iter()
-        .max_by(|x, y| x.updated_at.cmp(&y.updated_at))
-    {
-        date_db = last_db_model.updated_at.and_utc()
-    };
-    let date_local = get_updated_time_file(path_provs).unwrap(); //todo!
-    println!("{}",date_db);
-    println!("{}",date_local);
-    if date_db > date_local {
-        crear_file(path_provs, &proveedores).unwrap(); //todo!
-    } else {
-        entity::proveedor::Entity::delete_many().exec(&db).await?;
-        let provs: Vec<proveedor::ActiveModel> = proveedores
-            .iter()
-            .map(|x| {
-                let contacto = match x.get_contacto() {
-                    Some(a) => Some(*a),
-                    None => None,
-                };
-                proveedor::ActiveModel {
-                    id: Set(*x.get_id()),
-                    nombre: Set(x.get_nombre().clone()),
-                    contacto: Set(contacto),
-                    updated_at: Set(Utc::now().naive_utc()),
-                }
-            })
-            .collect();
-        proveedor::Entity::insert_many(provs).exec(&db).await?;
+    for prov in proveedores{
+        let model=entity::proveedor::ActiveModel{
+            id: Set(*prov.get_id()),
+            updated_at: Set(Utc::now().naive_utc()),
+            nombre: Set(prov.get_nombre().clone()),
+            contacto: Set(prov.get_contacto().clone()),
+        };
+        if entity::proveedor::Entity::find_by_id(model.clone().id.unwrap()).one(&db).await?.is_some(){
+            model.update(&db).await?;
+        }else{
+            model.insert(&db).await?;
+        }
     }
-
     Ok(())
 }
 

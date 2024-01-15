@@ -1,5 +1,4 @@
 
-use std::error::Error;
 use entity::pago;
 use sea_orm::{Database, Set, ActiveModelTrait, DbErr};
 use serde::Serialize;

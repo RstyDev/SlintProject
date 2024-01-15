@@ -16,6 +16,7 @@ use super::lib::cargar_todas_las_relaciones_prod_prov;
 use super::lib::cargar_todos_los_provs;
 use super::lib::cargar_todos_los_valuables;
 use super::lib::save;
+use super::lib::update_data_provs;
 use super::lib::update_data_valuable;
 use super::proveedor::Proveedor;
 use super::valuable::Presentacion;
@@ -62,6 +63,8 @@ impl<'a> Sistema {
         leer_file(&mut rubros, path_rubros)?;
         leer_file(&mut pesables, path_pesables)?;
         leer_file(&mut productos, path_productos)?;
+        let mut proveedores: Vec<Proveedor> = Vec::new();
+        leer_file(&mut proveedores, path_proveedores)?;
         let hay_cambios_desde_db = async_runtime::block_on(update_data_valuable(
             &mut rubros,
             &mut pesables,
@@ -70,6 +73,8 @@ impl<'a> Sistema {
             path_pesables,
             path_productos,
         ))?;
+        let hay_cambios_provs_db =
+            async_runtime::block_on(update_data_provs(&mut proveedores, path_proveedores))?;
 
         let mut rubros_valuable: Vec<Valuable> = rubros
             .iter()
@@ -87,8 +92,6 @@ impl<'a> Sistema {
         valuables.append(&mut pesables_valuable);
         valuables.append(&mut rubros_valuable);
 
-        let mut proveedores: Vec<Proveedor> = Vec::new();
-        leer_file(&mut proveedores, path_proveedores)?;
         let mut relaciones = Vec::new();
         leer_file(&mut relaciones, path_relaciones)?;
         let mut configs = Vec::<Config>::new();
@@ -102,7 +105,7 @@ impl<'a> Sistema {
             configs: configs[0].clone(),
             productos: valuables,
             ventas: (Venta::new(), Venta::new()),
-            proveedores,
+            proveedores: proveedores.clone(),
             path_productos: path_productos.to_string(),
             path_proveedores: path_proveedores.to_string(),
             path_relaciones: path_relaciones.to_string(),
@@ -116,10 +119,8 @@ impl<'a> Sistema {
         for i in 0..sis.productos.len() {
             sis.productos[i].unifica_codes()
         }
-        let prov_load_handle = async_runtime::spawn(cargar_todos_los_provs(
-            sis.proveedores.clone(),
-            &path_proveedores,
-        ));
+        let prov_load_handle =
+            async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
         let prod_load_handle =
             async_runtime::spawn(cargar_todos_los_valuables(sis.productos.clone()));
         let rel_load_handle = async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(
@@ -132,6 +133,9 @@ impl<'a> Sistema {
             crear_file(path_pesables, &pesables)?;
             crear_file(path_productos, &productos)?;
             crear_file(path_rubros, &rubros)?;
+        }
+        if hay_cambios_provs_db {
+            crear_file(path_proveedores, &proveedores)?;
         }
         Ok(sis)
     }
@@ -154,7 +158,10 @@ impl<'a> Sistema {
                 if !medio_pago.eq("Efectivo")
                     && self.ventas.0.get_monto_pagado() + monto > self.ventas.0.get_monto_total()
                 {
-                    return Err(AppError::AmountError{ a_pagar: self.ventas.0.get_monto_total()-self.ventas.0.get_monto_pagado(), pagado: monto });
+                    return Err(AppError::AmountError {
+                        a_pagar: self.ventas.0.get_monto_total() - self.ventas.0.get_monto_pagado(),
+                        pagado: monto,
+                    });
                 } else {
                     res = Ok(self.ventas.0.agregar_pago(medio_pago, monto));
                 }
@@ -163,7 +170,10 @@ impl<'a> Sistema {
                 if !medio_pago.eq("Efectivo")
                     && self.ventas.1.get_monto_pagado() + monto > self.ventas.1.get_monto_total()
                 {
-                    return Err(AppError::AmountError { a_pagar: self.ventas.1.get_monto_total()-self.ventas.1.get_monto_pagado(), pagado: monto });
+                    return Err(AppError::AmountError {
+                        a_pagar: self.ventas.1.get_monto_total() - self.ventas.1.get_monto_pagado(),
+                        pagado: monto,
+                    });
                 } else {
                     res = Ok(self.ventas.1.agregar_pago(medio_pago, monto));
                 }

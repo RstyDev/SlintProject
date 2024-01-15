@@ -1,4 +1,3 @@
-use std::error::Error;
 
 use chrono::Utc;
 use entity::proveedor;
