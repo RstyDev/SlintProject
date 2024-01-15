@@ -29,12 +29,12 @@ pub trait Save {
 pub async fn save<T: Save>(dato: T) -> Result<(), DbErr> {
     dato.save().await
 }
-pub async fn save_many<T: Save>(datos: Vec<T>) -> Result<(), DbErr> {
-    for dato in datos {
-        dato.save().await?;
-    }
-    Ok(())
-}
+// pub async fn save_many<T: Save>(datos: Vec<T>) -> Result<(), DbErr> {
+//     for dato in datos {
+//         dato.save().await?;
+//     }
+//     Ok(())
+// }
 
 pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
@@ -190,22 +190,20 @@ pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Res<Ve
         .await?;
     Ok(a.iter().map(|x| x.codigo).collect())
 }
-pub async fn update_data_provs(
-    provs_local: &mut Vec<Proveedor>,
-    path_provs: &str
-)->Res<bool>{
-    let mut hay_cambios=false;
+pub async fn update_data_provs(provs_local: &mut Vec<Proveedor>, path_provs: &str) -> Res<bool> {
+    let mut hay_cambios = false;
     let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
     //....
 
     let provs_db_model = entity::proveedor::Entity::find().all(&db).await?;
     let mut date_db = DateTimeUtc::MIN_UTC;
     if provs_db_model.len() > 0 {
-        date_db = provs_db_model.iter()
-        .max_by_key(|x| x.updated_at)
-        .unwrap()
-        .updated_at
-        .and_utc();
+        date_db = provs_db_model
+            .iter()
+            .max_by_key(|x| x.updated_at)
+            .unwrap()
+            .updated_at
+            .and_utc();
     }
     let date_local = get_updated_time_file(path_provs)?;
     if date_db > date_local {
@@ -220,8 +218,6 @@ pub async fn update_data_provs(
     } else {
         println!("Ultimo actualizado: rubros local");
     }
-
-
 
     //.....
     Ok(hay_cambios)
@@ -331,9 +327,9 @@ pub async fn update_productos_from_db(
     db: &DatabaseConnection,
 ) -> Res<bool> {
     let mut hay_cambios_desde_db = false;
-    let prods_db_model = entity::producto::Entity::find().all(db).await?;
     let date_local = get_updated_time_file(path_productos)?;
     let mut date_db = DateTimeUtc::MIN_UTC;
+    let prods_db_model = entity::producto::Entity::find().all(db).await?;
     if prods_db_model.len() > 0 {
         date_db = get_updated_time_db_producto(prods_db_model.clone()).await;
     }
@@ -342,6 +338,7 @@ pub async fn update_productos_from_db(
         println!("Ultimo actualizado: productos de bases de datos");
         for i in 0..prods_db_model.len() {
             let b = get_codigos_db_filtrado(db, prods_db_model[i].id).await?;
+            
             productos_local.push(map_model_prod(&prods_db_model[i], b)?);
         }
         hay_cambios_desde_db = true;
@@ -396,103 +393,79 @@ fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
         descripcion: pes.descripcion.clone(),
     }
 }
-fn map_model_prov(prov: &entity::proveedor::Model)->Proveedor{
+fn map_model_prov(prov: &entity::proveedor::Model) -> Proveedor {
     Proveedor::new(prov.id, prov.nombre.clone(), prov.contacto)
 }
 pub async fn cargar_todos_los_productos(
-    productos: &Vec<Valuable>,
+    productos: &Vec<Producto>,
     db: &DatabaseConnection,
 ) -> Result<(), DbErr> {
     for producto in productos {
-        match producto {
-            Valuable::Prod(a) => {
-                let encontrado = entity::producto::Entity::find_by_id(a.1.get_id())
-                    .one(db)
-                    .await?;
-                let mut model: ActiveModel;
-                let codigo_prod: i64;
-                match encontrado {
-                    Some(m) => {
-                        model = m.into();
-                        model.marca = Set(a.1.marca.clone());
-                        model.porcentaje = Set(a.1.porcentaje);
-                        model.precio_de_costo = Set(a.1.precio_de_costo);
-                        model.precio_de_venta = Set(a.1.precio_de_venta);
-                        model.presentacion = Set(a.1.presentacion.to_string());
-                        model.tipo_producto = Set(a.1.tipo_producto.clone());
-                        model.updated_at = Set(Utc::now().naive_utc());
-                        model.variedad = Set(a.1.variedad.clone());
-                        codigo_prod = model.id.clone().unwrap();
-                        model.update(db).await?;
-                    }
-                    None => {
-                        model = producto::ActiveModel {
-                            precio_de_venta: Set(a.1.precio_de_venta),
-                            porcentaje: Set(a.1.porcentaje),
-                            precio_de_costo: Set(a.1.precio_de_costo),
-                            tipo_producto: Set(a.1.tipo_producto.clone()),
-                            marca: Set(a.1.marca.clone()),
-                            variedad: Set(a.1.variedad.clone()),
-                            presentacion: Set(a.1.presentacion.to_string()),
-                            updated_at: Set(Utc::now().naive_utc()),
-                            ..Default::default()
-                        };
-
-                        codigo_prod = entity::producto::Entity::insert(model)
-                            .exec(db)
-                            .await?
-                            .last_insert_id;
-                    }
-                }
-                let db_codes = entity::codigo_barras::Entity::find()
-                    .filter(
-                        Condition::all()
-                            .add(entity::codigo_barras::Column::Producto.eq(codigo_prod)),
-                    )
-                    .all(db)
-                    .await?;
-                if db_codes.len() == a.1.codigos_de_barras.len() {
-                    for i in 0..db_codes.len() {
-                        entity::codigo_barras::ActiveModel {
-                            id: Set(db_codes[i].id),
-                            codigo: Set(a.1.codigos_de_barras[i]),
-                            producto: Set(db_codes[i].producto),
-                        }
-                        .update(db)
-                        .await?;
-                    }
-                } else {
-                    entity::codigo_barras::Entity::delete_many()
-                        .filter(
-                            Condition::all()
-                                .add(entity::codigo_barras::Column::Producto.eq(codigo_prod)),
-                        )
-                        .exec(db)
-                        .await?;
-                    let codigos_model: Vec<codigo_barras::ActiveModel> =
-                        a.1.codigos_de_barras
-                            .iter()
-                            .map(|x| codigo_barras::ActiveModel {
-                                codigo: Set(*x),
-                                producto: Set(codigo_prod),
-                                ..Default::default()
-                            })
-                            .collect();
-
-                    if codigos_model.len() > 1 {
-                        entity::codigo_barras::Entity::insert_many(codigos_model)
-                            .exec(db)
-                            .await?;
-                    } else if codigos_model.len() == 1 {
-                        entity::codigo_barras::Entity::insert(codigos_model[0].to_owned())
-                            .exec(db)
-                            .await?;
-                    }
-                }
+        let encontrado = entity::producto::Entity::find_by_id(producto.get_id())
+            .one(db)
+            .await?;
+        let mut model: ActiveModel;
+        let codigo_prod: i64;
+        match encontrado {
+            Some(m) => {
+                codigo_prod = m.id;
+                model = m.into();
+                model.marca = Set(producto.marca.clone());
+                model.porcentaje = Set(producto.porcentaje);
+                model.precio_de_costo = Set(producto.precio_de_costo);
+                model.precio_de_venta = Set(producto.precio_de_venta);
+                model.presentacion = Set(producto.presentacion.to_string());
+                model.tipo_producto = Set(producto.tipo_producto.clone());
+                model.updated_at = Set(Utc::now().naive_utc());
+                model.variedad = Set(producto.variedad.clone());
+                model.update(db).await?;
             }
-            _ => (),
+            None => {
+                model = producto::ActiveModel {
+                    precio_de_venta: Set(producto.precio_de_venta),
+                    porcentaje: Set(producto.porcentaje),
+                    precio_de_costo: Set(producto.precio_de_costo),
+                    tipo_producto: Set(producto.tipo_producto.clone()),
+                    marca: Set(producto.marca.clone()),
+                    variedad: Set(producto.variedad.clone()),
+                    presentacion: Set(producto.presentacion.to_string()),
+                    updated_at: Set(Utc::now().naive_utc()),
+                    ..Default::default()
+                };
+
+                codigo_prod = entity::producto::Entity::insert(model)
+                    .exec(db)
+                    .await?
+                    .last_insert_id;
+            }
+        }
+
+        entity::codigo_barras::Entity::delete_many()
+            .filter(Condition::all().add(entity::codigo_barras::Column::Producto.eq(codigo_prod)))
+            .exec(db)
+            .await?;
+
+        let codigos_model: Vec<codigo_barras::ActiveModel> = producto
+            .codigos_de_barras
+            .iter()
+            .map(|x| codigo_barras::ActiveModel {
+                codigo: Set(*x),
+                producto: Set(codigo_prod),
+                ..Default::default()
+            })
+            .collect();
+
+        if codigos_model.len() > 1 {
+            entity::codigo_barras::Entity::insert_many(codigos_model)
+                .exec(db)
+                .await?;
+        } else if codigos_model.len() == 1 {
+            entity::codigo_barras::Entity::insert(codigos_model[0].to_owned())
+                .exec(db)
+                .await?;
         }
     }
+
     Ok(())
 }
 pub async fn cargar_todos_los_pesables(
@@ -557,25 +530,37 @@ pub async fn cargar_todos_los_rubros(
 pub async fn cargar_todos_los_valuables(productos: Vec<Valuable>) -> Result<(), DbErr> {
     println!("Guardando productos en DB");
     let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-    cargar_todos_los_productos(&productos, &db).await?;
+    cargar_todos_los_productos(
+        &productos
+            .iter()
+            .filter_map(|x| match x {
+                Valuable::Prod(a) => Some(a.1.clone()),
+                _ => None,
+            })
+            .collect::<Vec<Producto>>(),
+        &db,
+    )
+    .await?;
     cargar_todos_los_pesables(&productos, &db).await?;
     cargar_todos_los_rubros(&productos, &db).await?;
     Ok(())
 }
-pub async fn cargar_todos_los_provs(
-    proveedores: Vec<Proveedor>,
-) -> Result<(), DbErr> {
+pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>) -> Result<(), DbErr> {
     let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-    for prov in proveedores{
-        let model=entity::proveedor::ActiveModel{
+    for prov in proveedores {
+        let model = entity::proveedor::ActiveModel {
             id: Set(*prov.get_id()),
             updated_at: Set(Utc::now().naive_utc()),
             nombre: Set(prov.get_nombre().clone()),
             contacto: Set(prov.get_contacto().clone()),
         };
-        if entity::proveedor::Entity::find_by_id(model.clone().id.unwrap()).one(&db).await?.is_some(){
+        if entity::proveedor::Entity::find_by_id(model.clone().id.unwrap())
+            .one(&db)
+            .await?
+            .is_some()
+        {
             model.update(&db).await?;
-        }else{
+        } else {
             model.insert(&db).await?;
         }
     }

@@ -58,14 +58,14 @@ impl<'a> Sistema {
         let mut productos: Vec<Producto> = Vec::new();
         let mut rubros: Vec<Rubro> = Vec::new();
         let mut pesables: Vec<Pesable> = Vec::new();
+        let mut proveedores: Vec<Proveedor> = Vec::new();
         let stash = Vec::new();
         let registro = Vec::new();
         leer_file(&mut rubros, path_rubros)?;
         leer_file(&mut pesables, path_pesables)?;
         leer_file(&mut productos, path_productos)?;
-        let mut proveedores: Vec<Proveedor> = Vec::new();
         leer_file(&mut proveedores, path_proveedores)?;
-        let hay_cambios_desde_db = async_runtime::block_on(update_data_valuable(
+        let mut hay_cambios_desde_db = async_runtime::block_on(update_data_valuable(
             &mut rubros,
             &mut pesables,
             &mut productos,
@@ -73,9 +73,13 @@ impl<'a> Sistema {
             path_pesables,
             path_productos,
         ))?;
+        
         let hay_cambios_provs_db =
             async_runtime::block_on(update_data_provs(&mut proveedores, path_proveedores))?;
 
+        if !hay_cambios_desde_db{
+            hay_cambios_desde_db=hay_cambios_provs_db;
+        }
         let mut rubros_valuable: Vec<Valuable> = rubros
             .iter()
             .map(|a| Valuable::Rub((0, a.to_owned())))
@@ -116,9 +120,10 @@ impl<'a> Sistema {
             stash,
             registro,
         };
-        for i in 0..sis.productos.len() {
-            sis.productos[i].unifica_codes()
-        }
+        // for i in 0..sis.productos.len() {
+        //     sis.productos[i].unifica_codes()
+        // }
+        
         let prov_load_handle =
             async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
         let prod_load_handle =
@@ -133,10 +138,8 @@ impl<'a> Sistema {
             crear_file(path_pesables, &pesables)?;
             crear_file(path_productos, &productos)?;
             crear_file(path_rubros, &rubros)?;
-        }
-        if hay_cambios_provs_db {
             crear_file(path_proveedores, &proveedores)?;
-        }
+        }        
         Ok(sis)
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
