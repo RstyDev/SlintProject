@@ -73,10 +73,10 @@ impl<'a> Venta {
         for i in &self.productos {
             match &i {
                 Valuable::Pes(a) => {
-                    self.monto_total += redondeo(politica, a.0 as f64 * a.1.precio_peso)
+                    self.monto_total += redondeo(politica, a.0 as f64 * a.1.get_precio_peso())
                 }
-                Valuable::Prod(a) => self.monto_total += a.1.precio_de_venta * a.0 as f64,
-                Valuable::Rub(a) => self.monto_total += a.1.monto * a.0 as f64,
+                Valuable::Prod(a) => self.monto_total += a.1.get_precio_de_venta() * a.0 as f64,
+                Valuable::Rub(a) => self.monto_total += a.1.get_monto() * a.0 as f64,
             }
         }
     }
@@ -223,7 +223,7 @@ impl Save for Venta {
                 .filter_map(|x| match x {
                     Valuable::Rub(a) => Some(entity::relacion_venta_rub::ActiveModel {
                         cantidad: Set(a.0 as i16),
-                        rubro: Set(a.1.id),
+                        rubro: Set(*a.1.get_id()),
                         venta: Set(saved_model.id),
                         ..Default::default()
                     }),
@@ -239,7 +239,7 @@ impl Save for Venta {
                 .filter_map(|x| match x {
                     Valuable::Pes(a) => Some(entity::relacion_venta_pes::ActiveModel {
                         cantidad: Set(a.0),
-                        pesable: Set(a.1.id),
+                        pesable: Set(*a.1.get_id()),
                         venta: Set(saved_model.id),
                         ..Default::default()
                     }),

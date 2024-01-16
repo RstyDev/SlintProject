@@ -184,7 +184,7 @@ fn make_elapsed_to_date(date: std::time::Duration) -> Option<DateTimeUtc> {
 //     };
 // }
 pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Res<Vec<i64>> {
-    let mut a = entity::codigo_barras::Entity::find()
+    let a = entity::codigo_barras::Entity::find()
         .filter(Condition::all().add(entity::codigo_barras::Column::Producto.eq(id)))
         .all(db)
         .await?;
@@ -339,7 +339,7 @@ pub async fn update_productos_from_db(
         println!("Ultimo actualizado: productos de bases de datos");
         for i in 0..prods_db_model.len() {
             let b = get_codigos_db_filtrado(db, prods_db_model[i].id).await?;
-            
+
             productos_local.push(map_model_prod(&prods_db_model[i], b)?);
         }
         hay_cambios_desde_db = true;
@@ -377,22 +377,18 @@ fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Res<Product
     ))
 }
 fn map_model_rub(rub: &entity::rubro::Model) -> Rubro {
-    Rubro {
-        id: rub.id,
-        monto: rub.monto,
-        descripcion: rub.descripcion.clone(),
-    }
+    Rubro::new(rub.id, rub.monto, rub.descripcion.clone())
 }
 
 fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
-    Pesable {
-        id: pes.id,
-        codigo: pes.codigo,
-        precio_peso: pes.precio_peso,
-        porcentaje: pes.porcentaje,
-        costo_kilo: pes.costo_kilo,
-        descripcion: pes.descripcion.clone(),
-    }
+    Pesable::new(
+        pes.id,
+        pes.codigo,
+        pes.precio_peso,
+        pes.porcentaje,
+        pes.costo_kilo,
+        pes.descripcion.clone(),
+    )
 }
 fn map_model_prov(prov: &entity::proveedor::Model) -> Proveedor {
     Proveedor::new(prov.id, prov.nombre.clone(), prov.contacto)
@@ -411,25 +407,25 @@ pub async fn cargar_todos_los_productos(
             Some(m) => {
                 codigo_prod = m.id;
                 model = m.into();
-                model.marca = Set(producto.marca.clone());
-                model.porcentaje = Set(producto.porcentaje);
-                model.precio_de_costo = Set(producto.precio_de_costo);
-                model.precio_de_venta = Set(producto.precio_de_venta);
-                model.presentacion = Set(producto.presentacion.to_string());
-                model.tipo_producto = Set(producto.tipo_producto.clone());
+                model.marca = Set(producto.get_marca().clone());
+                model.porcentaje = Set(*producto.get_porcentaje());
+                model.precio_de_costo = Set(*producto.get_precio_de_costo());
+                model.precio_de_venta = Set(*producto.get_precio_de_venta());
+                model.presentacion = Set(producto.get_presentacion().to_string());
+                model.tipo_producto = Set(producto.get_tipo_producto().clone());
                 model.updated_at = Set(Utc::now().naive_utc());
-                model.variedad = Set(producto.variedad.clone());
+                model.variedad = Set(producto.get_variedad().clone());
                 model.update(db).await?;
             }
             None => {
                 model = producto::ActiveModel {
-                    precio_de_venta: Set(producto.precio_de_venta),
-                    porcentaje: Set(producto.porcentaje),
-                    precio_de_costo: Set(producto.precio_de_costo),
-                    tipo_producto: Set(producto.tipo_producto.clone()),
-                    marca: Set(producto.marca.clone()),
-                    variedad: Set(producto.variedad.clone()),
-                    presentacion: Set(producto.presentacion.to_string()),
+                    precio_de_venta: Set(*producto.get_precio_de_venta()),
+                    porcentaje: Set(*producto.get_porcentaje()),
+                    precio_de_costo: Set(*producto.get_precio_de_costo()),
+                    tipo_producto: Set(producto.get_tipo_producto().clone()),
+                    marca: Set(producto.get_marca().clone()),
+                    variedad: Set(producto.get_variedad().clone()),
+                    presentacion: Set(producto.get_presentacion().to_string()),
                     updated_at: Set(Utc::now().naive_utc()),
                     ..Default::default()
                 };
@@ -447,7 +443,7 @@ pub async fn cargar_todos_los_productos(
             .await?;
 
         let codigos_model: Vec<codigo_barras::ActiveModel> = producto
-            .codigos_de_barras
+            .get_codigos_de_barras()
             .iter()
             .map(|x| codigo_barras::ActiveModel {
                 codigo: Set(*x),
@@ -477,15 +473,15 @@ pub async fn cargar_todos_los_pesables(
         match i {
             Valuable::Pes(a) => {
                 let model = pesable::ActiveModel {
-                    codigo: Set(a.1.codigo),
-                    precio_peso: Set(a.1.precio_peso),
-                    porcentaje: Set(a.1.porcentaje),
-                    costo_kilo: Set(a.1.costo_kilo),
-                    descripcion: Set(a.1.descripcion.clone()),
+                    codigo: Set(*a.1.get_codigo()),
+                    precio_peso: Set(*a.1.get_precio_peso()),
+                    porcentaje: Set(*a.1.get_porcentaje()),
+                    costo_kilo: Set(*a.1.get_costo_kilo()),
+                    descripcion: Set(a.1.get_descripcion().clone()),
                     updated_at: Set(Utc::now().naive_utc()),
-                    id: Set(a.1.id),
+                    id: Set(*a.1.get_id()),
                 };
-                if entity::pesable::Entity::find_by_id(a.1.id)
+                if entity::pesable::Entity::find_by_id(*a.1.get_id())
                     .one(db)
                     .await?
                     .is_some()
@@ -508,12 +504,12 @@ pub async fn cargar_todos_los_rubros(
         match i {
             Valuable::Rub(a) => {
                 let model = entity::rubro::ActiveModel {
-                    id: Set(a.1.id),
-                    monto: Set(a.1.monto),
-                    descripcion: Set(a.1.descripcion.clone()),
+                    id: Set(*a.1.get_id()),
+                    monto: Set(*a.1.get_monto()),
+                    descripcion: Set(a.1.get_descripcion().clone()),
                     updated_at: Set(Utc::now().naive_utc()),
                 };
-                if entity::rubro::Entity::find_by_id(a.1.id)
+                if entity::rubro::Entity::find_by_id(*a.1.get_id())
                     .one(db)
                     .await?
                     .is_some()
@@ -597,18 +593,18 @@ pub async fn cargar_todas_las_relaciones_prod_prov(
     Ok(())
 }
 
-pub fn unifica_codes(codes:&mut Vec<entity::codigo_barras::Model>) {
-        let mut i=0;
-        while i<codes.len(){
-            let act=codes[i].clone();
-            let mut j=i+1;
-            while j<codes.len(){
-                if act.codigo==codes[j].codigo{
-                    codes.remove(j);
-                }else{
-                    j+=1;
-                }
-            }
-            i+=1;
-        }
-    }
+// pub fn unifica_codes(codes: &mut Vec<entity::codigo_barras::Model>) {
+//     let mut i = 0;
+//     while i < codes.len() {
+//         let act = codes[i].clone();
+//         let mut j = i + 1;
+//         while j < codes.len() {
+//             if act.codigo == codes[j].codigo {
+//                 codes.remove(j);
+//             } else {
+//                 j += 1;
+//             }
+//         }
+//         i += 1;
+//     }
+// }

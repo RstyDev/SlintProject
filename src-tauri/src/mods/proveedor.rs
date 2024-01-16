@@ -1,7 +1,6 @@
-
 use chrono::Utc;
 use entity::proveedor;
-use sea_orm::{ActiveModelTrait, Database, Set, DbErr};
+use sea_orm::{ActiveModelTrait, Database, DbErr, Set};
 use serde::{Deserialize, Serialize};
 
 use super::lib::Save;
@@ -31,8 +30,8 @@ impl Proveedor {
         &self.contacto
     }
 }
-impl Save for Proveedor{
-    async fn save(&self) -> Result<(),DbErr> {
+impl Save for Proveedor {
+    async fn save(&self) -> Result<(), DbErr> {
         let model = proveedor::ActiveModel {
             id: Set(self.id),
             nombre: Set(self.nombre.clone()),

@@ -1,7 +1,5 @@
-
-
 use entity::relacion_prod_prov;
-use sea_orm::{ActiveModelTrait, Database, Set, DbErr};
+use sea_orm::{ActiveModelTrait, Database, DbErr, Set};
 use serde::{Deserialize, Serialize};
 
 use super::lib::Save;
@@ -31,9 +29,9 @@ impl RelacionProdProv {
         self.codigo_interno
     }
 }
-impl Save for RelacionProdProv{
-    async fn save(&self)->Result<(),DbErr>{
-        let model=relacion_prod_prov::ActiveModel{
+impl Save for RelacionProdProv {
+    async fn save(&self) -> Result<(), DbErr> {
+        let model = relacion_prod_prov::ActiveModel {
             producto: Set(self.get_id_producto()),
             proveedor: Set(self.get_id_producto()),
             codigo: Set(self.codigo_interno),

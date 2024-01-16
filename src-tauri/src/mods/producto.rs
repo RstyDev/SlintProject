@@ -1,5 +1,4 @@
-
-use super::{valuable::Presentacion, valuable::ValuableTrait, lib::Save};
+use super::{lib::Save, valuable::Presentacion, valuable::ValuableTrait};
 use crate::redondeo;
 use chrono::Utc;
 use entity::{codigo_barras, producto};
@@ -9,14 +8,14 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Producto {
     id: i64,
-    pub codigos_de_barras: Vec<i64>,
-    pub precio_de_venta: f64,
-    pub porcentaje: f64,
-    pub precio_de_costo: f64,
-    pub tipo_producto: String,
-    pub marca: String,
-    pub variedad: String,
-    pub presentacion: Presentacion,
+    codigos_de_barras: Vec<i64>,
+    precio_de_venta: f64,
+    porcentaje: f64,
+    precio_de_costo: f64,
+    tipo_producto: String,
+    marca: String,
+    variedad: String,
+    presentacion: Presentacion,
 }
 
 impl Producto {
@@ -46,13 +45,38 @@ impl Producto {
     pub fn get_id(&self) -> i64 {
         self.id
     }
+    pub fn get_codigos_de_barras(&self) -> &Vec<i64> {
+        &self.codigos_de_barras
+    }
+    pub fn get_precio_de_venta(&self) -> &f64 {
+        &self.precio_de_venta
+    }
+    pub fn get_porcentaje(&self) -> &f64 {
+        &self.porcentaje
+    }
+    pub fn get_precio_de_costo(&self) -> &f64 {
+        &self.precio_de_costo
+    }
+    pub fn get_tipo_producto(&self) -> &String {
+        &self.tipo_producto
+    }
+    pub fn get_marca(&self) -> &String {
+        &self.marca
+    }
+    pub fn get_variedad(&self) -> &String {
+        &self.variedad
+    }
+    pub fn get_presentacion(&self) -> &Presentacion {
+        &self.presentacion
+    }
+
     pub fn get_nombre_completo(&self) -> String {
         format!(
             "{} {} {} {}",
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
-        
+
     // pub fn unifica_codes(&mut self) {
     //     let mut i=0;
     //     while i<self.codigos_de_barras.len(){
@@ -69,32 +93,32 @@ impl Producto {
     //     }
     // }
 }
-impl Save for Producto{
+impl Save for Producto {
     async fn save(&self) -> Result<(), DbErr> {
-            let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-            println!("Guardando producto en DB");
-            let model = producto::ActiveModel {
-                precio_de_venta: Set(self.precio_de_venta),
-                porcentaje: Set(self.porcentaje),
-                precio_de_costo: Set(self.precio_de_costo),
-                tipo_producto: Set(self.tipo_producto.clone()),
-                marca: Set(self.marca.clone()),
-                variedad: Set(self.variedad.clone()),
-                presentacion: Set(format!("{}", self.presentacion)),
-                updated_at: Set(Utc::now().naive_utc()),
+        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        println!("Guardando producto en DB");
+        let model = producto::ActiveModel {
+            precio_de_venta: Set(self.precio_de_venta),
+            porcentaje: Set(self.porcentaje),
+            precio_de_costo: Set(self.precio_de_costo),
+            tipo_producto: Set(self.tipo_producto.clone()),
+            marca: Set(self.marca.clone()),
+            variedad: Set(self.variedad.clone()),
+            presentacion: Set(format!("{}", self.presentacion)),
+            updated_at: Set(Utc::now().naive_utc()),
+            ..Default::default()
+        };
+        let res = entity::producto::Entity::insert(model).exec(&db).await?;
+        for codigo in &self.codigos_de_barras {
+            let cod_model = codigo_barras::ActiveModel {
+                codigo: Set(*codigo),
+                producto: Set(res.last_insert_id),
                 ..Default::default()
             };
-            let res = entity::producto::Entity::insert(model).exec(&db).await?;
-            for codigo in &self.codigos_de_barras {
-                let cod_model = codigo_barras::ActiveModel {
-                    codigo: Set(*codigo),
-                    producto: Set(res.last_insert_id),
-                    ..Default::default()
-                };
-                cod_model.insert(&db).await?;
-            }
-            Ok(())
+            cod_model.insert(&db).await?;
         }
+        Ok(())
+    }
 }
 
 impl PartialEq for Producto {

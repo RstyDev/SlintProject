@@ -32,36 +32,59 @@ impl Valuable {
     // }
     pub fn get_descripcion(&self, conf: &Config) -> String {
         let mut res = match self {
-            Valuable::Pes(a) => a.1.descripcion.clone(),
-            Valuable::Rub(a) => a.1.descripcion.clone(),
+            Valuable::Pes(a) => a.1.get_descripcion().clone(),
+            Valuable::Rub(a) => a.1.get_descripcion().clone(),
             Valuable::Prod(a) => match conf.get_formato() {
-                Formato::Mtv => match a.1.presentacion {
+                Formato::Mtv => match a.1.get_presentacion() {
                     Presentacion::Gr(cant) => format!(
                         "{} {} {} {} Gr",
-                        a.1.marca, a.1.tipo_producto, a.1.variedad, cant
+                        a.1.get_marca(),
+                        a.1.get_tipo_producto(),
+                        a.1.get_variedad(),
+                        cant
                     ),
                     Presentacion::CC(cant) => format!(
                         "{} {} {} {} CC",
-                        a.1.marca, a.1.tipo_producto, a.1.variedad, cant
+                        a.1.get_marca(),
+                        a.1.get_tipo_producto(),
+                        a.1.get_variedad(),
+                        cant
                     ),
                     Presentacion::Kg(cant) => format!(
                         "{} {} {} {} Kg",
-                        a.1.marca, a.1.tipo_producto, a.1.variedad, cant
+                        a.1.get_marca(),
+                        a.1.get_tipo_producto(),
+                        a.1.get_variedad(),
+                        cant
                     ),
                     Presentacion::Lt(cant) => format!(
                         "{} {} {} {} Lt",
-                        a.1.marca, a.1.tipo_producto, a.1.variedad, cant
+                        a.1.get_marca(),
+                        a.1.get_tipo_producto(),
+                        a.1.get_variedad(),
+                        cant
                     ),
                     Presentacion::Ml(cant) => format!(
                         "{} {} {} {} Ml",
-                        a.1.marca, a.1.tipo_producto, a.1.variedad, cant
+                        a.1.get_marca(),
+                        a.1.get_tipo_producto(),
+                        a.1.get_variedad(),
+                        cant
                     ),
                     Presentacion::Un(cant) => format!(
                         "{} {} {} {} Un",
-                        a.1.marca, a.1.tipo_producto, a.1.variedad, cant
+                        a.1.get_marca(),
+                        a.1.get_tipo_producto(),
+                        a.1.get_variedad(),
+                        cant
                     ),
                 },
-                Formato::Tmv => format!("{} {} {}", a.1.tipo_producto, a.1.marca, a.1.variedad),
+                Formato::Tmv => format!(
+                    "{} {} {}",
+                    a.1.get_tipo_producto(),
+                    a.1.get_marca(),
+                    a.1.get_variedad()
+                ),
             },
         };
         match conf.get_modo_mayus() {
@@ -89,9 +112,9 @@ impl Default for Valuable {
 impl PartialEq for Valuable {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Valuable::Pes(a), Valuable::Pes(b)) => a.1.id == b.1.id,
+            (Valuable::Pes(a), Valuable::Pes(b)) => *a.1.get_id() == *b.1.get_id(),
             (Valuable::Prod(a), Valuable::Prod(b)) => a.1.get_id() == b.1.get_id(),
-            (Valuable::Rub(a), Valuable::Rub(b)) => a.1.id == b.1.id,
+            (Valuable::Rub(a), Valuable::Rub(b)) => a.1.get_id() == b.1.get_id(),
             (_, _) => false,
         }
     }

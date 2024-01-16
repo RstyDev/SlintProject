@@ -9,9 +9,9 @@ use super::{lib::Save, valuable::ValuableTrait};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Rubro {
-    pub id: i64,
-    pub monto: f64,
-    pub descripcion: String,
+    id: i64,
+    monto: f64,
+    descripcion: String,
 }
 
 impl Rubro {
@@ -21,6 +21,15 @@ impl Rubro {
             monto,
             descripcion,
         }
+    }
+    pub fn get_id(&self) -> &i64 {
+        &self.id
+    }
+    pub fn get_monto(&self) -> &f64 {
+        &self.monto
+    }
+    pub fn get_descripcion(&self) -> &String {
+        &self.descripcion
     }
 }
 impl Save for Rubro {

@@ -73,12 +73,12 @@ impl<'a> Sistema {
             path_pesables,
             path_productos,
         ))?;
-        
+
         let hay_cambios_provs_db =
             async_runtime::block_on(update_data_provs(&mut proveedores, path_proveedores))?;
 
-        if !hay_cambios_desde_db{
-            hay_cambios_desde_db=hay_cambios_provs_db;
+        if !hay_cambios_desde_db {
+            hay_cambios_desde_db = hay_cambios_provs_db;
         }
         let mut rubros_valuable: Vec<Valuable> = rubros
             .iter()
@@ -123,7 +123,7 @@ impl<'a> Sistema {
         // for i in 0..sis.productos.len() {
         //     sis.productos[i].unifica_codes()
         // }
-        
+
         let prov_load_handle =
             async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
         let prod_load_handle =
@@ -139,7 +139,7 @@ impl<'a> Sistema {
             crear_file(path_productos, &productos)?;
             crear_file(path_rubros, &rubros)?;
             crear_file(path_proveedores, &proveedores)?;
-        }        
+        }
         Ok(sis)
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
@@ -413,7 +413,7 @@ impl<'a> Sistema {
         for p in &self.productos {
             match p {
                 Valuable::Pes(a) => {
-                    if a.1.id == id {
+                    if *a.1.get_id() == id {
                         res = Ok(p.clone());
                     }
                 }
@@ -423,7 +423,7 @@ impl<'a> Sistema {
                     }
                 }
                 Valuable::Rub(a) => {
-                    if a.1.id == id {
+                    if *a.1.get_id() == id {
                         res = Ok(p.clone());
                     }
                 }
@@ -528,8 +528,12 @@ impl<'a> Sistema {
         let mut res: Vec<String> = iter
             .filter_map(|x| match x {
                 Valuable::Prod(a) => {
-                    if a.1.marca.to_lowercase().contains(&filtro.to_lowercase()) {
-                        Some(a.1.marca.clone())
+                    if a.1
+                        .get_marca()
+                        .to_lowercase()
+                        .contains(&filtro.to_lowercase())
+                    {
+                        Some(a.1.get_marca().clone())
                     } else {
                         None
                     }
@@ -549,11 +553,11 @@ impl<'a> Sistema {
             .filter_map(|x| match x {
                 Valuable::Prod(a) => {
                     if a.1
-                        .tipo_producto
+                        .get_tipo_producto()
                         .to_lowercase()
                         .contains(&filtro.to_lowercase())
                     {
-                        Some(a.1.tipo_producto.clone())
+                        Some(a.1.get_tipo_producto().clone())
                     } else {
                         None
                     }
