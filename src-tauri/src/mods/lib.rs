@@ -184,10 +184,11 @@ fn make_elapsed_to_date(date: std::time::Duration) -> Option<DateTimeUtc> {
 //     };
 // }
 pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Res<Vec<i64>> {
-    let a = entity::codigo_barras::Entity::find()
+    let mut a = entity::codigo_barras::Entity::find()
         .filter(Condition::all().add(entity::codigo_barras::Column::Producto.eq(id)))
         .all(db)
         .await?;
+    // unifica_codes(&mut a);
     Ok(a.iter().map(|x| x.codigo).collect())
 }
 pub async fn update_data_provs(provs_local: &mut Vec<Proveedor>, path_provs: &str) -> Res<bool> {
@@ -595,3 +596,19 @@ pub async fn cargar_todas_las_relaciones_prod_prov(
         .await?;
     Ok(())
 }
+
+pub fn unifica_codes(codes:&mut Vec<entity::codigo_barras::Model>) {
+        let mut i=0;
+        while i<codes.len(){
+            let act=codes[i].clone();
+            let mut j=i+1;
+            while j<codes.len(){
+                if act.codigo==codes[j].codigo{
+                    codes.remove(j);
+                }else{
+                    j+=1;
+                }
+            }
+            i+=1;
+        }
+    }

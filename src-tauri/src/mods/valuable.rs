@@ -24,12 +24,12 @@ impl Valuable {
     //         Valuable::Rub(a) => a.1.redondear(politica).monto,
     //     }
     // }
-    pub fn unifica_codes(&mut self) {
-        match self {
-            Valuable::Prod(a) => a.1.unifica_codes(),
-            _ => (),
-        }
-    }
+    // pub fn unifica_codes(&mut self) {
+    //     match self {
+    //         Valuable::Prod(a) => a.1.unifica_codes(),
+    //         _ => (),
+    //     }
+    // }
     pub fn get_descripcion(&self, conf: &Config) -> String {
         let mut res = match self {
             Valuable::Pes(a) => a.1.descripcion.clone(),

@@ -105,7 +105,7 @@ impl<'a> Sistema {
             crear_file(path_configs, &mut configs)?;
         }
 
-        let mut sis = Sistema {
+        let sis = Sistema {
             configs: configs[0].clone(),
             productos: valuables,
             ventas: (Venta::new(), Venta::new()),
