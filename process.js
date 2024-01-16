@@ -12,84 +12,99 @@ function readSingleFile(e) {
         let res = JSON.parse(contents);
         console.log(res[0]);
         let prods = []
-        for (let i = 0; i < res.length; i++) {
-            let esta = false;
-            for (let j = 0; j < prods.length; j++)
-                if (prods[j].id == res[i]['Descripcion'])
-                    esta = true;
+        // for (let i = 0; i < res.length; i++) {
+        //     let esta = false;
+        //     for (let j = 0; j < prods.length; j++)
+        //         if (prods[j].id == res[i]['Descripcion'])
+        //             esta = true;
 
-            if (res[i]['Descripcion'].length == 5 && !esta && typeof parseFloat(res[i]['Descripcion'][3]) == 'number') {
-                let prod = {
-                    "id": 0,
-                    "codigos_de_barras": [],
-                    "precio_de_venta": 0,
-                    "porcentaje": 0,
-                    "precio_de_costo": 0,
-                    "tipo_producto": "",
-                    "marca": "",
-                    "variedad": "",
-                    "presentacion": {
-                        "": 0
-                    }
-                }
-                prod.id = parseInt(res[i].Codigo);
-                prod.codigos_de_barras = [parseInt(res[i]['Codigo de Barras'])]
-                prod.precio_de_venta = res[i]['Precio de Venta'];
-                prod.precio_de_costo = res[i]['Costo'];
-                prod.porcentaje = ((prod.precio_de_venta / prod.precio_de_costo) - 1) * 100;
-                prod.tipo_producto = res[i]['Descripcion'][0];
-                prod.marca = res[i]['Descripcion'][1];
-                prod.variedad = res[i]['Descripcion'][2];
-                switch (res[i]['Descripcion'][4].toUpperCase()) {
-                    case 'UN':
-                        prod.presentacion = {
-                            'UN': parseFloat(res[i]['Descripcion'][3])
-                        };
-                        break;
-                    case 'LT':
-                        prod.presentacion = {
-                            'LT': parseFloat(res[i]['Descripcion'][3])
-                        };
-                        break;
-                    case 'KG':
-                        prod.presentacion = {
-                            'KG': parseFloat(res[i]['Descripcion'][3])
-                        }
-                        break;
-                    case 'ML':
-                        prod.presentacion = {
-                            'ML': parseFloat(res[i]['Descripcion'][3])
-                        }
-                        break;
-                    case 'CC':
-                        prod.presentacion = {
-                            'CC': parseFloat(res[i]['Descripcion'][3])
-                        }
-                        break;
-                    case 'GR':
-                        prod.presentacion = {
-                            'GR': parseFloat(res[i]['Descripcion'][3])
-                        }
-                        break;
-                    case 'GRS':
-                        prod.presentacion = {
-                            'GR': parseFloat(res[i]['Descripcion'][3])
-                        }
-                        break;
-                    case 'G':
-                        prod.presentacion = {
-                            'GR': parseFloat(res[i]['Descripcion'][3])
-                        }
-                        break;
-                    default:
-                        continue;
+        //     if (res[i]['Descripcion'].length == 5 && !esta && typeof parseFloat(res[i]['Descripcion'][3]) == 'number') {
+        //         let prod = {
+        //             "id": 0,
+        //             "codigos_de_barras": [],
+        //             "precio_de_venta": 0,
+        //             "porcentaje": 0,
+        //             "precio_de_costo": 0,
+        //             "tipo_producto": "",
+        //             "marca": "",
+        //             "variedad": "",
+        //             "presentacion": {
+        //                 "": 0
+        //             }
+        //         }
+        //         prod.id = parseInt(res[i].Codigo);
+        //         prod.codigos_de_barras = [parseInt(res[i]['Codigo de Barras'])]
+        //         prod.precio_de_venta = res[i]['Precio de Venta'];
+        //         prod.precio_de_costo = res[i]['Costo'];
+        //         prod.porcentaje = ((prod.precio_de_venta / prod.precio_de_costo) - 1) * 100;
+        //         prod.tipo_producto = res[i]['Descripcion'][0];
+        //         prod.marca = res[i]['Descripcion'][1];
+        //         prod.variedad = res[i]['Descripcion'][2];
+        //         switch (res[i]['Descripcion'][4].toUpperCase()) {
+        //             case 'UN':
+        //                 prod.presentacion = {
+        //                     'UN': parseFloat(res[i]['Descripcion'][3])
+        //                 };
+        //                 break;
+        //             case 'LT':
+        //                 prod.presentacion = {
+        //                     'LT': parseFloat(res[i]['Descripcion'][3])
+        //                 };
+        //                 break;
+        //             case 'KG':
+        //                 prod.presentacion = {
+        //                     'KG': parseFloat(res[i]['Descripcion'][3])
+        //                 }
+        //                 break;
+        //             case 'ML':
+        //                 prod.presentacion = {
+        //                     'ML': parseFloat(res[i]['Descripcion'][3])
+        //                 }
+        //                 break;
+        //             case 'CC':
+        //                 prod.presentacion = {
+        //                     'CC': parseFloat(res[i]['Descripcion'][3])
+        //                 }
+        //                 break;
+        //             case 'GR':
+        //                 prod.presentacion = {
+        //                     'GR': parseFloat(res[i]['Descripcion'][3])
+        //                 }
+        //                 break;
+        //             case 'GRS':
+        //                 prod.presentacion = {
+        //                     'GR': parseFloat(res[i]['Descripcion'][3])
+        //                 }
+        //                 break;
+        //             case 'G':
+        //                 prod.presentacion = {
+        //                     'GR': parseFloat(res[i]['Descripcion'][3])
+        //                 }
+        //                 break;
+        //             default:
+        //                 continue;
 
-                }
+        //         }
 
-                prods.push(prod)
+        //         prods.push(prod)
 
+        //     }
+        // }
+
+
+
+
+        for (let i = 0; i < res.length; i++) { //carga codigos de barras aleatorios
+            if (res[i].codigos_de_barras.length > 0) {
+                console.log(res[i].codigos_de_barras)
+                console.log(Math.floor(Math.random() * 99999999999999))
+            } else {
+                res[i].codigos_de_barras.push(Math.floor(Math.random() * 99999999999999))
             }
         }
+        prods = res;
+
+
         console.log(prods.length);
         console.log(JSON.stringify(prods))
 

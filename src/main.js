@@ -27,6 +27,7 @@ function navigate(e) {
       focus(focuseado.nextElementSibling);
 
     } else if (e.keyCode == 13) {
+      e.preventDefault();
       if (document.getElementById('tabla-productos').children.length > 1) {
         agregarProdVentaAct(focuseado.id).then(venta => {
           e.preventDefault();
@@ -159,16 +160,131 @@ function dibujar_venta(venta) {
      </article>`;
   for (let producto of venta.productos) {
     let disabled;
-    if (producto.Prod[0] < 2) {
-      disabled = 'disabled';
-    } else {
-      disabled = '';
-    }
-    get_descripcion_valuable(producto, configs).then(strings => {
-      let art = document.createElement('article');
-      art.id = producto.Prod[1].id;
-      art.classList.add('articulo');
-      art.innerHTML = `
+    console.log(Object.keys(producto));
+    let art;
+    if (Object.keys(producto) == 'Pes') {
+      if (producto.Pes[0] <= 1) {
+        disabled = 'disabled';
+      } else {
+        disabled = '';
+      }
+
+      get_descripcion_valuable(producto, configs).then(strings => {
+        art = document.createElement('article');
+        art.id = producto.Pes[1].id;
+        art.classList.add('articulo');
+        art.innerHTML = `
+      <section class="descripcion">
+         <p> ${strings} </p>
+      </section>
+      <section class="cantidad">
+         <button class="button restar" ${disabled}>-</button>
+         <p class="cantidad-producto"> ${producto.Pes[0]}</p>
+         <button class="button sumar">+</button>
+      </section>
+      <section class="monto">
+         <p>${producto.Pes[1].precio_peso}</p>
+      </section>
+      <section>
+       <p> ${producto.Pes[1].precio_peso * producto.Pes[0]}</p>
+      </section>
+      <section id="borrar">
+       <button class="button eliminar">Borrar</button>
+     </section>
+      `;
+        ///----
+
+
+        art.children[1].children[2].addEventListener('click', (e) => {
+          e.preventDefault();
+          incrementarProducto(e);
+        });
+
+        art.children[1].children[0].addEventListener('click', (e) => {
+          e.preventDefault();
+          restarProducto(e);
+        });
+
+        art.children[4].children[0].addEventListener('click', (e) => {
+          e.preventDefault();
+          eliminarProducto(e);
+        });
+
+
+
+
+        hijos.appendChild(art);
+
+        hijosRes.innerHTML += `<p>${strings}</p>`
+      });
+    } else if (Object.keys(producto) == 'Rub') {
+      if (producto.Rub[0] < 2) {
+        disabled = 'disabled';
+      } else {
+        disabled = '';
+      }
+
+      get_descripcion_valuable(producto, configs).then(strings => {
+        let art = document.createElement('article');
+        art.id = producto.Rub[1].id;
+        art.classList.add('articulo');
+        art.innerHTML = `
+      <section class="descripcion">
+         <p> ${strings} </p>
+      </section>
+      <section class="cantidad">
+         <button class="button restar" ${disabled}>-</button>
+         <p class="cantidad-producto"> ${producto.Rub[0]}</p>
+         <button class="button sumar">+</button>
+      </section>
+      <section class="monto">
+         <p>${producto.Rub[1].monto}</p>
+      </section>
+      <section>
+       <p> ${producto.Rub[1].monto * producto.Rub[0]}</p>
+      </section>
+      <section id="borrar">
+       <button class="button eliminar">Borrar</button>
+     </section>
+      `;
+        ///----
+
+
+        art.children[1].children[2].addEventListener('click', (e) => {
+          e.preventDefault();
+          incrementarProducto(e);
+        });
+
+        art.children[1].children[0].addEventListener('click', (e) => {
+          e.preventDefault();
+          restarProducto(e);
+        });
+
+        art.children[4].children[0].addEventListener('click', (e) => {
+          e.preventDefault();
+          eliminarProducto(e);
+        });
+
+
+
+
+        hijos.appendChild(art);
+
+        hijosRes.innerHTML += `<p>${strings}</p>`
+      });
+
+    } else if (Object.keys(producto) == 'Prod') {
+      if (producto.Prod[0] < 2) {
+        disabled = 'disabled';
+      } else {
+        disabled = '';
+      }
+
+      get_descripcion_valuable(producto, configs).then(strings => {
+        let art = document.createElement('article');
+        art.id = producto.Prod[1].id;
+        art.classList.add('articulo');
+        art.innerHTML = `
       <section class="descripcion">
          <p> ${strings} </p>
       </section>
@@ -187,31 +303,35 @@ function dibujar_venta(venta) {
        <button class="button eliminar">Borrar</button>
      </section>
       `;
-      ///----
+        ///----
 
 
-      art.children[1].children[2].addEventListener('click', (e) => {
-        e.preventDefault();
-        incrementarProducto(e);
+        art.children[1].children[2].addEventListener('click', (e) => {
+          e.preventDefault();
+          incrementarProducto(e);
+        });
+
+        art.children[1].children[0].addEventListener('click', (e) => {
+          e.preventDefault();
+          restarProducto(e);
+        });
+
+        art.children[4].children[0].addEventListener('click', (e) => {
+          e.preventDefault();
+          eliminarProducto(e);
+        });
+
+
+
+
+        hijos.appendChild(art);
+
+        hijosRes.innerHTML += `<p>${strings}</p>`
       });
-
-      art.children[1].children[0].addEventListener('click', (e) => {
-        e.preventDefault();
-        restarProducto(e);
-      });
-
-      art.children[4].children[0].addEventListener('click', (e) => {
-        e.preventDefault();
-        eliminarProducto(e);
-      });
+    }
+    
 
 
-
-
-      hijos.appendChild(art);
-
-      hijosRes.innerHTML += `<p>${strings}</p>`
-    });
 
 
   }
@@ -629,10 +749,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
 async function buscarProducto(filtrado) {
   clearTimeout(timeoutId);
-  if (filtrado.length < 5 || isNaN(filtrado)) {
-    let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
-    dibujarProductos(objetos);
-  }
+  let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
+  dibujarProductos(objetos);
+
 }
 
 
