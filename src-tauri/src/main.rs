@@ -4,6 +4,7 @@ use mods::{
     config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, valuable::Valuable,
     venta::Venta,
 };
+use Valuable as V;
 type Result<T> = std::result::Result<T, String>;
 
 use std::sync::Mutex;
@@ -85,7 +86,7 @@ fn agregar_producto(
 }
 
 #[tauri::command]
-fn agregar_pesable(
+fn agregar_pesable<'a>(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     id: i64,
@@ -93,7 +94,7 @@ fn agregar_pesable(
     precio_peso: f64,
     porcentaje: f64,
     costo_kilo: f64,
-    descripcion: &str,
+    descripcion: &'a str,
 ) -> Result<String> {
     match sistema.lock() {
         Ok(mut sis) => {
@@ -103,7 +104,7 @@ fn agregar_pesable(
                 precio_peso,
                 porcentaje,
                 costo_kilo,
-                descripcion.to_string(),
+                descripcion,
             );
 
             if let Err(e) = sis.agregar_pesable(pesable.clone()) {
@@ -112,7 +113,7 @@ fn agregar_pesable(
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
-            Ok(pesable.get_descripcion().clone())
+            Ok(pesable.get_descripcion().to_string())
         }
         Err(a) => Err(a.to_string()),
     }
@@ -127,14 +128,14 @@ fn agregar_rubro(
 ) -> Result<String> {
     match sistema.lock() {
         Ok(mut sis) => {
-            let rubro = Rubro::new(id, monto, descripcion.to_string());
+            let rubro = Rubro::new(id, monto, descripcion);
             if let Err(e) = sis.agregar_rubro(rubro.clone()) {
                 return Err(e.to_string());
             }
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
-            Ok(rubro.get_descripcion().clone())
+            Ok(rubro.get_descripcion().to_string())
         }
         Err(a) => Err(a.to_string()),
     }
@@ -187,7 +188,7 @@ fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Resul
                 .filter(|x| {
                     let codigo = filtro.parse::<i64>();
                     match x {
-                        Valuable::Prod(a) => {
+                        V::Prod(a) => {
                             if (codigo.is_ok()
                                 && a.1.get_codigos_de_barras().contains(&codigo.unwrap()))
                                 || filtros.iter().any(|line| {

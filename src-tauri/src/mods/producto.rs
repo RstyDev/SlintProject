@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::{lib::Save, valuable::Presentacion, valuable::ValuableTrait};
 use crate::redondeo;
 use chrono::Utc;
@@ -5,16 +7,16 @@ use entity::{codigo_barras, producto};
 use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
     id: i64,
     codigos_de_barras: Vec<i64>,
     precio_de_venta: f64,
     porcentaje: f64,
     precio_de_costo: f64,
-    tipo_producto: String,
-    marca: String,
-    variedad: String,
+    tipo_producto: Arc<str>,
+    marca: Arc<str>,
+    variedad: Arc<str>,
     presentacion: Presentacion,
 }
 
@@ -25,9 +27,9 @@ impl Producto {
         precio_de_venta: f64,
         porcentaje: f64,
         precio_de_costo: f64,
-        tipo_producto: String,
-        marca: String,
-        variedad: String,
+        tipo_producto: &str,
+        marca: &str,
+        variedad: &str,
         presentacion: Presentacion,
     ) -> Producto {
         Producto {
@@ -36,9 +38,9 @@ impl Producto {
             precio_de_venta,
             porcentaje,
             precio_de_costo,
-            tipo_producto: tipo_producto,
-            marca: marca,
-            variedad: variedad,
+            tipo_producto: Arc::from(tipo_producto),
+            marca: Arc::from(marca),
+            variedad: Arc::from(variedad),
             presentacion,
         }
     }
@@ -57,14 +59,14 @@ impl Producto {
     pub fn get_precio_de_costo(&self) -> &f64 {
         &self.precio_de_costo
     }
-    pub fn get_tipo_producto(&self) -> &String {
-        &self.tipo_producto
+    pub fn get_tipo_producto(&self) -> Arc<str>{
+        self.tipo_producto.clone()
     }
-    pub fn get_marca(&self) -> &String {
-        &self.marca
+    pub fn get_marca(&self) -> Arc<str> {
+        self.marca.clone()
     }
-    pub fn get_variedad(&self) -> &String {
-        &self.variedad
+    pub fn get_variedad(&self) -> Arc<str> {
+        self.variedad.clone()
     }
     pub fn get_presentacion(&self) -> &Presentacion {
         &self.presentacion
@@ -101,9 +103,9 @@ impl Save for Producto {
             precio_de_venta: Set(self.precio_de_venta),
             porcentaje: Set(self.porcentaje),
             precio_de_costo: Set(self.precio_de_costo),
-            tipo_producto: Set(self.tipo_producto.clone()),
-            marca: Set(self.marca.clone()),
-            variedad: Set(self.variedad.clone()),
+            tipo_producto: Set(self.tipo_producto.to_string()),
+            marca: Set(self.marca.to_string()),
+            variedad: Set(self.variedad.to_string()),
             presentacion: Set(format!("{}", self.presentacion)),
             updated_at: Set(Utc::now().naive_utc()),
             ..Default::default()
@@ -148,3 +150,19 @@ impl ValuableTrait for Producto {
         }
     }
 }
+
+// impl Default for Producto{
+//     fn default() -> Self {
+//         Producto{
+//             id: todo!(),
+//             codigos_de_barras: todo!(),
+//             precio_de_venta: todo!(),
+//             porcentaje: todo!(),
+//             precio_de_costo: todo!(),
+//             tipo_producto: todo!(),
+//             marca: todo!(),
+//             variedad: todo!(),
+//             presentacion: todo!(),
+//         }
+//     }
+// }

@@ -3,6 +3,7 @@ use chrono::Utc;
 use entity::codigo_barras;
 use entity::*;
 use sea_orm::ColumnTrait;
+use Valuable as V;
 use sea_orm::Condition;
 use sea_orm::QueryFilter;
 use sea_orm::Set;
@@ -80,18 +81,16 @@ impl<'a> Sistema {
         if !hay_cambios_desde_db {
             hay_cambios_desde_db = hay_cambios_provs_db;
         }
-        let mut rubros_valuable: Vec<Valuable> = rubros
-            .iter()
-            .map(|a| Valuable::Rub((0, a.to_owned())))
-            .collect();
+        let mut rubros_valuable: Vec<Valuable> =
+            rubros.iter().map(|a| V::Rub((0, a.to_owned()))).collect();
         let mut pesables_valuable: Vec<Valuable> = pesables
             .iter()
-            .map(|a| Valuable::Pes((0.0, a.to_owned())))
+            .map(|a| V::Pes((0.0, a.to_owned())))
             .collect();
         let mut valuables: Vec<Valuable> = productos
             .clone()
             .iter()
-            .map(|a| Valuable::Prod((0, a.to_owned())))
+            .map(|a| V::Prod((0, a.to_owned())))
             .collect();
         valuables.append(&mut pesables_valuable);
         valuables.append(&mut rubros_valuable);
@@ -235,6 +234,11 @@ impl<'a> Sistema {
         let tipo_producto = camalize(tipo_producto);
         let marca = camalize(marca);
         let variedad = camalize(variedad);
+
+        let tipo_producto = tipo_producto.as_str();
+        let marca = marca.as_str();
+        let variedad = variedad.as_str();
+
         let precio_de_venta = precio_de_venta.parse::<f64>()?;
         let porcentaje = porcentaje.parse::<f64>()?;
         let precio_de_costo = precio_de_costo.parse::<f64>()?;
@@ -318,7 +322,7 @@ impl<'a> Sistema {
             .productos
             .iter()
             .map(|x| match x {
-                Valuable::Prod(a) => Some(a.1.clone()),
+                V::Prod(a) => Some(a.1.clone()),
                 _ => None,
             })
             .flatten()
@@ -341,7 +345,7 @@ impl<'a> Sistema {
         crear_file(&self.path_productos, &productos)?;
         crear_file(&self.path_relaciones, &self.relaciones)?;
 
-        self.productos.push(Valuable::Prod((0, producto)));
+        self.productos.push(V::Prod((0, producto)));
 
         result
     }
@@ -350,7 +354,7 @@ impl<'a> Sistema {
             .productos
             .iter()
             .map(|x| match x {
-                Valuable::Pes(a) => Some(a.1.clone()),
+                V::Pes(a) => Some(a.1.clone()),
                 _ => None,
             })
             .flatten()
@@ -358,7 +362,7 @@ impl<'a> Sistema {
         pesables.push(pesable.clone());
         crear_file(&self.path_pesables, &pesables)?;
         let handle = async_runtime::spawn(save(pesable.clone()));
-        self.productos.push(Valuable::Pes((0.0, pesable)));
+        self.productos.push(V::Pes((0.0, pesable)));
         Ok(async_runtime::block_on(handle)??)
     }
 
@@ -367,7 +371,7 @@ impl<'a> Sistema {
             .productos
             .iter()
             .map(|x| match x {
-                Valuable::Rub(a) => Some(a.1.clone()),
+                V::Rub(a) => Some(a.1.clone()),
                 _ => None,
             })
             .flatten()
@@ -375,7 +379,7 @@ impl<'a> Sistema {
         rubros.push(rubro.clone());
         let handle = async_runtime::spawn(save(rubro.clone()));
         crear_file(&self.path_rubros, &rubros)?;
-        self.productos.push(Valuable::Rub((0, rubro)));
+        self.productos.push(V::Rub((0, rubro)));
         Ok(async_runtime::block_on(handle)??)
     }
     pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: &str) -> Res<()> {
@@ -392,15 +396,11 @@ impl<'a> Sistema {
                 let contacto = Some(contacto.parse()?);
                 prov = Proveedor::new(
                     self.proveedores.len() as i64 + 1,
-                    camalize(proveedor),
+                    camalize(proveedor).as_str(),
                     contacto,
                 );
             } else {
-                prov = Proveedor::new(
-                    self.proveedores.len() as i64 + 1,
-                    proveedor.to_string(),
-                    None,
-                );
+                prov = Proveedor::new(self.proveedores.len() as i64 + 1, proveedor, None);
             }
             handle = async_runtime::spawn(save(prov.clone()));
             self.proveedores.push(prov);
@@ -412,17 +412,17 @@ impl<'a> Sistema {
         let mut res = Err(AppError::ProductNotFound(id.to_string()));
         for p in &self.productos {
             match p {
-                Valuable::Pes(a) => {
+                V::Pes(a) => {
                     if *a.1.get_id() == id {
                         res = Ok(p.clone());
                     }
                 }
-                Valuable::Prod(a) => {
+                V::Prod(a) => {
                     if a.1.get_id() == id {
                         res = Ok(p.clone());
                     }
                 }
-                Valuable::Rub(a) => {
+                V::Rub(a) => {
                     if *a.1.get_id() == id {
                         res = Ok(p.clone());
                     }
@@ -527,13 +527,13 @@ impl<'a> Sistema {
         let iter = self.productos.iter();
         let mut res: Vec<String> = iter
             .filter_map(|x| match x {
-                Valuable::Prod(a) => {
+                V::Prod(a) => {
                     if a.1
                         .get_marca()
                         .to_lowercase()
                         .contains(&filtro.to_lowercase())
                     {
-                        Some(a.1.get_marca().clone())
+                        Some(a.1.get_marca().to_string())
                     } else {
                         None
                     }
@@ -551,13 +551,13 @@ impl<'a> Sistema {
         let iter = self.productos.iter();
         let mut res: Vec<String> = iter
             .filter_map(|x| match x {
-                Valuable::Prod(a) => {
+                V::Prod(a) => {
                     if a.1
                         .get_tipo_producto()
                         .to_lowercase()
                         .contains(&filtro.to_lowercase())
                     {
-                        Some(a.1.get_tipo_producto().clone())
+                        Some(a.1.get_tipo_producto().to_string())
                     } else {
                         None
                     }

@@ -4,7 +4,7 @@ use entity::{
 };
 use sea_orm::{Database, DbErr, EntityTrait, Set};
 use serde::Serialize;
-
+use Valuable as V;
 use crate::redondeo;
 
 use super::{config::Config, error::AppError, lib::Save, pago::Pago, valuable::Valuable};
@@ -39,7 +39,7 @@ impl<'a> Venta {
         self.monto_pagado
     }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> f64 {
-        self.pagos.push(Pago::new(medio_pago.to_string(), monto));
+        self.pagos.push(Pago::new(medio_pago, monto));
         self.monto_pagado += monto;
         self.monto_total - self.monto_pagado
     }
@@ -49,9 +49,9 @@ impl<'a> Venta {
             if producto == self.productos[i] {
                 let mut prod = self.productos.remove(i);
                 match &prod {
-                    Valuable::Pes(a) => prod = Valuable::Pes((a.0 + 1.0, a.1.clone())),
-                    Valuable::Prod(a) => prod = Valuable::Prod((a.0 + 1, a.1.clone())),
-                    Valuable::Rub(a) => self.productos.push(Valuable::Rub(a.clone())),
+                    V::Pes(a) => prod = V::Pes((a.0 + 1.0, a.1.clone())),
+                    V::Prod(a) => prod = V::Prod((a.0 + 1, a.1.clone())),
+                    V::Rub(a) => self.productos.push(V::Rub(a.clone())),
                 }
                 self.productos.insert(i, prod);
                 esta = true;
@@ -59,9 +59,9 @@ impl<'a> Venta {
         }
         if !esta {
             let prod = match producto {
-                Valuable::Pes(a) => Valuable::Pes((a.0 + 1.0, a.1.clone())),
-                Valuable::Prod(a) => Valuable::Prod((a.0 + 1, a.1.clone())),
-                Valuable::Rub(a) => Valuable::Rub((a.0 + 1, a.1.clone())),
+                V::Pes(a) => V::Pes((a.0 + 1.0, a.1.clone())),
+                V::Prod(a) => V::Prod((a.0 + 1, a.1.clone())),
+                V::Rub(a) => V::Rub((a.0 + 1, a.1.clone())),
             };
             self.productos.push(prod);
         }
@@ -72,11 +72,11 @@ impl<'a> Venta {
         self.monto_total = 0.0;
         for i in &self.productos {
             match &i {
-                Valuable::Pes(a) => {
+                V::Pes(a) => {
                     self.monto_total += redondeo(politica, a.0 as f64 * a.1.get_precio_peso())
                 }
-                Valuable::Prod(a) => self.monto_total += a.1.get_precio_de_venta() * a.0 as f64,
-                Valuable::Rub(a) => self.monto_total += a.1.get_monto() * a.0 as f64,
+                V::Prod(a) => self.monto_total += a.1.get_precio_de_venta() * a.0 as f64,
+                V::Rub(a) => self.monto_total += a.1.get_monto() * a.0 as f64,
             }
         }
     }
@@ -96,19 +96,19 @@ impl<'a> Venta {
             if producto == self.productos[i] {
                 let mut prod = self.productos.remove(i);
                 match &prod {
-                    Valuable::Pes(a) => {
+                    V::Pes(a) => {
                         if a.0 > 1.0 {
-                            prod = Valuable::Pes((a.0 - 1.0, a.1.clone()))
+                            prod = V::Pes((a.0 - 1.0, a.1.clone()))
                         }
                     }
-                    Valuable::Prod(a) => {
+                    V::Prod(a) => {
                         if a.0 > 1 {
-                            prod = Valuable::Prod((a.0 - 1, a.1.clone()))
+                            prod = V::Prod((a.0 - 1, a.1.clone()))
                         }
                     }
-                    Valuable::Rub(a) => {
+                    V::Rub(a) => {
                         if a.0 > 1 {
-                            prod = Valuable::Rub((a.0 - 1, a.1.clone()))
+                            prod = V::Rub((a.0 - 1, a.1.clone()))
                         }
                     }
                 }
@@ -135,9 +135,9 @@ impl<'a> Venta {
                 esta = true;
                 let mut prod = self.productos.remove(i);
                 match &prod {
-                    Valuable::Pes(a) => prod = Valuable::Pes((a.0 + 1.0, a.1.clone())),
-                    Valuable::Prod(a) => prod = Valuable::Prod((a.0 + 1, a.1.clone())),
-                    Valuable::Rub(a) => prod = Valuable::Rub((a.0 + 1, a.1.clone())),
+                    V::Pes(a) => prod = V::Pes((a.0 + 1.0, a.1.clone())),
+                    V::Prod(a) => prod = V::Prod((a.0 + 1, a.1.clone())),
+                    V::Rub(a) => prod = V::Rub((a.0 + 1, a.1.clone())),
                 }
                 self.productos.insert(i, prod);
             }
@@ -192,7 +192,7 @@ impl Save for Venta {
                 .pagos
                 .iter()
                 .map(|x| pago::ActiveModel {
-                    medio_pago: Set(x.get_medio().clone()),
+                    medio_pago: Set(x.get_medio().to_string()),
                     monto: Set(x.get_monto()),
                     venta: Set(saved_model.clone().id),
                     ..Default::default()
@@ -206,7 +206,7 @@ impl Save for Venta {
                 .productos
                 .iter()
                 .filter_map(|x| match x {
-                    Valuable::Prod(a) => Some(entity::relacion_venta_prod::ActiveModel {
+                    V::Prod(a) => Some(entity::relacion_venta_prod::ActiveModel {
                         producto: Set(a.1.get_id()),
                         venta: Set(saved_model.id),
                         ..Default::default()
@@ -221,7 +221,7 @@ impl Save for Venta {
                 .productos
                 .iter()
                 .filter_map(|x| match x {
-                    Valuable::Rub(a) => Some(entity::relacion_venta_rub::ActiveModel {
+                    V::Rub(a) => Some(entity::relacion_venta_rub::ActiveModel {
                         cantidad: Set(a.0 as i16),
                         rubro: Set(*a.1.get_id()),
                         venta: Set(saved_model.id),
@@ -237,7 +237,7 @@ impl Save for Venta {
                 .productos
                 .iter()
                 .filter_map(|x| match x {
-                    Valuable::Pes(a) => Some(entity::relacion_venta_pes::ActiveModel {
+                    V::Pes(a) => Some(entity::relacion_venta_pes::ActiveModel {
                         cantidad: Set(a.0),
                         pesable: Set(*a.1.get_id()),
                         venta: Set(saved_model.id),

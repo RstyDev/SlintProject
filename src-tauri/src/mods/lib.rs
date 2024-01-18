@@ -4,11 +4,12 @@ use entity::{codigo_barras, pesable};
 use sea_orm::prelude::DateTimeUtc;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, Database, DatabaseConnection, DbErr, EntityTrait,
-    QueryFilter, Set,
+    IntoActiveModel, QueryFilter, Set,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::fs::{self, File};
 use std::io::{Read, Write};
+use Valuable as V;
 
 type Res<T> = std::result::Result<T, AppError>;
 
@@ -239,7 +240,7 @@ pub async fn update_data_valuable(
     let aux = update_productos_from_db(productos_local, path_productos, &db).await?;
     prods = productos_local
         .iter()
-        .map(|x| Valuable::Prod((0, x.clone())))
+        .map(|x| V::Prod((0, x.clone())))
         .collect();
     if !hay_cambios_desde_db {
         hay_cambios_desde_db = aux;
@@ -248,7 +249,7 @@ pub async fn update_data_valuable(
     prods.append(
         &mut pesables_local
             .iter()
-            .map(|x| Valuable::Pes((0.0, x.clone())))
+            .map(|x| V::Pes((0.0, x.clone())))
             .collect(),
     );
     if !hay_cambios_desde_db {
@@ -258,7 +259,7 @@ pub async fn update_data_valuable(
     prods.append(
         &mut rubros_local
             .iter()
-            .map(|x| Valuable::Rub((0, x.clone())))
+            .map(|x| V::Rub((0, x.clone())))
             .collect(),
     );
     if !hay_cambios_desde_db {
@@ -370,14 +371,14 @@ fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Res<Product
         prod.precio_de_venta,
         prod.porcentaje,
         prod.precio_de_costo,
-        prod.tipo_producto.clone(),
-        prod.marca.clone(),
-        prod.variedad.clone(),
+        prod.tipo_producto.as_str(),
+        prod.marca.as_str(),
+        prod.variedad.as_str(),
         presentacion,
     ))
 }
 fn map_model_rub(rub: &entity::rubro::Model) -> Rubro {
-    Rubro::new(rub.id, rub.monto, rub.descripcion.clone())
+    Rubro::new(rub.id, rub.monto, rub.descripcion.as_str())
 }
 
 fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
@@ -387,11 +388,11 @@ fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
         pes.precio_peso,
         pes.porcentaje,
         pes.costo_kilo,
-        pes.descripcion.clone(),
+        pes.descripcion.as_str(),
     )
 }
 fn map_model_prov(prov: &entity::proveedor::Model) -> Proveedor {
-    Proveedor::new(prov.id, prov.nombre.clone(), prov.contacto)
+    Proveedor::new(prov.id, prov.nombre.as_str(), prov.contacto)
 }
 pub async fn cargar_todos_los_productos(
     productos: &Vec<Producto>,
@@ -407,14 +408,14 @@ pub async fn cargar_todos_los_productos(
             Some(m) => {
                 codigo_prod = m.id;
                 model = m.into();
-                model.marca = Set(producto.get_marca().clone());
+                model.marca = Set(producto.get_marca().to_string());
                 model.porcentaje = Set(*producto.get_porcentaje());
                 model.precio_de_costo = Set(*producto.get_precio_de_costo());
                 model.precio_de_venta = Set(*producto.get_precio_de_venta());
                 model.presentacion = Set(producto.get_presentacion().to_string());
-                model.tipo_producto = Set(producto.get_tipo_producto().clone());
+                model.tipo_producto = Set(producto.get_tipo_producto().to_string());
                 model.updated_at = Set(Utc::now().naive_utc());
-                model.variedad = Set(producto.get_variedad().clone());
+                model.variedad = Set(producto.get_variedad().to_string());
                 model.update(db).await?;
             }
             None => {
@@ -422,9 +423,9 @@ pub async fn cargar_todos_los_productos(
                     precio_de_venta: Set(*producto.get_precio_de_venta()),
                     porcentaje: Set(*producto.get_porcentaje()),
                     precio_de_costo: Set(*producto.get_precio_de_costo()),
-                    tipo_producto: Set(producto.get_tipo_producto().clone()),
-                    marca: Set(producto.get_marca().clone()),
-                    variedad: Set(producto.get_variedad().clone()),
+                    tipo_producto: Set(producto.get_tipo_producto().to_string()),
+                    marca: Set(producto.get_marca().to_string()),
+                    variedad: Set(producto.get_variedad().to_string()),
                     presentacion: Set(producto.get_presentacion().to_string()),
                     updated_at: Set(Utc::now().naive_utc()),
                     ..Default::default()
@@ -471,13 +472,13 @@ pub async fn cargar_todos_los_pesables(
 ) -> Result<(), DbErr> {
     for i in productos {
         match i {
-            Valuable::Pes(a) => {
+            V::Pes(a) => {
                 let model = pesable::ActiveModel {
                     codigo: Set(*a.1.get_codigo()),
                     precio_peso: Set(*a.1.get_precio_peso()),
                     porcentaje: Set(*a.1.get_porcentaje()),
                     costo_kilo: Set(*a.1.get_costo_kilo()),
-                    descripcion: Set(a.1.get_descripcion().clone()),
+                    descripcion: Set(a.1.get_descripcion().to_string()),
                     updated_at: Set(Utc::now().naive_utc()),
                     id: Set(*a.1.get_id()),
                 };
@@ -502,11 +503,11 @@ pub async fn cargar_todos_los_rubros(
 ) -> Result<(), DbErr> {
     for i in productos {
         match i {
-            Valuable::Rub(a) => {
+            V::Rub(a) => {
                 let model = entity::rubro::ActiveModel {
                     id: Set(*a.1.get_id()),
                     monto: Set(*a.1.get_monto()),
-                    descripcion: Set(a.1.get_descripcion().clone()),
+                    descripcion: Set(a.1.get_descripcion().to_string()),
                     updated_at: Set(Utc::now().naive_utc()),
                 };
                 if entity::rubro::Entity::find_by_id(*a.1.get_id())
@@ -531,7 +532,7 @@ pub async fn cargar_todos_los_valuables(productos: Vec<Valuable>) -> Result<(), 
         &productos
             .iter()
             .filter_map(|x| match x {
-                Valuable::Prod(a) => Some(a.1.clone()),
+                V::Prod(a) => Some(a.1.clone()),
                 _ => None,
             })
             .collect::<Vec<Producto>>(),
@@ -548,7 +549,7 @@ pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>) -> Result<(), D
         let model = entity::proveedor::ActiveModel {
             id: Set(*prov.get_id()),
             updated_at: Set(Utc::now().naive_utc()),
-            nombre: Set(prov.get_nombre().clone()),
+            nombre: Set(prov.get_nombre().to_string()),
             contacto: Set(prov.get_contacto().clone()),
         };
         if entity::proveedor::Entity::find_by_id(model.clone().id.unwrap())
@@ -568,28 +569,32 @@ pub async fn cargar_todas_las_relaciones_prod_prov(
     relaciones: Vec<RelacionProdProv>,
 ) -> Result<(), DbErr> {
     let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-    let mut relaciones_model = Vec::new();
     for x in relaciones {
-        let a = entity::producto::Entity::find_by_id(x.get_id_producto())
+        if let Some(rel) = entity::relacion_prod_prov::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(entity::relacion_prod_prov::Column::Producto.eq(x.get_id_producto()))
+                    .add(entity::relacion_prod_prov::Column::Proveedor.eq(x.get_id_proveedor())),
+            )
             .one(&db)
             .await?
-            .is_some();
-        let b = entity::proveedor::Entity::find_by_id(x.get_id_proveedor())
-            .one(&db)
-            .await?
-            .is_some();
-        if a && b {
-            relaciones_model.push(entity::relacion_prod_prov::ActiveModel {
+        {
+            if rel.codigo != x.get_codigo_interno() {
+                let mut act = rel.into_active_model();
+                act.codigo = Set(x.get_codigo_interno());
+                act.update(&db).await?;
+            }
+        } else {
+            let model = entity::relacion_prod_prov::ActiveModel {
                 producto: Set(x.get_id_producto()),
                 proveedor: Set(x.get_id_proveedor()),
                 codigo: Set(x.get_codigo_interno()),
                 ..Default::default()
-            })
+            };
+            model.insert(&db).await?;
         }
     }
-    entity::relacion_prod_prov::Entity::insert_many(relaciones_model)
-        .exec(&db)
-        .await?;
+
     Ok(())
 }
 

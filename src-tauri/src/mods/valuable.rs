@@ -5,6 +5,7 @@ use super::{
     producto::Producto,
     rubro::Rubro,
 };
+use Valuable as V;
 use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
@@ -19,22 +20,22 @@ pub enum Valuable {
 impl Valuable {
     // pub fn get_price(&self, politica: f64) -> f64 {
     //     match self {
-    //         Valuable::Pes(a) => redondeo(politica, a.0 as f64 * a.1.precio_peso),
-    //         Valuable::Prod(a) => a.1.redondear(politica).precio_de_venta,
-    //         Valuable::Rub(a) => a.1.redondear(politica).monto,
+    //         V::Pes(a) => redondeo(politica, a.0 as f64 * a.1.precio_peso),
+    //         V::Prod(a) => a.1.redondear(politica).precio_de_venta,
+    //         V::Rub(a) => a.1.redondear(politica).monto,
     //     }
     // }
     // pub fn unifica_codes(&mut self) {
     //     match self {
-    //         Valuable::Prod(a) => a.1.unifica_codes(),
+    //         V::Prod(a) => a.1.unifica_codes(),
     //         _ => (),
     //     }
     // }
     pub fn get_descripcion(&self, conf: &Config) -> String {
         let mut res = match self {
-            Valuable::Pes(a) => a.1.get_descripcion().clone(),
-            Valuable::Rub(a) => a.1.get_descripcion().clone(),
-            Valuable::Prod(a) => match conf.get_formato() {
+            V::Pes(a) => a.1.get_descripcion().to_string(),
+            V::Rub(a) => a.1.get_descripcion().to_string(),
+            V::Prod(a) => match conf.get_formato() {
                 Formato::Mtv => match a.1.get_presentacion() {
                     Presentacion::Gr(cant) => format!(
                         "{} {} {} {} Gr",
@@ -98,23 +99,23 @@ impl Valuable {
 impl Save for Valuable {
     async fn save(&self) -> Result<(), DbErr> {
         match self {
-            Valuable::Pes(a) => a.1.save().await,
-            Valuable::Prod(a) => a.1.save().await,
-            Valuable::Rub(a) => a.1.save().await,
+            V::Pes(a) => a.1.save().await,
+            V::Prod(a) => a.1.save().await,
+            V::Rub(a) => a.1.save().await,
         }
     }
 }
-impl Default for Valuable {
-    fn default() -> Self {
-        Valuable::Prod((1, Producto::default()))
-    }
-}
+// impl Default for Valuable {
+//     fn default() -> Self {
+//         V::Prod((1, Producto::default()))
+//     }
+// }
 impl PartialEq for Valuable {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Valuable::Pes(a), Valuable::Pes(b)) => *a.1.get_id() == *b.1.get_id(),
-            (Valuable::Prod(a), Valuable::Prod(b)) => a.1.get_id() == b.1.get_id(),
-            (Valuable::Rub(a), Valuable::Rub(b)) => a.1.get_id() == b.1.get_id(),
+            (V::Pes(a), V::Pes(b)) => *a.1.get_id() == *b.1.get_id(),
+            (V::Prod(a), V::Prod(b)) => a.1.get_id() == b.1.get_id(),
+            (V::Rub(a), V::Rub(b)) => a.1.get_id() == b.1.get_id(),
             (_, _) => false,
         }
     }
@@ -127,9 +128,9 @@ pub trait ValuableTrait {
 impl ValuableTrait for Valuable {
     fn redondear(&self, politica: f64) -> Valuable {
         match self {
-            Valuable::Pes(a) => Valuable::Pes(a.clone()),
-            Valuable::Prod(a) => Valuable::Prod((a.0, a.1.redondear(politica))),
-            Valuable::Rub(a) => Valuable::Rub((a.0, a.1.redondear(politica))),
+            V::Pes(a) => V::Pes(a.clone()),
+            V::Prod(a) => V::Prod((a.0, a.1.redondear(politica))),
+            V::Rub(a) => V::Rub((a.0, a.1.redondear(politica))),
         }
     }
 }

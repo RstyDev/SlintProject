@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use chrono::Utc;
 use entity::proveedor;
 use sea_orm::{ActiveModelTrait, Database, DbErr, Set};
@@ -8,20 +9,20 @@ use super::lib::Save;
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
     id: i64,
-    nombre: String,
+    nombre: Arc<str>,
     contacto: Option<i64>,
 }
 
 impl Proveedor {
-    pub fn new(id: i64, nombre: String, contacto: Option<i64>) -> Self {
+    pub fn new(id: i64, nombre: &str, contacto: Option<i64>) -> Self {
         Proveedor {
             id,
-            nombre,
+            nombre: Arc::from(nombre),
             contacto,
         }
     }
-    pub fn get_nombre(&self) -> &String {
-        &self.nombre
+    pub fn get_nombre(&self) -> Arc<str> {
+        self.nombre.clone()
     }
     pub fn get_id(&self) -> &i64 {
         &self.id
@@ -34,7 +35,7 @@ impl Save for Proveedor {
     async fn save(&self) -> Result<(), DbErr> {
         let model = proveedor::ActiveModel {
             id: Set(self.id),
-            nombre: Set(self.nombre.clone()),
+            nombre: Set(self.nombre.to_string()),
             contacto: Set(self.contacto),
             updated_at: Set(Utc::now().naive_utc()),
         };

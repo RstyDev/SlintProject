@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use chrono::Utc;
 use entity::rubro;
 use sea_orm::{ActiveModelTrait, Database, DbErr, Set};
@@ -7,19 +8,19 @@ use crate::redondeo;
 
 use super::{lib::Save, valuable::ValuableTrait};
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone,  Serialize, Deserialize)]
 pub struct Rubro {
     id: i64,
     monto: f64,
-    descripcion: String,
+    descripcion: Arc<str>,
 }
 
 impl Rubro {
-    pub fn new(id: i64, monto: f64, descripcion: String) -> Rubro {
+    pub fn new(id: i64, monto: f64, descripcion: &str) -> Rubro {
         Rubro {
             id,
             monto,
-            descripcion,
+            descripcion: Arc::from(descripcion),
         }
     }
     pub fn get_id(&self) -> &i64 {
@@ -28,8 +29,8 @@ impl Rubro {
     pub fn get_monto(&self) -> &f64 {
         &self.monto
     }
-    pub fn get_descripcion(&self) -> &String {
-        &self.descripcion
+    pub fn get_descripcion(&self) -> Arc<str> {
+        self.descripcion.clone()
     }
 }
 impl Save for Rubro {
@@ -39,7 +40,7 @@ impl Save for Rubro {
         let model = rubro::ActiveModel {
             id: Set(self.id),
             monto: Set(self.monto),
-            descripcion: Set(self.descripcion.clone()),
+            descripcion: Set(self.descripcion.to_string()),
             updated_at: Set(Utc::now().naive_utc()),
         };
         model.insert(&db).await?;
