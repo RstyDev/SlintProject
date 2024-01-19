@@ -30,7 +30,7 @@ impl Rubro {
         &self.monto
     }
     pub fn get_descripcion(&self) -> Arc<str> {
-        self.descripcion.clone()
+        Arc::clone(&self.descripcion)
     }
 }
 impl Save for Rubro {

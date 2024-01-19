@@ -15,7 +15,7 @@ impl Pago {
         Pago { medio_pago: Arc::from(medio_pago), monto }
     }
     pub fn get_medio(&self)->Arc<str>{
-        self.medio_pago.clone()
+        Arc::clone(&self.medio_pago)
     }
     pub fn get_monto(&self)->f64{
         self.monto

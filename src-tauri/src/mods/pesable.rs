@@ -48,7 +48,7 @@ impl Pesable {
         &self.costo_kilo
     }
     pub fn get_descripcion(&self) -> Arc<str> {
-        self.descripcion.clone()
+        Arc::clone(&self.descripcion)
     }
 }
 

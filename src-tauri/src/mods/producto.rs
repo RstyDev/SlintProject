@@ -60,13 +60,13 @@ impl Producto {
         &self.precio_de_costo
     }
     pub fn get_tipo_producto(&self) -> Arc<str>{
-        self.tipo_producto.clone()
+        Arc::clone(&self.tipo_producto)
     }
     pub fn get_marca(&self) -> Arc<str> {
-        self.marca.clone()
+        Arc::clone(&self.marca)
     }
     pub fn get_variedad(&self) -> Arc<str> {
-        self.variedad.clone()
+        Arc::clone(&self.variedad)
     }
     pub fn get_presentacion(&self) -> &Presentacion {
         &self.presentacion

@@ -22,7 +22,7 @@ impl Proveedor {
         }
     }
     pub fn get_nombre(&self) -> Arc<str> {
-        self.nombre.clone()
+        Arc::clone(&self.nombre)
     }
     pub fn get_id(&self) -> &i64 {
         &self.id

@@ -582,7 +582,8 @@ pub async fn cargar_todas_las_relaciones_prod_prov(
             if rel.codigo != x.get_codigo_interno() {
                 let mut act = rel.into_active_model();
                 act.codigo = Set(x.get_codigo_interno());
-                act.update(&db).await?;
+                act.clone().update(&db).await?;
+                println!("updating {:?}",act);
             }
         } else {
             let model = entity::relacion_prod_prov::ActiveModel {
@@ -591,6 +592,7 @@ pub async fn cargar_todas_las_relaciones_prod_prov(
                 codigo: Set(x.get_codigo_interno()),
                 ..Default::default()
             };
+            println!("inserting {:?}",model);
             model.insert(&db).await?;
         }
     }

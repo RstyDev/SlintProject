@@ -183,7 +183,8 @@ fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Resul
     match sistema.lock() {
         Ok(a) => {
             let b = a.get_productos_cloned();
-            res = Ok(b
+            res = {
+                let mut aux: Vec<Valuable>=b
                 .into_iter()
                 .filter(|x| {
                     let codigo = filtro.parse::<i64>();
@@ -213,7 +214,12 @@ fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Resul
                 })
                 .take(a.get_configs().get_cantidad_productos())
                 .to_owned()
-                .collect());
+                .collect();
+            aux.sort_by_key(|x|{
+                x.get_descripcion(a.get_configs())
+            });
+            Ok(aux)
+            }
         }
         Err(e) => res = Err(e.to_string()),
     }
