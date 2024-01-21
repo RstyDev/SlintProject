@@ -1,65 +1,5 @@
 [
   {
-    "id": 3,
-    "codigos_de_barras": [
-      3548576490927
-    ],
-    "precio_de_venta": 280.0,
-    "porcentaje": 40.0,
-    "precio_de_costo": 200.0,
-    "tipo_producto": "Harina",
-    "marca": "Marolio",
-    "variedad": "000",
-    "presentacion": {
-      "Gr": 1000.0
-    }
-  },
-  {
-    "id": 9,
-    "codigos_de_barras": [
-      944427772922
-    ],
-    "precio_de_venta": 480.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Galletas",
-    "marca": "Gym",
-    "variedad": "Clasicas",
-    "presentacion": {
-      "Gr": 350.0
-    }
-  },
-  {
-    "id": 10,
-    "codigos_de_barras": [
-      42693601700006
-    ],
-    "precio_de_venta": 1120.0,
-    "porcentaje": 61.36468418626093,
-    "precio_de_costo": 694.08,
-    "tipo_producto": "Papel Higienico",
-    "marca": "Felpita",
-    "variedad": "Simple 80 Mt",
-    "presentacion": {
-      "Un": 4
-    }
-  },
-  {
-    "id": 11,
-    "codigos_de_barras": [
-      31442392814877
-    ],
-    "precio_de_venta": 660.0,
-    "porcentaje": 111.20000000000002,
-    "precio_de_costo": 312.5,
-    "tipo_producto": "Maicitos",
-    "marca": "Cheetos",
-    "variedad": "Clasicos",
-    "presentacion": {
-      "Gr": 43.0
-    }
-  },
-  {
     "id": 12,
     "codigos_de_barras": [
       50002302513687
@@ -975,318 +915,63 @@
     }
   },
   {
-    "id": 157,
+    "id": 3,
     "codigos_de_barras": [
-      45212531725545
+      3548576490927
     ],
-    "precio_de_venta": 250.0,
-    "porcentaje": 1379.2899408284025,
-    "precio_de_costo": 16.9,
-    "tipo_producto": "Pan",
-    "marca": "Lactal",
-    "variedad": "Tapamania",
+    "precio_de_venta": 280.0,
+    "porcentaje": 40.0,
+    "precio_de_costo": 200.0,
+    "tipo_producto": "Harina",
+    "marca": "Marolio",
+    "variedad": "000",
     "presentacion": {
-      "Gr": 560.0
+      "Gr": 1000.0
     }
   },
   {
-    "id": 159,
+    "id": 9,
     "codigos_de_barras": [
-      38616229166782
+      944427772922
     ],
-    "precio_de_venta": 3380.0,
-    "porcentaje": 95.399723954532,
-    "precio_de_costo": 1729.7875,
-    "tipo_producto": "Chocolate",
-    "marca": "Milka",
-    "variedad": "Relleno Choco-swing",
-    "presentacion": {
-      "Gr": 300.0
-    }
-  },
-  {
-    "id": 163,
-    "codigos_de_barras": [
-      50268651676686
-    ],
-    "precio_de_venta": 700.0,
-    "porcentaje": 181.27134648611724,
-    "precio_de_costo": 248.87,
-    "tipo_producto": "Yogur Bebible",
-    "marca": "Milkaut",
-    "variedad": "Vainilla",
-    "presentacion": {
-      "Gr": 900.0
-    }
-  },
-  {
-    "id": 165,
-    "codigos_de_barras": [
-      88007689738248
-    ],
-    "precio_de_venta": 370.0,
+    "precio_de_venta": 480.0,
     "porcentaje": 0.0,
     "precio_de_costo": 0.0,
-    "tipo_producto": "Lavavajillas",
-    "marca": "Esencial",
-    "variedad": "Rosa Mosqueta",
-    "presentacion": {
-      "Ml": 750
-    }
-  },
-  {
-    "id": 167,
-    "codigos_de_barras": [
-      59515135882736
-    ],
-    "precio_de_venta": 820.0,
-    "porcentaje": 450.4463986037457,
-    "precio_de_costo": 148.97,
-    "tipo_producto": "Fideos",
-    "marca": "Lucchetti",
-    "variedad": "Mostachol",
-    "presentacion": {
-      "Gr": 500.0
-    }
-  },
-  {
-    "id": 169,
-    "codigos_de_barras": [
-      27302180049753
-    ],
-    "precio_de_venta": 350.0,
-    "porcentaje": 231.47078321810775,
-    "precio_de_costo": 105.59,
-    "tipo_producto": "Chocolate",
-    "marca": "Cofler",
-    "variedad": "Block Blanco",
-    "presentacion": {
-      "Gr": 38.0
-    }
-  },
-  {
-    "id": 116,
-    "codigos_de_barras": [
-      48961418868727
-    ],
-    "precio_de_venta": 420.0,
-    "porcentaje": 143.08369024192612,
-    "precio_de_costo": 172.78,
-    "tipo_producto": "Alfajor",
-    "marca": "Milka",
-    "variedad": "Mousse Blanco",
-    "presentacion": {
-      "Gr": 55.0
-    }
-  },
-  {
-    "id": 94,
-    "codigos_de_barras": [
-      89396358724431
-    ],
-    "precio_de_venta": 440.0,
-    "porcentaje": 346.6098254161592,
-    "precio_de_costo": 98.52,
-    "tipo_producto": "Galletitas",
-    "marca": "Rocklets",
+    "tipo_producto": "Galletas",
+    "marca": "Gym",
     "variedad": "Clasicas",
     "presentacion": {
-      "Gr": 118.0
+      "Gr": 350.0
     }
   },
   {
-    "id": 117,
+    "id": 11,
     "codigos_de_barras": [
-      35765550338143
+      31442392814877
     ],
-    "precio_de_venta": 860.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Vino",
-    "marca": "Cuesta Del Madero",
-    "variedad": "Blanco Clasico",
+    "precio_de_venta": 660.0,
+    "porcentaje": 111.20000000000002,
+    "precio_de_costo": 312.5,
+    "tipo_producto": "Maicitos",
+    "marca": "Cheetos",
+    "variedad": "Clasicos",
     "presentacion": {
-      "Ml": 750
+      "Gr": 43.0
     }
   },
   {
-    "id": 119,
+    "id": 10,
     "codigos_de_barras": [
-      70029000462230
+      42693601700006
     ],
-    "precio_de_venta": 680.0,
-    "porcentaje": 3334.3434343434337,
-    "precio_de_costo": 19.8,
-    "tipo_producto": "Aceite",
-    "marca": "Morixe",
-    "variedad": "Girasol",
+    "precio_de_venta": 1120.0,
+    "porcentaje": 61.36468418626093,
+    "precio_de_costo": 694.08,
+    "tipo_producto": "Papel Higienico",
+    "marca": "Felpita",
+    "variedad": "Simple 80 Mt",
     "presentacion": {
-      "Ml": 900
-    }
-  },
-  {
-    "id": 121,
-    "codigos_de_barras": [
-      38562780768627
-    ],
-    "precio_de_venta": 530.0,
-    "porcentaje": 73.1558170389898,
-    "precio_de_costo": 306.0827,
-    "tipo_producto": "Desodorante Roll On",
-    "marca": "Rexona",
-    "variedad": "Nutritive",
-    "presentacion": {
-      "Ml": 50
-    }
-  },
-  {
-    "id": 85,
-    "codigos_de_barras": [
-      6459550819060
-    ],
-    "precio_de_venta": 420.0,
-    "porcentaje": 184.95827396702623,
-    "precio_de_costo": 147.39,
-    "tipo_producto": "Limpiador Liquido",
-    "marca": "Procenex",
-    "variedad": "Flores Del Jardin",
-    "presentacion": {
-      "Ml": 900
-    }
-  },
-  {
-    "id": 87,
-    "codigos_de_barras": [
-      33341977117511
-    ],
-    "precio_de_venta": 570.0,
-    "porcentaje": 24.837929705294883,
-    "precio_de_costo": 456.592,
-    "tipo_producto": "Yogur",
-    "marca": "Ser",
-    "variedad": "Natural Endulzado",
-    "presentacion": {
-      "Gr": 300.0
-    }
-  },
-  {
-    "id": 96,
-    "codigos_de_barras": [
-      26208891157917
-    ],
-    "precio_de_venta": 610.0,
-    "porcentaje": 122.48969617390668,
-    "precio_de_costo": 274.17,
-    "tipo_producto": "Caldo",
-    "marca": "Knorr",
-    "variedad": "Gallina",
-    "presentacion": {
-      "Un": 12
-    }
-  },
-  {
-    "id": 103,
-    "codigos_de_barras": [
-      9468481874901
-    ],
-    "precio_de_venta": 100.0,
-    "porcentaje": 92.7153594141453,
-    "precio_de_costo": 51.89,
-    "tipo_producto": "Esponja De Acero",
-    "marca": "Virulana",
-    "variedad": "Inoxy",
-    "presentacion": {
-      "Un": 1
-    }
-  },
-  {
-    "id": 105,
-    "codigos_de_barras": [
-      35505675150906
-    ],
-    "precio_de_venta": 700.0,
-    "porcentaje": 79.60691743213424,
-    "precio_de_costo": 389.74,
-    "tipo_producto": "Gaseosa",
-    "marca": "Fanta",
-    "variedad": "Pomelo",
-    "presentacion": {
-      "Lt": 1.0
-    }
-  },
-  {
-    "id": 139,
-    "codigos_de_barras": [
-      27185241809650
-    ],
-    "precio_de_venta": 440.0,
-    "porcentaje": 82.3607427055703,
-    "precio_de_costo": 241.28,
-    "tipo_producto": "Aromatizante De Ambientes",
-    "marca": "Glade",
-    "variedad": "I Love You",
-    "presentacion": {
-      "CC": 360
-    }
-  },
-  {
-    "id": 141,
-    "codigos_de_barras": [
-      25088509769077
-    ],
-    "precio_de_venta": 1060.0,
-    "porcentaje": 3551.3951085084395,
-    "precio_de_costo": 29.03,
-    "tipo_producto": "Espuma De Afeitar",
-    "marca": "Gillette",
-    "variedad": "Regular",
-    "presentacion": {
-      "Gr": 312.0
-    }
-  },
-  {
-    "id": 125,
-    "codigos_de_barras": [
-      50678387927893
-    ],
-    "precio_de_venta": 400.0,
-    "porcentaje": 150.8938091952581,
-    "precio_de_costo": 159.43,
-    "tipo_producto": "Galletitas",
-    "marca": "PorteÃ±itasÃ±",
-    "variedad": "Clasicas",
-    "presentacion": {
-      "Gr": 139.0
-    }
-  },
-  {
-    "id": 145,
-    "codigos_de_barras": [
-      65524703552126
-    ],
-    "precio_de_venta": 310.0,
-    "porcentaje": 37.77777777777778,
-    "precio_de_costo": 225.0,
-    "tipo_producto": "Conitos",
-    "marca": "Krachitos",
-    "variedad": "De Queso",
-    "presentacion": {
-      "Gr": 45.0
-    }
-  },
-  {
-    "id": 107,
-    "codigos_de_barras": [
-      10432839943037
-    ],
-    "precio_de_venta": 90.0,
-    "porcentaje": 1351.6129032258063,
-    "precio_de_costo": 6.2,
-    "tipo_producto": "Pure De Tomate",
-    "marca": "Cica",
-    "variedad": "Clasico",
-    "presentacion": {
-      "Gr": 520.0
+      "Un": 4
     }
   },
   {
@@ -1302,81 +987,6 @@
     "variedad": "Cianos Chocolate",
     "presentacion": {
       "Gr": 102.0
-    }
-  },
-  {
-    "id": 55,
-    "codigos_de_barras": [
-      73332363871655
-    ],
-    "precio_de_venta": 900.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Cerveza",
-    "marca": "Ocaso",
-    "variedad": "Golden",
-    "presentacion": {
-      "Ml": 473
-    }
-  },
-  {
-    "id": 57,
-    "codigos_de_barras": [
-      36236790283118
-    ],
-    "precio_de_venta": 1570.0,
-    "porcentaje": 137.88239215745693,
-    "precio_de_costo": 659.99,
-    "tipo_producto": "Medallones",
-    "marca": "Nutree",
-    "variedad": "Quinoa Y Espinaca Con Nuez Moscada X4",
-    "presentacion": {
-      "Gr": 400.0
-    }
-  },
-  {
-    "id": 59,
-    "codigos_de_barras": [
-      93317421838122
-    ],
-    "precio_de_venta": 330.0,
-    "porcentaje": 190.1098901098901,
-    "precio_de_costo": 113.75,
-    "tipo_producto": "Jugo De Limon",
-    "marca": "Minerva",
-    "variedad": "Clasico",
-    "presentacion": {
-      "CC": 250
-    }
-  },
-  {
-    "id": 61,
-    "codigos_de_barras": [
-      29531455698479
-    ],
-    "precio_de_venta": 870.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Bizcochuelo",
-    "marca": "Marolio",
-    "variedad": "Chocolate",
-    "presentacion": {
-      "Gr": 540.0
-    }
-  },
-  {
-    "id": 64,
-    "codigos_de_barras": [
-      91950437392646
-    ],
-    "precio_de_venta": 1260.0,
-    "porcentaje": 193.02325581395348,
-    "precio_de_costo": 430.0,
-    "tipo_producto": "Ravioles",
-    "marca": "La SalteÃ±a",
-    "variedad": "Ricotta",
-    "presentacion": {
-      "Gr": 450.0
     }
   },
   {
@@ -1470,21 +1080,6 @@
     }
   },
   {
-    "id": 89,
-    "codigos_de_barras": [
-      588151971635
-    ],
-    "precio_de_venta": 1200.0,
-    "porcentaje": 108.69565217391305,
-    "precio_de_costo": 575.0,
-    "tipo_producto": "Maicitos",
-    "marca": "Cheetos",
-    "variedad": "Queso",
-    "presentacion": {
-      "Gr": 94.0
-    }
-  },
-  {
     "id": 90,
     "codigos_de_barras": [
       2548936383540
@@ -1572,21 +1167,6 @@
     "variedad": "Regeneracion Extrema",
     "presentacion": {
       "Ml": 200
-    }
-  },
-  {
-    "id": 92,
-    "codigos_de_barras": [
-      5592446874899
-    ],
-    "precio_de_venta": 680.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Dulce De Leche",
-    "marca": "Armonia",
-    "variedad": "Clasico",
-    "presentacion": {
-      "Gr": 400.0
     }
   },
   {
@@ -1860,318 +1440,423 @@
     }
   },
   {
-    "id": 150,
+    "id": 94,
     "codigos_de_barras": [
-      3220959594233
+      89396358724431
     ],
-    "precio_de_venta": 130.0,
-    "porcentaje": 1389.1179839633446,
-    "precio_de_costo": 8.73,
-    "tipo_producto": "Avena",
-    "marca": "La Abadia",
-    "variedad": "Instantanea",
-    "presentacion": {
-      "Gr": 400.0
-    }
-  },
-  {
-    "id": 162,
-    "codigos_de_barras": [
-      60391171072483
-    ],
-    "precio_de_venta": 300.0,
-    "porcentaje": 202.84675953967292,
-    "precio_de_costo": 99.06,
+    "precio_de_venta": 440.0,
+    "porcentaje": 346.6098254161592,
+    "precio_de_costo": 98.52,
     "tipo_producto": "Galletitas",
-    "marca": "Granovita",
-    "variedad": "Coco",
+    "marca": "Rocklets",
+    "variedad": "Clasicas",
     "presentacion": {
-      "Gr": 140.0
+      "Gr": 118.0
     }
   },
   {
-    "id": 164,
+    "id": 117,
     "codigos_de_barras": [
-      28611383366499
+      35765550338143
     ],
-    "precio_de_venta": 130.0,
-    "porcentaje": 86.75477661255566,
-    "precio_de_costo": 69.61,
-    "tipo_producto": "Flan",
-    "marca": "Exquisita",
-    "variedad": "Vainilla",
-    "presentacion": {
-      "Gr": 40.0
-    }
-  },
-  {
-    "id": 104,
-    "codigos_de_barras": [
-      10015754104412
-    ],
-    "precio_de_venta": 200.0,
-    "porcentaje": 180.50490883590464,
-    "precio_de_costo": 71.3,
-    "tipo_producto": "Chocolate",
-    "marca": "Hamlet",
-    "variedad": "Leche Y Cookies",
-    "presentacion": {
-      "Gr": 43.0
-    }
-  },
-  {
-    "id": 122,
-    "codigos_de_barras": [
-      17342219245377
-    ],
-    "precio_de_venta": 2600.0,
-    "porcentaje": 232.48081841432224,
-    "precio_de_costo": 782.0,
-    "tipo_producto": "Helado",
-    "marca": "Vacalin",
-    "variedad": "Crema De Vainilla",
-    "presentacion": {
-      "Gr": 500.0
-    }
-  },
-  {
-    "id": 124,
-    "codigos_de_barras": [
-      83356862014248
-    ],
-    "precio_de_venta": 560.0,
-    "porcentaje": 192.53513033484825,
-    "precio_de_costo": 191.43,
-    "tipo_producto": "Postre",
-    "marca": "Serenito",
-    "variedad": "Wow Ddl",
-    "presentacion": {
-      "Gr": 100.0
-    }
-  },
-  {
-    "id": 72,
-    "codigos_de_barras": [
-      76854056210230
-    ],
-    "precio_de_venta": 380.0,
-    "porcentaje": 192.3076923076923,
-    "precio_de_costo": 130.0,
-    "tipo_producto": "Agua Saborizada",
-    "marca": "Levite",
-    "variedad": "Naranja",
-    "presentacion": {
-      "Ml": 500
-    }
-  },
-  {
-    "id": 126,
-    "codigos_de_barras": [
-      24777198502563
-    ],
-    "precio_de_venta": 900.0,
-    "porcentaje": 74.60132697008497,
-    "precio_de_costo": 515.46,
-    "tipo_producto": "Vino Espumante",
-    "marca": "Murville",
-    "variedad": "Chenin Chardonnay",
+    "precio_de_venta": 860.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Vino",
+    "marca": "Cuesta Del Madero",
+    "variedad": "Blanco Clasico",
     "presentacion": {
       "Ml": 750
     }
   },
   {
-    "id": 106,
+    "id": 119,
     "codigos_de_barras": [
-      37192932328138
+      70029000462230
     ],
-    "precio_de_venta": 560.0,
-    "porcentaje": 215.45741324921136,
-    "precio_de_costo": 177.52,
-    "tipo_producto": "Yogur",
-    "marca": "Gandara",
-    "variedad": "Frutilla",
-    "presentacion": {
-      "Gr": 200.0
-    }
-  },
-  {
-    "id": 128,
-    "codigos_de_barras": [
-      26736366892108
-    ],
-    "precio_de_venta": 200.0,
-    "porcentaje": 36.46288209606987,
-    "precio_de_costo": 146.56,
-    "tipo_producto": "Yogur",
-    "marca": "Ls Clasico",
-    "variedad": "Con Arandanos",
-    "presentacion": {
-      "Gr": 140.0
-    }
-  },
-  {
-    "id": 142,
-    "codigos_de_barras": [
-      87987191910837
-    ],
-    "precio_de_venta": 1380.0,
-    "porcentaje": 182.64787809274128,
-    "precio_de_costo": 488.24,
-    "tipo_producto": "Yogur Bebible",
-    "marca": "Ser",
-    "variedad": "Vainilla",
+    "precio_de_venta": 680.0,
+    "porcentaje": 3334.3434343434337,
+    "precio_de_costo": 19.8,
+    "tipo_producto": "Aceite",
+    "marca": "Morixe",
+    "variedad": "Girasol",
     "presentacion": {
       "Ml": 900
     }
   },
   {
-    "id": 73,
+    "id": 121,
     "codigos_de_barras": [
-      6699747759319
+      38562780768627
     ],
-    "precio_de_venta": 1980.0,
+    "precio_de_venta": 530.0,
+    "porcentaje": 73.1558170389898,
+    "precio_de_costo": 306.0827,
+    "tipo_producto": "Desodorante Roll On",
+    "marca": "Rexona",
+    "variedad": "Nutritive",
+    "presentacion": {
+      "Ml": 50
+    }
+  },
+  {
+    "id": 85,
+    "codigos_de_barras": [
+      6459550819060
+    ],
+    "precio_de_venta": 420.0,
+    "porcentaje": 184.95827396702623,
+    "precio_de_costo": 147.39,
+    "tipo_producto": "Limpiador Liquido",
+    "marca": "Procenex",
+    "variedad": "Flores Del Jardin",
+    "presentacion": {
+      "Ml": 900
+    }
+  },
+  {
+    "id": 139,
+    "codigos_de_barras": [
+      27185241809650
+    ],
+    "precio_de_venta": 440.0,
+    "porcentaje": 82.3607427055703,
+    "precio_de_costo": 241.28,
+    "tipo_producto": "Aromatizante De Ambientes",
+    "marca": "Glade",
+    "variedad": "I Love You",
+    "presentacion": {
+      "CC": 360
+    }
+  },
+  {
+    "id": 141,
+    "codigos_de_barras": [
+      25088509769077
+    ],
+    "precio_de_venta": 1060.0,
+    "porcentaje": 3551.3951085084395,
+    "precio_de_costo": 29.03,
+    "tipo_producto": "Espuma De Afeitar",
+    "marca": "Gillette",
+    "variedad": "Regular",
+    "presentacion": {
+      "Gr": 312.0
+    }
+  },
+  {
+    "id": 157,
+    "codigos_de_barras": [
+      45212531725545
+    ],
+    "precio_de_venta": 250.0,
+    "porcentaje": 1379.2899408284025,
+    "precio_de_costo": 16.9,
+    "tipo_producto": "Pan",
+    "marca": "Lactal",
+    "variedad": "Tapamania",
+    "presentacion": {
+      "Gr": 560.0
+    }
+  },
+  {
+    "id": 159,
+    "codigos_de_barras": [
+      38616229166782
+    ],
+    "precio_de_venta": 3380.0,
+    "porcentaje": 95.399723954532,
+    "precio_de_costo": 1729.7875,
+    "tipo_producto": "Chocolate",
+    "marca": "Milka",
+    "variedad": "Relleno Choco-swing",
+    "presentacion": {
+      "Gr": 300.0
+    }
+  },
+  {
+    "id": 163,
+    "codigos_de_barras": [
+      50268651676686
+    ],
+    "precio_de_venta": 700.0,
+    "porcentaje": 181.27134648611724,
+    "precio_de_costo": 248.87,
+    "tipo_producto": "Yogur Bebible",
+    "marca": "Milkaut",
+    "variedad": "Vainilla",
+    "presentacion": {
+      "Gr": 900.0
+    }
+  },
+  {
+    "id": 165,
+    "codigos_de_barras": [
+      88007689738248
+    ],
+    "precio_de_venta": 370.0,
     "porcentaje": 0.0,
     "precio_de_costo": 0.0,
-    "tipo_producto": "Limpiador",
-    "marca": "Suiza",
-    "variedad": "Roble Claro",
+    "tipo_producto": "Lavavajillas",
+    "marca": "Esencial",
+    "variedad": "Rosa Mosqueta",
     "presentacion": {
-      "Ml": 850
+      "Ml": 750
     }
   },
   {
-    "id": 108,
+    "id": 167,
     "codigos_de_barras": [
-      21167834596488
+      59515135882736
     ],
-    "precio_de_venta": 450.0,
-    "porcentaje": 135.58975969844514,
-    "precio_de_costo": 191.01,
-    "tipo_producto": "Harina",
-    "marca": "Pureza",
-    "variedad": "Pizza",
+    "precio_de_venta": 820.0,
+    "porcentaje": 450.4463986037457,
+    "precio_de_costo": 148.97,
+    "tipo_producto": "Fideos",
+    "marca": "Lucchetti",
+    "variedad": "Mostachol",
     "presentacion": {
-      "Kg": 1.0
+      "Gr": 500.0
     }
   },
   {
-    "id": 75,
+    "id": 169,
     "codigos_de_barras": [
-      30409913011892
+      27302180049753
     ],
-    "precio_de_venta": 1240.0,
-    "porcentaje": 46.57210401891252,
-    "precio_de_costo": 846.0,
-    "tipo_producto": "Mayonesa",
-    "marca": "Hellmann's",
-    "variedad": "Liviana",
+    "precio_de_venta": 350.0,
+    "porcentaje": 231.47078321810775,
+    "precio_de_costo": 105.59,
+    "tipo_producto": "Chocolate",
+    "marca": "Cofler",
+    "variedad": "Block Blanco",
     "presentacion": {
-      "Kg": 1.0
+      "Gr": 38.0
     }
   },
   {
-    "id": 130,
+    "id": 125,
     "codigos_de_barras": [
-      50372342365147
-    ],
-    "precio_de_venta": 2090.0,
-    "porcentaje": 70.9052252841606,
-    "precio_de_costo": 1222.9,
-    "tipo_producto": "Esparragos",
-    "marca": "La Banda",
-    "variedad": "Blancos",
-    "presentacion": {
-      "Gr": 430.0
-    }
-  },
-  {
-    "id": 132,
-    "codigos_de_barras": [
-      19251389081807
+      50678387927893
     ],
     "precio_de_venta": 400.0,
-    "porcentaje": 249.10106475824753,
-    "precio_de_costo": 114.58,
+    "porcentaje": 150.8938091952581,
+    "precio_de_costo": 159.43,
     "tipo_producto": "Galletitas",
-    "marca": "Pitusas",
-    "variedad": "Merengue",
+    "marca": "PorteÃ±itasÃ±",
+    "variedad": "Clasicas",
     "presentacion": {
-      "Gr": 120.0
+      "Gr": 139.0
     }
   },
   {
-    "id": 144,
+    "id": 55,
     "codigos_de_barras": [
-      10330701954544
+      73332363871655
     ],
-    "precio_de_venta": 200.0,
-    "porcentaje": 50.0,
-    "precio_de_costo": 300.0,
-    "tipo_producto": "Pan Dulce",
-    "marca": "Don Yeyo",
-    "variedad": "Con Chips",
+    "precio_de_venta": 900.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Cerveza",
+    "marca": "Ocaso",
+    "variedad": "Golden",
+    "presentacion": {
+      "Ml": 473
+    }
+  },
+  {
+    "id": 57,
+    "codigos_de_barras": [
+      36236790283118
+    ],
+    "precio_de_venta": 1570.0,
+    "porcentaje": 137.88239215745693,
+    "precio_de_costo": 659.99,
+    "tipo_producto": "Medallones",
+    "marca": "Nutree",
+    "variedad": "Quinoa Y Espinaca Con Nuez Moscada X4",
     "presentacion": {
       "Gr": 400.0
     }
   },
   {
-    "id": 138,
+    "id": 59,
     "codigos_de_barras": [
-      88505706394996
+      93317421838122
     ],
-    "precio_de_venta": 600.0,
-    "porcentaje": 5028.205128205129,
-    "precio_de_costo": 11.7,
-    "tipo_producto": "Gaseosa",
-    "marca": "7up",
-    "variedad": "Sin Azucares",
-    "presentacion": {
-      "Lt": 1.5
-    }
-  },
-  {
-    "id": 146,
-    "codigos_de_barras": [
-      64864374820214
-    ],
-    "precio_de_venta": 550.0,
-    "porcentaje": 70.27863777089782,
-    "precio_de_costo": 323.0,
-    "tipo_producto": "Tapas De Empanadas",
-    "marca": "Romero",
-    "variedad": "Para Horno",
-    "presentacion": {
-      "Gr": 310.0
-    }
-  },
-  {
-    "id": 152,
-    "codigos_de_barras": [
-      37366071200597
-    ],
-    "precio_de_venta": 690.0,
-    "porcentaje": 318.1818181818182,
-    "precio_de_costo": 165.0,
-    "tipo_producto": "Alfajor",
-    "marca": "Montemar",
+    "precio_de_venta": 330.0,
+    "porcentaje": 190.1098901098901,
+    "precio_de_costo": 113.75,
+    "tipo_producto": "Jugo De Limon",
+    "marca": "Minerva",
     "variedad": "Clasico",
     "presentacion": {
-      "Gr": 60.0
+      "CC": 250
     }
   },
   {
-    "id": 154,
+    "id": 61,
     "codigos_de_barras": [
-      45507194601962
+      29531455698479
     ],
-    "precio_de_venta": 2600.0,
-    "porcentaje": 232.48081841432224,
-    "precio_de_costo": 782.0,
-    "tipo_producto": "Helado",
-    "marca": "Vacalin",
+    "precio_de_venta": 870.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Bizcochuelo",
+    "marca": "Marolio",
     "variedad": "Chocolate",
     "presentacion": {
-      "Gr": 500.0
+      "Gr": 540.0
+    }
+  },
+  {
+    "id": 64,
+    "codigos_de_barras": [
+      91950437392646
+    ],
+    "precio_de_venta": 1260.0,
+    "porcentaje": 193.02325581395348,
+    "precio_de_costo": 430.0,
+    "tipo_producto": "Ravioles",
+    "marca": "La SalteÃ±a",
+    "variedad": "Ricotta",
+    "presentacion": {
+      "Gr": 450.0
+    }
+  },
+  {
+    "id": 89,
+    "codigos_de_barras": [
+      588151971635
+    ],
+    "precio_de_venta": 1200.0,
+    "porcentaje": 108.69565217391305,
+    "precio_de_costo": 575.0,
+    "tipo_producto": "Maicitos",
+    "marca": "Cheetos",
+    "variedad": "Queso",
+    "presentacion": {
+      "Gr": 94.0
+    }
+  },
+  {
+    "id": 92,
+    "codigos_de_barras": [
+      5592446874899
+    ],
+    "precio_de_venta": 680.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Dulce De Leche",
+    "marca": "Armonia",
+    "variedad": "Clasico",
+    "presentacion": {
+      "Gr": 400.0
+    }
+  },
+  {
+    "id": 116,
+    "codigos_de_barras": [
+      48961418868727
+    ],
+    "precio_de_venta": 420.0,
+    "porcentaje": 143.08369024192612,
+    "precio_de_costo": 172.78,
+    "tipo_producto": "Alfajor",
+    "marca": "Milka",
+    "variedad": "Mousse Blanco",
+    "presentacion": {
+      "Gr": 55.0
+    }
+  },
+  {
+    "id": 87,
+    "codigos_de_barras": [
+      33341977117511
+    ],
+    "precio_de_venta": 570.0,
+    "porcentaje": 24.837929705294883,
+    "precio_de_costo": 456.592,
+    "tipo_producto": "Yogur",
+    "marca": "Ser",
+    "variedad": "Natural Endulzado",
+    "presentacion": {
+      "Gr": 300.0
+    }
+  },
+  {
+    "id": 96,
+    "codigos_de_barras": [
+      26208891157917
+    ],
+    "precio_de_venta": 610.0,
+    "porcentaje": 122.48969617390668,
+    "precio_de_costo": 274.17,
+    "tipo_producto": "Caldo",
+    "marca": "Knorr",
+    "variedad": "Gallina",
+    "presentacion": {
+      "Un": 12
+    }
+  },
+  {
+    "id": 103,
+    "codigos_de_barras": [
+      9468481874901
+    ],
+    "precio_de_venta": 100.0,
+    "porcentaje": 92.7153594141453,
+    "precio_de_costo": 51.89,
+    "tipo_producto": "Esponja De Acero",
+    "marca": "Virulana",
+    "variedad": "Inoxy",
+    "presentacion": {
+      "Un": 1
+    }
+  },
+  {
+    "id": 105,
+    "codigos_de_barras": [
+      35505675150906
+    ],
+    "precio_de_venta": 700.0,
+    "porcentaje": 79.60691743213424,
+    "precio_de_costo": 389.74,
+    "tipo_producto": "Gaseosa",
+    "marca": "Fanta",
+    "variedad": "Pomelo",
+    "presentacion": {
+      "Lt": 1.0
+    }
+  },
+  {
+    "id": 145,
+    "codigos_de_barras": [
+      65524703552126
+    ],
+    "precio_de_venta": 310.0,
+    "porcentaje": 37.77777777777778,
+    "precio_de_costo": 225.0,
+    "tipo_producto": "Conitos",
+    "marca": "Krachitos",
+    "variedad": "De Queso",
+    "presentacion": {
+      "Gr": 45.0
+    }
+  },
+  {
+    "id": 107,
+    "codigos_de_barras": [
+      10432839943037
+    ],
+    "precio_de_venta": 90.0,
+    "porcentaje": 1351.6129032258063,
+    "precio_de_costo": 6.2,
+    "tipo_producto": "Pure De Tomate",
+    "marca": "Cica",
+    "variedad": "Clasico",
+    "presentacion": {
+      "Gr": 520.0
     }
   },
   {
@@ -2187,21 +1872,6 @@
     "variedad": "Semiamargo",
     "presentacion": {
       "Gr": 14.0
-    }
-  },
-  {
-    "id": 158,
-    "codigos_de_barras": [
-      79424425663672
-    ],
-    "precio_de_venta": 90.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 90.0,
-    "tipo_producto": "Pastillas",
-    "marca": "D.r.f.",
-    "variedad": "Menta",
-    "presentacion": {
-      "Gr": 23.0
     }
   },
   {
@@ -2232,66 +1902,6 @@
     "variedad": "Trigo Y Miel",
     "presentacion": {
       "Gr": 225.0
-    }
-  },
-  {
-    "id": 174,
-    "codigos_de_barras": [
-      56658831855752
-    ],
-    "precio_de_venta": 520.0,
-    "porcentaje": 71.4253689766235,
-    "precio_de_costo": 303.339,
-    "tipo_producto": "Yogur Bebible",
-    "marca": "Ser",
-    "variedad": "Naranja Zanahoria",
-    "presentacion": {
-      "Gr": 190.0
-    }
-  },
-  {
-    "id": 58,
-    "codigos_de_barras": [
-      45894652304508
-    ],
-    "precio_de_venta": 700.0,
-    "porcentaje": 131.7343662065084,
-    "precio_de_costo": 302.07,
-    "tipo_producto": "Gaseosa",
-    "marca": "Sprite",
-    "variedad": "Clasica",
-    "presentacion": {
-      "Lt": 1.5
-    }
-  },
-  {
-    "id": 60,
-    "codigos_de_barras": [
-      241243594739
-    ],
-    "precio_de_venta": 650.0,
-    "porcentaje": 94.75655430711612,
-    "precio_de_costo": 333.75,
-    "tipo_producto": "Jugo",
-    "marca": "Ades",
-    "variedad": "Manzana",
-    "presentacion": {
-      "Lt": 1.0
-    }
-  },
-  {
-    "id": 62,
-    "codigos_de_barras": [
-      27713020436675
-    ],
-    "precio_de_venta": 740.0,
-    "porcentaje": 110.40061414233318,
-    "precio_de_costo": 351.71,
-    "tipo_producto": "Bebida Energizante",
-    "marca": "Monster",
-    "variedad": "Ultra Sunrise",
-    "presentacion": {
-      "Ml": 473
     }
   },
   {
@@ -2367,36 +1977,6 @@
     "variedad": "Clasico",
     "presentacion": {
       "Gr": 15.0
-    }
-  },
-  {
-    "id": 70,
-    "codigos_de_barras": [
-      37170525727394
-    ],
-    "precio_de_venta": 790.0,
-    "porcentaje": 97.5,
-    "precio_de_costo": 400.0,
-    "tipo_producto": "Fideos",
-    "marca": "Orali",
-    "variedad": "Fettuccine",
-    "presentacion": {
-      "Gr": 500.0
-    }
-  },
-  {
-    "id": 77,
-    "codigos_de_barras": [
-      62188802950467
-    ],
-    "precio_de_venta": 870.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Budin",
-    "marca": "Ducados",
-    "variedad": "Frutos Del Bosque",
-    "presentacion": {
-      "Gr": 300.0
     }
   },
   {
@@ -2760,63 +2340,423 @@
     }
   },
   {
-    "id": 288,
+    "id": 164,
     "codigos_de_barras": [
-      86594269149441
+      28611383366499
     ],
-    "precio_de_venta": 290.0,
-    "porcentaje": 237.52327746741156,
-    "precio_de_costo": 85.92,
-    "tipo_producto": "Jugo",
-    "marca": "Baggio",
-    "variedad": "Manzazna",
+    "precio_de_venta": 130.0,
+    "porcentaje": 86.75477661255566,
+    "precio_de_costo": 69.61,
+    "tipo_producto": "Flan",
+    "marca": "Exquisita",
+    "variedad": "Vainilla",
     "presentacion": {
-      "Ml": 200
+      "Gr": 40.0
     }
   },
   {
-    "id": 179,
+    "id": 104,
     "codigos_de_barras": [
-      25382615384884
+      10015754104412
     ],
-    "precio_de_venta": 1040.0,
-    "porcentaje": 115.28975413289052,
-    "precio_de_costo": 483.0699,
-    "tipo_producto": "Desodorante Aerosol",
-    "marca": "Dove",
-    "variedad": "Beauty Finish",
+    "precio_de_venta": 200.0,
+    "porcentaje": 180.50490883590464,
+    "precio_de_costo": 71.3,
+    "tipo_producto": "Chocolate",
+    "marca": "Hamlet",
+    "variedad": "Leche Y Cookies",
     "presentacion": {
-      "Ml": 150
+      "Gr": 43.0
     }
   },
   {
-    "id": 185,
+    "id": 108,
     "codigos_de_barras": [
-      33288897309207
+      21167834596488
     ],
-    "precio_de_venta": 800.0,
-    "porcentaje": 192.66508139747577,
-    "precio_de_costo": 273.35,
-    "tipo_producto": "Queso Untable",
-    "marca": "Finlandia",
-    "variedad": "Finas Hierbas",
+    "precio_de_venta": 450.0,
+    "porcentaje": 135.58975969844514,
+    "precio_de_costo": 191.01,
+    "tipo_producto": "Harina",
+    "marca": "Pureza",
+    "variedad": "Pizza",
     "presentacion": {
-      "Gr": 180.0
+      "Kg": 1.0
     }
   },
   {
-    "id": 187,
+    "id": 75,
     "codigos_de_barras": [
-      99920447447800
+      30409913011892
     ],
-    "precio_de_venta": 540.0,
-    "porcentaje": 138.89577066006015,
-    "precio_de_costo": 226.04,
+    "precio_de_venta": 1240.0,
+    "porcentaje": 46.57210401891252,
+    "precio_de_costo": 846.0,
+    "tipo_producto": "Mayonesa",
+    "marca": "Hellmann's",
+    "variedad": "Liviana",
+    "presentacion": {
+      "Kg": 1.0
+    }
+  },
+  {
+    "id": 130,
+    "codigos_de_barras": [
+      50372342365147
+    ],
+    "precio_de_venta": 2090.0,
+    "porcentaje": 70.9052252841606,
+    "precio_de_costo": 1222.9,
+    "tipo_producto": "Esparragos",
+    "marca": "La Banda",
+    "variedad": "Blancos",
+    "presentacion": {
+      "Gr": 430.0
+    }
+  },
+  {
+    "id": 132,
+    "codigos_de_barras": [
+      19251389081807
+    ],
+    "precio_de_venta": 400.0,
+    "porcentaje": 249.10106475824753,
+    "precio_de_costo": 114.58,
+    "tipo_producto": "Galletitas",
+    "marca": "Pitusas",
+    "variedad": "Merengue",
+    "presentacion": {
+      "Gr": 120.0
+    }
+  },
+  {
+    "id": 158,
+    "codigos_de_barras": [
+      79424425663672
+    ],
+    "precio_de_venta": 90.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 90.0,
+    "tipo_producto": "Pastillas",
+    "marca": "D.r.f.",
+    "variedad": "Menta",
+    "presentacion": {
+      "Gr": 23.0
+    }
+  },
+  {
+    "id": 150,
+    "codigos_de_barras": [
+      3220959594233
+    ],
+    "precio_de_venta": 130.0,
+    "porcentaje": 1389.1179839633446,
+    "precio_de_costo": 8.73,
+    "tipo_producto": "Avena",
+    "marca": "La Abadia",
+    "variedad": "Instantanea",
+    "presentacion": {
+      "Gr": 400.0
+    }
+  },
+  {
+    "id": 162,
+    "codigos_de_barras": [
+      60391171072483
+    ],
+    "precio_de_venta": 300.0,
+    "porcentaje": 202.84675953967292,
+    "precio_de_costo": 99.06,
+    "tipo_producto": "Galletitas",
+    "marca": "Granovita",
+    "variedad": "Coco",
+    "presentacion": {
+      "Gr": 140.0
+    }
+  },
+  {
+    "id": 122,
+    "codigos_de_barras": [
+      17342219245377
+    ],
+    "precio_de_venta": 2600.0,
+    "porcentaje": 232.48081841432224,
+    "precio_de_costo": 782.0,
+    "tipo_producto": "Helado",
+    "marca": "Vacalin",
+    "variedad": "Crema De Vainilla",
+    "presentacion": {
+      "Gr": 500.0
+    }
+  },
+  {
+    "id": 124,
+    "codigos_de_barras": [
+      83356862014248
+    ],
+    "precio_de_venta": 560.0,
+    "porcentaje": 192.53513033484825,
+    "precio_de_costo": 191.43,
+    "tipo_producto": "Postre",
+    "marca": "Serenito",
+    "variedad": "Wow Ddl",
+    "presentacion": {
+      "Gr": 100.0
+    }
+  },
+  {
+    "id": 72,
+    "codigos_de_barras": [
+      76854056210230
+    ],
+    "precio_de_venta": 380.0,
+    "porcentaje": 192.3076923076923,
+    "precio_de_costo": 130.0,
+    "tipo_producto": "Agua Saborizada",
+    "marca": "Levite",
+    "variedad": "Naranja",
+    "presentacion": {
+      "Ml": 500
+    }
+  },
+  {
+    "id": 126,
+    "codigos_de_barras": [
+      24777198502563
+    ],
+    "precio_de_venta": 900.0,
+    "porcentaje": 74.60132697008497,
+    "precio_de_costo": 515.46,
+    "tipo_producto": "Vino Espumante",
+    "marca": "Murville",
+    "variedad": "Chenin Chardonnay",
+    "presentacion": {
+      "Ml": 750
+    }
+  },
+  {
+    "id": 106,
+    "codigos_de_barras": [
+      37192932328138
+    ],
+    "precio_de_venta": 560.0,
+    "porcentaje": 215.45741324921136,
+    "precio_de_costo": 177.52,
+    "tipo_producto": "Yogur",
+    "marca": "Gandara",
+    "variedad": "Frutilla",
+    "presentacion": {
+      "Gr": 200.0
+    }
+  },
+  {
+    "id": 142,
+    "codigos_de_barras": [
+      87987191910837
+    ],
+    "precio_de_venta": 1380.0,
+    "porcentaje": 182.64787809274128,
+    "precio_de_costo": 488.24,
+    "tipo_producto": "Yogur Bebible",
+    "marca": "Ser",
+    "variedad": "Vainilla",
+    "presentacion": {
+      "Ml": 900
+    }
+  },
+  {
+    "id": 174,
+    "codigos_de_barras": [
+      56658831855752
+    ],
+    "precio_de_venta": 520.0,
+    "porcentaje": 71.4253689766235,
+    "precio_de_costo": 303.339,
+    "tipo_producto": "Yogur Bebible",
+    "marca": "Ser",
+    "variedad": "Naranja Zanahoria",
+    "presentacion": {
+      "Gr": 190.0
+    }
+  },
+  {
+    "id": 58,
+    "codigos_de_barras": [
+      45894652304508
+    ],
+    "precio_de_venta": 700.0,
+    "porcentaje": 131.7343662065084,
+    "precio_de_costo": 302.07,
     "tipo_producto": "Gaseosa",
-    "marca": "Crush",
-    "variedad": "Lima Limon",
+    "marca": "Sprite",
+    "variedad": "Clasica",
     "presentacion": {
-      "Lt": 2.0
+      "Lt": 1.5
+    }
+  },
+  {
+    "id": 60,
+    "codigos_de_barras": [
+      241243594739
+    ],
+    "precio_de_venta": 650.0,
+    "porcentaje": 94.75655430711612,
+    "precio_de_costo": 333.75,
+    "tipo_producto": "Jugo",
+    "marca": "Ades",
+    "variedad": "Manzana",
+    "presentacion": {
+      "Lt": 1.0
+    }
+  },
+  {
+    "id": 62,
+    "codigos_de_barras": [
+      27713020436675
+    ],
+    "precio_de_venta": 740.0,
+    "porcentaje": 110.40061414233318,
+    "precio_de_costo": 351.71,
+    "tipo_producto": "Bebida Energizante",
+    "marca": "Monster",
+    "variedad": "Ultra Sunrise",
+    "presentacion": {
+      "Ml": 473
+    }
+  },
+  {
+    "id": 70,
+    "codigos_de_barras": [
+      37170525727394
+    ],
+    "precio_de_venta": 790.0,
+    "porcentaje": 97.5,
+    "precio_de_costo": 400.0,
+    "tipo_producto": "Fideos",
+    "marca": "Orali",
+    "variedad": "Fettuccine",
+    "presentacion": {
+      "Gr": 500.0
+    }
+  },
+  {
+    "id": 77,
+    "codigos_de_barras": [
+      62188802950467
+    ],
+    "precio_de_venta": 870.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Budin",
+    "marca": "Ducados",
+    "variedad": "Frutos Del Bosque",
+    "presentacion": {
+      "Gr": 300.0
+    }
+  },
+  {
+    "id": 128,
+    "codigos_de_barras": [
+      26736366892108
+    ],
+    "precio_de_venta": 200.0,
+    "porcentaje": 36.46288209606987,
+    "precio_de_costo": 146.56,
+    "tipo_producto": "Yogur",
+    "marca": "Ls Clasico",
+    "variedad": "Con Arandanos",
+    "presentacion": {
+      "Gr": 140.0
+    }
+  },
+  {
+    "id": 73,
+    "codigos_de_barras": [
+      6699747759319
+    ],
+    "precio_de_venta": 1980.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Limpiador",
+    "marca": "Suiza",
+    "variedad": "Roble Claro",
+    "presentacion": {
+      "Ml": 850
+    }
+  },
+  {
+    "id": 144,
+    "codigos_de_barras": [
+      10330701954544
+    ],
+    "precio_de_venta": 200.0,
+    "porcentaje": 50.0,
+    "precio_de_costo": 300.0,
+    "tipo_producto": "Pan Dulce",
+    "marca": "Don Yeyo",
+    "variedad": "Con Chips",
+    "presentacion": {
+      "Gr": 400.0
+    }
+  },
+  {
+    "id": 138,
+    "codigos_de_barras": [
+      88505706394996
+    ],
+    "precio_de_venta": 600.0,
+    "porcentaje": 5028.205128205129,
+    "precio_de_costo": 11.7,
+    "tipo_producto": "Gaseosa",
+    "marca": "7up",
+    "variedad": "Sin Azucares",
+    "presentacion": {
+      "Lt": 1.5
+    }
+  },
+  {
+    "id": 146,
+    "codigos_de_barras": [
+      64864374820214
+    ],
+    "precio_de_venta": 550.0,
+    "porcentaje": 70.27863777089782,
+    "precio_de_costo": 323.0,
+    "tipo_producto": "Tapas De Empanadas",
+    "marca": "Romero",
+    "variedad": "Para Horno",
+    "presentacion": {
+      "Gr": 310.0
+    }
+  },
+  {
+    "id": 152,
+    "codigos_de_barras": [
+      37366071200597
+    ],
+    "precio_de_venta": 690.0,
+    "porcentaje": 318.1818181818182,
+    "precio_de_costo": 165.0,
+    "tipo_producto": "Alfajor",
+    "marca": "Montemar",
+    "variedad": "Clasico",
+    "presentacion": {
+      "Gr": 60.0
+    }
+  },
+  {
+    "id": 154,
+    "codigos_de_barras": [
+      45507194601962
+    ],
+    "precio_de_venta": 2600.0,
+    "porcentaje": 232.48081841432224,
+    "precio_de_costo": 782.0,
+    "tipo_producto": "Helado",
+    "marca": "Vacalin",
+    "variedad": "Chocolate",
+    "presentacion": {
+      "Gr": 500.0
     }
   },
   {
@@ -3855,138 +3795,63 @@
     }
   },
   {
-    "id": 190,
+    "id": 179,
     "codigos_de_barras": [
-      48309809720727
+      25382615384884
     ],
-    "precio_de_venta": 300.0,
-    "porcentaje": 42.87347125385759,
-    "precio_de_costo": 209.976,
-    "tipo_producto": "Quitaesmalte",
-    "marca": "Doree",
-    "variedad": "Humectante",
+    "precio_de_venta": 1040.0,
+    "porcentaje": 115.28975413289052,
+    "precio_de_costo": 483.0699,
+    "tipo_producto": "Desodorante Aerosol",
+    "marca": "Dove",
+    "variedad": "Beauty Finish",
     "presentacion": {
-      "Ml": 65
+      "Ml": 150
     }
   },
   {
-    "id": 192,
+    "id": 288,
     "codigos_de_barras": [
-      10014847671380
+      86594269149441
     ],
-    "precio_de_venta": 310.0,
-    "porcentaje": 135.1691700804127,
-    "precio_de_costo": 131.82,
-    "tipo_producto": "Salsa",
-    "marca": "Noel",
-    "variedad": "Portuguesa",
-    "presentacion": {
-      "Gr": 340.0
-    }
-  },
-  {
-    "id": 194,
-    "codigos_de_barras": [
-      21397829937175
-    ],
-    "precio_de_venta": 960.0,
-    "porcentaje": 123.25581395348836,
-    "precio_de_costo": 430.0,
-    "tipo_producto": "Ravioles",
-    "marca": "La SalteÃ±a",
-    "variedad": "Mini Cuatro Uesos",
-    "presentacion": {
-      "Gr": 300.0
-    }
-  },
-  {
-    "id": 196,
-    "codigos_de_barras": [
-      14348781187976
-    ],
-    "precio_de_venta": 400.0,
-    "porcentaje": 169.923746541602,
-    "precio_de_costo": 148.19,
-    "tipo_producto": "Remolacha",
-    "marca": "La Banda",
-    "variedad": "En Cubos Tetra",
-    "presentacion": {
-      "Gr": 340.0
-    }
-  },
-  {
-    "id": 198,
-    "codigos_de_barras": [
-      36675414975236
-    ],
-    "precio_de_venta": 990.0,
-    "porcentaje": 144.883420650351,
-    "precio_de_costo": 404.274,
-    "tipo_producto": "Shampoo",
-    "marca": "Pantene",
-    "variedad": "Hidratacion Extrema",
+    "precio_de_venta": 290.0,
+    "porcentaje": 237.52327746741156,
+    "precio_de_costo": 85.92,
+    "tipo_producto": "Jugo",
+    "marca": "Baggio",
+    "variedad": "Manzazna",
     "presentacion": {
       "Ml": 200
     }
   },
   {
-    "id": 243,
+    "id": 187,
     "codigos_de_barras": [
-      61646564930258
+      99920447447800
     ],
     "precio_de_venta": 540.0,
-    "porcentaje": 298.8477730999336,
-    "precio_de_costo": 135.39,
-    "tipo_producto": "Porotos",
-    "marca": "La Banda",
-    "variedad": "Negros",
+    "porcentaje": 138.89577066006015,
+    "precio_de_costo": 226.04,
+    "tipo_producto": "Gaseosa",
+    "marca": "Crush",
+    "variedad": "Lima Limon",
     "presentacion": {
-      "Gr": 350.0
+      "Lt": 2.0
     }
   },
   {
-    "id": 221,
+    "id": 185,
     "codigos_de_barras": [
-      87699376318539
+      33288897309207
     ],
-    "precio_de_venta": 150.0,
-    "porcentaje": 87.5,
-    "precio_de_costo": 80.0,
-    "tipo_producto": "Jabon De Tocador",
-    "marca": "Suave",
-    "variedad": "Lirio & Agua De Rosas",
+    "precio_de_venta": 800.0,
+    "porcentaje": 192.66508139747577,
+    "precio_de_costo": 273.35,
+    "tipo_producto": "Queso Untable",
+    "marca": "Finlandia",
+    "variedad": "Finas Hierbas",
     "presentacion": {
-      "Gr": 90.0
-    }
-  },
-  {
-    "id": 223,
-    "codigos_de_barras": [
-      74173343875477
-    ],
-    "precio_de_venta": 730.0,
-    "porcentaje": 55.3191489361702,
-    "precio_de_costo": 470.0,
-    "tipo_producto": "Pascualina",
-    "marca": "Romero",
-    "variedad": "Hojaldre",
-    "presentacion": {
-      "Gr": 400.0
-    }
-  },
-  {
-    "id": 226,
-    "codigos_de_barras": [
-      31175880282128
-    ],
-    "precio_de_venta": 150.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 150.0,
-    "tipo_producto": "Nevares",
-    "marca": "Turron",
-    "variedad": "Mani",
-    "presentacion": {
-      "Gr": 80.0
+      "Gr": 180.0
     }
   },
   {
@@ -4185,6 +4050,81 @@
     }
   },
   {
+    "id": 214,
+    "codigos_de_barras": [
+      24133351606635
+    ],
+    "precio_de_venta": 110.0,
+    "porcentaje": 68.47909327615254,
+    "precio_de_costo": 65.29,
+    "tipo_producto": "Jugo En Polvo",
+    "marca": "Clight",
+    "variedad": "Anana",
+    "presentacion": {
+      "Gr": 7.0
+    }
+  },
+  {
+    "id": 215,
+    "codigos_de_barras": [
+      50862918489183
+    ],
+    "precio_de_venta": 890.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Galletitas",
+    "marca": "Granix",
+    "variedad": "Semoladas",
+    "presentacion": {
+      "Gr": 420.0
+    }
+  },
+  {
+    "id": 216,
+    "codigos_de_barras": [
+      2420034585564
+    ],
+    "precio_de_venta": 690.0,
+    "porcentaje": 37.999999999999986,
+    "precio_de_costo": 500.0,
+    "tipo_producto": "Pascualina",
+    "marca": "La Italiana",
+    "variedad": "Criolla",
+    "presentacion": {
+      "Gr": 400.0
+    }
+  },
+  {
+    "id": 217,
+    "codigos_de_barras": [
+      71619786610459
+    ],
+    "precio_de_venta": 500.0,
+    "porcentaje": 100.0,
+    "precio_de_costo": 250.0,
+    "tipo_producto": "Mani",
+    "marca": "Krachitos",
+    "variedad": "Pelado Salado",
+    "presentacion": {
+      "Gr": 120.0
+    }
+  },
+  {
+    "id": 219,
+    "codigos_de_barras": [
+      11251759003270
+    ],
+    "precio_de_venta": 2400.0,
+    "porcentaje": 256.61218424962857,
+    "precio_de_costo": 673.0,
+    "tipo_producto": "Bombones",
+    "marca": "Arcor",
+    "variedad": "Seleccion",
+    "presentacion": {
+      "Gr": 258.0
+    }
+  },
+  {
     "id": 247,
     "codigos_de_barras": [
       55226378219701
@@ -4365,138 +4305,138 @@
     }
   },
   {
-    "id": 214,
+    "id": 190,
     "codigos_de_barras": [
-      24133351606635
+      48309809720727
     ],
-    "precio_de_venta": 110.0,
-    "porcentaje": 68.47909327615254,
-    "precio_de_costo": 65.29,
-    "tipo_producto": "Jugo En Polvo",
-    "marca": "Clight",
-    "variedad": "Anana",
+    "precio_de_venta": 300.0,
+    "porcentaje": 42.87347125385759,
+    "precio_de_costo": 209.976,
+    "tipo_producto": "Quitaesmalte",
+    "marca": "Doree",
+    "variedad": "Humectante",
     "presentacion": {
-      "Gr": 7.0
+      "Ml": 65
     }
   },
   {
-    "id": 215,
+    "id": 192,
     "codigos_de_barras": [
-      50862918489183
+      10014847671380
     ],
-    "precio_de_venta": 890.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Galletitas",
-    "marca": "Granix",
-    "variedad": "Semoladas",
+    "precio_de_venta": 310.0,
+    "porcentaje": 135.1691700804127,
+    "precio_de_costo": 131.82,
+    "tipo_producto": "Salsa",
+    "marca": "Noel",
+    "variedad": "Portuguesa",
     "presentacion": {
-      "Gr": 420.0
+      "Gr": 340.0
     }
   },
   {
-    "id": 216,
+    "id": 194,
     "codigos_de_barras": [
-      2420034585564
+      21397829937175
     ],
-    "precio_de_venta": 690.0,
-    "porcentaje": 37.999999999999986,
-    "precio_de_costo": 500.0,
+    "precio_de_venta": 960.0,
+    "porcentaje": 123.25581395348836,
+    "precio_de_costo": 430.0,
+    "tipo_producto": "Ravioles",
+    "marca": "La SalteÃ±a",
+    "variedad": "Mini Cuatro Uesos",
+    "presentacion": {
+      "Gr": 300.0
+    }
+  },
+  {
+    "id": 196,
+    "codigos_de_barras": [
+      14348781187976
+    ],
+    "precio_de_venta": 400.0,
+    "porcentaje": 169.923746541602,
+    "precio_de_costo": 148.19,
+    "tipo_producto": "Remolacha",
+    "marca": "La Banda",
+    "variedad": "En Cubos Tetra",
+    "presentacion": {
+      "Gr": 340.0
+    }
+  },
+  {
+    "id": 198,
+    "codigos_de_barras": [
+      36675414975236
+    ],
+    "precio_de_venta": 990.0,
+    "porcentaje": 144.883420650351,
+    "precio_de_costo": 404.274,
+    "tipo_producto": "Shampoo",
+    "marca": "Pantene",
+    "variedad": "Hidratacion Extrema",
+    "presentacion": {
+      "Ml": 200
+    }
+  },
+  {
+    "id": 243,
+    "codigos_de_barras": [
+      61646564930258
+    ],
+    "precio_de_venta": 540.0,
+    "porcentaje": 298.8477730999336,
+    "precio_de_costo": 135.39,
+    "tipo_producto": "Porotos",
+    "marca": "La Banda",
+    "variedad": "Negros",
+    "presentacion": {
+      "Gr": 350.0
+    }
+  },
+  {
+    "id": 221,
+    "codigos_de_barras": [
+      87699376318539
+    ],
+    "precio_de_venta": 150.0,
+    "porcentaje": 87.5,
+    "precio_de_costo": 80.0,
+    "tipo_producto": "Jabon De Tocador",
+    "marca": "Suave",
+    "variedad": "Lirio & Agua De Rosas",
+    "presentacion": {
+      "Gr": 90.0
+    }
+  },
+  {
+    "id": 223,
+    "codigos_de_barras": [
+      74173343875477
+    ],
+    "precio_de_venta": 730.0,
+    "porcentaje": 55.3191489361702,
+    "precio_de_costo": 470.0,
     "tipo_producto": "Pascualina",
-    "marca": "La Italiana",
-    "variedad": "Criolla",
+    "marca": "Romero",
+    "variedad": "Hojaldre",
     "presentacion": {
       "Gr": 400.0
     }
   },
   {
-    "id": 217,
+    "id": 226,
     "codigos_de_barras": [
-      71619786610459
-    ],
-    "precio_de_venta": 500.0,
-    "porcentaje": 100.0,
-    "precio_de_costo": 250.0,
-    "tipo_producto": "Mani",
-    "marca": "Krachitos",
-    "variedad": "Pelado Salado",
-    "presentacion": {
-      "Gr": 120.0
-    }
-  },
-  {
-    "id": 219,
-    "codigos_de_barras": [
-      11251759003270
-    ],
-    "precio_de_venta": 2400.0,
-    "porcentaje": 256.61218424962857,
-    "precio_de_costo": 673.0,
-    "tipo_producto": "Bombones",
-    "marca": "Arcor",
-    "variedad": "Seleccion",
-    "presentacion": {
-      "Gr": 258.0
-    }
-  },
-  {
-    "id": 368,
-    "codigos_de_barras": [
-      66432949884285
-    ],
-    "precio_de_venta": 90.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 90.0,
-    "tipo_producto": "Pastillas",
-    "marca": "D.r.f.",
-    "variedad": "Limon",
-    "presentacion": {
-      "Gr": 23.0
-    }
-  },
-  {
-    "id": 369,
-    "codigos_de_barras": [
-      31655251626684
+      31175880282128
     ],
     "precio_de_venta": 150.0,
-    "porcentaje": 75.29508005141989,
-    "precio_de_costo": 85.57,
-    "tipo_producto": "Fideos",
-    "marca": "Cica",
-    "variedad": "Tirabuzon",
+    "porcentaje": 0.0,
+    "precio_de_costo": 150.0,
+    "tipo_producto": "Nevares",
+    "marca": "Turron",
+    "variedad": "Mani",
     "presentacion": {
-      "Gr": 500.0
-    }
-  },
-  {
-    "id": 370,
-    "codigos_de_barras": [
-      90532969961026
-    ],
-    "precio_de_venta": 280.0,
-    "porcentaje": 1265.8536585365853,
-    "precio_de_costo": 20.5,
-    "tipo_producto": "Ananas",
-    "marca": "Syp",
-    "variedad": "Rodajas",
-    "presentacion": {
-      "Gr": 500.0
-    }
-  },
-  {
-    "id": 371,
-    "codigos_de_barras": [
-      36613792105052
-    ],
-    "precio_de_venta": 110.0,
-    "porcentaje": 61.69337057180655,
-    "precio_de_costo": 68.03,
-    "tipo_producto": "Helado",
-    "marca": "Mogul",
-    "variedad": "Acido",
-    "presentacion": {
-      "Gr": 50.0
+      "Gr": 80.0
     }
   },
   {
@@ -5565,6 +5505,156 @@
     }
   },
   {
+    "id": 369,
+    "codigos_de_barras": [
+      31655251626684
+    ],
+    "precio_de_venta": 150.0,
+    "porcentaje": 75.29508005141989,
+    "precio_de_costo": 85.57,
+    "tipo_producto": "Fideos",
+    "marca": "Cica",
+    "variedad": "Tirabuzon",
+    "presentacion": {
+      "Gr": 500.0
+    }
+  },
+  {
+    "id": 368,
+    "codigos_de_barras": [
+      66432949884285
+    ],
+    "precio_de_venta": 90.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 90.0,
+    "tipo_producto": "Pastillas",
+    "marca": "D.r.f.",
+    "variedad": "Limon",
+    "presentacion": {
+      "Gr": 23.0
+    }
+  },
+  {
+    "id": 371,
+    "codigos_de_barras": [
+      36613792105052
+    ],
+    "precio_de_venta": 110.0,
+    "porcentaje": 61.69337057180655,
+    "precio_de_costo": 68.03,
+    "tipo_producto": "Helado",
+    "marca": "Mogul",
+    "variedad": "Acido",
+    "presentacion": {
+      "Gr": 50.0
+    }
+  },
+  {
+    "id": 370,
+    "codigos_de_barras": [
+      90532969961026
+    ],
+    "precio_de_venta": 280.0,
+    "porcentaje": 1265.8536585365853,
+    "precio_de_costo": 20.5,
+    "tipo_producto": "Ananas",
+    "marca": "Syp",
+    "variedad": "Rodajas",
+    "presentacion": {
+      "Gr": 500.0
+    }
+  },
+  {
+    "id": 372,
+    "codigos_de_barras": [
+      30693499424443
+    ],
+    "precio_de_venta": 730.0,
+    "porcentaje": 174.55995185798105,
+    "precio_de_costo": 265.88,
+    "tipo_producto": "Queso",
+    "marca": "Adler",
+    "variedad": "Fontina",
+    "presentacion": {
+      "Gr": 100.0
+    }
+  },
+  {
+    "id": 408,
+    "codigos_de_barras": [
+      62250717854716
+    ],
+    "precio_de_venta": 510.0,
+    "porcentaje": 40057.48031496063,
+    "precio_de_costo": 1.27,
+    "tipo_producto": "Ayudin",
+    "marca": "Ropa",
+    "variedad": "Colores",
+    "presentacion": {
+      "Ml": 470
+    }
+  },
+  {
+    "id": 409,
+    "codigos_de_barras": [
+      59094797231160
+    ],
+    "precio_de_venta": 400.0,
+    "porcentaje": 223.67697038355723,
+    "precio_de_costo": 123.58,
+    "tipo_producto": "Alfajor",
+    "marca": "Tofi",
+    "variedad": "Blanco",
+    "presentacion": {
+      "Gr": 73.0
+    }
+  },
+  {
+    "id": 410,
+    "codigos_de_barras": [
+      51876804341144
+    ],
+    "precio_de_venta": 100.0,
+    "porcentaje": 70.85255424568598,
+    "precio_de_costo": 58.53,
+    "tipo_producto": "Helado",
+    "marca": "Exquisita",
+    "variedad": "Chocolate",
+    "presentacion": {
+      "Gr": 52.0
+    }
+  },
+  {
+    "id": 411,
+    "codigos_de_barras": [
+      81626921955891
+    ],
+    "precio_de_venta": 420.0,
+    "porcentaje": 249.33044997088913,
+    "precio_de_costo": 120.23,
+    "tipo_producto": "Galletitas",
+    "marca": "Granix",
+    "variedad": "Salvado",
+    "presentacion": {
+      "Gr": 240.0
+    }
+  },
+  {
+    "id": 412,
+    "codigos_de_barras": [
+      53363076666558
+    ],
+    "precio_de_venta": 390.0,
+    "porcentaje": 140.0,
+    "precio_de_costo": 162.5,
+    "tipo_producto": "Palitos",
+    "marca": "Salados",
+    "variedad": "Krachitos",
+    "presentacion": {
+      "Gr": 65.0
+    }
+  },
+  {
     "id": 374,
     "codigos_de_barras": [
       72429827291157
@@ -5607,6 +5697,171 @@
     "variedad": "Cortado",
     "presentacion": {
       "Gr": 125.0
+    }
+  },
+  {
+    "id": 406,
+    "codigos_de_barras": [
+      13012968155207
+    ],
+    "precio_de_venta": 850.0,
+    "porcentaje": 145.7499710882387,
+    "precio_de_costo": 345.88,
+    "tipo_producto": "Galletitas",
+    "marca": "Surtido",
+    "variedad": "Bagley",
+    "presentacion": {
+      "Gr": 398.0
+    }
+  },
+  {
+    "id": 407,
+    "codigos_de_barras": [
+      86572753426845
+    ],
+    "precio_de_venta": 790.0,
+    "porcentaje": 2643.055555555555,
+    "precio_de_costo": 28.8,
+    "tipo_producto": "Cereales",
+    "marca": "Froot",
+    "variedad": "Loops",
+    "presentacion": {
+      "Gr": 175.0
+    }
+  },
+  {
+    "id": 417,
+    "codigos_de_barras": [
+      16024917864670
+    ],
+    "precio_de_venta": 620.0,
+    "porcentaje": 135.1691700804127,
+    "precio_de_costo": 263.64,
+    "tipo_producto": "Jugo",
+    "marca": "Baggio",
+    "variedad": "Manzana",
+    "presentacion": {
+      "Lt": 1.0
+    }
+  },
+  {
+    "id": 418,
+    "codigos_de_barras": [
+      41024543902423
+    ],
+    "precio_de_venta": 390.0,
+    "porcentaje": 38900.0,
+    "precio_de_costo": 1.0,
+    "tipo_producto": "Shampoo",
+    "marca": "Sedal",
+    "variedad": "Creamidas",
+    "presentacion": {
+      "Ml": 340
+    }
+  },
+  {
+    "id": 402,
+    "codigos_de_barras": [
+      82841823268413
+    ],
+    "precio_de_venta": 260.0,
+    "porcentaje": 40.38876889848813,
+    "precio_de_costo": 185.2,
+    "tipo_producto": "Tostadas",
+    "marca": "Tosti",
+    "variedad": "Clasicas",
+    "presentacion": {
+      "Gr": 140.0
+    }
+  },
+  {
+    "id": 419,
+    "codigos_de_barras": [
+      54388866191432
+    ],
+    "precio_de_venta": 1680.0,
+    "porcentaje": 113.98002853067048,
+    "precio_de_costo": 785.12,
+    "tipo_producto": "Vino",
+    "marca": "Portillo",
+    "variedad": "Malbec",
+    "presentacion": {
+      "Ml": 750
+    }
+  },
+  {
+    "id": 397,
+    "codigos_de_barras": [
+      73496248865937
+    ],
+    "precio_de_venta": 250.0,
+    "porcentaje": 1776.8768768768768,
+    "precio_de_costo": 13.32,
+    "tipo_producto": "Mogul",
+    "marca": "Mix",
+    "variedad": "Mundo",
+    "presentacion": {
+      "Gr": 200.0
+    }
+  },
+  {
+    "id": 385,
+    "codigos_de_barras": [
+      36472985745398
+    ],
+    "precio_de_venta": 600.0,
+    "porcentaje": 6085.567010309279,
+    "precio_de_costo": 9.7,
+    "tipo_producto": "Cerveza",
+    "marca": "Schneider",
+    "variedad": "Negra",
+    "presentacion": {
+      "CC": 473
+    }
+  },
+  {
+    "id": 386,
+    "codigos_de_barras": [
+      44830318305713
+    ],
+    "precio_de_venta": 330.0,
+    "porcentaje": 230.92659446450065,
+    "precio_de_costo": 99.72,
+    "tipo_producto": "Galletitas",
+    "marca": "Granix",
+    "variedad": "Cereal",
+    "presentacion": {
+      "Gr": 185.0
+    }
+  },
+  {
+    "id": 367,
+    "codigos_de_barras": [
+      15670498928174
+    ],
+    "precio_de_venta": 1270.0,
+    "porcentaje": 249.8718972974462,
+    "precio_de_costo": 362.99,
+    "tipo_producto": "Sidra",
+    "marca": "La",
+    "variedad": "Victoria",
+    "presentacion": {
+      "Ml": 750
+    }
+  },
+  {
+    "id": 413,
+    "codigos_de_barras": [
+      20130602037919
+    ],
+    "precio_de_venta": 260.0,
+    "porcentaje": 74.44981213097157,
+    "precio_de_costo": 149.04,
+    "tipo_producto": "Galletitas",
+    "marca": "Surtido",
+    "variedad": "Desfile",
+    "presentacion": {
+      "Gr": 398.0
     }
   },
   {
@@ -5667,111 +5922,6 @@
     "variedad": "Frutilla",
     "presentacion": {
       "Gr": 10.0
-    }
-  },
-  {
-    "id": 381,
-    "codigos_de_barras": [
-      71866877717996
-    ],
-    "precio_de_venta": 60.0,
-    "porcentaje": 20.53275477611041,
-    "precio_de_costo": 49.779,
-    "tipo_producto": "Yogur",
-    "marca": "Garcia",
-    "variedad": "Frutilla",
-    "presentacion": {
-      "Gr": 140.0
-    }
-  },
-  {
-    "id": 393,
-    "codigos_de_barras": [
-      69907097491402
-    ],
-    "precio_de_venta": 400.0,
-    "porcentaje": 100.0,
-    "precio_de_costo": 800.0,
-    "tipo_producto": "Acondicionador",
-    "marca": "Pantene",
-    "variedad": "Hidratacion",
-    "presentacion": {
-      "Ml": 400
-    }
-  },
-  {
-    "id": 382,
-    "codigos_de_barras": [
-      16489495020493
-    ],
-    "precio_de_venta": 130.0,
-    "porcentaje": 221.14624505928856,
-    "precio_de_costo": 40.48,
-    "tipo_producto": "Gomitas",
-    "marca": "Misky",
-    "variedad": "Roll",
-    "presentacion": {
-      "Gr": 35.0
-    }
-  },
-  {
-    "id": 394,
-    "codigos_de_barras": [
-      99682964443327
-    ],
-    "precio_de_venta": 830.0,
-    "porcentaje": 104.43349753694582,
-    "precio_de_costo": 406.0,
-    "tipo_producto": "Galletas",
-    "marca": "Donatto",
-    "variedad": "Lino",
-    "presentacion": {
-      "Gr": 160.0
-    }
-  },
-  {
-    "id": 395,
-    "codigos_de_barras": [
-      92445229297886
-    ],
-    "precio_de_venta": 270.0,
-    "porcentaje": 171.08433734939757,
-    "precio_de_costo": 99.6,
-    "tipo_producto": "Leche",
-    "marca": "Yatasto",
-    "variedad": "Descremada",
-    "presentacion": {
-      "Lt": 1.0
-    }
-  },
-  {
-    "id": 416,
-    "codigos_de_barras": [
-      73162126346909
-    ],
-    "precio_de_venta": 390.0,
-    "porcentaje": 30608.661417322834,
-    "precio_de_costo": 1.27,
-    "tipo_producto": "Lavandina",
-    "marca": "Ayudin",
-    "variedad": "Lavanda",
-    "presentacion": {
-      "Lt": 2.0
-    }
-  },
-  {
-    "id": 376,
-    "codigos_de_barras": [
-      26169377941732
-    ],
-    "precio_de_venta": 300.0,
-    "porcentaje": 95.79689335595876,
-    "precio_de_costo": 153.22,
-    "tipo_producto": "Acondicionador",
-    "marca": "Sedal",
-    "variedad": "Ceramidas",
-    "presentacion": {
-      "Ml": 300
     }
   },
   {
@@ -5880,96 +6030,6 @@
     }
   },
   {
-    "id": 406,
-    "codigos_de_barras": [
-      13012968155207
-    ],
-    "precio_de_venta": 850.0,
-    "porcentaje": 145.7499710882387,
-    "precio_de_costo": 345.88,
-    "tipo_producto": "Galletitas",
-    "marca": "Surtido",
-    "variedad": "Bagley",
-    "presentacion": {
-      "Gr": 398.0
-    }
-  },
-  {
-    "id": 407,
-    "codigos_de_barras": [
-      86572753426845
-    ],
-    "precio_de_venta": 790.0,
-    "porcentaje": 2643.055555555555,
-    "precio_de_costo": 28.8,
-    "tipo_producto": "Cereales",
-    "marca": "Froot",
-    "variedad": "Loops",
-    "presentacion": {
-      "Gr": 175.0
-    }
-  },
-  {
-    "id": 417,
-    "codigos_de_barras": [
-      16024917864670
-    ],
-    "precio_de_venta": 620.0,
-    "porcentaje": 135.1691700804127,
-    "precio_de_costo": 263.64,
-    "tipo_producto": "Jugo",
-    "marca": "Baggio",
-    "variedad": "Manzana",
-    "presentacion": {
-      "Lt": 1.0
-    }
-  },
-  {
-    "id": 418,
-    "codigos_de_barras": [
-      41024543902423
-    ],
-    "precio_de_venta": 390.0,
-    "porcentaje": 38900.0,
-    "precio_de_costo": 1.0,
-    "tipo_producto": "Shampoo",
-    "marca": "Sedal",
-    "variedad": "Creamidas",
-    "presentacion": {
-      "Ml": 340
-    }
-  },
-  {
-    "id": 419,
-    "codigos_de_barras": [
-      54388866191432
-    ],
-    "precio_de_venta": 1680.0,
-    "porcentaje": 113.98002853067048,
-    "precio_de_costo": 785.12,
-    "tipo_producto": "Vino",
-    "marca": "Portillo",
-    "variedad": "Malbec",
-    "presentacion": {
-      "Ml": 750
-    }
-  },
-  {
-    "id": 397,
-    "codigos_de_barras": [
-      73496248865937
-    ],
-    "precio_de_venta": 250.0,
-    "porcentaje": 1776.8768768768768,
-    "precio_de_costo": 13.32,
-    "tipo_producto": "Mogul",
-    "marca": "Mix",
-    "variedad": "Mundo",
-    "presentacion": {
-      "Gr": 200.0
-    }
-  },
-  {
     "id": 420,
     "codigos_de_barras": [
       30166407809912
@@ -6045,63 +6105,153 @@
     }
   },
   {
-    "id": 402,
+    "id": 414,
     "codigos_de_barras": [
-      82841823268413
+      303349124789
     ],
-    "precio_de_venta": 260.0,
-    "porcentaje": 40.38876889848813,
-    "precio_de_costo": 185.2,
-    "tipo_producto": "Tostadas",
-    "marca": "Tosti",
-    "variedad": "Clasicas",
+    "precio_de_venta": 600.0,
+    "porcentaje": 117.22405756437526,
+    "precio_de_costo": 276.2125,
+    "tipo_producto": "Chocolate",
+    "marca": "Milka",
+    "variedad": "Oreo",
+    "presentacion": {
+      "Gr": 55.0
+    }
+  },
+  {
+    "id": 415,
+    "codigos_de_barras": [
+      51100099867461
+    ],
+    "precio_de_venta": 2590.0,
+    "porcentaje": 171.20418848167537,
+    "precio_de_costo": 955.0,
+    "tipo_producto": "Pan",
+    "marca": "Oroweat",
+    "variedad": "Semillas",
+    "presentacion": {
+      "Gr": 600.0
+    }
+  },
+  {
+    "id": 373,
+    "codigos_de_barras": [
+      44237489321412
+    ],
+    "precio_de_venta": 1040.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Colgate",
+    "marca": "Max",
+    "variedad": "White",
+    "presentacion": {
+      "Gr": 90.0
+    }
+  },
+  {
+    "id": 381,
+    "codigos_de_barras": [
+      71866877717996
+    ],
+    "precio_de_venta": 60.0,
+    "porcentaje": 20.53275477611041,
+    "precio_de_costo": 49.779,
+    "tipo_producto": "Yogur",
+    "marca": "Garcia",
+    "variedad": "Frutilla",
     "presentacion": {
       "Gr": 140.0
     }
   },
   {
-    "id": 385,
+    "id": 393,
     "codigos_de_barras": [
-      36472985745398
+      69907097491402
     ],
-    "precio_de_venta": 600.0,
-    "porcentaje": 6085.567010309279,
-    "precio_de_costo": 9.7,
-    "tipo_producto": "Cerveza",
-    "marca": "Schneider",
-    "variedad": "Negra",
+    "precio_de_venta": 400.0,
+    "porcentaje": 100.0,
+    "precio_de_costo": 800.0,
+    "tipo_producto": "Acondicionador",
+    "marca": "Pantene",
+    "variedad": "Hidratacion",
     "presentacion": {
-      "CC": 473
+      "Ml": 400
     }
   },
   {
-    "id": 386,
+    "id": 382,
     "codigos_de_barras": [
-      44830318305713
+      16489495020493
     ],
-    "precio_de_venta": 330.0,
-    "porcentaje": 230.92659446450065,
-    "precio_de_costo": 99.72,
-    "tipo_producto": "Galletitas",
-    "marca": "Granix",
-    "variedad": "Cereal",
+    "precio_de_venta": 130.0,
+    "porcentaje": 221.14624505928856,
+    "precio_de_costo": 40.48,
+    "tipo_producto": "Gomitas",
+    "marca": "Misky",
+    "variedad": "Roll",
     "presentacion": {
-      "Gr": 185.0
+      "Gr": 35.0
     }
   },
   {
-    "id": 367,
+    "id": 394,
     "codigos_de_barras": [
-      15670498928174
+      99682964443327
     ],
-    "precio_de_venta": 1270.0,
-    "porcentaje": 249.8718972974462,
-    "precio_de_costo": 362.99,
-    "tipo_producto": "Sidra",
-    "marca": "La",
-    "variedad": "Victoria",
+    "precio_de_venta": 830.0,
+    "porcentaje": 104.43349753694582,
+    "precio_de_costo": 406.0,
+    "tipo_producto": "Galletas",
+    "marca": "Donatto",
+    "variedad": "Lino",
     "presentacion": {
-      "Ml": 750
+      "Gr": 160.0
+    }
+  },
+  {
+    "id": 395,
+    "codigos_de_barras": [
+      92445229297886
+    ],
+    "precio_de_venta": 270.0,
+    "porcentaje": 171.08433734939757,
+    "precio_de_costo": 99.6,
+    "tipo_producto": "Leche",
+    "marca": "Yatasto",
+    "variedad": "Descremada",
+    "presentacion": {
+      "Lt": 1.0
+    }
+  },
+  {
+    "id": 416,
+    "codigos_de_barras": [
+      73162126346909
+    ],
+    "precio_de_venta": 390.0,
+    "porcentaje": 30608.661417322834,
+    "precio_de_costo": 1.27,
+    "tipo_producto": "Lavandina",
+    "marca": "Ayudin",
+    "variedad": "Lavanda",
+    "presentacion": {
+      "Lt": 2.0
+    }
+  },
+  {
+    "id": 376,
+    "codigos_de_barras": [
+      26169377941732
+    ],
+    "precio_de_venta": 300.0,
+    "porcentaje": 95.79689335595876,
+    "precio_de_costo": 153.22,
+    "tipo_producto": "Acondicionador",
+    "marca": "Sedal",
+    "variedad": "Ceramidas",
+    "presentacion": {
+      "Ml": 300
     }
   },
   {
@@ -6177,216 +6327,6 @@
     "variedad": "Anana",
     "presentacion": {
       "Gr": 40.0
-    }
-  },
-  {
-    "id": 372,
-    "codigos_de_barras": [
-      30693499424443
-    ],
-    "precio_de_venta": 730.0,
-    "porcentaje": 174.55995185798105,
-    "precio_de_costo": 265.88,
-    "tipo_producto": "Queso",
-    "marca": "Adler",
-    "variedad": "Fontina",
-    "presentacion": {
-      "Gr": 100.0
-    }
-  },
-  {
-    "id": 408,
-    "codigos_de_barras": [
-      62250717854716
-    ],
-    "precio_de_venta": 510.0,
-    "porcentaje": 40057.48031496063,
-    "precio_de_costo": 1.27,
-    "tipo_producto": "Ayudin",
-    "marca": "Ropa",
-    "variedad": "Colores",
-    "presentacion": {
-      "Ml": 470
-    }
-  },
-  {
-    "id": 409,
-    "codigos_de_barras": [
-      59094797231160
-    ],
-    "precio_de_venta": 400.0,
-    "porcentaje": 223.67697038355723,
-    "precio_de_costo": 123.58,
-    "tipo_producto": "Alfajor",
-    "marca": "Tofi",
-    "variedad": "Blanco",
-    "presentacion": {
-      "Gr": 73.0
-    }
-  },
-  {
-    "id": 410,
-    "codigos_de_barras": [
-      51876804341144
-    ],
-    "precio_de_venta": 100.0,
-    "porcentaje": 70.85255424568598,
-    "precio_de_costo": 58.53,
-    "tipo_producto": "Helado",
-    "marca": "Exquisita",
-    "variedad": "Chocolate",
-    "presentacion": {
-      "Gr": 52.0
-    }
-  },
-  {
-    "id": 411,
-    "codigos_de_barras": [
-      81626921955891
-    ],
-    "precio_de_venta": 420.0,
-    "porcentaje": 249.33044997088913,
-    "precio_de_costo": 120.23,
-    "tipo_producto": "Galletitas",
-    "marca": "Granix",
-    "variedad": "Salvado",
-    "presentacion": {
-      "Gr": 240.0
-    }
-  },
-  {
-    "id": 412,
-    "codigos_de_barras": [
-      53363076666558
-    ],
-    "precio_de_venta": 390.0,
-    "porcentaje": 140.0,
-    "precio_de_costo": 162.5,
-    "tipo_producto": "Palitos",
-    "marca": "Salados",
-    "variedad": "Krachitos",
-    "presentacion": {
-      "Gr": 65.0
-    }
-  },
-  {
-    "id": 413,
-    "codigos_de_barras": [
-      20130602037919
-    ],
-    "precio_de_venta": 260.0,
-    "porcentaje": 74.44981213097157,
-    "precio_de_costo": 149.04,
-    "tipo_producto": "Galletitas",
-    "marca": "Surtido",
-    "variedad": "Desfile",
-    "presentacion": {
-      "Gr": 398.0
-    }
-  },
-  {
-    "id": 414,
-    "codigos_de_barras": [
-      303349124789
-    ],
-    "precio_de_venta": 600.0,
-    "porcentaje": 117.22405756437526,
-    "precio_de_costo": 276.2125,
-    "tipo_producto": "Chocolate",
-    "marca": "Milka",
-    "variedad": "Oreo",
-    "presentacion": {
-      "Gr": 55.0
-    }
-  },
-  {
-    "id": 415,
-    "codigos_de_barras": [
-      51100099867461
-    ],
-    "precio_de_venta": 2590.0,
-    "porcentaje": 171.20418848167537,
-    "precio_de_costo": 955.0,
-    "tipo_producto": "Pan",
-    "marca": "Oroweat",
-    "variedad": "Semillas",
-    "presentacion": {
-      "Gr": 600.0
-    }
-  },
-  {
-    "id": 373,
-    "codigos_de_barras": [
-      44237489321412
-    ],
-    "precio_de_venta": 1040.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Colgate",
-    "marca": "Max",
-    "variedad": "White",
-    "presentacion": {
-      "Gr": 90.0
-    }
-  },
-  {
-    "id": 448,
-    "codigos_de_barras": [
-      30282583774288
-    ],
-    "precio_de_venta": 410.0,
-    "porcentaje": 396.909465519331,
-    "precio_de_costo": 82.51,
-    "tipo_producto": "Galletitas",
-    "marca": "Pepas",
-    "variedad": "Terepin",
-    "presentacion": {
-      "Gr": 200.0
-    }
-  },
-  {
-    "id": 454,
-    "codigos_de_barras": [
-      68662654318571
-    ],
-    "precio_de_venta": 450.0,
-    "porcentaje": 248.16247582205028,
-    "precio_de_costo": 129.25,
-    "tipo_producto": "Bebida",
-    "marca": "Energetica",
-    "variedad": "Speed",
-    "presentacion": {
-      "Ml": 250
-    }
-  },
-  {
-    "id": 457,
-    "codigos_de_barras": [
-      18744375467403
-    ],
-    "precio_de_venta": 200.0,
-    "porcentaje": 248.43205574912895,
-    "precio_de_costo": 57.4,
-    "tipo_producto": "Caramelos",
-    "marca": "Refresco",
-    "variedad": "Naranja",
-    "presentacion": {
-      "Gr": 27.0
-    }
-  },
-  {
-    "id": 456,
-    "codigos_de_barras": [
-      32710151443162
-    ],
-    "precio_de_venta": 620.0,
-    "porcentaje": 281.98509025938023,
-    "precio_de_costo": 162.31,
-    "tipo_producto": "Flan",
-    "marca": "Danette",
-    "variedad": "Vainilla",
-    "presentacion": {
-      "Gr": 95.0
     }
   },
   {
@@ -7410,63 +7350,63 @@
     }
   },
   {
-    "id": 500,
+    "id": 454,
     "codigos_de_barras": [
-      89080002459638
+      68662654318571
     ],
-    "precio_de_venta": 70.0,
-    "porcentaje": 1547.0588235294117,
-    "precio_de_costo": 4.25,
-    "tipo_producto": "Arcor",
-    "marca": "Ositos",
-    "variedad": "Acidos",
+    "precio_de_venta": 450.0,
+    "porcentaje": 248.16247582205028,
+    "precio_de_costo": 129.25,
+    "tipo_producto": "Bebida",
+    "marca": "Energetica",
+    "variedad": "Speed",
     "presentacion": {
-      "Gr": 50.0
+      "Ml": 250
     }
   },
   {
-    "id": 501,
+    "id": 448,
     "codigos_de_barras": [
-      34732380481229
+      30282583774288
     ],
-    "precio_de_venta": 2160.0,
-    "porcentaje": 40.86114417072893,
-    "precio_de_costo": 1533.425,
-    "tipo_producto": "Vodka",
-    "marca": "Smirnoff",
-    "variedad": "Clasico",
+    "precio_de_venta": 410.0,
+    "porcentaje": 396.909465519331,
+    "precio_de_costo": 82.51,
+    "tipo_producto": "Galletitas",
+    "marca": "Pepas",
+    "variedad": "Terepin",
     "presentacion": {
-      "Ml": 750
+      "Gr": 200.0
     }
   },
   {
-    "id": 502,
+    "id": 456,
     "codigos_de_barras": [
-      29549112618297
+      32710151443162
     ],
-    "precio_de_venta": 270.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 270.0,
-    "tipo_producto": "Pickles",
-    "marca": "Yovinessa",
-    "variedad": "Mixto",
+    "precio_de_venta": 620.0,
+    "porcentaje": 281.98509025938023,
+    "precio_de_costo": 162.31,
+    "tipo_producto": "Flan",
+    "marca": "Danette",
+    "variedad": "Vainilla",
     "presentacion": {
-      "Gr": 330.0
+      "Gr": 95.0
     }
   },
   {
-    "id": 503,
+    "id": 457,
     "codigos_de_barras": [
-      19339829904031
+      18744375467403
     ],
-    "precio_de_venta": 220.0,
-    "porcentaje": 3828.571428571429,
-    "precio_de_costo": 5.6,
-    "tipo_producto": "Barritas",
-    "marca": "Con",
-    "variedad": "Membrillo",
+    "precio_de_venta": 200.0,
+    "porcentaje": 248.43205574912895,
+    "precio_de_costo": 57.4,
+    "tipo_producto": "Caramelos",
+    "marca": "Refresco",
+    "variedad": "Naranja",
     "presentacion": {
-      "Gr": 160.0
+      "Gr": 27.0
     }
   },
   {
@@ -8535,63 +8475,63 @@
     }
   },
   {
-    "id": 576,
+    "id": 501,
     "codigos_de_barras": [
-      18224477293001
+      34732380481229
     ],
-    "precio_de_venta": 230.0,
-    "porcentaje": 70.0554528650647,
-    "precio_de_costo": 135.25,
-    "tipo_producto": "Fideos",
-    "marca": "Terrabusi",
-    "variedad": "Cellentani",
+    "precio_de_venta": 2160.0,
+    "porcentaje": 40.86114417072893,
+    "precio_de_costo": 1533.425,
+    "tipo_producto": "Vodka",
+    "marca": "Smirnoff",
+    "variedad": "Clasico",
     "presentacion": {
-      "Gr": 500.0
+      "Ml": 750
     }
   },
   {
-    "id": 577,
+    "id": 500,
     "codigos_de_barras": [
-      15608518816502
+      89080002459638
     ],
-    "precio_de_venta": 610.0,
-    "porcentaje": 40.274805242230435,
-    "precio_de_costo": 434.8607,
-    "tipo_producto": "Detergente",
-    "marca": "Cif",
-    "variedad": "Limon",
+    "precio_de_venta": 70.0,
+    "porcentaje": 1547.0588235294117,
+    "precio_de_costo": 4.25,
+    "tipo_producto": "Arcor",
+    "marca": "Ositos",
+    "variedad": "Acidos",
     "presentacion": {
-      "Ml": 500
+      "Gr": 50.0
     }
   },
   {
-    "id": 578,
+    "id": 503,
     "codigos_de_barras": [
-      89355818288718
+      19339829904031
     ],
-    "precio_de_venta": 900.0,
-    "porcentaje": 182.64556246466927,
-    "precio_de_costo": 318.42,
-    "tipo_producto": "Bizcochuelo",
-    "marca": "Exquisita",
-    "variedad": "Lemonie",
+    "precio_de_venta": 220.0,
+    "porcentaje": 3828.571428571429,
+    "precio_de_costo": 5.6,
+    "tipo_producto": "Barritas",
+    "marca": "Con",
+    "variedad": "Membrillo",
     "presentacion": {
-      "Gr": 425.0
+      "Gr": 160.0
     }
   },
   {
-    "id": 579,
+    "id": 502,
     "codigos_de_barras": [
-      19103960554043
+      29549112618297
     ],
-    "precio_de_venta": 740.0,
-    "porcentaje": 300.1514086411074,
-    "precio_de_costo": 184.93,
-    "tipo_producto": "Chocolate",
-    "marca": "Cofler",
-    "variedad": "Almendras",
+    "precio_de_venta": 270.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 270.0,
+    "tipo_producto": "Pickles",
+    "marca": "Yovinessa",
+    "variedad": "Mixto",
     "presentacion": {
-      "Gr": 55.0
+      "Gr": 330.0
     }
   },
   {
@@ -9675,63 +9615,63 @@
     }
   },
   {
-    "id": 656,
+    "id": 577,
     "codigos_de_barras": [
-      2027972731085
+      15608518816502
     ],
-    "precio_de_venta": 60.0,
-    "porcentaje": 1315.428167020524,
-    "precio_de_costo": 4.239,
-    "tipo_producto": "Ser",
-    "marca": "Batido",
-    "variedad": "Frutilla",
+    "precio_de_venta": 610.0,
+    "porcentaje": 40.274805242230435,
+    "precio_de_costo": 434.8607,
+    "tipo_producto": "Detergente",
+    "marca": "Cif",
+    "variedad": "Limon",
     "presentacion": {
-      "Gr": 120.0
+      "Ml": 500
     }
   },
   {
-    "id": 657,
+    "id": 576,
     "codigos_de_barras": [
-      37924002048275
+      18224477293001
     ],
-    "precio_de_venta": 390.0,
-    "porcentaje": 90.74635625550228,
-    "precio_de_costo": 204.46,
-    "tipo_producto": "Helado",
-    "marca": "Keopps",
-    "variedad": "Chocolate",
+    "precio_de_venta": 230.0,
+    "porcentaje": 70.0554528650647,
+    "precio_de_costo": 135.25,
+    "tipo_producto": "Fideos",
+    "marca": "Terrabusi",
+    "variedad": "Cellentani",
     "presentacion": {
-      "Gr": 89.0
+      "Gr": 500.0
     }
   },
   {
-    "id": 659,
+    "id": 579,
     "codigos_de_barras": [
-      71437991394807
+      19103960554043
     ],
-    "precio_de_venta": 680.0,
-    "porcentaje": 4827.536231884058,
-    "precio_de_costo": 13.8,
-    "tipo_producto": "Cerveza",
-    "marca": "Andes",
-    "variedad": "Criolla",
+    "precio_de_venta": 740.0,
+    "porcentaje": 300.1514086411074,
+    "precio_de_costo": 184.93,
+    "tipo_producto": "Chocolate",
+    "marca": "Cofler",
+    "variedad": "Almendras",
     "presentacion": {
-      "CC": 473
+      "Gr": 55.0
     }
   },
   {
-    "id": 660,
+    "id": 578,
     "codigos_de_barras": [
-      48611554958989
+      89355818288718
     ],
-    "precio_de_venta": 260.0,
-    "porcentaje": 96.13759806879902,
-    "precio_de_costo": 132.56,
-    "tipo_producto": "Harina",
-    "marca": "Blancaflor",
-    "variedad": "000",
+    "precio_de_venta": 900.0,
+    "porcentaje": 182.64556246466927,
+    "precio_de_costo": 318.42,
+    "tipo_producto": "Bizcochuelo",
+    "marca": "Exquisita",
+    "variedad": "Lemonie",
     "presentacion": {
-      "Kg": 1.0
+      "Gr": 425.0
     }
   },
   {
@@ -10800,288 +10740,63 @@
     }
   },
   {
-    "id": 740,
+    "id": 657,
     "codigos_de_barras": [
-      61014271554672
+      37924002048275
     ],
-    "precio_de_venta": 590.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Shampoo",
-    "marca": "Sedal",
-    "variedad": "HialurÃ±nicoÃ±",
+    "precio_de_venta": 390.0,
+    "porcentaje": 90.74635625550228,
+    "precio_de_costo": 204.46,
+    "tipo_producto": "Helado",
+    "marca": "Keopps",
+    "variedad": "Chocolate",
     "presentacion": {
-      "Ml": 340
+      "Gr": 89.0
     }
   },
   {
-    "id": 751,
+    "id": 656,
     "codigos_de_barras": [
-      32088462584422
+      2027972731085
     ],
-    "precio_de_venta": 260.0,
-    "porcentaje": 28.02836320661808,
-    "precio_de_costo": 203.08,
-    "tipo_producto": "Yogurisimo",
-    "marca": "Cremix",
+    "precio_de_venta": 60.0,
+    "porcentaje": 1315.428167020524,
+    "precio_de_costo": 4.239,
+    "tipo_producto": "Ser",
+    "marca": "Batido",
     "variedad": "Frutilla",
     "presentacion": {
       "Gr": 120.0
     }
   },
   {
-    "id": 752,
+    "id": 660,
     "codigos_de_barras": [
-      39719776578597
+      48611554958989
     ],
-    "precio_de_venta": 140.0,
-    "porcentaje": 2364.7887323943664,
-    "precio_de_costo": 5.68,
-    "tipo_producto": "Tomates",
-    "marca": "Cubeteados",
-    "variedad": "Alco",
+    "precio_de_venta": 260.0,
+    "porcentaje": 96.13759806879902,
+    "precio_de_costo": 132.56,
+    "tipo_producto": "Harina",
+    "marca": "Blancaflor",
+    "variedad": "000",
     "presentacion": {
-      "Gr": 400.0
+      "Kg": 1.0
     }
   },
   {
-    "id": 755,
+    "id": 659,
     "codigos_de_barras": [
-      29502243268439
+      71437991394807
     ],
-    "precio_de_venta": 900.0,
-    "porcentaje": 63.63636363636365,
-    "precio_de_costo": 550.0,
-    "tipo_producto": "Pegamento",
-    "marca": "Universal",
-    "variedad": "Unipox",
+    "precio_de_venta": 680.0,
+    "porcentaje": 4827.536231884058,
+    "precio_de_costo": 13.8,
+    "tipo_producto": "Cerveza",
+    "marca": "Andes",
+    "variedad": "Criolla",
     "presentacion": {
-      "Ml": 25
-    }
-  },
-  {
-    "id": 756,
-    "codigos_de_barras": [
-      4089855319850
-    ],
-    "precio_de_venta": 100.0,
-    "porcentaje": 122.51891410769916,
-    "precio_de_costo": 44.94,
-    "tipo_producto": "Alfajor",
-    "marca": "Tatin",
-    "variedad": "Negro",
-    "presentacion": {
-      "Gr": 60.0
-    }
-  },
-  {
-    "id": 758,
-    "codigos_de_barras": [
-      44282730990454
-    ],
-    "precio_de_venta": 2900.0,
-    "porcentaje": 93.33333333333331,
-    "precio_de_costo": 1500.0,
-    "tipo_producto": "Whisky",
-    "marca": "Old",
-    "variedad": "Smugler",
-    "presentacion": {
-      "Lt": 1.0
-    }
-  },
-  {
-    "id": 759,
-    "codigos_de_barras": [
-      32400887784823
-    ],
-    "precio_de_venta": 640.0,
-    "porcentaje": 240.3350172826376,
-    "precio_de_costo": 188.05,
-    "tipo_producto": "Galletitas",
-    "marca": "Fantoche",
-    "variedad": "Espumita",
-    "presentacion": {
-      "Gr": 300.0
-    }
-  },
-  {
-    "id": 760,
-    "codigos_de_barras": [
-      73470114558519
-    ],
-    "precio_de_venta": 380.0,
-    "porcentaje": 1345.4714899767962,
-    "precio_de_costo": 26.289,
-    "tipo_producto": "Colgate",
-    "marca": "Total12",
-    "variedad": "Whitening",
-    "presentacion": {
-      "Gr": 90.0
-    }
-  },
-  {
-    "id": 761,
-    "codigos_de_barras": [
-      94471344548793
-    ],
-    "precio_de_venta": 1050.0,
-    "porcentaje": 164.95748063286985,
-    "precio_de_costo": 396.29,
-    "tipo_producto": "Mermelada",
-    "marca": "Noel",
-    "variedad": "Frutilla",
-    "presentacion": {
-      "Gr": 454.0
-    }
-  },
-  {
-    "id": 762,
-    "codigos_de_barras": [
-      54305314778083
-    ],
-    "precio_de_venta": 110.0,
-    "porcentaje": 83.33333333333333,
-    "precio_de_costo": 60.0,
-    "tipo_producto": "Pastillas",
-    "marca": "Dorin's",
-    "variedad": "Naranja",
-    "presentacion": {
-      "Gr": 25.0
-    }
-  },
-  {
-    "id": 763,
-    "codigos_de_barras": [
-      86464249911050
-    ],
-    "precio_de_venta": 210.0,
-    "porcentaje": 179.953341109815,
-    "precio_de_costo": 75.0125,
-    "tipo_producto": "Oblea",
-    "marca": "Nugaton",
-    "variedad": "Blanco",
-    "presentacion": {
-      "Gr": 27.0
-    }
-  },
-  {
-    "id": 764,
-    "codigos_de_barras": [
-      33377755924716
-    ],
-    "precio_de_venta": 1180.0,
-    "porcentaje": 199.7815151669122,
-    "precio_de_costo": 393.62,
-    "tipo_producto": "Chocolate",
-    "marca": "Cadbury",
-    "variedad": "Frutilla",
-    "presentacion": {
-      "Gr": 82.0
-    }
-  },
-  {
-    "id": 765,
-    "codigos_de_barras": [
-      48494566683624
-    ],
-    "precio_de_venta": 140.0,
-    "porcentaje": 1328.5714285714284,
-    "precio_de_costo": 9.8,
-    "tipo_producto": "Fideos",
-    "marca": "Fusiles",
-    "variedad": "Mendia",
-    "presentacion": {
-      "Gr": 500.0
-    }
-  },
-  {
-    "id": 766,
-    "codigos_de_barras": [
-      1391196228585
-    ],
-    "precio_de_venta": 450.0,
-    "porcentaje": 46.9435736677116,
-    "precio_de_costo": 306.24,
-    "tipo_producto": "Budin",
-    "marca": "Steinhauser",
-    "variedad": "Naranja",
-    "presentacion": {
-      "Gr": 250.0
-    }
-  },
-  {
-    "id": 767,
-    "codigos_de_barras": [
-      41748245712992
-    ],
-    "precio_de_venta": 690.0,
-    "porcentaje": 129.99999999999997,
-    "precio_de_costo": 300.0,
-    "tipo_producto": "Pan",
-    "marca": "D&d",
-    "variedad": "Rustico",
-    "presentacion": {
-      "Gr": 400.0
-    }
-  },
-  {
-    "id": 768,
-    "codigos_de_barras": [
-      41582902884063
-    ],
-    "precio_de_venta": 960.0,
-    "porcentaje": 170.71231177034574,
-    "precio_de_costo": 354.62,
-    "tipo_producto": "Queso",
-    "marca": "Rallado",
-    "variedad": "Sancor",
-    "presentacion": {
-      "Gr": 100.0
-    }
-  },
-  {
-    "id": 769,
-    "codigos_de_barras": [
-      64758913402075
-    ],
-    "precio_de_venta": 380.0,
-    "porcentaje": 108.84858477603738,
-    "precio_de_costo": 181.95,
-    "tipo_producto": "Jugo",
-    "marca": "Bc",
-    "variedad": "Naranja",
-    "presentacion": {
-      "Ml": 500
-    }
-  },
-  {
-    "id": 771,
-    "codigos_de_barras": [
-      33090384154465
-    ],
-    "precio_de_venta": 100.0,
-    "porcentaje": 122.51891410769916,
-    "precio_de_costo": 44.94,
-    "tipo_producto": "Alfajor",
-    "marca": "Tatin",
-    "variedad": "Blanco",
-    "presentacion": {
-      "Gr": 60.0
-    }
-  },
-  {
-    "id": 772,
-    "codigos_de_barras": [
-      1966745771978
-    ],
-    "precio_de_venta": 110.0,
-    "porcentaje": 1427.7777777777776,
-    "precio_de_costo": 7.2,
-    "tipo_producto": "Pan",
-    "marca": "Rallado",
-    "variedad": "Lucchetti",
-    "presentacion": {
-      "Gr": 500.0
+      "CC": 473
     }
   },
   {
@@ -11142,21 +10857,6 @@
     "variedad": "Gds",
     "presentacion": {
       "Gr": 300.0
-    }
-  },
-  {
-    "id": 777,
-    "codigos_de_barras": [
-      53348623626611
-    ],
-    "precio_de_venta": 720.0,
-    "porcentaje": 191.98264325398435,
-    "precio_de_costo": 246.59,
-    "tipo_producto": "Aceitunas",
-    "marca": "Nucete",
-    "variedad": "Descarozadas",
-    "presentacion": {
-      "Gr": 330.0
     }
   },
   {
@@ -11775,63 +11475,303 @@
     }
   },
   {
-    "id": 816,
+    "id": 760,
     "codigos_de_barras": [
-      32793492820314
+      73470114558519
     ],
-    "precio_de_venta": 8390.0,
-    "porcentaje": 64.58370523234942,
-    "precio_de_costo": 5097.71,
-    "tipo_producto": "Huevo",
-    "marca": "Cofler",
-    "variedad": "Blockazo",
+    "precio_de_venta": 380.0,
+    "porcentaje": 1345.4714899767962,
+    "precio_de_costo": 26.289,
+    "tipo_producto": "Colgate",
+    "marca": "Total12",
+    "variedad": "Whitening",
     "presentacion": {
-      "Kg": 1.0
+      "Gr": 90.0
     }
   },
   {
-    "id": 817,
+    "id": 761,
     "codigos_de_barras": [
-      1424461618689
+      94471344548793
     ],
-    "precio_de_venta": 830.0,
-    "porcentaje": 121.92513368983956,
-    "precio_de_costo": 374.0,
-    "tipo_producto": "Leche",
-    "marca": "Chocolatada",
-    "variedad": "Ilolay",
+    "precio_de_venta": 1050.0,
+    "porcentaje": 164.95748063286985,
+    "precio_de_costo": 396.29,
+    "tipo_producto": "Mermelada",
+    "marca": "Noel",
+    "variedad": "Frutilla",
+    "presentacion": {
+      "Gr": 454.0
+    }
+  },
+  {
+    "id": 762,
+    "codigos_de_barras": [
+      54305314778083
+    ],
+    "precio_de_venta": 110.0,
+    "porcentaje": 83.33333333333333,
+    "precio_de_costo": 60.0,
+    "tipo_producto": "Pastillas",
+    "marca": "Dorin's",
+    "variedad": "Naranja",
+    "presentacion": {
+      "Gr": 25.0
+    }
+  },
+  {
+    "id": 766,
+    "codigos_de_barras": [
+      1391196228585
+    ],
+    "precio_de_venta": 450.0,
+    "porcentaje": 46.9435736677116,
+    "precio_de_costo": 306.24,
+    "tipo_producto": "Budin",
+    "marca": "Steinhauser",
+    "variedad": "Naranja",
+    "presentacion": {
+      "Gr": 250.0
+    }
+  },
+  {
+    "id": 767,
+    "codigos_de_barras": [
+      41748245712992
+    ],
+    "precio_de_venta": 690.0,
+    "porcentaje": 129.99999999999997,
+    "precio_de_costo": 300.0,
+    "tipo_producto": "Pan",
+    "marca": "D&d",
+    "variedad": "Rustico",
+    "presentacion": {
+      "Gr": 400.0
+    }
+  },
+  {
+    "id": 740,
+    "codigos_de_barras": [
+      61014271554672
+    ],
+    "precio_de_venta": 590.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Shampoo",
+    "marca": "Sedal",
+    "variedad": "HialurÃ±nicoÃ±",
+    "presentacion": {
+      "Ml": 340
+    }
+  },
+  {
+    "id": 751,
+    "codigos_de_barras": [
+      32088462584422
+    ],
+    "precio_de_venta": 260.0,
+    "porcentaje": 28.02836320661808,
+    "precio_de_costo": 203.08,
+    "tipo_producto": "Yogurisimo",
+    "marca": "Cremix",
+    "variedad": "Frutilla",
+    "presentacion": {
+      "Gr": 120.0
+    }
+  },
+  {
+    "id": 752,
+    "codigos_de_barras": [
+      39719776578597
+    ],
+    "precio_de_venta": 140.0,
+    "porcentaje": 2364.7887323943664,
+    "precio_de_costo": 5.68,
+    "tipo_producto": "Tomates",
+    "marca": "Cubeteados",
+    "variedad": "Alco",
+    "presentacion": {
+      "Gr": 400.0
+    }
+  },
+  {
+    "id": 755,
+    "codigos_de_barras": [
+      29502243268439
+    ],
+    "precio_de_venta": 900.0,
+    "porcentaje": 63.63636363636365,
+    "precio_de_costo": 550.0,
+    "tipo_producto": "Pegamento",
+    "marca": "Universal",
+    "variedad": "Unipox",
+    "presentacion": {
+      "Ml": 25
+    }
+  },
+  {
+    "id": 756,
+    "codigos_de_barras": [
+      4089855319850
+    ],
+    "precio_de_venta": 100.0,
+    "porcentaje": 122.51891410769916,
+    "precio_de_costo": 44.94,
+    "tipo_producto": "Alfajor",
+    "marca": "Tatin",
+    "variedad": "Negro",
+    "presentacion": {
+      "Gr": 60.0
+    }
+  },
+  {
+    "id": 765,
+    "codigos_de_barras": [
+      48494566683624
+    ],
+    "precio_de_venta": 140.0,
+    "porcentaje": 1328.5714285714284,
+    "precio_de_costo": 9.8,
+    "tipo_producto": "Fideos",
+    "marca": "Fusiles",
+    "variedad": "Mendia",
+    "presentacion": {
+      "Gr": 500.0
+    }
+  },
+  {
+    "id": 768,
+    "codigos_de_barras": [
+      41582902884063
+    ],
+    "precio_de_venta": 960.0,
+    "porcentaje": 170.71231177034574,
+    "precio_de_costo": 354.62,
+    "tipo_producto": "Queso",
+    "marca": "Rallado",
+    "variedad": "Sancor",
+    "presentacion": {
+      "Gr": 100.0
+    }
+  },
+  {
+    "id": 769,
+    "codigos_de_barras": [
+      64758913402075
+    ],
+    "precio_de_venta": 380.0,
+    "porcentaje": 108.84858477603738,
+    "precio_de_costo": 181.95,
+    "tipo_producto": "Jugo",
+    "marca": "Bc",
+    "variedad": "Naranja",
+    "presentacion": {
+      "Ml": 500
+    }
+  },
+  {
+    "id": 771,
+    "codigos_de_barras": [
+      33090384154465
+    ],
+    "precio_de_venta": 100.0,
+    "porcentaje": 122.51891410769916,
+    "precio_de_costo": 44.94,
+    "tipo_producto": "Alfajor",
+    "marca": "Tatin",
+    "variedad": "Blanco",
+    "presentacion": {
+      "Gr": 60.0
+    }
+  },
+  {
+    "id": 777,
+    "codigos_de_barras": [
+      53348623626611
+    ],
+    "precio_de_venta": 720.0,
+    "porcentaje": 191.98264325398435,
+    "precio_de_costo": 246.59,
+    "tipo_producto": "Aceitunas",
+    "marca": "Nucete",
+    "variedad": "Descarozadas",
+    "presentacion": {
+      "Gr": 330.0
+    }
+  },
+  {
+    "id": 758,
+    "codigos_de_barras": [
+      44282730990454
+    ],
+    "precio_de_venta": 2900.0,
+    "porcentaje": 93.33333333333331,
+    "precio_de_costo": 1500.0,
+    "tipo_producto": "Whisky",
+    "marca": "Old",
+    "variedad": "Smugler",
     "presentacion": {
       "Lt": 1.0
     }
   },
   {
-    "id": 818,
+    "id": 759,
     "codigos_de_barras": [
-      12037466091629
+      32400887784823
     ],
-    "precio_de_venta": 130.0,
-    "porcentaje": 2103.3898305084745,
-    "precio_de_costo": 5.9,
-    "tipo_producto": "Galletas",
-    "marca": "G&m",
-    "variedad": "Clasicas",
+    "precio_de_venta": 640.0,
+    "porcentaje": 240.3350172826376,
+    "precio_de_costo": 188.05,
+    "tipo_producto": "Galletitas",
+    "marca": "Fantoche",
+    "variedad": "Espumita",
     "presentacion": {
-      "Gr": 200.0
+      "Gr": 300.0
     }
   },
   {
-    "id": 819,
+    "id": 763,
     "codigos_de_barras": [
-      60633972806579
+      86464249911050
     ],
-    "precio_de_venta": 650.0,
-    "porcentaje": 237.55712505193185,
-    "precio_de_costo": 192.56,
-    "tipo_producto": "Galletitas",
-    "marca": "Oreo",
-    "variedad": "X4",
+    "precio_de_venta": 210.0,
+    "porcentaje": 179.953341109815,
+    "precio_de_costo": 75.0125,
+    "tipo_producto": "Oblea",
+    "marca": "Nugaton",
+    "variedad": "Blanco",
     "presentacion": {
-      "Gr": 43.0
+      "Gr": 27.0
+    }
+  },
+  {
+    "id": 764,
+    "codigos_de_barras": [
+      33377755924716
+    ],
+    "precio_de_venta": 1180.0,
+    "porcentaje": 199.7815151669122,
+    "precio_de_costo": 393.62,
+    "tipo_producto": "Chocolate",
+    "marca": "Cadbury",
+    "variedad": "Frutilla",
+    "presentacion": {
+      "Gr": 82.0
+    }
+  },
+  {
+    "id": 772,
+    "codigos_de_barras": [
+      1966745771978
+    ],
+    "precio_de_venta": 110.0,
+    "porcentaje": 1427.7777777777776,
+    "precio_de_costo": 7.2,
+    "tipo_producto": "Pan",
+    "marca": "Rallado",
+    "variedad": "Lucchetti",
+    "presentacion": {
+      "Gr": 500.0
     }
   },
   {
@@ -12900,63 +12840,63 @@
     }
   },
   {
-    "id": 302,
+    "id": 817,
     "codigos_de_barras": [
-      22010106372726
+      1424461618689
     ],
-    "precio_de_venta": 3350.0,
-    "porcentaje": 334900.0,
-    "precio_de_costo": 1.0,
-    "tipo_producto": "Canarias",
-    "marca": "Yerba",
-    "variedad": "Mate",
+    "precio_de_venta": 830.0,
+    "porcentaje": 121.92513368983956,
+    "precio_de_costo": 374.0,
+    "tipo_producto": "Leche",
+    "marca": "Chocolatada",
+    "variedad": "Ilolay",
     "presentacion": {
-      "Gr": 500.0
+      "Lt": 1.0
     }
   },
   {
-    "id": 332,
+    "id": 816,
     "codigos_de_barras": [
-      67375235872093
+      32793492820314
     ],
-    "precio_de_venta": 200.0,
-    "porcentaje": 900.0,
-    "precio_de_costo": 20.0,
-    "tipo_producto": "Aguila",
-    "marca": "Almendras",
-    "variedad": "BaÃ±adasÃ±",
+    "precio_de_venta": 8390.0,
+    "porcentaje": 64.58370523234942,
+    "precio_de_costo": 5097.71,
+    "tipo_producto": "Huevo",
+    "marca": "Cofler",
+    "variedad": "Blockazo",
     "presentacion": {
-      "Gr": 120.0
+      "Kg": 1.0
     }
   },
   {
-    "id": 355,
+    "id": 819,
     "codigos_de_barras": [
-      19081558771345
+      60633972806579
     ],
-    "precio_de_venta": 3180.0,
-    "porcentaje": 35.31914893617021,
-    "precio_de_costo": 2350.0,
-    "tipo_producto": "Tabaco",
-    "marca": "Stanley",
-    "variedad": "Natural",
+    "precio_de_venta": 650.0,
+    "porcentaje": 237.55712505193185,
+    "precio_de_costo": 192.56,
+    "tipo_producto": "Galletitas",
+    "marca": "Oreo",
+    "variedad": "X4",
     "presentacion": {
-      "Gr": 30.0
+      "Gr": 43.0
     }
   },
   {
-    "id": 495,
+    "id": 818,
     "codigos_de_barras": [
-      96442224956138
+      12037466091629
     ],
-    "precio_de_venta": 850.0,
-    "porcentaje": 74.92591373065525,
-    "precio_de_costo": 485.92,
-    "tipo_producto": "Aceite",
-    "marca": "CaÃ±uelasÃ±",
-    "variedad": "Girasol",
+    "precio_de_venta": 130.0,
+    "porcentaje": 2103.3898305084745,
+    "precio_de_costo": 5.9,
+    "tipo_producto": "Galletas",
+    "marca": "G&m",
+    "variedad": "Clasicas",
     "presentacion": {
-      "Ml": 900
+      "Gr": 200.0
     }
   },
   {
@@ -14040,63 +13980,63 @@
     }
   },
   {
-    "id": 949,
+    "id": 332,
     "codigos_de_barras": [
-      69929895923935
+      67375235872093
     ],
-    "precio_de_venta": 840.0,
-    "porcentaje": 205.45454545454547,
-    "precio_de_costo": 275.0,
-    "tipo_producto": "Nachos",
-    "marca": "Macritas",
-    "variedad": "Ketchup",
+    "precio_de_venta": 200.0,
+    "porcentaje": 900.0,
+    "precio_de_costo": 20.0,
+    "tipo_producto": "Aguila",
+    "marca": "Almendras",
+    "variedad": "BaÃ±adasÃ±",
     "presentacion": {
-      "Gr": 70.0
+      "Gr": 120.0
     }
   },
   {
-    "id": 952,
+    "id": 302,
     "codigos_de_barras": [
-      41322664821293
+      22010106372726
     ],
-    "precio_de_venta": 230.0,
-    "porcentaje": 70.0554528650647,
-    "precio_de_costo": 135.25,
-    "tipo_producto": "Fideos",
-    "marca": "Terrabusi",
-    "variedad": "Foratini",
+    "precio_de_venta": 3350.0,
+    "porcentaje": 334900.0,
+    "precio_de_costo": 1.0,
+    "tipo_producto": "Canarias",
+    "marca": "Yerba",
+    "variedad": "Mate",
     "presentacion": {
       "Gr": 500.0
     }
   },
   {
-    "id": 955,
+    "id": 495,
     "codigos_de_barras": [
-      25374961785454
+      96442224956138
     ],
-    "precio_de_venta": 300.0,
-    "porcentaje": 100.0,
-    "precio_de_costo": 150.0,
-    "tipo_producto": "Pascualina",
-    "marca": "Alijor",
-    "variedad": "Light",
+    "precio_de_venta": 850.0,
+    "porcentaje": 74.92591373065525,
+    "precio_de_costo": 485.92,
+    "tipo_producto": "Aceite",
+    "marca": "CaÃ±uelasÃ±",
+    "variedad": "Girasol",
     "presentacion": {
-      "Gr": 390.0
+      "Ml": 900
     }
   },
   {
-    "id": 958,
+    "id": 355,
     "codigos_de_barras": [
-      91174278947924
+      19081558771345
     ],
-    "precio_de_venta": 2220.0,
-    "porcentaje": 610.4454685099846,
-    "precio_de_costo": 312.48,
-    "tipo_producto": "Chocolate",
-    "marca": "Cadbury",
-    "variedad": "Frutilla",
+    "precio_de_venta": 3180.0,
+    "porcentaje": 35.31914893617021,
+    "precio_de_costo": 2350.0,
+    "tipo_producto": "Tabaco",
+    "marca": "Stanley",
+    "variedad": "Natural",
     "presentacion": {
-      "Gr": 162.0
+      "Gr": 30.0
     }
   },
   {
@@ -15165,63 +15105,63 @@
     }
   },
   {
-    "id": 947,
+    "id": 952,
     "codigos_de_barras": [
-      3898383366970
+      41322664821293
     ],
-    "precio_de_venta": 1270.0,
-    "porcentaje": 104.8948905345014,
-    "precio_de_costo": 619.83,
-    "tipo_producto": "Vino",
-    "marca": "Norton",
-    "variedad": "Malbec",
+    "precio_de_venta": 230.0,
+    "porcentaje": 70.0554528650647,
+    "precio_de_costo": 135.25,
+    "tipo_producto": "Fideos",
+    "marca": "Terrabusi",
+    "variedad": "Foratini",
     "presentacion": {
-      "Ml": 750
+      "Gr": 500.0
     }
   },
   {
-    "id": 950,
+    "id": 949,
     "codigos_de_barras": [
-      40134099337063
+      69929895923935
     ],
-    "precio_de_venta": 400.0,
-    "porcentaje": 255.74528637495555,
-    "precio_de_costo": 112.44,
-    "tipo_producto": "Alfajor",
-    "marca": "B&n",
-    "variedad": "Blanco",
+    "precio_de_venta": 840.0,
+    "porcentaje": 205.45454545454547,
+    "precio_de_costo": 275.0,
+    "tipo_producto": "Nachos",
+    "marca": "Macritas",
+    "variedad": "Ketchup",
     "presentacion": {
-      "Gr": 73.0
+      "Gr": 70.0
     }
   },
   {
-    "id": 953,
+    "id": 958,
     "codigos_de_barras": [
-      53668164870966
+      91174278947924
     ],
-    "precio_de_venta": 950.0,
-    "porcentaje": 100.40502911146736,
-    "precio_de_costo": 474.04,
-    "tipo_producto": "Gaseosa",
-    "marca": "Schweppes",
-    "variedad": "Tonica",
+    "precio_de_venta": 2220.0,
+    "porcentaje": 610.4454685099846,
+    "precio_de_costo": 312.48,
+    "tipo_producto": "Chocolate",
+    "marca": "Cadbury",
+    "variedad": "Frutilla",
     "presentacion": {
-      "Lt": 2.0
+      "Gr": 162.0
     }
   },
   {
-    "id": 956,
+    "id": 955,
     "codigos_de_barras": [
-      91996299047545
+      25374961785454
     ],
-    "precio_de_venta": 190.0,
-    "porcentaje": 283.06451612903226,
-    "precio_de_costo": 49.6,
-    "tipo_producto": "Jugo",
-    "marca": "Tutti",
-    "variedad": "Manzana",
+    "precio_de_venta": 300.0,
+    "porcentaje": 100.0,
+    "precio_de_costo": 150.0,
+    "tipo_producto": "Pascualina",
+    "marca": "Alijor",
+    "variedad": "Light",
     "presentacion": {
-      "Ml": 200
+      "Gr": 390.0
     }
   },
   {
@@ -16305,63 +16245,63 @@
     }
   },
   {
-    "id": 948,
+    "id": 950,
     "codigos_de_barras": [
-      70136743406191
+      40134099337063
     ],
-    "precio_de_venta": 450.0,
-    "porcentaje": 167.07816487625377,
-    "precio_de_costo": 168.49,
-    "tipo_producto": "Lavandina",
-    "marca": "Ayudin",
-    "variedad": "Clasica",
+    "precio_de_venta": 400.0,
+    "porcentaje": 255.74528637495555,
+    "precio_de_costo": 112.44,
+    "tipo_producto": "Alfajor",
+    "marca": "B&n",
+    "variedad": "Blanco",
     "presentacion": {
-      "Lt": 1.0
+      "Gr": 73.0
     }
   },
   {
-    "id": 951,
+    "id": 947,
     "codigos_de_barras": [
-      4824818141979
+      3898383366970
     ],
-    "precio_de_venta": 460.0,
-    "porcentaje": 192.02640934484504,
-    "precio_de_costo": 157.52,
-    "tipo_producto": "Harina",
-    "marca": "Blancaflor",
-    "variedad": "0000",
-    "presentacion": {
-      "Kg": 1.0
-    }
-  },
-  {
-    "id": 954,
-    "codigos_de_barras": [
-      75420887325116
-    ],
-    "precio_de_venta": 1700.0,
-    "porcentaje": 242.6866634413804,
-    "precio_de_costo": 496.08,
+    "precio_de_venta": 1270.0,
+    "porcentaje": 104.8948905345014,
+    "precio_de_costo": 619.83,
     "tipo_producto": "Vino",
-    "marca": "Alaris",
-    "variedad": "Tempranillo",
+    "marca": "Norton",
+    "variedad": "Malbec",
     "presentacion": {
       "Ml": 750
     }
   },
   {
-    "id": 957,
+    "id": 956,
     "codigos_de_barras": [
-      74009753292432
+      91996299047545
     ],
-    "precio_de_venta": 250.0,
-    "porcentaje": 78.16419612314711,
-    "precio_de_costo": 140.32,
-    "tipo_producto": "Galletitas",
-    "marca": "Donuts",
-    "variedad": "Blancas",
+    "precio_de_venta": 190.0,
+    "porcentaje": 283.06451612903226,
+    "precio_de_costo": 49.6,
+    "tipo_producto": "Jugo",
+    "marca": "Tutti",
+    "variedad": "Manzana",
     "presentacion": {
-      "Gr": 52.0
+      "Ml": 200
+    }
+  },
+  {
+    "id": 953,
+    "codigos_de_barras": [
+      53668164870966
+    ],
+    "precio_de_venta": 950.0,
+    "porcentaje": 100.40502911146736,
+    "precio_de_costo": 474.04,
+    "tipo_producto": "Gaseosa",
+    "marca": "Schweppes",
+    "variedad": "Tonica",
+    "presentacion": {
+      "Lt": 2.0
     }
   },
   {
@@ -17445,63 +17385,63 @@
     }
   },
   {
-    "id": 1186,
+    "id": 951,
     "codigos_de_barras": [
-      92052043203877
+      4824818141979
     ],
-    "precio_de_venta": 580.0,
-    "porcentaje": 57900.0,
-    "precio_de_costo": 1.0,
-    "tipo_producto": "Fideos",
-    "marca": "Marolio",
-    "variedad": "Spaghetti",
+    "precio_de_venta": 460.0,
+    "porcentaje": 192.02640934484504,
+    "precio_de_costo": 157.52,
+    "tipo_producto": "Harina",
+    "marca": "Blancaflor",
+    "variedad": "0000",
     "presentacion": {
-      "Gr": 500.0
+      "Kg": 1.0
     }
   },
   {
-    "id": 1189,
+    "id": 948,
     "codigos_de_barras": [
-      49569511801486
-    ],
-    "precio_de_venta": 1680.0,
-    "porcentaje": 70.04048582995952,
-    "precio_de_costo": 988.0,
-    "tipo_producto": "Vino",
-    "marca": "Lagarde",
-    "variedad": "Rose",
-    "presentacion": {
-      "Ml": 750
-    }
-  },
-  {
-    "id": 1195,
-    "codigos_de_barras": [
-      45493649561860
+      70136743406191
     ],
     "precio_de_venta": 450.0,
-    "porcentaje": 134.36279360449976,
-    "precio_de_costo": 192.01,
-    "tipo_producto": "Gaseosa",
-    "marca": "Fanta",
-    "variedad": "Naranja",
+    "porcentaje": 167.07816487625377,
+    "precio_de_costo": 168.49,
+    "tipo_producto": "Lavandina",
+    "marca": "Ayudin",
+    "variedad": "Clasica",
     "presentacion": {
-      "Ml": 500
+      "Lt": 1.0
     }
   },
   {
-    "id": 1198,
+    "id": 957,
     "codigos_de_barras": [
-      74111625593461
+      74009753292432
     ],
-    "precio_de_venta": 360.0,
-    "porcentaje": 271.2105588781192,
-    "precio_de_costo": 96.98,
-    "tipo_producto": "Salsa",
-    "marca": "Knorr",
-    "variedad": "Filetto",
+    "precio_de_venta": 250.0,
+    "porcentaje": 78.16419612314711,
+    "precio_de_costo": 140.32,
+    "tipo_producto": "Galletitas",
+    "marca": "Donuts",
+    "variedad": "Blancas",
     "presentacion": {
-      "Gr": 340.0
+      "Gr": 52.0
+    }
+  },
+  {
+    "id": 954,
+    "codigos_de_barras": [
+      75420887325116
+    ],
+    "precio_de_venta": 1700.0,
+    "porcentaje": 242.6866634413804,
+    "precio_de_costo": 496.08,
+    "tipo_producto": "Vino",
+    "marca": "Alaris",
+    "variedad": "Tempranillo",
+    "presentacion": {
+      "Ml": 750
     }
   },
   {
@@ -18585,63 +18525,63 @@
     }
   },
   {
-    "id": 1187,
+    "id": 1189,
     "codigos_de_barras": [
-      51496093920462
+      49569511801486
     ],
-    "precio_de_venta": 230.0,
-    "porcentaje": 70.0554528650647,
-    "precio_de_costo": 135.25,
+    "precio_de_venta": 1680.0,
+    "porcentaje": 70.04048582995952,
+    "precio_de_costo": 988.0,
+    "tipo_producto": "Vino",
+    "marca": "Lagarde",
+    "variedad": "Rose",
+    "presentacion": {
+      "Ml": 750
+    }
+  },
+  {
+    "id": 1186,
+    "codigos_de_barras": [
+      92052043203877
+    ],
+    "precio_de_venta": 580.0,
+    "porcentaje": 57900.0,
+    "precio_de_costo": 1.0,
     "tipo_producto": "Fideos",
-    "marca": "Terrabusi",
-    "variedad": "Tirabuzon",
+    "marca": "Marolio",
+    "variedad": "Spaghetti",
     "presentacion": {
       "Gr": 500.0
     }
   },
   {
-    "id": 1190,
+    "id": 1198,
     "codigos_de_barras": [
-      16294905259660
+      74111625593461
     ],
-    "precio_de_venta": 830.0,
-    "porcentaje": 104.43349753694582,
-    "precio_de_costo": 406.0,
-    "tipo_producto": "Galletas",
-    "marca": "Donatto",
-    "variedad": "Cebolla",
+    "precio_de_venta": 360.0,
+    "porcentaje": 271.2105588781192,
+    "precio_de_costo": 96.98,
+    "tipo_producto": "Salsa",
+    "marca": "Knorr",
+    "variedad": "Filetto",
     "presentacion": {
-      "Gr": 160.0
+      "Gr": 340.0
     }
   },
   {
-    "id": 1193,
+    "id": 1195,
     "codigos_de_barras": [
-      63713695916131
+      45493649561860
     ],
-    "precio_de_venta": 1670.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Canarias",
-    "marca": "Yerba",
-    "variedad": "Mate",
+    "precio_de_venta": 450.0,
+    "porcentaje": 134.36279360449976,
+    "precio_de_costo": 192.01,
+    "tipo_producto": "Gaseosa",
+    "marca": "Fanta",
+    "variedad": "Naranja",
     "presentacion": {
-      "Gr": 250.0
-    }
-  },
-  {
-    "id": 1196,
-    "codigos_de_barras": [
-      93798062256085
-    ],
-    "precio_de_venta": 180.0,
-    "porcentaje": 1425.4237288135591,
-    "precio_de_costo": 11.8,
-    "tipo_producto": "Caramelos",
-    "marca": "Gajos",
-    "variedad": "Frutales",
-    "presentacion": {
-      "Gr": 150.0
+      "Ml": 500
     }
   },
   {
@@ -19725,63 +19665,63 @@
     }
   },
   {
-    "id": 1188,
+    "id": 1190,
     "codigos_de_barras": [
-      52127466312794
+      16294905259660
     ],
-    "precio_de_venta": 420.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Tomate",
-    "marca": "Triturado",
-    "variedad": "Marolio",
+    "precio_de_venta": 830.0,
+    "porcentaje": 104.43349753694582,
+    "precio_de_costo": 406.0,
+    "tipo_producto": "Galletas",
+    "marca": "Donatto",
+    "variedad": "Cebolla",
+    "presentacion": {
+      "Gr": 160.0
+    }
+  },
+  {
+    "id": 1187,
+    "codigos_de_barras": [
+      51496093920462
+    ],
+    "precio_de_venta": 230.0,
+    "porcentaje": 70.0554528650647,
+    "precio_de_costo": 135.25,
+    "tipo_producto": "Fideos",
+    "marca": "Terrabusi",
+    "variedad": "Tirabuzon",
     "presentacion": {
       "Gr": 500.0
     }
   },
   {
-    "id": 1191,
+    "id": 1196,
     "codigos_de_barras": [
-      57173770478294
+      93798062256085
     ],
-    "precio_de_venta": 790.0,
-    "porcentaje": 508.62865947611704,
-    "precio_de_costo": 129.8,
-    "tipo_producto": "Arroz",
-    "marca": "Lucchetti",
-    "variedad": "Parboil",
+    "precio_de_venta": 180.0,
+    "porcentaje": 1425.4237288135591,
+    "precio_de_costo": 11.8,
+    "tipo_producto": "Caramelos",
+    "marca": "Gajos",
+    "variedad": "Frutales",
     "presentacion": {
-      "Gr": 500.0
+      "Gr": 150.0
     }
   },
   {
-    "id": 1194,
+    "id": 1193,
     "codigos_de_barras": [
-      27879991494711
+      63713695916131
     ],
-    "precio_de_venta": 490.0,
-    "porcentaje": 229.4339115234637,
-    "precio_de_costo": 148.74,
-    "tipo_producto": "Detergente",
-    "marca": "Magistral",
-    "variedad": "Marina",
-    "presentacion": {
-      "Ml": 215
-    }
-  },
-  {
-    "id": 1197,
-    "codigos_de_barras": [
-      41700738184275
-    ],
-    "precio_de_venta": 4200.0,
+    "precio_de_venta": 1670.0,
     "porcentaje": 0.0,
     "precio_de_costo": 0.0,
-    "tipo_producto": "Saint",
-    "marca": "Felicien",
-    "variedad": "Malbec",
+    "tipo_producto": "Canarias",
+    "marca": "Yerba",
+    "variedad": "Mate",
     "presentacion": {
-      "Ml": 750
+      "Gr": 250.0
     }
   },
   {
@@ -20865,6 +20805,66 @@
     }
   },
   {
+    "id": 1191,
+    "codigos_de_barras": [
+      57173770478294
+    ],
+    "precio_de_venta": 790.0,
+    "porcentaje": 508.62865947611704,
+    "precio_de_costo": 129.8,
+    "tipo_producto": "Arroz",
+    "marca": "Lucchetti",
+    "variedad": "Parboil",
+    "presentacion": {
+      "Gr": 500.0
+    }
+  },
+  {
+    "id": 1188,
+    "codigos_de_barras": [
+      52127466312794
+    ],
+    "precio_de_venta": 420.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Tomate",
+    "marca": "Triturado",
+    "variedad": "Marolio",
+    "presentacion": {
+      "Gr": 500.0
+    }
+  },
+  {
+    "id": 1197,
+    "codigos_de_barras": [
+      41700738184275
+    ],
+    "precio_de_venta": 4200.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Saint",
+    "marca": "Felicien",
+    "variedad": "Malbec",
+    "presentacion": {
+      "Ml": 750
+    }
+  },
+  {
+    "id": 1194,
+    "codigos_de_barras": [
+      27879991494711
+    ],
+    "precio_de_venta": 490.0,
+    "porcentaje": 229.4339115234637,
+    "precio_de_costo": 148.74,
+    "tipo_producto": "Detergente",
+    "marca": "Magistral",
+    "variedad": "Marina",
+    "presentacion": {
+      "Ml": 215
+    }
+  },
+  {
     "id": 1420,
     "codigos_de_barras": [
       68166024259849
@@ -21285,168 +21285,18 @@
     }
   },
   {
-    "id": 1154,
+    "id": 1078,
     "codigos_de_barras": [
-      14642649493125
+      18976758373545
     ],
-    "precio_de_venta": 530.0,
-    "porcentaje": 211.7280319962357,
-    "precio_de_costo": 170.02,
-    "tipo_producto": "Acondicionador",
-    "marca": "Sedal",
-    "variedad": "Ceramidas",
-    "presentacion": {
-      "Ml": 190
-    }
-  },
-  {
-    "id": 1159,
-    "codigos_de_barras": [
-      24602273655998
-    ],
-    "precio_de_venta": 1250.0,
+    "precio_de_venta": 470.0,
     "porcentaje": 0.0,
     "precio_de_costo": 0.0,
-    "tipo_producto": "Antitranspirante",
-    "marca": "Dove",
-    "variedad": "Original",
+    "tipo_producto": "Galletas",
+    "marca": "Ns",
+    "variedad": "Tradicionales",
     "presentacion": {
-      "Ml": 250
-    }
-  },
-  {
-    "id": 1170,
-    "codigos_de_barras": [
-      37805443197645
-    ],
-    "precio_de_venta": 690.0,
-    "porcentaje": 68900.0,
-    "precio_de_costo": 1.0,
-    "tipo_producto": "Fideos",
-    "marca": "Badaloni",
-    "variedad": "MoÃ±osÃ±",
-    "presentacion": {
-      "Gr": 500.0
-    }
-  },
-  {
-    "id": 1180,
-    "codigos_de_barras": [
-      10636002516832
-    ],
-    "precio_de_venta": 600.0,
-    "porcentaje": 234.80274538251211,
-    "precio_de_costo": 179.21,
-    "tipo_producto": "Helado",
-    "marca": "Fanta",
-    "variedad": "Naranja",
-    "presentacion": {
-      "Gr": 75.0
-    }
-  },
-  {
-    "id": 1181,
-    "codigos_de_barras": [
-      84804542334466
-    ],
-    "precio_de_venta": 440.0,
-    "porcentaje": 136.3558229480017,
-    "precio_de_costo": 186.16,
-    "tipo_producto": "Talitas",
-    "marca": "Don",
-    "variedad": "Satur",
-    "presentacion": {
-      "Gr": 140.0
-    }
-  },
-  {
-    "id": 1182,
-    "codigos_de_barras": [
-      16240156879805
-    ],
-    "precio_de_venta": 365.0,
-    "porcentaje": 33081.818181818184,
-    "precio_de_costo": 1.1,
-    "tipo_producto": "Galletitas",
-    "marca": "Forvan",
-    "variedad": "Vanina",
-    "presentacion": {
-      "Gr": 160.0
-    }
-  },
-  {
-    "id": 1192,
-    "codigos_de_barras": [
-      69109016121028
-    ],
-    "precio_de_venta": 740.0,
-    "porcentaje": 200.44660982541615,
-    "precio_de_costo": 246.3,
-    "tipo_producto": "Detergente",
-    "marca": "Magistral",
-    "variedad": "Marina",
-    "presentacion": {
-      "Ml": 300
-    }
-  },
-  {
-    "id": 1221,
-    "codigos_de_barras": [
-      65503864664017
-    ],
-    "precio_de_venta": 180.0,
-    "porcentaje": 40.97744360902256,
-    "precio_de_costo": 127.68,
-    "tipo_producto": "Magdalenas",
-    "marca": "Valente",
-    "variedad": "Chips",
-    "presentacion": {
-      "Gr": 180.0
-    }
-  },
-  {
-    "id": 1229,
-    "codigos_de_barras": [
-      8309096572835
-    ],
-    "precio_de_venta": 390.0,
-    "porcentaje": 73.33333333333334,
-    "precio_de_costo": 225.0,
-    "tipo_producto": "Bastoncitos",
-    "marca": "Krachitos",
-    "variedad": "Queso",
-    "presentacion": {
-      "Gr": 55.0
-    }
-  },
-  {
-    "id": 1276,
-    "codigos_de_barras": [
-      53828090872077
-    ],
-    "precio_de_venta": 200.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 200.0,
-    "tipo_producto": "Chocolate",
-    "marca": "Vizzio",
-    "variedad": "Blanco",
-    "presentacion": {
-      "Gr": 90.0
-    }
-  },
-  {
-    "id": 1296,
-    "codigos_de_barras": [
-      26472728147104
-    ],
-    "precio_de_venta": 830.0,
-    "porcentaje": 268.7905447436239,
-    "precio_de_costo": 225.06,
-    "tipo_producto": "Fideos",
-    "marca": "Matarazzo",
-    "variedad": "Spaghetti",
-    "presentacion": {
-      "Gr": 500.0
+      "Gr": 300.0
     }
   },
   {
@@ -21627,6 +21477,201 @@
     "variedad": "Torta",
     "presentacion": {
       "Gr": 70.0
+    }
+  },
+  {
+    "id": 1101,
+    "codigos_de_barras": [
+      37643569805582
+    ],
+    "precio_de_venta": 150.0,
+    "porcentaje": 1130.769230769231,
+    "precio_de_costo": 12.1875,
+    "tipo_producto": "Jabon",
+    "marca": "Espadol",
+    "variedad": "Cremoso",
+    "presentacion": {
+      "Gr": 90.0
+    }
+  },
+  {
+    "id": 1458,
+    "codigos_de_barras": [
+      81221092155485
+    ],
+    "precio_de_venta": 1400.0,
+    "porcentaje": 40.0,
+    "precio_de_costo": 1000.0,
+    "tipo_producto": "Crema Corporal",
+    "marca": "Nivea",
+    "variedad": "Original",
+    "presentacion": {
+      "Ml": 500
+    }
+  },
+  {
+    "id": 1154,
+    "codigos_de_barras": [
+      14642649493125
+    ],
+    "precio_de_venta": 530.0,
+    "porcentaje": 211.7280319962357,
+    "precio_de_costo": 170.02,
+    "tipo_producto": "Acondicionador",
+    "marca": "Sedal",
+    "variedad": "Ceramidas",
+    "presentacion": {
+      "Ml": 190
+    }
+  },
+  {
+    "id": 1159,
+    "codigos_de_barras": [
+      24602273655998
+    ],
+    "precio_de_venta": 1250.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 0.0,
+    "tipo_producto": "Antitranspirante",
+    "marca": "Dove",
+    "variedad": "Original",
+    "presentacion": {
+      "Ml": 250
+    }
+  },
+  {
+    "id": 1170,
+    "codigos_de_barras": [
+      37805443197645
+    ],
+    "precio_de_venta": 690.0,
+    "porcentaje": 68900.0,
+    "precio_de_costo": 1.0,
+    "tipo_producto": "Fideos",
+    "marca": "Badaloni",
+    "variedad": "MoÃ±osÃ±",
+    "presentacion": {
+      "Gr": 500.0
+    }
+  },
+  {
+    "id": 1180,
+    "codigos_de_barras": [
+      10636002516832
+    ],
+    "precio_de_venta": 600.0,
+    "porcentaje": 234.80274538251211,
+    "precio_de_costo": 179.21,
+    "tipo_producto": "Helado",
+    "marca": "Fanta",
+    "variedad": "Naranja",
+    "presentacion": {
+      "Gr": 75.0
+    }
+  },
+  {
+    "id": 1181,
+    "codigos_de_barras": [
+      84804542334466
+    ],
+    "precio_de_venta": 440.0,
+    "porcentaje": 136.3558229480017,
+    "precio_de_costo": 186.16,
+    "tipo_producto": "Talitas",
+    "marca": "Don",
+    "variedad": "Satur",
+    "presentacion": {
+      "Gr": 140.0
+    }
+  },
+  {
+    "id": 1182,
+    "codigos_de_barras": [
+      16240156879805
+    ],
+    "precio_de_venta": 365.0,
+    "porcentaje": 33081.818181818184,
+    "precio_de_costo": 1.1,
+    "tipo_producto": "Galletitas",
+    "marca": "Forvan",
+    "variedad": "Vanina",
+    "presentacion": {
+      "Gr": 160.0
+    }
+  },
+  {
+    "id": 1192,
+    "codigos_de_barras": [
+      69109016121028
+    ],
+    "precio_de_venta": 740.0,
+    "porcentaje": 200.44660982541615,
+    "precio_de_costo": 246.3,
+    "tipo_producto": "Detergente",
+    "marca": "Magistral",
+    "variedad": "Marina",
+    "presentacion": {
+      "Ml": 300
+    }
+  },
+  {
+    "id": 1221,
+    "codigos_de_barras": [
+      65503864664017
+    ],
+    "precio_de_venta": 180.0,
+    "porcentaje": 40.97744360902256,
+    "precio_de_costo": 127.68,
+    "tipo_producto": "Magdalenas",
+    "marca": "Valente",
+    "variedad": "Chips",
+    "presentacion": {
+      "Gr": 180.0
+    }
+  },
+  {
+    "id": 1229,
+    "codigos_de_barras": [
+      8309096572835
+    ],
+    "precio_de_venta": 390.0,
+    "porcentaje": 73.33333333333334,
+    "precio_de_costo": 225.0,
+    "tipo_producto": "Bastoncitos",
+    "marca": "Krachitos",
+    "variedad": "Queso",
+    "presentacion": {
+      "Gr": 55.0
+    }
+  },
+  {
+    "id": 1276,
+    "codigos_de_barras": [
+      53828090872077
+    ],
+    "precio_de_venta": 200.0,
+    "porcentaje": 0.0,
+    "precio_de_costo": 200.0,
+    "tipo_producto": "Chocolate",
+    "marca": "Vizzio",
+    "variedad": "Blanco",
+    "presentacion": {
+      "Gr": 90.0
+    }
+  },
+  {
+    "id": 1296,
+    "codigos_de_barras": [
+      26472728147104
+    ],
+    "precio_de_venta": 830.0,
+    "porcentaje": 268.7905447436239,
+    "precio_de_costo": 225.06,
+    "tipo_producto": "Fideos",
+    "marca": "Matarazzo",
+    "variedad": "Spaghetti",
+    "presentacion": {
+      "Gr": 500.0
     }
   },
   {
@@ -21867,51 +21912,6 @@
     "variedad": "Ceramidas",
     "presentacion": {
       "Ml": 10
-    }
-  },
-  {
-    "id": 1078,
-    "codigos_de_barras": [
-      18976758373545
-    ],
-    "precio_de_venta": 470.0,
-    "porcentaje": 0.0,
-    "precio_de_costo": 0.0,
-    "tipo_producto": "Galletas",
-    "marca": "Ns",
-    "variedad": "Tradicionales",
-    "presentacion": {
-      "Gr": 300.0
-    }
-  },
-  {
-    "id": 1101,
-    "codigos_de_barras": [
-      37643569805582
-    ],
-    "precio_de_venta": 150.0,
-    "porcentaje": 1130.769230769231,
-    "precio_de_costo": 12.1875,
-    "tipo_producto": "Jabon",
-    "marca": "Espadol",
-    "variedad": "Cremoso",
-    "presentacion": {
-      "Gr": 90.0
-    }
-  },
-  {
-    "id": 1458,
-    "codigos_de_barras": [
-      81221092155485
-    ],
-    "precio_de_venta": 1400.0,
-    "porcentaje": 40.0,
-    "precio_de_costo": 1000.0,
-    "tipo_producto": "Crema Corporal",
-    "marca": "Nivea",
-    "variedad": "Original",
-    "presentacion": {
-      "Ml": 500
     }
   }
 ]

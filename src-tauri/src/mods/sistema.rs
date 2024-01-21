@@ -3,15 +3,14 @@ use chrono::Utc;
 use entity::codigo_barras;
 use entity::*;
 use sea_orm::ColumnTrait;
-use Valuable as V;
 use sea_orm::Condition;
 use sea_orm::QueryFilter;
 use sea_orm::Set;
 use sea_orm::{Database, EntityTrait};
 use tauri::async_runtime;
+use Valuable as V;
 
 use super::error::AppError;
-use super::lib::camalize;
 
 use super::lib::cargar_todas_las_relaciones_prod_prov;
 use super::lib::cargar_todos_los_provs;
@@ -230,14 +229,9 @@ impl<'a> Sistema {
         presentacion: &str,
     ) -> Res<Producto> {
         let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
-
-        let tipo_producto = camalize(tipo_producto);
-        let marca = camalize(marca);
-        let variedad = camalize(variedad);
-
-        let tipo_producto = tipo_producto.as_str();
-        let marca = marca.as_str();
-        let variedad = variedad.as_str();
+        let tipo_producto =tipo_producto.to_lowercase();
+        let marca = marca.to_lowercase();
+        let variedad = variedad.to_lowercase();
 
         let precio_de_venta = precio_de_venta.parse::<f64>()?;
         let porcentaje = porcentaje.parse::<f64>()?;
@@ -310,9 +304,9 @@ impl<'a> Sistema {
             precio_de_venta,
             porcentaje,
             precio_de_costo,
-            tipo_producto,
-            marca,
-            variedad,
+            tipo_producto.as_str(),
+            marca.as_str(),
+            variedad.as_str(),
             presentacion,
         );
 
@@ -394,9 +388,10 @@ impl<'a> Sistema {
                     .filter(|x| -> bool { x.is_numeric() })
                     .collect();
                 let contacto = Some(contacto.parse()?);
+                let proveedor = proveedor.to_lowercase();
                 prov = Proveedor::new(
                     self.proveedores.len() as i64 + 1,
-                    camalize(proveedor).as_str(),
+                    proveedor.as_str(),
                     contacto,
                 );
             } else {

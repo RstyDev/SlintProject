@@ -158,9 +158,9 @@ function dibujar_venta(venta) {
       
     </section>
      </article>`;
+
   for (let producto of venta.productos) {
     let disabled;
-    console.log(Object.keys(producto));
     let art;
     if (Object.keys(producto) == 'Pes') {
       if (producto.Pes[0] <= 1) {
@@ -174,8 +174,8 @@ function dibujar_venta(venta) {
         art.id = producto.Pes[1].id;
         art.classList.add('articulo');
         art.innerHTML = `
-      <section class="descripcion">
-         <p> ${strings} </p>
+      <section class="descripcion ${configs.modo_mayus}">
+         <p > ${strings} </p>
       </section>
       <section class="cantidad">
          <button class="button restar" ${disabled}>-</button>
@@ -193,6 +193,7 @@ function dibujar_venta(venta) {
      </section>
       `;
         ///----
+        console.log(art.children[0])
 
 
         art.children[1].children[2].addEventListener('click', (e) => {
@@ -229,7 +230,7 @@ function dibujar_venta(venta) {
         art.id = producto.Rub[1].id;
         art.classList.add('articulo');
         art.innerHTML = `
-      <section class="descripcion">
+      <section class="descripcion ${configs.modo_mayus}">
          <p> ${strings} </p>
       </section>
       <section class="cantidad">
@@ -281,11 +282,12 @@ function dibujar_venta(venta) {
       }
 
       get_descripcion_valuable(producto, configs).then(strings => {
+
         let art = document.createElement('article');
         art.id = producto.Prod[1].id;
         art.classList.add('articulo');
         art.innerHTML = `
-      <section class="descripcion">
+      <section class="descripcion ${configs.modo_mayus}">
          <p> ${strings} </p>
       </section>
       <section class="cantidad">
@@ -329,7 +331,7 @@ function dibujar_venta(venta) {
         hijosRes.innerHTML += `<p>${strings}</p>`
       });
     }
-    
+
 
 
 
@@ -551,6 +553,7 @@ function dibujarProductos(objetos) {
     id.innerHTML = objetos[i].Prod[1].id;
     id.style.display = 'none'
     let producto = document.createElement('td');
+    producto.classList.add(`${configs.modo_mayus}`);
     producto.innerHTML = objetos[i].Prod[1].tipo_producto + ' ' + objetos[i].Prod[1].marca + ' ' + objetos[i].Prod[1].variedad + ' ' + cantidad + ' ' + presentacion;
     tr2.appendChild(producto);
     let precio = document.createElement('td');

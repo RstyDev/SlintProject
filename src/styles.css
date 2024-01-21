@@ -502,6 +502,15 @@ label {
   margin: auto;
 }
 
+.Lower{
+  text-transform: lowercase;
+}
+.Upper{
+  text-transform: uppercase;
+}
+.Camel{
+  text-transform: capitalize;
+}
 #agregar-proveedor-submit div {
   text-align: center;
   width: 100%;

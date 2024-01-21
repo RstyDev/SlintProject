@@ -1,14 +1,14 @@
 use super::{
-    config::{Config, Formato, Mayusculas},
-    lib::{camalize, Save},
+    config::{Config, Formato},
+    lib::Save,
     pesable::Pesable,
     producto::Producto,
     rubro::Rubro,
 };
-use Valuable as V;
 use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
+use Valuable as V;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {
@@ -32,7 +32,7 @@ impl Valuable {
     //     }
     // }
     pub fn get_descripcion(&self, conf: &Config) -> String {
-        let mut res = match self {
+        let res = match self {
             V::Pes(a) => a.1.get_descripcion().to_string(),
             V::Rub(a) => a.1.get_descripcion().to_string(),
             V::Prod(a) => match conf.get_formato() {
@@ -88,11 +88,7 @@ impl Valuable {
                 ),
             },
         };
-        match conf.get_modo_mayus() {
-            Mayusculas::Lower => res = res.to_lowercase(),
-            Mayusculas::Upper => res = res.to_uppercase(),
-            Mayusculas::Camel => res = camalize(res.as_str()).to_string(),
-        }
+
         res
     }
 }

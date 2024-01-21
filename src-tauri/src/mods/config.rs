@@ -23,9 +23,9 @@ impl Config {
     pub fn get_formato(&self) -> Formato {
         self.formato_producto.clone()
     }
-    pub fn get_modo_mayus(&self) -> Mayusculas {
-        self.modo_mayus.clone()
-    }
+    // pub fn get_modo_mayus(&self) -> Mayusculas {
+    //     self.modo_mayus.clone()
+    // }
 }
 impl Default for Config {
     fn default() -> Self {

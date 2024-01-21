@@ -2,7 +2,7 @@
   {
     "politica_redondeo": 10.0,
     "formato_producto": "Mtv",
-    "modo_mayus": "Upper",
+    "modo_mayus": "Camel",
     "cantidad_productos": 20,
     "medios_pago": [
       "Efectivo",

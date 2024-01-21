@@ -45,78 +45,7 @@ pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result
     Ok(())
 }
 
-pub fn camalize(data: &str) -> String {
-    let mut es = true;
-    let mut datos = String::new();
-    for i in 0..data.len() {
-        if es {
-            if data.chars().nth(i) == None {
-                datos.push('Ñ');
-            } else {
-                datos.push(
-                    data.chars()
-                        .nth(i)
-                        .unwrap()
-                        .to_uppercase()
-                        .to_string()
-                        .chars()
-                        .last()
-                        .unwrap(),
-                )
-            }
-        } else {
-            if data.chars().nth(i) == None {
-                datos.push('ñ');
-            } else {
-                datos.push(
-                    data.chars()
-                        .nth(i)
-                        .unwrap()
-                        .to_lowercase()
-                        .to_string()
-                        .chars()
-                        .last()
-                        .unwrap(),
-                )
-            }
-        }
 
-        if data.chars().nth(i).is_some() && data.chars().nth(i).unwrap() == ' ' {
-            es = true;
-        } else {
-            es = false;
-        }
-    }
-
-    // for (i, mut a) in iter.char_indices() {
-    //     println!("llego");
-    //     if es {
-    //         if a == 'ñ' || a == 'Ñ' {
-    //             println!("es {}", a);
-    //             data.replace_range(i..i + 1, 'Ñ'.to_string().as_str());
-    //             println!("reemplazado");
-    //         } else {
-    //             a.make_ascii_uppercase();
-    //             data.replace_range(i..i + 1, a.to_string().as_str());
-    //         }
-    //     } else {
-    //         if a == 'ñ' || a == 'Ñ' {
-    //             println!("es {}", a);
-    //             data.replace_range(i..i + 1, 'ñ'.to_string().as_str());
-    //             println!("reemplazado");
-    //         } else {
-    //             a.make_ascii_lowercase();
-    //             data.replace_range(i..i + 1, a.to_string().as_str());
-    //         }
-    //     }
-    //     if a == ' ' {
-    //         es = true;
-    //     } else {
-    //         es = false
-    //     }
-    // }
-    datos
-}
 
 pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     buf: &mut T,
