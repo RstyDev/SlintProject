@@ -169,22 +169,83 @@ variedades_galletitas = ['Chocolate', 'Surtidas', 'Vainilla', 'Limon', 'Glaseada
 cantidades_galletitas = [150, 170, 300, 450, 600, 900];
 
 
-
 let prods = [];
 function procesar_datos(tipo_producto, marcas, variedades, cantidades, presentacion) {
     let cant_tot = marcas.length * variedades.length * cantidades.length;
     for (let i = 0; i < cant_tot; i++) {
+        let esta=false;
+        let codigo;
+        let marca;
+        let variedad;
+        let cantidad;
+        do{
+            codigo=getCode();
+            for (let j=0;j<prods.length;j++){
+                if(prods[j].codigos_de_barras.includes(codigo)){
+                    esta=true;
+                }
+            }
+        }while(esta)
+        
+        do{
+            marca=elegirAleatoriamente(marcas);
+            variedad=elegirAleatoriamente(variedades);
+            cantidad=elegirAleatoriamente(cantidades);
+            for (let j=0;j<prods.length;j++){
+                switch (Object.keys(prods[j].presentacion)){
+                    case 'Gr':
+                        if(marca==prods[j].marca&&variedad==prods[j].variedad&&cantidad==prods[j].presentacion.Gr==cantidad){
+                            esta=true;
+                        };
+                        break;
+                    case 'Un':
+                        if(marca==prods[j].marca&&variedad==prods[j].variedad&&cantidad==prods[j].presentacion.Un==cantidad){
+                            esta=true;
+                        };
+                        break;
+                    case 'Lt':
+                        if(marca==prods[j].marca&&variedad==prods[j].variedad&&cantidad==prods[j].presentacion.Lt==cantidad){
+                            esta=true;
+                        };
+                        break;
+                    case 'Ml':
+                        if(marca==prods[j].marca&&variedad==prods[j].variedad&&cantidad==prods[j].presentacion.Ml==cantidad){
+                            esta=true;
+                        };
+                        break;
+                    case 'CC':
+                        if(marca==prods[j].marca&&variedad==prods[j].variedad&&cantidad==prods[j].presentacion.CC==cantidad){
+                            esta=true;
+                        };
+                        break;
+                    case 'Kg':
+                        if(marca==prods[j].marca&&variedad==prods[j].variedad&&cantidad==prods[j].presentacion.Kg==cantidad){
+                            esta=true;
+                        };
+                        break;                        
+                }
+                
+            }
+        }while(esta)
+
         let costo = getCostPr();
         let codigos = [];
         for (let j = 0; j < elegirAleatoriamente(cantCodes); j++) {
-            codigos.push(getCode());
+            codigos.push(codigo);
         }
-        let prod_act = new Producto(posact, codigos, getSalePr(costo), costo, tipo_producto, elegirAleatoriamente(marcas), elegirAleatoriamente(variedades), presentacion, elegirAleatoriamente(cantidades));
-        
+        let prod_act = new Producto(posact, codigos, getSalePr(costo), costo, tipo_producto, marca, variedad, presentacion, cantidad);
+        for (let j=0;j<prods.length;j++){
+            if (prods[j].marca==prod_act.marca&&prod_act.presentacion&&prods[j].presentacion&&prod_act.variedad==prods[j].variedad){
+                
+            }        
+        }
         prods.push(prod_act)
     }
 }
 procesar_datos('Chocolate', marcas_chocolates, variedades_chocolate, cantidades_chocolates, 'Gr');
+procesar_datos('Arroz',marcas_arroz,variedades_arroz,cantidades_arroz,'Gr');
+procesar_datos('Galletitas',marcas_galletitas,variedades_galletitas,cantidades_galletitas,'Gr');
+
 console.log(prods);
 
 
