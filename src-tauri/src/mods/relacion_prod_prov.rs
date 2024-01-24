@@ -37,7 +37,7 @@ impl Save for RelacionProdProv {
             codigo: Set(self.codigo_interno),
             ..Default::default()
         };
-        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
         println!("conectado");
         model.insert(&db).await?;
         Ok(())

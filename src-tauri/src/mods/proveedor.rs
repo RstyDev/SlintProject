@@ -39,7 +39,7 @@ impl Save for Proveedor {
             contacto: Set(self.contacto),
             updated_at: Set(Utc::now().naive_utc()),
         };
-        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
         println!("conectado");
         model.insert(&db).await?;
         Ok(())

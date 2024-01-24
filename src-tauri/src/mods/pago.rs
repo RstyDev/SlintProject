@@ -24,7 +24,7 @@ impl Pago {
 }
 impl Save for Pago{
     async fn save(&self) -> Result<(),DbErr> {
-        let db= Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;     
+        let db= Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;     
         println!("conectado");
         let model = pago::ActiveModel {
             medio_pago: Set(self.medio_pago.to_string()),

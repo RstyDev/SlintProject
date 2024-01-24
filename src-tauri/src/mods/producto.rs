@@ -97,7 +97,7 @@ impl Producto {
 }
 impl Save for Producto {
     async fn save(&self) -> Result<(), DbErr> {
-        let db = Database::connect("postgres://postgres:L33tsupa@localhost:5432/Tauri").await?;
+        let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
         println!("Guardando producto en DB");
         let model = producto::ActiveModel {
             precio_de_venta: Set(self.precio_de_venta),
