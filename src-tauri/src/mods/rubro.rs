@@ -1,14 +1,14 @@
-use std::sync::Arc;
 use chrono::Utc;
 use entity::rubro;
 use sea_orm::{ActiveModelTrait, Database, DbErr, Set};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 use crate::redondeo;
 
 use super::{lib::Save, valuable::ValuableTrait};
 
-#[derive(Debug, Clone,  Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
     id: i64,
     monto: f64,
@@ -35,7 +35,7 @@ impl Rubro {
 }
 impl Save for Rubro {
     async fn save(&self) -> Result<(), DbErr> {
-        let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
+        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
         println!("conectado");
         let model = rubro::ActiveModel {
             id: Set(self.id),

@@ -3,4 +3,5 @@
 /target/
 
 .history/*
-migration/*
+migration/target/*
+migration/src/*

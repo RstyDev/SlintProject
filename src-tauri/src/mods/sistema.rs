@@ -2,8 +2,12 @@ type Res<T> = std::result::Result<T, AppError>;
 use chrono::Utc;
 use entity::codigo_barras;
 use entity::*;
+use full::slice::prod;
 use sea_orm::ColumnTrait;
 use sea_orm::Condition;
+use sea_orm::DatabaseConnection;
+use sea_orm::DbErr;
+use sea_orm::ModelTrait;
 use sea_orm::QueryFilter;
 use sea_orm::Set;
 use sea_orm::{Database, EntityTrait};
@@ -15,6 +19,7 @@ use super::error::AppError;
 use super::lib::cargar_todas_las_relaciones_prod_prov;
 use super::lib::cargar_todos_los_provs;
 use super::lib::cargar_todos_los_valuables;
+use super::lib::map_model_prov;
 use super::lib::save;
 use super::lib::update_data_provs;
 use super::lib::update_data_valuable;
@@ -32,6 +37,7 @@ use super::{
 };
 #[derive(Clone)]
 pub struct Sistema {
+    db: DatabaseConnection,
     configs: Config,
     productos: Vec<Valuable>,
     ventas: (Venta, Venta),
@@ -47,8 +53,35 @@ pub struct Sistema {
     registro: Vec<Venta>,
 }
 
+async fn get_cantidad_productos() -> Result<usize, DbErr> {
+    let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
+    let res = entity::producto::Entity::find().all(&db).await?;
+    Ok(res.len())
+}
+fn check_codes(prods: &mut Vec<Producto>) {
+    for i in 0..prods.len() {
+        println!("Producto {}", i);
+        for j in 0..prods[i].codigos_de_barras.len() {
+            for k in i + 1..prods.len() {
+                let mut l = 0;
+                while l < prods[k].codigos_de_barras.len() {
+                    if prods[i].codigos_de_barras[j] == prods[k].codigos_de_barras[l] {
+                        prods[k].rm_code(l);
+                    } else {
+                        l += 1;
+                    }
+                }
+            }
+        }
+    }
+}
+async fn get_db() -> Result<DatabaseConnection, DbErr> {
+    Database::connect("sqlite://db.sqlite?mode=rwc").await
+}
+
 impl<'a> Sistema {
     pub fn new() -> Res<Sistema> {
+        let db = async_runtime::block_on(get_db())?;
         let path_productos = "Productos.json";
         let path_proveedores = "Proveedores.json";
         let path_relaciones = "Relaciones.json";
@@ -61,10 +94,16 @@ impl<'a> Sistema {
         let mut proveedores: Vec<Proveedor> = Vec::new();
         let stash = Vec::new();
         let registro = Vec::new();
+
+        println!(
+            "Acá la cantidad de producto actual {}",
+            async_runtime::block_on(get_cantidad_productos()).unwrap()
+        );
         leer_file(&mut rubros, path_rubros)?;
         leer_file(&mut pesables, path_pesables)?;
         leer_file(&mut productos, path_productos)?;
         leer_file(&mut proveedores, path_proveedores)?;
+        check_codes(&mut productos);
         let mut hay_cambios_desde_db = async_runtime::block_on(update_data_valuable(
             &mut rubros,
             &mut pesables,
@@ -104,6 +143,7 @@ impl<'a> Sistema {
         }
 
         let sis = Sistema {
+            db,
             configs: configs[0].clone(),
             productos: valuables,
             ventas: (Venta::new(), Venta::new()),
@@ -126,18 +166,18 @@ impl<'a> Sistema {
             async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
         let prod_load_handle =
             async_runtime::spawn(cargar_todos_los_valuables(sis.productos.clone()));
-        let rel_load_handle = async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(
-            sis.relaciones.clone(),
-        ));
+        // let rel_load_handle = async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(
+        //     sis.relaciones.clone(),
+        // ));
         async_runtime::block_on(prov_load_handle)??;
         async_runtime::block_on(prod_load_handle)??;
-        async_runtime::block_on(rel_load_handle)??;
-        if hay_cambios_desde_db {
-            crear_file(path_pesables, &pesables)?;
-            crear_file(path_productos, &productos)?;
-            crear_file(path_rubros, &rubros)?;
-            crear_file(path_proveedores, &proveedores)?;
-        }
+        // async_runtime::block_on(rel_load_handle)??;
+        // if hay_cambios_desde_db {
+        //     crear_file(path_pesables, &pesables)?;
+        //     crear_file(path_productos, &productos)?;
+        //     crear_file(path_rubros, &rubros)?;
+        //     crear_file(path_proveedores, &proveedores)?;
+        // }
         Ok(sis)
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
@@ -146,8 +186,14 @@ impl<'a> Sistema {
     pub fn get_productos_cloned(&self) -> Vec<Valuable> {
         self.productos.clone()
     }
-    pub fn get_proveedores(&self) -> &Vec<Proveedor> {
-        &self.proveedores
+    pub async fn get_proveedores(&self) -> Vec<Proveedor> {
+        match entity::proveedor::Entity::find().all(&self.db).await {
+            Ok(a) => {
+                let res = a.iter().map(|x| map_model_prov(x)).collect::<Vec<Proveedor>>();
+                res
+            }
+            Err(e) => panic!("Error {}", e),
+        }
     }
     pub fn get_configs(&self) -> &Config {
         &self.configs
@@ -228,8 +274,8 @@ impl<'a> Sistema {
         cantidad: &str,
         presentacion: &str,
     ) -> Res<Producto> {
-        let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
-        let tipo_producto =tipo_producto.to_lowercase();
+        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
+        let tipo_producto = tipo_producto.to_lowercase();
         let marca = marca.to_lowercase();
         let variedad = variedad.to_lowercase();
 

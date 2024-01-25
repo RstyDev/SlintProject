@@ -45,8 +45,6 @@ pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result
     Ok(())
 }
 
-
-
 pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     buf: &mut T,
     path: &str,
@@ -123,7 +121,7 @@ pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Res<Ve
 }
 pub async fn update_data_provs(provs_local: &mut Vec<Proveedor>, path_provs: &str) -> Res<bool> {
     let mut hay_cambios = false;
-    let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
+    let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
     //....
 
     let provs_db_model = entity::proveedor::Entity::find().all(&db).await?;
@@ -165,7 +163,7 @@ pub async fn update_data_valuable(
     let mut prods: Vec<Valuable>;
     let mut hay_cambios_desde_db = false;
 
-    let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
+    let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
     let aux = update_productos_from_db(productos_local, path_productos, &db).await?;
     prods = productos_local
         .iter()
@@ -320,7 +318,7 @@ fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
         pes.descripcion.as_str(),
     )
 }
-fn map_model_prov(prov: &entity::proveedor::Model) -> Proveedor {
+pub fn map_model_prov(prov: &entity::proveedor::Model) -> Proveedor {
     Proveedor::new(prov.id, prov.nombre.as_str(), prov.contacto)
 }
 pub async fn cargar_todos_los_productos(
@@ -456,7 +454,7 @@ pub async fn cargar_todos_los_rubros(
 }
 pub async fn cargar_todos_los_valuables(productos: Vec<Valuable>) -> Result<(), DbErr> {
     println!("Guardando productos en DB");
-    let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
+    let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
     cargar_todos_los_productos(
         &productos
             .iter()
@@ -473,7 +471,7 @@ pub async fn cargar_todos_los_valuables(productos: Vec<Valuable>) -> Result<(), 
     Ok(())
 }
 pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>) -> Result<(), DbErr> {
-    let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
+    let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
     for prov in proveedores {
         let model = entity::proveedor::ActiveModel {
             id: Set(*prov.get_id()),
@@ -497,7 +495,7 @@ pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>) -> Result<(), D
 pub async fn cargar_todas_las_relaciones_prod_prov(
     relaciones: Vec<RelacionProdProv>,
 ) -> Result<(), DbErr> {
-    let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
+    let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
     for x in relaciones {
         if let Some(rel) = entity::relacion_prod_prov::Entity::find()
             .filter(
@@ -512,7 +510,7 @@ pub async fn cargar_todas_las_relaciones_prod_prov(
                 let mut act = rel.into_active_model();
                 act.codigo = Set(x.get_codigo_interno());
                 act.clone().update(&db).await?;
-                println!("updating {:?}",act);
+                println!("updating {:?}", act);
             }
         } else {
             let model = entity::relacion_prod_prov::ActiveModel {
@@ -521,7 +519,7 @@ pub async fn cargar_todas_las_relaciones_prod_prov(
                 codigo: Set(x.get_codigo_interno()),
                 ..Default::default()
             };
-            println!("inserting {:?}",model);
+            println!("inserting {:?}", model);
             model.insert(&db).await?;
         }
     }

@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
     id: i64,
-    codigos_de_barras: Vec<i64>,
+    pub codigos_de_barras: Vec<i64>,
     precio_de_venta: f64,
     porcentaje: f64,
     precio_de_costo: f64,
@@ -59,7 +59,7 @@ impl Producto {
     pub fn get_precio_de_costo(&self) -> &f64 {
         &self.precio_de_costo
     }
-    pub fn get_tipo_producto(&self) -> Arc<str>{
+    pub fn get_tipo_producto(&self) -> Arc<str> {
         Arc::clone(&self.tipo_producto)
     }
     pub fn get_marca(&self) -> Arc<str> {
@@ -77,6 +77,9 @@ impl Producto {
             "{} {} {} {}",
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
+    }
+    pub fn rm_code(&mut self,i:usize){
+        self.codigos_de_barras.remove(i);
     }
 
     // pub fn unifica_codes(&mut self) {
@@ -97,7 +100,7 @@ impl Producto {
 }
 impl Save for Producto {
     async fn save(&self) -> Result<(), DbErr> {
-        let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
+        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
         println!("Guardando producto en DB");
         let model = producto::ActiveModel {
             precio_de_venta: Set(self.precio_de_venta),
@@ -121,6 +124,7 @@ impl Save for Producto {
         }
         Ok(())
     }
+    
 }
 
 impl PartialEq for Producto {
@@ -133,6 +137,7 @@ impl PartialEq for Producto {
         }
         esta
     }
+    
 }
 
 impl ValuableTrait for Producto {

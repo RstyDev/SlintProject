@@ -54,7 +54,7 @@ impl Pesable {
 
 impl Save for Pesable {
     async fn save(&self) -> Result<(), DbErr> {
-        let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
+        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
         println!("conectado");
         let model = pesable::ActiveModel {
             id: Set(self.id),

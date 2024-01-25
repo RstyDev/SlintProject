@@ -11,7 +11,7 @@ edition = "2021"
 
 
 [workspace]
-members = [".","entity","migration"]
+members = [".", "entity", "migration"]
 
 [build-dependencies]
 tauri-build = { version = "1.4", features = [] }

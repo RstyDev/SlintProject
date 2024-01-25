@@ -8,7 +8,7 @@ use Valuable as V;
 type Result<T> = std::result::Result<T, String>;
 
 use std::sync::Mutex;
-use tauri::{async_runtime::block_on, State};
+use tauri::{async_runtime::{self, block_on}, State};
 
 mod mods;
 
@@ -141,11 +141,11 @@ fn agregar_rubro(
     }
 }
 #[tauri::command]
-fn get_proveedores(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
+async fn get_proveedores(sistema:State<'_,Mutex<Sistema>>) -> Result<Vec<String>> {
     let res;
     match sistema.lock() {
         Ok(a) => {
-            res = Ok(a.get_proveedores().iter().map(|x| x.to_string()).collect());
+            res = Ok(a.get_proveedores().await.iter().map(|x| x.to_string()).collect());
             // let mut res = Vec::new();
             // for i in &a.proveedores {
             //     res.push(match serde_json::to_string_pretty(i) {

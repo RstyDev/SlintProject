@@ -1,3 +1,4 @@
+use crate::redondeo;
 use entity::{
     pago,
     venta::{self},
@@ -5,7 +6,6 @@ use entity::{
 use sea_orm::{Database, DbErr, EntityTrait, Set};
 use serde::Serialize;
 use Valuable as V;
-use crate::redondeo;
 
 use super::{config::Config, error::AppError, lib::Save, pago::Pago, valuable::Valuable};
 
@@ -178,7 +178,7 @@ impl Save for Venta {
             ..Default::default()
         };
 
-        let db = Database::connect("sqlite://db/to/db.sqlite?mode=rwc").await?;
+        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
 
         println!("conectado");
         let result = entity::venta::Entity::insert(model_venta).exec(&db).await?;
