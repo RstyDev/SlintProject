@@ -25,4 +25,4 @@ dist-ssr
 .history
 src-tauri/migration/target/*
 src-tauri/.env
-src-tauri/entity/*
+src-tauri/entity/target/*
