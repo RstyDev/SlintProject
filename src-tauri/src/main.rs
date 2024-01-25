@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use mods::{
-    config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, valuable::Valuable,
+    config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, valuable::{Valuable, ValuableTrait},
     venta::Venta,
 };
 use Valuable as V;
@@ -141,11 +141,11 @@ fn agregar_rubro(
     }
 }
 #[tauri::command]
-async fn get_proveedores(sistema:State<'_,Mutex<Sistema>>) -> Result<Vec<String>> {
+fn get_proveedores(sistema:State<'_,Mutex<Sistema>>) -> Result<Vec<String>> {
     let res;
     match sistema.lock() {
         Ok(a) => {
-            res = Ok(a.get_proveedores().await.iter().map(|x| x.to_string()).collect());
+            res = Ok(async_runtime::block_on(a.get_proveedores()).iter().map(|x| x.to_string()).collect());
             // let mut res = Vec::new();
             // for i in &a.proveedores {
             //     res.push(match serde_json::to_string_pretty(i) {
@@ -182,18 +182,16 @@ fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Resul
     let res;
     match sistema.lock() {
         Ok(a) => {
-            let b = a.get_productos_cloned();
+            let b = a.get_productos_cloned(filtro);
             res = {
                 let mut aux: Vec<Valuable>=b
                 .into_iter()
-                .filter(|x| {
+                .filter_map(|x| {
                     let codigo = filtro.parse::<i64>();
                     match x {
-                        V::Prod(a) => {
-                            if (codigo.is_ok()
-                                && a.1.get_codigos_de_barras().contains(&codigo.unwrap()))
-                                || filtros.iter().any(|line| {
-                                    if a.1
+                        V::Prod(prod) => {
+                            if (codigo.is_ok() && prod.1.get_codigos_de_barras().contains(&codigo.unwrap())) || filtros.iter().any(|line| {
+                                    if prod.1
                                         .get_nombre_completo()
                                         .to_lowercase()
                                         .contains(&line.to_lowercase())
@@ -204,17 +202,17 @@ fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Resul
                                     }
                                 })
                             {
-                                true
+                                Some(Valuable::Prod((0,prod.1.redondear(a.get_configs().get_politica()))) )
                             } else {
-                                false
+                                None
                             }
                         }
-                        _ => false,
+                        _ => None,
                     }
                 })
                 .take(a.get_configs().get_cantidad_productos())
                 .to_owned()
-                .collect();
+                .collect::<Vec<Valuable>>();
             aux.sort_by_key(|x|{
                 x.get_descripcion(a.get_configs())
             });
@@ -232,7 +230,7 @@ fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: &str, pos: &str)
     match sistema.lock() {
         Ok(mut a) => {
             let pos = pos.parse().unwrap();
-            res = match a.agregar_producto_a_venta(id.parse().unwrap(), pos) {
+            res = match async_runtime::block_on(a.agregar_producto_a_venta(id.parse().unwrap(), pos)) {
                 Ok(a) => Ok(a),
                 Err(e) => Err(e.to_string()),
             }

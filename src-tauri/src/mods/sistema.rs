@@ -9,6 +9,8 @@ use sea_orm::DatabaseConnection;
 use sea_orm::DbErr;
 use sea_orm::ModelTrait;
 use sea_orm::QueryFilter;
+use sea_orm::QuerySelect;
+use sea_orm::RelationTrait;
 use sea_orm::Set;
 use sea_orm::{Database, EntityTrait};
 use tauri::async_runtime;
@@ -103,7 +105,7 @@ impl<'a> Sistema {
         leer_file(&mut pesables, path_pesables)?;
         leer_file(&mut productos, path_productos)?;
         leer_file(&mut proveedores, path_proveedores)?;
-        check_codes(&mut productos);
+        // check_codes(&mut productos);
         let mut hay_cambios_desde_db = async_runtime::block_on(update_data_valuable(
             &mut rubros,
             &mut pesables,
@@ -158,32 +160,56 @@ impl<'a> Sistema {
             stash,
             registro,
         };
+
+
+        async_runtime::block_on(sis.get_prods2("ideo"));
+
+
+
+
         // for i in 0..sis.productos.len() {
         //     sis.productos[i].unifica_codes()
         // }
 
         let prov_load_handle =
             async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
-        let prod_load_handle =
-            async_runtime::spawn(cargar_todos_los_valuables(sis.productos.clone()));
+        // let prod_load_handle =
+        //     async_runtime::spawn(cargar_todos_los_valuables(sis.productos.clone()));
         // let rel_load_handle = async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(
         //     sis.relaciones.clone(),
         // ));
         async_runtime::block_on(prov_load_handle)??;
-        async_runtime::block_on(prod_load_handle)??;
+        // async_runtime::block_on(prod_load_handle)??;
         // async_runtime::block_on(rel_load_handle)??;
         // if hay_cambios_desde_db {
-        //     crear_file(path_pesables, &pesables)?;
-        //     crear_file(path_productos, &productos)?;
-        //     crear_file(path_rubros, &rubros)?;
-        //     crear_file(path_proveedores, &proveedores)?;
+                // crear_file(path_pesables, &pesables)?;
+                // crear_file(path_productos, &productos)?;
+                // crear_file(path_rubros, &rubros)?;
+                // crear_file(path_proveedores, &proveedores)?;
         // }
         Ok(sis)
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
         &self.productos
     }
-    pub fn get_productos_cloned(&self) -> Vec<Valuable> {
+    pub async fn get_prods2(&self,filtro:&str){
+        let res=entity::producto::Entity::find()
+            .filter(Condition::any()
+                .add(entity::producto::Column::Marca.contains(filtro))
+                .add(entity::producto::Column::TipoProducto.contains(filtro))
+                .add(entity::producto::Column::Variedad.contains(filtro)))
+                .find_with_related(entity::codigo_barras::Entity)
+            .group_by(entity::producto::Column::Id).all(self.get_db()).await;
+            
+        if let Ok(a)=res{
+            println!("{:#?}",a);
+        }else{
+            println!("{:#?}",res)
+        }
+    }
+    pub fn get_productos_cloned(&self,filtro:&str) -> Vec<Valuable> {
+        
+        
         self.productos.clone()
     }
     pub async fn get_proveedores(&self) -> Vec<Proveedor> {
@@ -472,7 +498,8 @@ impl<'a> Sistema {
         }
         res
     }
-    pub fn agregar_producto_a_venta(&mut self, id: i64, pos: usize) -> Res<Venta> {
+    pub async fn agregar_producto_a_venta(&mut self, id: i64, pos: usize) -> Res<Venta> {
+        let res=entity::producto::Entity::find_by_id(id).one(self.get_db()).await?;
         let res = self
             .get_producto(id)?
             .redondear(self.get_configs().get_politica());
@@ -609,6 +636,9 @@ impl<'a> Sistema {
         res.sort();
         res.dedup();
         res
+    }
+    pub fn get_db(&self)->&DatabaseConnection{
+        &self.db
     }
     fn cerrar_venta(&mut self, pos: usize) -> Res<()> {
         let handle;
