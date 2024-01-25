@@ -23,6 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .history
-src-tauri/migration/*
+src-tauri/migration/target/*
 src-tauri/.env
 src-tauri/entity/*
