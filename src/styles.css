@@ -225,7 +225,7 @@ input:disabled {
   display: grid;
   grid-template-columns: 70% 30%;
   padding: 10px;
-
+  overflow-y: auto;
   & #buscador-form {
     display: inline;
     position: fixed;

@@ -279,7 +279,7 @@ pub async fn update_productos_from_db(
     Ok(hay_cambios_desde_db)
 }
 
-fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Res<Producto> {
+pub fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Res<Producto> {
     let mut parts = prod.presentacion.split(' ');
     let p1 = parts.next().unwrap();
     let p2 = parts.next().unwrap();

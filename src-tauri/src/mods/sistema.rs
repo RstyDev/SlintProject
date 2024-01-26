@@ -3,13 +3,17 @@ use chrono::Utc;
 use entity::codigo_barras;
 use entity::*;
 use full::slice::prod;
+use migration::SimpleExpr;
 use sea_orm::ColumnTrait;
 use sea_orm::Condition;
 use sea_orm::DatabaseConnection;
 use sea_orm::DbErr;
+use sea_orm::IntoSimpleExpr;
 use sea_orm::ModelTrait;
 use sea_orm::QueryFilter;
+use sea_orm::QueryOrder;
 use sea_orm::QuerySelect;
+use sea_orm::QueryTrait;
 use sea_orm::RelationTrait;
 use sea_orm::Set;
 use sea_orm::{Database, EntityTrait};
@@ -21,6 +25,7 @@ use super::error::AppError;
 use super::lib::cargar_todas_las_relaciones_prod_prov;
 use super::lib::cargar_todos_los_provs;
 use super::lib::cargar_todos_los_valuables;
+use super::lib::map_model_prod;
 use super::lib::map_model_prov;
 use super::lib::save;
 use super::lib::update_data_provs;
@@ -162,11 +167,6 @@ impl<'a> Sistema {
         };
 
 
-        async_runtime::block_on(sis.get_prods2("ideo"));
-
-
-
-
         // for i in 0..sis.productos.len() {
         //     sis.productos[i].unifica_codes()
         // }
@@ -182,44 +182,76 @@ impl<'a> Sistema {
         // async_runtime::block_on(prod_load_handle)??;
         // async_runtime::block_on(rel_load_handle)??;
         // if hay_cambios_desde_db {
-                // crear_file(path_pesables, &pesables)?;
-                // crear_file(path_productos, &productos)?;
-                // crear_file(path_rubros, &rubros)?;
-                // crear_file(path_proveedores, &proveedores)?;
+        // crear_file(path_pesables, &pesables)?;
+        // crear_file(path_productos, &productos)?;
+        // crear_file(path_rubros, &rubros)?;
+        // crear_file(path_proveedores, &proveedores)?;
         // }
         Ok(sis)
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
         &self.productos
     }
-    pub async fn get_prods2(&self,filtro:&str)->Result<Vec<Producto>,AppError>{
-        // let cods=entity::codigo_barras::Entity::find().all(self.get_db()).await;
-        // println!("{:#?}",cods);
-        let res=entity::producto::Entity::find()
-            .filter(Condition::any()
-                .add(entity::producto::Column::Marca.contains(filtro))
-                .add(entity::producto::Column::TipoProducto.contains(filtro))
-                .add(entity::producto::Column::Variedad.contains(filtro)))
-                .all(self.get_db()).await?;
-        let mut prods=Vec::new();
-        for model in res{
-            let codes=entity::codigo_barras::Entity::find().filter(entity::codigo_barras::Column::Producto.eq(model.id)).all(self.get_db()).await?;
-            
-            prods.push()
+    pub async fn get_prods_filtrado(&self, filtro: &str) -> Result<Vec<Producto>, AppError> {
+        let filtros = filtro.split(' ').collect::<Vec<&str>>();
+        let mut prods = Vec::new();
+        let mut res = Vec::new();
+        for i in 0..filtros.len() {
+            if i == 0 {
+                res = entity::producto::Entity::find()
+                    .filter(
+                        Condition::any()
+                            .add(entity::producto::Column::Marca.contains(filtros[i]))
+                            .add(entity::producto::Column::TipoProducto.contains(filtros[i]))
+                            .add(entity::producto::Column::Variedad.contains(filtros[i])),
+                    )
+                    .order_by_asc(entity::producto::Column::Id).limit(Some((self.get_configs().get_cantidad_productos()*2)as u64))
+                    .all(self.get_db())
+                    .await?;
+            } else {
+                res = res
+                    .iter()
+                    .cloned()
+                    .filter(|modelo| {
+                        modelo
+                            .marca
+                            .to_lowercase()
+                            .contains(filtros[i].to_lowercase().as_str())
+                            || modelo
+                                .variedad
+                                .to_lowercase()
+                                .contains(filtros[i].to_lowercase().as_str())
+                            || modelo
+                                .tipo_producto
+                                .to_lowercase()
+                                .contains(filtros[i].to_lowercase().as_str())
+                    })
+                    .take(self.get_configs().get_cantidad_productos())
+                    .collect();
+            }
         }
-        
-            
+        for model in &res {
+            let codes = entity::codigo_barras::Entity::find()
+                .filter(entity::codigo_barras::Column::Producto.eq(model.id))
+                .all(self.get_db())
+                .await?;
+            prods.push(map_model_prod(
+                model,
+                codes.iter().map(|x| x.codigo).collect(),
+            )?);
+        }
         Ok(prods)
     }
-    pub fn get_productos_cloned(&self,filtro:&str) -> Vec<Valuable> {
-        
-        
+    pub fn get_productos_cloned(&self, filtro: &str) -> Vec<Valuable> {
         self.productos.clone()
     }
     pub async fn get_proveedores(&self) -> Vec<Proveedor> {
         match entity::proveedor::Entity::find().all(&self.db).await {
             Ok(a) => {
-                let res = a.iter().map(|x| map_model_prov(x)).collect::<Vec<Proveedor>>();
+                let res = a
+                    .iter()
+                    .map(|x| map_model_prov(x))
+                    .collect::<Vec<Proveedor>>();
                 res
             }
             Err(e) => panic!("Error {}", e),
@@ -503,7 +535,9 @@ impl<'a> Sistema {
         res
     }
     pub async fn agregar_producto_a_venta(&mut self, id: i64, pos: usize) -> Res<Venta> {
-        let res=entity::producto::Entity::find_by_id(id).one(self.get_db()).await?;
+        let res = entity::producto::Entity::find_by_id(id)
+            .one(self.get_db())
+            .await?;
         let res = self
             .get_producto(id)?
             .redondear(self.get_configs().get_politica());
@@ -641,7 +675,7 @@ impl<'a> Sistema {
         res.dedup();
         res
     }
-    pub fn get_db(&self)->&DatabaseConnection{
+    pub fn get_db(&self) -> &DatabaseConnection {
         &self.db
     }
     fn cerrar_venta(&mut self, pos: usize) -> Res<()> {

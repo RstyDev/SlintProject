@@ -178,45 +178,17 @@ fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
 
 #[tauri::command]
 fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Result<Vec<Valuable>> {
-    let filtros = filtro.split(' ').collect::<Vec<&str>>();
+    
     let res;
     match sistema.lock() {
         Ok(a) => {
-            let b = a.get_productos_cloned(filtro);
-            res = {
-                let mut aux: Vec<Valuable>=b
-                .into_iter()
-                .filter_map(|x| {
-                    let codigo = filtro.parse::<i64>();
-                    match x {
-                        V::Prod(prod) => {
-                            if (codigo.is_ok() && prod.1.get_codigos_de_barras().contains(&codigo.unwrap())) || filtros.iter().any(|line| {
-                                    if prod.1
-                                        .get_nombre_completo()
-                                        .to_lowercase()
-                                        .contains(&line.to_lowercase())
-                                    {
-                                        true
-                                    } else {
-                                        false
-                                    }
-                                })
-                            {
-                                Some(Valuable::Prod((0,prod.1.redondear(a.get_configs().get_politica()))) )
-                            } else {
-                                None
-                            }
-                        }
-                        _ => None,
-                    }
-                })
-                .take(a.get_configs().get_cantidad_productos())
-                .to_owned()
-                .collect::<Vec<Valuable>>();
-            aux.sort_by_key(|x|{
-                x.get_descripcion(a.get_configs())
-            });
-            Ok(aux)
+            match async_runtime::block_on(a.get_prods_filtrado(filtro)){
+                Ok(productos)=>{
+                    res=Ok(productos.iter().map(|x|{
+                        Valuable::Prod((0,x.clone()))
+                    }).collect());
+                }
+                Err(e)=>return Err(e.to_string())
             }
         }
         Err(e) => res = Err(e.to_string()),
