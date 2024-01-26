@@ -192,20 +192,24 @@ impl<'a> Sistema {
     pub fn get_productos(&self) -> &Vec<Valuable> {
         &self.productos
     }
-    pub async fn get_prods2(&self,filtro:&str){
+    pub async fn get_prods2(&self,filtro:&str)->Result<Vec<Producto>,AppError>{
+        // let cods=entity::codigo_barras::Entity::find().all(self.get_db()).await;
+        // println!("{:#?}",cods);
         let res=entity::producto::Entity::find()
             .filter(Condition::any()
                 .add(entity::producto::Column::Marca.contains(filtro))
                 .add(entity::producto::Column::TipoProducto.contains(filtro))
                 .add(entity::producto::Column::Variedad.contains(filtro)))
-                .find_with_related(entity::codigo_barras::Entity)
-            .group_by(entity::producto::Column::Id).all(self.get_db()).await;
+                .all(self.get_db()).await?;
+        let mut prods=Vec::new();
+        for model in res{
+            let codes=entity::codigo_barras::Entity::find().filter(entity::codigo_barras::Column::Producto.eq(model.id)).all(self.get_db()).await?;
             
-        if let Ok(a)=res{
-            println!("{:#?}",a);
-        }else{
-            println!("{:#?}",res)
+            prods.push()
         }
+        
+            
+        Ok(prods)
     }
     pub fn get_productos_cloned(&self,filtro:&str) -> Vec<Valuable> {
         
