@@ -10,20 +10,20 @@ use super::{lib::Save, valuable::ValuableTrait};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
-    id: i64,
+    id: i32,
     monto: f64,
     descripcion: Arc<str>,
 }
 
 impl Rubro {
-    pub fn new(id: i64, monto: f64, descripcion: &str) -> Rubro {
+    pub fn new(id: i32, monto: f64, descripcion: &str) -> Rubro {
         Rubro {
             id,
             monto,
             descripcion: Arc::from(descripcion),
         }
     }
-    pub fn get_id(&self) -> &i64 {
+    pub fn get_id(&self) -> &i32 {
         &self.id
     }
     pub fn get_monto(&self) -> &f64 {
@@ -41,7 +41,7 @@ impl Save for Rubro {
             id: Set(self.id),
             monto: Set(self.monto),
             descripcion: Set(self.descripcion.to_string()),
-            updated_at: Set(Utc::now().naive_utc()),
+            updated_at: Set(Utc::now().naive_utc().to_string()),
         };
         model.insert(&db).await?;
         Ok(())

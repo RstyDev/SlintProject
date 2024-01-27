@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
-    id: i64,
+    id: i32,
     pub codigos_de_barras: Vec<i64>,
     precio_de_venta: f64,
     porcentaje: f64,
@@ -22,7 +22,7 @@ pub struct Producto {
 
 impl Producto {
     pub fn new(
-        id: i64,
+        id: i32,
         codigos_de_barras: Vec<i64>,
         precio_de_venta: f64,
         porcentaje: f64,
@@ -44,8 +44,8 @@ impl Producto {
             presentacion,
         }
     }
-    pub fn get_id(&self) -> i64 {
-        self.id
+    pub fn get_id(&self) -> &i32 {
+        &self.id
     }
     pub fn get_codigos_de_barras(&self) -> &Vec<i64> {
         &self.codigos_de_barras
@@ -78,7 +78,7 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
-    pub fn rm_code(&mut self,i:usize){
+    pub fn rm_code(&mut self, i: usize) {
         self.codigos_de_barras.remove(i);
     }
 
@@ -110,7 +110,7 @@ impl Save for Producto {
             marca: Set(self.marca.to_string()),
             variedad: Set(self.variedad.to_string()),
             presentacion: Set(format!("{}", self.presentacion)),
-            updated_at: Set(Utc::now().naive_utc()),
+            updated_at: Set(Utc::now().naive_utc().to_string()),
             ..Default::default()
         };
         let res = entity::producto::Entity::insert(model).exec(&db).await?;
@@ -124,7 +124,6 @@ impl Save for Producto {
         }
         Ok(())
     }
-    
 }
 
 impl PartialEq for Producto {
@@ -137,7 +136,6 @@ impl PartialEq for Producto {
         }
         esta
     }
-    
 }
 
 impl ValuableTrait for Producto {

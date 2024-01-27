@@ -5,9 +5,10 @@ use entity::{
 };
 use sea_orm::{Database, DbErr, EntityTrait, Set};
 use serde::Serialize;
+use tauri::async_runtime;
 use Valuable as V;
 
-use super::{config::Config, error::AppError, lib::Save, pago::Pago, valuable::Valuable};
+use super::{config::Config, error::AppError, lib::Save, pago::{get_medio_from_db, MedioPago, Pago}, valuable::Valuable};
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
@@ -39,12 +40,13 @@ impl<'a> Venta {
         self.monto_pagado
     }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> f64 {
+        let model=async_runtime::block_on(get_medio_from_db());
+        let medio_pago=MedioPago::new(&model.medio, model.id);
         self.pagos.push(Pago::new(medio_pago, monto));
         self.monto_pagado += monto;
         self.monto_total - self.monto_pagado
     }
-    pub fn 
-    agregar_producto(&mut self, producto: Valuable, politica: f64) -> Venta {
+    pub fn agregar_producto(&mut self, producto: Valuable, politica: f64) -> Venta {
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -192,12 +194,15 @@ impl Save for Venta {
             let pay_models: Vec<pago::ActiveModel> = self
                 .pagos
                 .iter()
-                .map(|x| pago::ActiveModel {
-                    medio_pago: Set(x.get_medio().to_string()),
+                .map(|x| {
+                    let model=async_runtime::block_on(get_medio_from_db());
+                    
+                    pago::ActiveModel {
+                    medio_pago: Set(model.id),
                     monto: Set(x.get_monto()),
                     venta: Set(saved_model.clone().id),
                     ..Default::default()
-                })
+                }})
                 .collect();
 
             entity::pago::Entity::insert_many(pay_models)
@@ -208,7 +213,7 @@ impl Save for Venta {
                 .iter()
                 .filter_map(|x| match x {
                     V::Prod(a) => Some(entity::relacion_venta_prod::ActiveModel {
-                        producto: Set(a.1.get_id()),
+                        producto: Set(*a.1.get_id()),
                         venta: Set(saved_model.id),
                         ..Default::default()
                     }),
@@ -223,7 +228,7 @@ impl Save for Venta {
                 .iter()
                 .filter_map(|x| match x {
                     V::Rub(a) => Some(entity::relacion_venta_rub::ActiveModel {
-                        cantidad: Set(a.0 as i16),
+                        cantidad: Set(a.0 as i32),
                         rubro: Set(*a.1.get_id()),
                         venta: Set(saved_model.id),
                         ..Default::default()

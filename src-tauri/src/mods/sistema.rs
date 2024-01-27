@@ -28,8 +28,6 @@ use super::lib::cargar_todos_los_valuables;
 use super::lib::map_model_prod;
 use super::lib::map_model_prov;
 use super::lib::save;
-use super::lib::update_data_provs;
-use super::lib::update_data_valuable;
 use super::proveedor::Proveedor;
 use super::valuable::Presentacion;
 use super::{
@@ -44,7 +42,8 @@ use super::{
 };
 #[derive(Clone)]
 pub struct Sistema {
-    db: DatabaseConnection,
+    write_db: DatabaseConnection,
+    read_db: DatabaseConnection,
     configs: Config,
     productos: Vec<Valuable>,
     ventas: (Venta, Venta),
@@ -82,13 +81,14 @@ fn check_codes(prods: &mut Vec<Producto>) {
         }
     }
 }
-async fn get_db() -> Result<DatabaseConnection, DbErr> {
-    Database::connect("sqlite://db.sqlite?mode=rwc").await
+async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
+    Database::connect(path).await
 }
 
 impl<'a> Sistema {
     pub fn new() -> Res<Sistema> {
-        let db = async_runtime::block_on(get_db())?;
+        let write_db = async_runtime::block_on(get_db("sqlite://db.sqlite?mode=rwc"))?;
+        let read_db = async_runtime::block_on(get_db("sqlite://db.sqlite?mode=ro"))?;
         let path_productos = "Productos.json";
         let path_proveedores = "Proveedores.json";
         let path_relaciones = "Relaciones.json";
@@ -111,21 +111,9 @@ impl<'a> Sistema {
         leer_file(&mut productos, path_productos)?;
         leer_file(&mut proveedores, path_proveedores)?;
         // check_codes(&mut productos);
-        let mut hay_cambios_desde_db = async_runtime::block_on(update_data_valuable(
-            &mut rubros,
-            &mut pesables,
-            &mut productos,
-            path_rubros,
-            path_pesables,
-            path_productos,
-        ))?;
+        
 
-        let hay_cambios_provs_db =
-            async_runtime::block_on(update_data_provs(&mut proveedores, path_proveedores))?;
-
-        if !hay_cambios_desde_db {
-            hay_cambios_desde_db = hay_cambios_provs_db;
-        }
+       
         let mut rubros_valuable: Vec<Valuable> =
             rubros.iter().map(|a| V::Rub((0, a.to_owned()))).collect();
         let mut pesables_valuable: Vec<Valuable> = pesables
@@ -150,7 +138,8 @@ impl<'a> Sistema {
         }
 
         let sis = Sistema {
-            db,
+            write_db,
+            read_db,
             configs: configs[0].clone(),
             productos: valuables,
             ventas: (Venta::new(), Venta::new()),
@@ -166,27 +155,29 @@ impl<'a> Sistema {
             registro,
         };
 
-
         // for i in 0..sis.productos.len() {
         //     sis.productos[i].unifica_codes()
         // }
 
-        let prov_load_handle =
-            async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
+
+
         // let prod_load_handle =
         //     async_runtime::spawn(cargar_todos_los_valuables(sis.productos.clone()));
+        // let prov_load_handle =
+        //     async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
         // let rel_load_handle = async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(
         //     sis.relaciones.clone(),
         // ));
-        async_runtime::block_on(prov_load_handle)??;
+
+
+
         // async_runtime::block_on(prod_load_handle)??;
+        // async_runtime::block_on(prov_load_handle)??;
         // async_runtime::block_on(rel_load_handle)??;
-        // if hay_cambios_desde_db {
-        // crear_file(path_pesables, &pesables)?;
-        // crear_file(path_productos, &productos)?;
-        // crear_file(path_rubros, &rubros)?;
-        // crear_file(path_proveedores, &proveedores)?;
-        // }
+
+
+
+        
         Ok(sis)
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
@@ -205,8 +196,11 @@ impl<'a> Sistema {
                             .add(entity::producto::Column::TipoProducto.contains(filtros[i]))
                             .add(entity::producto::Column::Variedad.contains(filtros[i])),
                     )
-                    .order_by_asc(entity::producto::Column::Id).limit(Some((self.get_configs().get_cantidad_productos()*2)as u64))
-                    .all(self.get_db())
+                    .order_by_asc(entity::producto::Column::Id)
+                    .limit(Some(
+                        (self.get_configs().get_cantidad_productos() * 2) as u64,
+                    ))
+                    .all(self.get_read_db())
                     .await?;
             } else {
                 res = res
@@ -233,20 +227,21 @@ impl<'a> Sistema {
         for model in &res {
             let codes = entity::codigo_barras::Entity::find()
                 .filter(entity::codigo_barras::Column::Producto.eq(model.id))
-                .all(self.get_db())
+                .all(self.get_read_db())
                 .await?;
-            prods.push(map_model_prod(
-                model,
-                codes.iter().map(|x| x.codigo).collect(),
-            )?);
+            prods.push(
+                map_model_prod(model, codes.iter().map(|x| x.codigo).collect())?
+                    .redondear(self.get_configs().get_politica()),
+            );
         }
         Ok(prods)
     }
-    pub fn get_productos_cloned(&self, filtro: &str) -> Vec<Valuable> {
-        self.productos.clone()
-    }
+
     pub async fn get_proveedores(&self) -> Vec<Proveedor> {
-        match entity::proveedor::Entity::find().all(&self.db).await {
+        match entity::proveedor::Entity::find()
+            .all(self.get_read_db())
+            .await
+        {
             Ok(a) => {
                 let res = a
                     .iter()
@@ -365,7 +360,7 @@ impl<'a> Sistema {
             marca: Set(marca.to_owned()),
             variedad: Set(variedad.to_owned()),
             presentacion: Set(presentacion.to_string()),
-            updated_at: Set(Utc::now().naive_utc()),
+            updated_at: Set(Utc::now().naive_utc().to_string()),
             ..Default::default()
         };
         let res_prod = entity::producto::Entity::insert(prod_model)
@@ -432,13 +427,13 @@ impl<'a> Sistema {
         for i in 0..proveedores.len() {
             match codigos_prov[i].parse::<i64>() {
                 Ok(a) => self.relaciones.push(RelacionProdProv::new(
-                    self.productos.len() as i64,
-                    i as i64,
+                    self.productos.len() as i32,
+                    i as i32,
                     Some(a),
                 )),
                 Err(_) => self.relaciones.push(RelacionProdProv::new(
-                    self.productos.len() as i64,
-                    i as i64,
+                    self.productos.len() as i32,
+                    i as i32,
                     None,
                 )),
             };
@@ -498,12 +493,12 @@ impl<'a> Sistema {
                 let contacto = Some(contacto.parse()?);
                 let proveedor = proveedor.to_lowercase();
                 prov = Proveedor::new(
-                    self.proveedores.len() as i64 + 1,
+                    self.proveedores.len() as i32 + 1,
                     proveedor.as_str(),
                     contacto,
                 );
             } else {
-                prov = Proveedor::new(self.proveedores.len() as i64 + 1, proveedor, None);
+                prov = Proveedor::new(self.proveedores.len() as i32 + 1, proveedor, None);
             }
             handle = async_runtime::spawn(save(prov.clone()));
             self.proveedores.push(prov);
@@ -511,7 +506,7 @@ impl<'a> Sistema {
         }
         Ok(async_runtime::block_on(handle)??)
     }
-    fn get_producto(&mut self, id: i64) -> Result<Valuable, AppError> {
+    fn get_producto(&mut self, id: i32) -> Result<Valuable, AppError> {
         let mut res = Err(AppError::ProductNotFound(id.to_string()));
         for p in &self.productos {
             match p {
@@ -521,7 +516,7 @@ impl<'a> Sistema {
                     }
                 }
                 V::Prod(a) => {
-                    if a.1.get_id() == id {
+                    if *a.1.get_id() == id {
                         res = Ok(p.clone());
                     }
                 }
@@ -534,9 +529,9 @@ impl<'a> Sistema {
         }
         res
     }
-    pub async fn agregar_producto_a_venta(&mut self, id: i64, pos: usize) -> Res<Venta> {
+    pub async fn agregar_producto_a_venta(&mut self, id: i32, pos: usize) -> Res<Venta> {
         let res = entity::producto::Entity::find_by_id(id)
-            .one(self.get_db())
+            .one(self.get_read_db())
             .await?;
         let res = self
             .get_producto(id)?
@@ -560,7 +555,7 @@ impl<'a> Sistema {
 
         result
     }
-    pub fn descontar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
+    pub fn descontar_producto_de_venta(&mut self, id: i32, pos: usize) -> Result<Venta, AppError> {
         let res = self.get_producto(id)?;
         Ok(match pos {
             0 => self.ventas.0.restar_producto(
@@ -576,7 +571,7 @@ impl<'a> Sistema {
             _ => return Err(AppError::SaleSelection.into()),
         })
     }
-    pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
+    pub fn incrementar_producto_a_venta(&mut self, id: i32, pos: usize) -> Result<Venta, AppError> {
         let res = self.get_producto(id)?;
         let result;
         match pos {
@@ -598,7 +593,7 @@ impl<'a> Sistema {
         }
         result
     }
-    pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
+    pub fn eliminar_producto_de_venta(&mut self, id: i32, pos: usize) -> Result<Venta, AppError> {
         let res = self.get_producto(id)?;
         let result;
         match pos {
@@ -675,8 +670,11 @@ impl<'a> Sistema {
         res.dedup();
         res
     }
-    pub fn get_db(&self) -> &DatabaseConnection {
-        &self.db
+    pub fn get_write_db(&self) -> &DatabaseConnection {
+        &self.write_db
+    }
+    pub fn get_read_db(&self) -> &DatabaseConnection {
+        &self.read_db
     }
     fn cerrar_venta(&mut self, pos: usize) -> Res<()> {
         let handle;

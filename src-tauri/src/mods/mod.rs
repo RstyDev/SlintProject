@@ -1,4 +1,5 @@
 pub mod config;
+pub mod error;
 pub mod lib;
 pub mod pago;
 pub mod pesable;
@@ -9,4 +10,3 @@ pub mod rubro;
 pub mod sistema;
 pub mod valuable;
 pub mod venta;
-pub mod error;

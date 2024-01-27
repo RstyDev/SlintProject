@@ -1,14 +1,21 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use mods::{
-    config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, valuable::{Valuable, ValuableTrait},
+    config::Config,
+    pesable::Pesable,
+    rubro::Rubro,
+    sistema::Sistema,
+    valuable::{Valuable, ValuableTrait},
     venta::Venta,
 };
 use Valuable as V;
 type Result<T> = std::result::Result<T, String>;
 
 use std::sync::Mutex;
-use tauri::{async_runtime::{self, block_on}, State};
+use tauri::{
+    async_runtime::{self, block_on},
+    State,
+};
 
 mod mods;
 
@@ -89,7 +96,7 @@ fn agregar_producto(
 fn agregar_pesable<'a>(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-    id: i64,
+    id: i32,
     codigo: i64,
     precio_peso: f64,
     porcentaje: f64,
@@ -98,14 +105,8 @@ fn agregar_pesable<'a>(
 ) -> Result<String> {
     match sistema.lock() {
         Ok(mut sis) => {
-            let pesable = Pesable::new(
-                id,
-                codigo,
-                precio_peso,
-                porcentaje,
-                costo_kilo,
-                descripcion,
-            );
+            let pesable =
+                Pesable::new(id, codigo, precio_peso, porcentaje, costo_kilo, descripcion);
 
             if let Err(e) = sis.agregar_pesable(pesable.clone()) {
                 return Err(e.to_string());
@@ -122,7 +123,7 @@ fn agregar_pesable<'a>(
 fn agregar_rubro(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-    id: i64,
+    id: i32,
     monto: f64,
     descripcion: &str,
 ) -> Result<String> {
@@ -141,11 +142,14 @@ fn agregar_rubro(
     }
 }
 #[tauri::command]
-fn get_proveedores(sistema:State<'_,Mutex<Sistema>>) -> Result<Vec<String>> {
+fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Result<Vec<String>> {
     let res;
     match sistema.lock() {
         Ok(a) => {
-            res = Ok(async_runtime::block_on(a.get_proveedores()).iter().map(|x| x.to_string()).collect());
+            res = Ok(async_runtime::block_on(a.get_proveedores())
+                .iter()
+                .map(|x| x.to_string())
+                .collect());
             // let mut res = Vec::new();
             // for i in &a.proveedores {
             //     res.push(match serde_json::to_string_pretty(i) {
@@ -178,19 +182,17 @@ fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
 
 #[tauri::command]
 fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Result<Vec<Valuable>> {
-    
     let res;
     match sistema.lock() {
-        Ok(a) => {
-            match async_runtime::block_on(a.get_prods_filtrado(filtro)){
-                Ok(productos)=>{
-                    res=Ok(productos.iter().map(|x|{
-                        Valuable::Prod((0,x.clone()))
-                    }).collect());
-                }
-                Err(e)=>return Err(e.to_string())
+        Ok(a) => match async_runtime::block_on(a.get_prods_filtrado(filtro)) {
+            Ok(productos) => {
+                res = Ok(productos
+                    .iter()
+                    .map(|x| Valuable::Prod((0, x.clone())))
+                    .collect());
             }
-        }
+            Err(e) => return Err(e.to_string()),
+        },
         Err(e) => res = Err(e.to_string()),
     }
     res
@@ -202,10 +204,12 @@ fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: &str, pos: &str)
     match sistema.lock() {
         Ok(mut a) => {
             let pos = pos.parse().unwrap();
-            res = match async_runtime::block_on(a.agregar_producto_a_venta(id.parse().unwrap(), pos)) {
-                Ok(a) => Ok(a),
-                Err(e) => Err(e.to_string()),
-            }
+            res =
+                match async_runtime::block_on(a.agregar_producto_a_venta(id.parse().unwrap(), pos))
+                {
+                    Ok(a) => Ok(a),
+                    Err(e) => Err(e.to_string()),
+                }
         }
         Err(e) => res = Err(e.to_string()),
     };
