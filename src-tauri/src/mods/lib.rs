@@ -82,15 +82,15 @@ pub fn redondeo(politica: f64, numero: f64) -> f64 {
         }
     }
     res
-}//     if let Err(e) = leer_file(&mut prods, path) {
-//         panic!("{}", e);
-//     }
-//     prods.push(pr);
-//     match crear_file(&path, &prods) {
-//         Ok(_) => (),
-//         Err(e) => panic!("No se pudo pushear porque {}", e),
-//     };
-// }
+} //     if let Err(e) = leer_file(&mut prods, path) {
+  //         panic!("{}", e);
+  //     }
+  //     prods.push(pr);
+  //     match crear_file(&path, &prods) {
+  //         Ok(_) => (),
+  //         Err(e) => panic!("No se pudo pushear porque {}", e),
+  //     };
+  // }
 pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Res<Vec<i64>> {
     let a = entity::codigo_barras::Entity::find()
         .filter(Condition::all().add(entity::codigo_barras::Column::Producto.eq(id)))
@@ -100,8 +100,18 @@ pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Res<Ve
     Ok(a.iter().map(|x| x.codigo).collect())
 }
 
-pub fn map_model_prod(prod: &entity::producto::Model, cods: Vec<i64>) -> Res<Producto> {
+pub async fn map_model_prod(
+    prod: &entity::producto::Model,
+    db: &DatabaseConnection,
+) -> Res<Producto> {
     let mut parts = prod.presentacion.split(' ');
+    let cods = entity::codigo_barras::Entity::find()
+        .filter(entity::codigo_barras::Column::Producto.eq(prod.id))
+        .all(db)
+        .await?
+        .iter()
+        .map(|c| c.codigo)
+        .collect();
     let p1 = parts.next().unwrap();
     let p2 = parts.next().unwrap();
     let presentacion = match p2 {

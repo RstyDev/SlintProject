@@ -377,8 +377,7 @@ function dibujar_venta(venta) {
     let btns = document.getElementsByClassName('boton-eliminar-pago');
     btns[i].addEventListener('click', (e) => {
       e.preventDefault();
-      eliminar_pago(i)
-      get_venta_actual().then(venta => dibujar_venta(venta));
+      eliminar_pago(i).then(venta => dibujar_venta(venta));
       setFoco(buscador, document.getElementById('productos'));
     })
   }

@@ -1,9 +1,14 @@
 use std::sync::Arc;
 
-use super::{lib::{redondeo, Save}, valuable::Presentacion, valuable::ValuableTrait};
+use super::{
+    lib::{redondeo, Save},
+    valuable::Presentacion,
+    valuable::ValuableTrait,
+};
 use chrono::Utc;
 use entity::{codigo_barras, producto};
-use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait, Set};
+use migration::IdenList;
+use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait, PaginatorTrait, Set};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -133,6 +138,7 @@ impl PartialEq for Producto {
                 esta = true;
             }
         }
+
         esta
     }
 }

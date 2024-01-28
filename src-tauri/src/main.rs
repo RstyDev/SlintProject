@@ -19,7 +19,6 @@ fn buscador(name: &str) -> String {
     format!("Hello, {}! You've been mensajed from Rust!", name)
 }
 
-
 #[tauri::command]
 fn agregar_proveedor(
     window: tauri::Window,
@@ -160,8 +159,7 @@ fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
     let res: Result<Vec<String>>;
     match sistema.lock() {
         Ok(a) => {
-            res = Ok(a
-                .get_productos()
+            res = Ok(async_runtime::block_on(a.get_productos())
                 .iter()
                 .map(|x| serde_json::to_string_pretty(&x).unwrap())
                 .collect())

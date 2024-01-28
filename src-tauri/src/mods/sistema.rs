@@ -11,6 +11,7 @@ use sea_orm::DatabaseConnection;
 use sea_orm::DbErr;
 use sea_orm::IntoSimpleExpr;
 use sea_orm::ModelTrait;
+use sea_orm::PaginatorTrait;
 use sea_orm::QueryFilter;
 use sea_orm::QueryOrder;
 use sea_orm::QuerySelect;
@@ -18,10 +19,10 @@ use sea_orm::QueryTrait;
 use sea_orm::RelationTrait;
 use sea_orm::Set;
 use sea_orm::{Database, EntityTrait};
+use std::sync::Arc;
 use tauri::async_runtime;
 use tauri::async_runtime::JoinHandle;
 use Valuable as V;
-use std::sync::Arc;
 
 use super::error::AppError;
 
@@ -62,10 +63,9 @@ pub struct Sistema {
     registro: Vec<Venta>,
 }
 
-async fn get_cantidad_productos() -> Result<usize, DbErr> {
+async fn get_cantidad_productos() -> Result<u64, DbErr> {
     let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-    let res = entity::producto::Entity::find().all(&db).await?;
-    Ok(res.len())
+    Ok(entity::producto::Entity::find().count(&db).await?)
 }
 fn check_codes(prods: &mut Vec<Producto>) {
     for i in 0..prods.len() {
@@ -90,8 +90,12 @@ async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
 
 impl<'a> Sistema {
     pub fn new() -> Res<Sistema> {
-        let write_db = Arc::from(async_runtime::block_on(get_db("sqlite://db.sqlite?mode=rwc"))?);
-        let read_db = Arc::from(async_runtime::block_on(get_db("sqlite://db.sqlite?mode=ro"))?);
+        let write_db = Arc::from(async_runtime::block_on(get_db(
+            "sqlite://db.sqlite?mode=rwc",
+        ))?);
+        let read_db = Arc::from(async_runtime::block_on(get_db(
+            "sqlite://db.sqlite?mode=ro",
+        ))?);
         let path_productos = "Productos.json";
         let path_proveedores = "Proveedores.json";
         let path_relaciones = "Relaciones.json";
@@ -104,22 +108,26 @@ impl<'a> Sistema {
         let mut proveedores: Vec<Proveedor> = Vec::new();
         let stash = Vec::new();
         let registro = Vec::new();
-        let write_db2=Arc::clone(&write_db);
-        let read_db2=Arc::clone(&read_db);
-        let medios_handle:JoinHandle<Result<(),AppError>>=async_runtime::spawn(async move {
-            let medios=vec!["Efectivo", "Crédito", "Débito"];
-            for medio in medios{
-                if entity::medio_pago::Entity::find().filter(entity::medio_pago::Column::Medio.eq(medio)).one(read_db2.as_ref()).await?.is_none(){
-                    let model=entity::medio_pago::ActiveModel{
+        let write_db2 = Arc::clone(&write_db);
+        let read_db2 = Arc::clone(&read_db);
+        let medios_handle: JoinHandle<Result<(), AppError>> = async_runtime::spawn(async move {
+            let medios = vec!["Efectivo", "Crédito", "Débito"];
+            for medio in medios {
+                if entity::medio_pago::Entity::find()
+                    .filter(entity::medio_pago::Column::Medio.eq(medio))
+                    .one(read_db2.as_ref())
+                    .await?
+                    .is_none()
+                {
+                    let model = entity::medio_pago::ActiveModel {
                         medio: Set(medio.to_string()),
                         ..Default::default()
                     };
                     model.insert(write_db2.as_ref()).await?;
                 }
             }
-            return Ok(())
+            return Ok(());
         });
-
 
         println!(
             "Acá la cantidad de producto actual {}",
@@ -187,11 +195,25 @@ impl<'a> Sistema {
         // async_runtime::block_on(prod_load_handle)??;
         // async_runtime::block_on(prov_load_handle)??;
         // async_runtime::block_on(rel_load_handle)??;
-        async_runtime::block_on(medios_handle)?;
+        async_runtime::block_on(medios_handle)??;
         Ok(sis)
     }
-    pub fn get_productos(&self) -> &Vec<Valuable> {
-        &self.productos
+    pub async fn get_productos(&self) -> Res<Vec<Valuable>> {
+        let prods = match entity::producto::Entity::find()
+            .all(self.get_read_db())
+            .await
+        {
+            Ok(a) => a,
+            Err(e) => return Err(AppError::DbError(e)),
+        };
+        let mut res = vec![];
+        for prod in prods {
+            res.push(V::Prod((
+                0,
+                map_model_prod(&prod, self.get_read_db()).await?,
+            )));
+        }
+        Ok(res)
     }
     pub async fn get_prods_filtrado(&self, filtro: &str) -> Result<Vec<Producto>, AppError> {
         let filtros = filtro.split(' ').collect::<Vec<&str>>();
@@ -235,12 +257,9 @@ impl<'a> Sistema {
             }
         }
         for model in &res {
-            let codes = entity::codigo_barras::Entity::find()
-                .filter(entity::codigo_barras::Column::Producto.eq(model.id))
-                .all(self.get_read_db())
-                .await?;
             prods.push(
-                map_model_prod(model, codes.iter().map(|x| x.codigo).collect())?
+                map_model_prod(model, self.get_read_db())
+                    .await?
                     .redondear(self.get_configs().get_politica()),
             );
         }
@@ -304,10 +323,14 @@ impl<'a> Sistema {
     pub fn eliminar_pago(&mut self, pos: usize, index: usize) -> Res<Venta> {
         let res;
         match pos {
-            0 => {self.ventas.0.eliminar_pago(index);
-            res=self.ventas.0.clone()},
-            1 => {self.ventas.1.eliminar_pago(index);
-            res=self.ventas.1.clone()},
+            0 => {
+                self.ventas.0.eliminar_pago(index);
+                res = self.ventas.0.clone()
+            }
+            1 => {
+                self.ventas.1.eliminar_pago(index);
+                res = self.ventas.1.clone()
+            }
             _ => return Err(AppError::SaleSelection.into()),
         }
         Ok(res)
@@ -517,35 +540,51 @@ impl<'a> Sistema {
         }
         Ok(async_runtime::block_on(handle)??)
     }
-    fn get_producto(&mut self, id: i32) -> Result<Valuable, AppError> {
+    async fn get_producto(&mut self, id: i32) -> Result<Valuable, AppError> {
         let mut res = Err(AppError::ProductNotFound(id.to_string()));
-        for p in &self.productos {
-            match p {
-                V::Pes(a) => {
-                    if *a.1.get_id() == id {
-                        res = Ok(p.clone());
+
+        let model;
+
+        match entity::producto::Entity::find_by_id(id)
+            .one(self.get_read_db())
+            .await?
+        {
+            Some(a) => {
+                model = a.to_owned();
+
+                return Ok(V::Prod((
+                    0,
+                    map_model_prod(&model, self.get_read_db()).await?,
+                )));
+            }
+            None => {
+                for p in &self.productos {
+                    match p {
+                        V::Pes(a) => {
+                            if *a.1.get_id() == id {
+                                res = Ok(p.clone());
+                            }
+                        }
+                        V::Prod(a) => {
+                            if *a.1.get_id() == id {
+                                res = Ok(p.clone());
+                            }
+                        }
+                        V::Rub(a) => {
+                            if *a.1.get_id() == id {
+                                res = Ok(p.clone());
+                            }
+                        }
                     }
                 }
-                V::Prod(a) => {
-                    if *a.1.get_id() == id {
-                        res = Ok(p.clone());
-                    }
-                }
-                V::Rub(a) => {
-                    if *a.1.get_id() == id {
-                        res = Ok(p.clone());
-                    }
-                }
+                return res;
             }
         }
-        res
     }
     pub async fn agregar_producto_a_venta(&mut self, id: i32, pos: usize) -> Res<Venta> {
-        let res = entity::producto::Entity::find_by_id(id)
-            .one(self.get_read_db())
-            .await?;
         let res = self
-            .get_producto(id)?
+            .get_producto(id)
+            .await?
             .redondear(self.get_configs().get_politica());
         let result;
         match pos {
@@ -567,7 +606,7 @@ impl<'a> Sistema {
         result
     }
     pub fn descontar_producto_de_venta(&mut self, id: i32, pos: usize) -> Result<Venta, AppError> {
-        let res = self.get_producto(id)?;
+        let res = async_runtime::block_on(self.get_producto(id))?;
         Ok(match pos {
             0 => self.ventas.0.restar_producto(
                 res,
@@ -583,7 +622,7 @@ impl<'a> Sistema {
         })
     }
     pub fn incrementar_producto_a_venta(&mut self, id: i32, pos: usize) -> Result<Venta, AppError> {
-        let res = self.get_producto(id)?;
+        let res = async_runtime::block_on(self.get_producto(id))?;
         let result;
         match pos {
             0 => {
@@ -605,22 +644,32 @@ impl<'a> Sistema {
         result
     }
     pub fn eliminar_producto_de_venta(&mut self, id: i32, pos: usize) -> Result<Venta, AppError> {
-        let res = self.get_producto(id)?;
+        let res = async_runtime::block_on(self.get_producto(id))?;
         let result;
         match pos {
             0 => {
-                result = self.ventas.0.eliminar_producto(
-                    res,
-                    self.get_configs().get_politica(),
-                    &self.configs,
-                );
+                if self.ventas.0.get_productos().len() > 1 {
+                    result = self.ventas.0.eliminar_producto(
+                        res,
+                        self.get_configs().get_politica(),
+                        &self.configs,
+                    );
+                } else {
+                    self.ventas.0 = Venta::new();
+                    result = Ok(self.ventas.0.clone());
+                }
             }
             1 => {
-                result = self.ventas.1.eliminar_producto(
-                    res,
-                    self.get_configs().get_politica(),
-                    &self.configs,
-                );
+                if self.ventas.1.get_productos().len() > 1 {
+                    result = self.ventas.1.eliminar_producto(
+                        res,
+                        self.get_configs().get_politica(),
+                        &self.configs,
+                    );
+                } else {
+                    self.ventas.1 = Venta::new();
+                    result = Ok(self.ventas.1.clone());
+                }
             }
             _ => result = Err(AppError::SaleSelection),
         }

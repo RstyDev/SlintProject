@@ -4,8 +4,10 @@ use sea_orm::{ActiveModelTrait, Database, DbErr, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-
-use super::{lib::{redondeo, Save}, valuable::ValuableTrait};
+use super::{
+    lib::{redondeo, Save},
+    valuable::ValuableTrait,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
