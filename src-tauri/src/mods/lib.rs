@@ -68,16 +68,21 @@ pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     Ok(())
 }
 
-
-
-fn make_elapsed_to_date(date: std::time::Duration) -> Option<DateTimeUtc> {
-    let (sec, nsec) = (date.as_secs() as i64, date.subsec_nanos());
-    DateTimeUtc::from_timestamp(sec, nsec)
-}
-
 // pub fn push(pr: Producto, path: &String) {
 //     let mut prods = Vec::new();
-//     if let Err(e) = leer_file(&mut prods, path) {
+
+pub fn redondeo(politica: f64, numero: f64) -> f64 {
+    let mut res = numero;
+    let dif = numero % politica;
+    if dif != 0.0 {
+        if dif < politica / 2.0 {
+            res = numero - dif;
+        } else {
+            res = numero + politica - dif;
+        }
+    }
+    res
+}//     if let Err(e) = leer_file(&mut prods, path) {
 //         panic!("{}", e);
 //     }
 //     prods.push(pr);

@@ -4,6 +4,7 @@ use entity::codigo_barras;
 use entity::*;
 use full::slice::prod;
 use migration::SimpleExpr;
+use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
 use sea_orm::Condition;
 use sea_orm::DatabaseConnection;
@@ -18,7 +19,9 @@ use sea_orm::RelationTrait;
 use sea_orm::Set;
 use sea_orm::{Database, EntityTrait};
 use tauri::async_runtime;
+use tauri::async_runtime::JoinHandle;
 use Valuable as V;
+use std::sync::Arc;
 
 use super::error::AppError;
 
@@ -42,8 +45,8 @@ use super::{
 };
 #[derive(Clone)]
 pub struct Sistema {
-    write_db: DatabaseConnection,
-    read_db: DatabaseConnection,
+    write_db: Arc<DatabaseConnection>,
+    read_db: Arc<DatabaseConnection>,
     configs: Config,
     productos: Vec<Valuable>,
     ventas: (Venta, Venta),
@@ -87,8 +90,8 @@ async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
 
 impl<'a> Sistema {
     pub fn new() -> Res<Sistema> {
-        let write_db = async_runtime::block_on(get_db("sqlite://db.sqlite?mode=rwc"))?;
-        let read_db = async_runtime::block_on(get_db("sqlite://db.sqlite?mode=ro"))?;
+        let write_db = Arc::from(async_runtime::block_on(get_db("sqlite://db.sqlite?mode=rwc"))?);
+        let read_db = Arc::from(async_runtime::block_on(get_db("sqlite://db.sqlite?mode=ro"))?);
         let path_productos = "Productos.json";
         let path_proveedores = "Proveedores.json";
         let path_relaciones = "Relaciones.json";
@@ -101,6 +104,22 @@ impl<'a> Sistema {
         let mut proveedores: Vec<Proveedor> = Vec::new();
         let stash = Vec::new();
         let registro = Vec::new();
+        let write_db2=Arc::clone(&write_db);
+        let read_db2=Arc::clone(&read_db);
+        let medios_handle:JoinHandle<Result<(),AppError>>=async_runtime::spawn(async move {
+            let medios=vec!["Efectivo", "Crédito", "Débito"];
+            for medio in medios{
+                if entity::medio_pago::Entity::find().filter(entity::medio_pago::Column::Medio.eq(medio)).one(read_db2.as_ref()).await?.is_none(){
+                    let model=entity::medio_pago::ActiveModel{
+                        medio: Set(medio.to_string()),
+                        ..Default::default()
+                    };
+                    model.insert(write_db2.as_ref()).await?;
+                }
+            }
+            return Ok(())
+        });
+
 
         println!(
             "Acá la cantidad de producto actual {}",
@@ -111,9 +130,7 @@ impl<'a> Sistema {
         leer_file(&mut productos, path_productos)?;
         leer_file(&mut proveedores, path_proveedores)?;
         // check_codes(&mut productos);
-        
 
-       
         let mut rubros_valuable: Vec<Valuable> =
             rubros.iter().map(|a| V::Rub((0, a.to_owned()))).collect();
         let mut pesables_valuable: Vec<Valuable> = pesables
@@ -159,8 +176,6 @@ impl<'a> Sistema {
         //     sis.productos[i].unifica_codes()
         // }
 
-
-
         // let prod_load_handle =
         //     async_runtime::spawn(cargar_todos_los_valuables(sis.productos.clone()));
         // let prov_load_handle =
@@ -169,15 +184,10 @@ impl<'a> Sistema {
         //     sis.relaciones.clone(),
         // ));
 
-
-
         // async_runtime::block_on(prod_load_handle)??;
         // async_runtime::block_on(prov_load_handle)??;
         // async_runtime::block_on(rel_load_handle)??;
-
-
-
-        
+        async_runtime::block_on(medios_handle)?;
         Ok(sis)
     }
     pub fn get_productos(&self) -> &Vec<Valuable> {
@@ -291,13 +301,16 @@ impl<'a> Sistema {
         }
         res
     }
-    pub fn eliminar_pago(&mut self, pos: usize, index: usize) -> Res<()> {
+    pub fn eliminar_pago(&mut self, pos: usize, index: usize) -> Res<Venta> {
+        let res;
         match pos {
-            0 => self.ventas.0.eliminar_pago(index),
-            1 => self.ventas.1.eliminar_pago(index),
+            0 => {self.ventas.0.eliminar_pago(index);
+            res=self.ventas.0.clone()},
+            1 => {self.ventas.1.eliminar_pago(index);
+            res=self.ventas.1.clone()},
             _ => return Err(AppError::SaleSelection.into()),
         }
-        Ok(())
+        Ok(res)
     }
     pub fn set_configs(&mut self, configs: Config) {
         self.configs = configs;
@@ -305,9 +318,7 @@ impl<'a> Sistema {
             panic!("{e}");
         }
     }
-    pub fn imprimir(&self) {
-        println!("Printed from rust");
-    }
+
     fn proveedor_esta(&self, proveedor: &str) -> bool {
         let mut res = false;
         for i in &self.proveedores {

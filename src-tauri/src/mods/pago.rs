@@ -1,18 +1,18 @@
 use entity::{medio_pago::Model, pago};
-use sea_orm::{ActiveModelTrait, ColumnTrait, Condition, Database, DbErr, EntityTrait, QueryFilter, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, Database, DbErr, EntityTrait, QueryFilter, Set};
 use serde::Serialize;
-use tauri::async_runtime;
 use std::sync::Arc;
+use tauri::async_runtime;
 
 use super::lib::Save;
-#[derive(Debug,Clone,Serialize)]
-pub struct MedioPago{
+#[derive(Debug, Clone, Serialize)]
+pub struct MedioPago {
     medio: Arc<str>,
-    id: i32
+    id: i32,
 }
-impl MedioPago{
-    pub fn new(medio:&str, id:i32)->MedioPago{
-        MedioPago{
+impl MedioPago {
+    pub fn new(medio: &str, id: i32) -> MedioPago {
+        MedioPago {
             medio: Arc::from(medio),
             id,
         }
@@ -26,10 +26,7 @@ pub struct Pago {
 
 impl Pago {
     pub fn new(medio_pago: MedioPago, monto: f64) -> Pago {
-        Pago {
-            medio_pago,
-            monto,
-        }
+        Pago { medio_pago, monto }
     }
     pub fn get_medio(&self) -> Arc<str> {
         Arc::clone(&self.medio_pago.medio)
@@ -41,7 +38,11 @@ impl Pago {
 impl Save for Pago {
     async fn save(&self) -> Result<(), DbErr> {
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        let medio_id=entity::medio_pago::Entity::find().filter(entity::medio_pago::Column::Medio.eq(self.get_medio().to_string())).one(&db).await?.unwrap();
+        let medio_id = entity::medio_pago::Entity::find()
+            .filter(entity::medio_pago::Column::Medio.eq(self.get_medio().to_string()))
+            .one(&db)
+            .await?
+            .unwrap();
         let model = pago::ActiveModel {
             medio_pago: Set(medio_id.id),
             monto: Set(self.monto),
@@ -52,14 +53,21 @@ impl Save for Pago {
     }
 }
 
-pub async fn get_medio_from_db()->Model{
-    let db = Database::connect("sqlite://db.sqlite?mode=ro").await.unwrap();
-    entity::medio_pago::Entity::find().filter(entity::medio_pago::Column::Medio.eq("Efectivo")).one(&db).await.unwrap().unwrap()
+pub async fn get_medio_from_db(medio: &str) -> Model {
+    let db = Database::connect("sqlite://db.sqlite?mode=ro")
+        .await
+        .unwrap();
+    entity::medio_pago::Entity::find()
+        .filter(entity::medio_pago::Column::Medio.eq(medio))
+        .one(&db)
+        .await
+        .unwrap()
+        .unwrap()
 }
 impl Default for Pago {
     fn default() -> Self {
-        let res=async_runtime::block_on(get_medio_from_db());
-        let medio_pago=MedioPago{
+        let res = async_runtime::block_on(get_medio_from_db("Efectivo"));
+        let medio_pago = MedioPago {
             medio: Arc::from(res.medio),
             id: res.id,
         };

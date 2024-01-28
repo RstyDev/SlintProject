@@ -1,14 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use mods::{
-    config::Config,
-    pesable::Pesable,
-    rubro::Rubro,
-    sistema::Sistema,
-    valuable::{Valuable, ValuableTrait},
+    config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, valuable::Valuable,
     venta::Venta,
 };
-use Valuable as V;
 type Result<T> = std::result::Result<T, String>;
 
 use std::sync::Mutex;
@@ -24,11 +19,7 @@ fn buscador(name: &str) -> String {
     format!("Hello, {}! You've been mensajed from Rust!", name)
 }
 
-#[tauri::command]
-fn imprimir(sistema: State<Mutex<Sistema>>) {
-    let sis = sistema.lock().unwrap();
-    sis.imprimir();
-}
+
 #[tauri::command]
 fn agregar_proveedor(
     window: tauri::Window,
@@ -301,7 +292,7 @@ fn agregar_pago(
 }
 
 #[tauri::command]
-fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<()> {
+fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => match a.eliminar_pago(pos, index) {
             Ok(a) => Ok(a),
@@ -331,19 +322,7 @@ fn get_filtrado(
 
     res
 }
-#[tauri::command]
-fn redondeo(politica: f64, numero: f64) -> f64 {
-    let mut res = numero;
-    let dif = numero % politica;
-    if dif != 0.0 {
-        if dif < politica / 2.0 {
-            res = numero - dif;
-        } else {
-            res = numero + politica - dif;
-        }
-    }
-    res
-}
+
 #[tauri::command]
 fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta> {
     let res;
@@ -500,7 +479,6 @@ fn main() {
             agregar_rubro,
             agregar_proveedor,
             close_window,
-            imprimir,
             get_proveedores,
             get_productos,
             get_filtrado,
@@ -509,7 +487,6 @@ fn main() {
             descontar_producto_de_venta,
             incrementar_producto_a_venta,
             eliminar_producto_de_venta,
-            redondeo,
             agregar_pago,
             eliminar_pago,
             get_venta_actual,
