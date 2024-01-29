@@ -8,8 +8,6 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AppError {
-    #[error("No se pudo formatear la fecha")]
-    DateFormat,
     #[error("Error de monto, el monto a pagar es: {a_pagar:?},el monto pagado es: {pagado:?}")]
     AmountError { a_pagar: f64, pagado: f64 },
     #[error("Solo existen dos posiciones para venta")]

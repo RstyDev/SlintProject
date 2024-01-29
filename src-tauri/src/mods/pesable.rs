@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pesable {
-    id: i64,
+    id: i32,
     codigo: i64,
     precio_peso: f64,
     porcentaje: f64,
@@ -16,7 +16,7 @@ pub struct Pesable {
 }
 impl Pesable {
     pub fn new(
-        id: i64,
+        id: i32,
         codigo: i64,
         precio_peso: f64,
         porcentaje: f64,
@@ -32,22 +32,22 @@ impl Pesable {
             descripcion: Arc::from(descripcion),
         }
     }
-    pub fn get_id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
-    pub fn get_codigo(&self) -> &i64 {
+    pub fn codigo(&self) -> &i64 {
         &self.codigo
     }
-    pub fn get_precio_peso(&self) -> &f64 {
+    pub fn precio_peso(&self) -> &f64 {
         &self.precio_peso
     }
-    pub fn get_porcentaje(&self) -> &f64 {
+    pub fn porcentaje(&self) -> &f64 {
         &self.porcentaje
     }
-    pub fn get_costo_kilo(&self) -> &f64 {
+    pub fn costo_kilo(&self) -> &f64 {
         &self.costo_kilo
     }
-    pub fn get_descripcion(&self) -> Arc<str> {
+    pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
     }
 }
@@ -63,7 +63,7 @@ impl Save for Pesable {
             porcentaje: Set(self.porcentaje),
             costo_kilo: Set(self.costo_kilo),
             descripcion: Set(self.descripcion.to_string()),
-            updated_at: Set(Utc::now().naive_utc()),
+            updated_at: Set(Utc::now().naive_utc().to_string()),
         };
         model.insert(&db).await?;
         Ok(())

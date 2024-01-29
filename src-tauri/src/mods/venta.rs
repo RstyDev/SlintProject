@@ -1,13 +1,21 @@
-use crate::redondeo;
 use entity::{
     pago,
     venta::{self},
 };
 use sea_orm::{Database, DbErr, EntityTrait, Set};
 use serde::Serialize;
+use tauri::async_runtime;
 use Valuable as V;
 
-use super::{config::Config, error::AppError, lib::Save, pago::Pago, valuable::Valuable};
+use crate::mods::pago::medio_from_db;
+
+use super::{
+    config::Config,
+    error::AppError,
+    lib::{redondeo, Save},
+    pago::{ MedioPago, Pago},
+    valuable::Valuable,
+};
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
@@ -26,25 +34,26 @@ impl<'a> Venta {
             monto_pagado: 0.0,
         }
     }
-    pub fn get_monto_total(&self) -> f64 {
+    pub fn monto_total(&self) -> f64 {
         self.monto_total
     }
-    pub fn get_productos(&self) -> Vec<Valuable> {
+    pub fn productos(&self) -> Vec<Valuable> {
         self.productos.clone()
     }
     // pub fn get_pagos(&self)->Vec<Pago>{
     //     self.pagos.clone()
     // }
-    pub fn get_monto_pagado(&self) -> f64 {
+    pub fn monto_pagado(&self) -> f64 {
         self.monto_pagado
     }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> f64 {
+        let model = async_runtime::block_on(medio_from_db(medio_pago));
+        let medio_pago = MedioPago::new(&model.medio, model.id);
         self.pagos.push(Pago::new(medio_pago, monto));
         self.monto_pagado += monto;
         self.monto_total - self.monto_pagado
     }
-    pub fn 
-    agregar_producto(&mut self, producto: Valuable, politica: f64) -> Venta {
+    pub fn agregar_producto(&mut self, producto: Valuable, politica: f64) -> Venta {
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -74,16 +83,16 @@ impl<'a> Venta {
         for i in &self.productos {
             match &i {
                 V::Pes(a) => {
-                    self.monto_total += redondeo(politica, a.0 as f64 * a.1.get_precio_peso())
+                    self.monto_total += redondeo(politica, a.0 as f64 * a.1.precio_peso())
                 }
-                V::Prod(a) => self.monto_total += a.1.get_precio_de_venta() * a.0 as f64,
-                V::Rub(a) => self.monto_total += a.1.get_monto() * a.0 as f64,
+                V::Prod(a) => self.monto_total += a.1.precio_de_venta() * a.0 as f64,
+                V::Rub(a) => self.monto_total += a.1.monto() * a.0 as f64,
             }
         }
     }
     pub fn eliminar_pago(&mut self, index: usize) {
         let pago = self.pagos.remove(index);
-        self.monto_pagado -= pago.get_monto();
+        self.monto_pagado -= pago.monto();
     }
     pub fn restar_producto(
         &mut self,
@@ -91,7 +100,7 @@ impl<'a> Venta {
         politica: f64,
         conf: &Config,
     ) -> Result<Venta, AppError> {
-        let mut res = Err(AppError::ProductNotFound(producto.get_descripcion(conf)));
+        let mut res = Err(AppError::ProductNotFound(producto.descripcion(conf)));
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -129,7 +138,7 @@ impl<'a> Venta {
         politica: f64,
         conf: &Config,
     ) -> Result<Venta, AppError> {
-        let mut res = Err(AppError::ProductNotFound(producto.get_descripcion(conf)));
+        let mut res = Err(AppError::ProductNotFound(producto.descripcion(conf)));
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -155,7 +164,7 @@ impl<'a> Venta {
         politica: f64,
         conf: &Config,
     ) -> Result<Venta, AppError> {
-        let mut res = Err(AppError::ProductNotFound(producto.get_descripcion(conf)));
+        let mut res = Err(AppError::ProductNotFound(producto.descripcion(conf)));
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -192,11 +201,17 @@ impl Save for Venta {
             let pay_models: Vec<pago::ActiveModel> = self
                 .pagos
                 .iter()
-                .map(|x| pago::ActiveModel {
-                    medio_pago: Set(x.get_medio().to_string()),
-                    monto: Set(x.get_monto()),
-                    venta: Set(saved_model.clone().id),
-                    ..Default::default()
+                .map(|x| {
+                    let model = async_runtime::block_on(medio_from_db(
+                        x.medio().to_string().as_str(),
+                    ));
+
+                    pago::ActiveModel {
+                        medio_pago: Set(model.id),
+                        monto: Set(x.monto()),
+                        venta: Set(saved_model.clone().id),
+                        ..Default::default()
+                    }
                 })
                 .collect();
 
@@ -208,7 +223,7 @@ impl Save for Venta {
                 .iter()
                 .filter_map(|x| match x {
                     V::Prod(a) => Some(entity::relacion_venta_prod::ActiveModel {
-                        producto: Set(a.1.get_id()),
+                        producto: Set(*a.1.id()),
                         venta: Set(saved_model.id),
                         ..Default::default()
                     }),
@@ -223,8 +238,8 @@ impl Save for Venta {
                 .iter()
                 .filter_map(|x| match x {
                     V::Rub(a) => Some(entity::relacion_venta_rub::ActiveModel {
-                        cantidad: Set(a.0 as i16),
-                        rubro: Set(*a.1.get_id()),
+                        cantidad: Set(a.0 as i32),
+                        rubro: Set(*a.1.id()),
                         venta: Set(saved_model.id),
                         ..Default::default()
                     }),
@@ -240,7 +255,7 @@ impl Save for Venta {
                 .filter_map(|x| match x {
                     V::Pes(a) => Some(entity::relacion_venta_pes::ActiveModel {
                         cantidad: Set(a.0),
-                        pesable: Set(*a.1.get_id()),
+                        pesable: Set(*a.1.id()),
                         venta: Set(saved_model.id),
                         ..Default::default()
                     }),

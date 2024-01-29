@@ -3,24 +3,22 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "proveedor")]
+#[sea_orm(table_name = "medio_pago")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub updated_at: String,
-    pub nombre: String,
-    pub contacto: Option<i64>,
+    pub medio: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::relacion_prod_prov::Entity")]
-    RelacionProdProv,
+    #[sea_orm(has_many = "super::pago::Entity")]
+    Pago,
 }
 
-impl Related<super::relacion_prod_prov::Entity> for Entity {
+impl Related<super::pago::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::RelacionProdProv.def()
+        Relation::Pago.def()
     }
 }
 

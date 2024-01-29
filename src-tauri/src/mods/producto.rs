@@ -1,15 +1,19 @@
 use std::sync::Arc;
 
-use super::{lib::Save, valuable::Presentacion, valuable::ValuableTrait};
-use crate::redondeo;
+use super::{
+    lib::{redondeo, Save},
+    valuable::Presentacion,
+    valuable::ValuableTrait,
+};
 use chrono::Utc;
 use entity::{codigo_barras, producto};
-use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait, Set};
+use migration::IdenList;
+use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait, PaginatorTrait, Set};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
-    id: i64,
+    id: i32,
     pub codigos_de_barras: Vec<i64>,
     precio_de_venta: f64,
     porcentaje: f64,
@@ -22,7 +26,7 @@ pub struct Producto {
 
 impl Producto {
     pub fn new(
-        id: i64,
+        id: i32,
         codigos_de_barras: Vec<i64>,
         precio_de_venta: f64,
         porcentaje: f64,
@@ -44,41 +48,41 @@ impl Producto {
             presentacion,
         }
     }
-    pub fn get_id(&self) -> i64 {
-        self.id
+    pub fn id(&self) -> &i32 {
+        &self.id
     }
-    pub fn get_codigos_de_barras(&self) -> &Vec<i64> {
+    pub fn codigos_de_barras(&self) -> &Vec<i64> {
         &self.codigos_de_barras
     }
-    pub fn get_precio_de_venta(&self) -> &f64 {
+    pub fn precio_de_venta(&self) -> &f64 {
         &self.precio_de_venta
     }
-    pub fn get_porcentaje(&self) -> &f64 {
+    pub fn porcentaje(&self) -> &f64 {
         &self.porcentaje
     }
-    pub fn get_precio_de_costo(&self) -> &f64 {
+    pub fn precio_de_costo(&self) -> &f64 {
         &self.precio_de_costo
     }
-    pub fn get_tipo_producto(&self) -> Arc<str> {
+    pub fn tipo_producto(&self) -> Arc<str> {
         Arc::clone(&self.tipo_producto)
     }
-    pub fn get_marca(&self) -> Arc<str> {
+    pub fn marca(&self) -> Arc<str> {
         Arc::clone(&self.marca)
     }
-    pub fn get_variedad(&self) -> Arc<str> {
+    pub fn variedad(&self) -> Arc<str> {
         Arc::clone(&self.variedad)
     }
-    pub fn get_presentacion(&self) -> &Presentacion {
+    pub fn presentacion(&self) -> &Presentacion {
         &self.presentacion
     }
 
-    pub fn get_nombre_completo(&self) -> String {
+    pub fn nombre_completo(&self) -> String {
         format!(
             "{} {} {} {}",
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
-    pub fn rm_code(&mut self,i:usize){
+    pub fn rm_code(&mut self, i: usize) {
         self.codigos_de_barras.remove(i);
     }
 
@@ -110,7 +114,7 @@ impl Save for Producto {
             marca: Set(self.marca.to_string()),
             variedad: Set(self.variedad.to_string()),
             presentacion: Set(format!("{}", self.presentacion)),
-            updated_at: Set(Utc::now().naive_utc()),
+            updated_at: Set(Utc::now().naive_utc().to_string()),
             ..Default::default()
         };
         let res = entity::producto::Entity::insert(model).exec(&db).await?;
@@ -124,7 +128,6 @@ impl Save for Producto {
         }
         Ok(())
     }
-    
 }
 
 impl PartialEq for Producto {
@@ -135,9 +138,9 @@ impl PartialEq for Producto {
                 esta = true;
             }
         }
+
         esta
     }
-    
 }
 
 impl ValuableTrait for Producto {

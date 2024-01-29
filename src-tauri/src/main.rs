@@ -4,7 +4,6 @@ use mods::{
     config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, valuable::Valuable,
     venta::Venta,
 };
-use Valuable as V;
 type Result<T> = std::result::Result<T, String>;
 
 use std::sync::Mutex;
@@ -20,11 +19,6 @@ fn buscador(name: &str) -> String {
     format!("Hello, {}! You've been mensajed from Rust!", name)
 }
 
-#[tauri::command]
-fn imprimir(sistema: State<Mutex<Sistema>>) {
-    let sis = sistema.lock().unwrap();
-    sis.imprimir();
-}
 #[tauri::command]
 fn agregar_proveedor(
     window: tauri::Window,
@@ -82,7 +76,7 @@ fn agregar_producto(
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
-            Ok(producto.get_nombre_completo())
+            Ok(producto.nombre_completo())
         }
         Err(e) => Err(e.to_string()),
     }
@@ -92,7 +86,7 @@ fn agregar_producto(
 fn agregar_pesable<'a>(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-    id: i64,
+    id: i32,
     codigo: i64,
     precio_peso: f64,
     porcentaje: f64,
@@ -110,7 +104,7 @@ fn agregar_pesable<'a>(
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
-            Ok(pesable.get_descripcion().to_string())
+            Ok(pesable.descripcion().to_string())
         }
         Err(a) => Err(a.to_string()),
     }
@@ -119,7 +113,7 @@ fn agregar_pesable<'a>(
 fn agregar_rubro(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-    id: i64,
+    id: i32,
     monto: f64,
     descripcion: &str,
 ) -> Result<String> {
@@ -132,7 +126,7 @@ fn agregar_rubro(
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
-            Ok(rubro.get_descripcion().to_string())
+            Ok(rubro.descripcion().to_string())
         }
         Err(a) => Err(a.to_string()),
     }
@@ -142,7 +136,7 @@ fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Result<Vec<String>> {
     let res;
     match sistema.lock() {
         Ok(a) => {
-            res = Ok(async_runtime::block_on(a.get_proveedores())
+            res = Ok(async_runtime::block_on(a.proveedores())
                 .iter()
                 .map(|x| x.to_string())
                 .collect());
@@ -161,12 +155,30 @@ fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Result<Vec<String>> {
 }
 
 #[tauri::command]
+fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
+    let res: Result<Vec<String>>;
+    match sistema.lock() {
+        Ok(a) => {
+            res = Ok(async_runtime::block_on(a.productos())
+                .iter()
+                .map(|x| serde_json::to_string_pretty(&x).unwrap())
+                .collect())
+        }
+        Err(e) => res = Err(e.to_string()),
+    }
+    res
+}
+
+#[tauri::command]
 fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Result<Vec<Valuable>> {
     let res;
     match sistema.lock() {
-        Ok(a) => match async_runtime::block_on(a.get_prods_filtrado(filtro)) {
+        Ok(a) => match async_runtime::block_on(a.prods_filtrado(filtro)) {
             Ok(productos) => {
-                res = Ok(productos.iter().map(|x| V::Prod((0, x.clone()))).collect());
+                res = Ok(productos
+                    .iter()
+                    .map(|x| Valuable::Prod((0, x.clone())))
+                    .collect());
             }
             Err(e) => return Err(e.to_string()),
         },
@@ -278,7 +290,7 @@ fn agregar_pago(
 }
 
 #[tauri::command]
-fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<()> {
+fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => match a.eliminar_pago(pos, index) {
             Ok(a) => Ok(a),
@@ -308,28 +320,16 @@ fn get_filtrado(
 
     res
 }
-#[tauri::command]
-fn redondeo(politica: f64, numero: f64) -> f64 {
-    let mut res = numero;
-    let dif = numero % politica;
-    if dif != 0.0 {
-        if dif < politica / 2.0 {
-            res = numero - dif;
-        } else {
-            res = numero + politica - dif;
-        }
-    }
-    res
-}
+
 #[tauri::command]
 fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta> {
     let res;
     match sistema.lock() {
         Ok(a) => {
             if pos == 1 {
-                res = Ok(a.get_venta(1).clone());
+                res = Ok(a.venta(1).clone());
             } else {
-                res = Ok(a.get_venta(0).clone());
+                res = Ok(a.venta(0).clone());
             }
         }
         Err(e) => res = Err(e.to_string()),
@@ -340,7 +340,7 @@ fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta> {
 fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config> {
     let res;
     match sistema.lock() {
-        Ok(sis) => res = Ok(sis.get_configs().clone()),
+        Ok(sis) => res = Ok(sis.configs().clone()),
         Err(e) => res = Err(e.to_string()),
     }
 
@@ -378,7 +378,7 @@ fn close_window(window: tauri::Window) -> Result<()> {
 fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
     let res;
     match sistema.lock() {
-        Ok(sis) => res = Ok(sis.get_configs().get_medios_pago()),
+        Ok(sis) => res = Ok(sis.configs().medios_pago()),
         Err(e) => res = Err(e.to_string()),
     }
     res
@@ -387,7 +387,7 @@ fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
 #[tauri::command]
 fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
     let res;
-    res = prod.get_descripcion(&conf);
+    res = prod.descripcion(&conf);
     res
 }
 
@@ -414,7 +414,7 @@ fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Res
 #[tauri::command]
 fn get_stash(sistema: State<Mutex<Sistema>>) -> Result<Vec<Venta>> {
     match sistema.lock() {
-        Ok(sis) => Ok(sis.get_stash().clone()),
+        Ok(sis) => Ok(sis.stash().clone()),
         Err(e) => Err(e.to_string()),
     }
 }
@@ -477,7 +477,6 @@ fn main() {
             agregar_rubro,
             agregar_proveedor,
             close_window,
-            imprimir,
             get_proveedores,
             get_filtrado,
             get_productos_filtrado,
@@ -485,7 +484,6 @@ fn main() {
             descontar_producto_de_venta,
             incrementar_producto_a_venta,
             eliminar_producto_de_venta,
-            redondeo,
             agregar_pago,
             eliminar_pago,
             get_venta_actual,

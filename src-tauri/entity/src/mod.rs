@@ -3,6 +3,7 @@
 pub mod prelude;
 
 pub mod codigo_barras;
+pub mod medio_pago;
 pub mod pago;
 pub mod pesable;
 pub mod producto;

@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     politica_redondeo: f64,
@@ -11,19 +10,19 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn get_cantidad_productos(&self) -> usize {
+    pub fn cantidad_productos(&self) -> usize {
         self.cantidad_productos
     }
-    pub fn get_medios_pago(&self) -> Vec<String> {
+    pub fn medios_pago(&self) -> Vec<String> {
         self.medios_pago.clone()
     }
-    pub fn get_politica(&self) -> f64 {
+    pub fn politica(&self) -> f64 {
         self.politica_redondeo
     }
-    pub fn get_formato(&self) -> Formato {
+    pub fn formato(&self) -> Formato {
         self.formato_producto.clone()
     }
-    // pub fn get_modo_mayus(&self) -> Mayusculas {
+    // pub fn modo_mayus(&self) -> Mayusculas {
     //     self.modo_mayus.clone()
     // }
 }

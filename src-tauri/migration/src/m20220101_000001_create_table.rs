@@ -150,7 +150,15 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Pago::MedioPago).string().not_null())
+                    .col(ColumnDef::new(Pago::MedioPago).big_integer().not_null())
+                    .foreign_key(
+                        ForeignKeyCreateStatement::new()
+                            .name("medio_pago_fk")
+                            .from(Pago::Table, Pago::MedioPago)
+                            .to(MedioPago::Table, MedioPago::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
                     .col(ColumnDef::new(Pago::Monto).double().not_null())
                     .col(ColumnDef::new(Pago::Venta).big_integer().not_null())
                     .foreign_key(
@@ -385,6 +393,22 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(MedioPago::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(MedioPago::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(MedioPago::Medio).string().not_null())
+                    .to_owned(),
+            )
+            .await?;
         Ok(())
     }
 
@@ -524,4 +548,10 @@ enum RelacionProdProv {
     Producto,
     Proveedor,
     Codigo,
+}
+#[derive(DeriveIden)]
+enum MedioPago {
+    Table,
+    Id,
+    Medio,
 }
