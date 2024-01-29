@@ -53,7 +53,7 @@ impl<'a> Venta {
         self.monto_pagado += monto;
         self.monto_total - self.monto_pagado
     }
-    pub fn agregar_producto(&mut self, producto: Valuable, politica: f64) -> Venta {
+    pub fn agregar_producto(&mut self, producto: Valuable, politica: &f64) -> Venta {
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -78,7 +78,7 @@ impl<'a> Venta {
         self.update_monto_total(politica);
         self.clone()
     }
-    fn update_monto_total(&mut self, politica: f64) {
+    fn update_monto_total(&mut self, politica: &f64) {
         self.monto_total = 0.0;
         for i in &self.productos {
             match &i {
@@ -97,7 +97,7 @@ impl<'a> Venta {
     pub fn restar_producto(
         &mut self,
         producto: Valuable,
-        politica: f64,
+        politica: &f64,
         conf: &Config,
     ) -> Result<Venta, AppError> {
         let mut res = Err(AppError::ProductNotFound(producto.descripcion(conf)));
@@ -135,7 +135,7 @@ impl<'a> Venta {
     pub fn incrementar_producto(
         &mut self,
         producto: Valuable,
-        politica: f64,
+        politica: &f64,
         conf: &Config,
     ) -> Result<Venta, AppError> {
         let mut res = Err(AppError::ProductNotFound(producto.descripcion(conf)));
@@ -161,7 +161,7 @@ impl<'a> Venta {
     pub fn eliminar_producto(
         &mut self,
         producto: Valuable,
-        politica: f64,
+        politica: &f64,
         conf: &Config,
     ) -> Result<Venta, AppError> {
         let mut res = Err(AppError::ProductNotFound(producto.descripcion(conf)));
@@ -207,9 +207,9 @@ impl Save for Venta {
                     ));
 
                     pago::ActiveModel {
-                        medio_pago: Set(model.id),
+                        medio_pago: Set(model.id as i64),
                         monto: Set(x.monto()),
-                        venta: Set(saved_model.clone().id),
+                        venta: Set(saved_model.clone().id as i64),
                         ..Default::default()
                     }
                 })
@@ -223,8 +223,8 @@ impl Save for Venta {
                 .iter()
                 .filter_map(|x| match x {
                     V::Prod(a) => Some(entity::relacion_venta_prod::ActiveModel {
-                        producto: Set(*a.1.id()),
-                        venta: Set(saved_model.id),
+                        producto: Set(*a.1.id() as i64),
+                        venta: Set(saved_model.id as i64),
                         ..Default::default()
                     }),
                     _ => None,
@@ -239,8 +239,8 @@ impl Save for Venta {
                 .filter_map(|x| match x {
                     V::Rub(a) => Some(entity::relacion_venta_rub::ActiveModel {
                         cantidad: Set(a.0 as i32),
-                        rubro: Set(*a.1.id()),
-                        venta: Set(saved_model.id),
+                        rubro: Set(*a.1.id() as i64),
+                        venta: Set(saved_model.id as i64),
                         ..Default::default()
                     }),
                     _ => None,
@@ -254,9 +254,9 @@ impl Save for Venta {
                 .iter()
                 .filter_map(|x| match x {
                     V::Pes(a) => Some(entity::relacion_venta_pes::ActiveModel {
-                        cantidad: Set(a.0),
-                        pesable: Set(*a.1.id()),
-                        venta: Set(saved_model.id),
+                        cantidad: Set(a.0 as f64),
+                        pesable: Set(*a.1.id() as i64),
+                        venta: Set(saved_model.id as i64),
                         ..Default::default()
                     }),
                     _ => None,

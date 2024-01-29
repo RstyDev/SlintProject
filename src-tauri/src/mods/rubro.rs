@@ -49,7 +49,7 @@ impl Save for Rubro {
     }
 }
 impl ValuableTrait for Rubro {
-    fn redondear(&self, politica: f64) -> Rubro {
+    fn redondear(&self, politica: &f64) -> Rubro {
         Rubro {
             id: self.id,
             monto: redondeo(politica, self.monto),

@@ -409,6 +409,30 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(Config::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(CodigoBarras::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Config::CantidadProductos)
+                            .integer()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Config::FormatoProducto).string().not_null())
+                    .col(ColumnDef::new(Config::ModoMayus).string().not_null())
+                    .col(ColumnDef::new(Config::PoliticaRedondeo).double().not_null())
+                    .to_owned(),
+            )
+            .await?;
+
         Ok(())
     }
 
@@ -554,4 +578,13 @@ enum MedioPago {
     Table,
     Id,
     Medio,
+}
+#[derive(DeriveIden)]
+enum Config {
+    Table,
+    Id,
+    PoliticaRedondeo,
+    FormatoProducto,
+    ModoMayus,
+    CantidadProductos,
 }

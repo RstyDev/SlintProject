@@ -306,18 +306,32 @@ fn get_filtrado(
     filtro: &str,
     tipo_filtro: &str,
 ) -> Result<Vec<String>> {
-    let mut res = Err("No inicializado".to_string());
-    match sistema.lock() {
+    let res;
+    res=match sistema.lock() {
         Ok(a) => {
             if tipo_filtro.eq("marca") {
-                res = Ok(a.filtrar_marca(&filtro));
+                match a.filtrar_marca(&filtro){
+                    Ok(a)=>Ok(a),
+                    Err(e)=>Err(e.to_string())
+                }
             } else if tipo_filtro.eq("tipo_producto") {
-                res = Ok(a.filtrar_tipo_producto(&filtro));
+                match a.filtrar_tipo_producto(&filtro){
+                    Ok(a)=>Ok(a),
+                    Err(e)=>Err(e.to_string())
+                }
+            } else {
+                Err(format!("Parámetro incorrecto {tipo_filtro}"))
             }
         }
-        Err(e) => res = Err(e.to_string()),
-    }
+        Err(e) =>  Err(e.to_string()),
+    };
 
+    let res=match res{
+        Ok(a) => Ok(a),
+        Err(e) => Err(e.to_string()),
+    };
+        
+    
     res
 }
 
@@ -378,7 +392,7 @@ fn close_window(window: tauri::Window) -> Result<()> {
 fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
     let res;
     match sistema.lock() {
-        Ok(sis) => res = Ok(sis.configs().medios_pago()),
+        Ok(sis) => res = Ok(sis.configs().medios_pago().clone()),
         Err(e) => res = Err(e.to_string()),
     }
     res
@@ -479,6 +493,7 @@ fn main() {
             close_window,
             get_proveedores,
             get_filtrado,
+            get_productos,
             get_productos_filtrado,
             agregar_producto_a_venta,
             descontar_producto_de_venta,

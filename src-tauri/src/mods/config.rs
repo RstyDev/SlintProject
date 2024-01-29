@@ -5,22 +5,22 @@ pub struct Config {
     politica_redondeo: f64,
     formato_producto: Formato,
     modo_mayus: Mayusculas,
-    cantidad_productos: usize,
+    cantidad_productos: u8,
     medios_pago: Vec<String>,
 }
 
 impl Config {
-    pub fn cantidad_productos(&self) -> usize {
-        self.cantidad_productos
+    pub fn cantidad_productos(&self) -> &u8 {
+        &self.cantidad_productos
     }
-    pub fn medios_pago(&self) -> Vec<String> {
-        self.medios_pago.clone()
+    pub fn medios_pago(&self) -> &Vec<String> {
+        &self.medios_pago
     }
     pub fn politica(&self) -> f64 {
         self.politica_redondeo
     }
-    pub fn formato(&self) -> Formato {
-        self.formato_producto.clone()
+    pub fn formato(&self) -> &Formato {
+        &self.formato_producto
     }
     // pub fn modo_mayus(&self) -> Mayusculas {
     //     self.modo_mayus.clone()

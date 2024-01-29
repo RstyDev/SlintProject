@@ -8,13 +8,13 @@ use super::lib::Save;
 #[derive(Debug, Clone, Serialize)]
 pub struct MedioPago {
     medio: Arc<str>,
-    id: i32,
+    id: i64,
 }
 impl MedioPago {
     pub fn new(medio: &str, id: i32) -> MedioPago {
         MedioPago {
             medio: Arc::from(medio),
-            id,
+            id: id as i64,
         }
     }
 }
@@ -44,7 +44,7 @@ impl Save for Pago {
             .await?
             .unwrap();
         let model = pago::ActiveModel {
-            medio_pago: Set(medio_id.id),
+            medio_pago: Set(medio_id.id as i64),
             monto: Set(self.monto),
             ..Default::default()
         };
@@ -69,7 +69,7 @@ impl Default for Pago {
         let res = async_runtime::block_on(medio_from_db("Efectivo"));
         let medio_pago = MedioPago {
             medio: Arc::from(res.medio),
-            id: res.id,
+            id: res.id as i64,
         };
         Pago {
             medio_pago,

@@ -32,8 +32,8 @@ impl RelacionProdProv {
 impl Save for RelacionProdProv {
     async fn save(&self) -> Result<(), DbErr> {
         let model = relacion_prod_prov::ActiveModel {
-            producto: Set(*self.id_producto()),
-            proveedor: Set(*self.id_producto()),
+            producto: Set(*self.id_producto() as i64),
+            proveedor: Set(*self.id_producto() as i64),
             codigo: Set(self.codigo_interno),
             ..Default::default()
         };
