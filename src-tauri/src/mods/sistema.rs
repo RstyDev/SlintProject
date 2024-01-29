@@ -2,19 +2,16 @@ type Res<T> = std::result::Result<T, AppError>;
 use chrono::Utc;
 use entity::codigo_barras;
 use entity::*;
-use full::slice::prod;
-use migration::SimpleExpr;
+
 use sea_orm::ColumnTrait;
 use sea_orm::Condition;
 use sea_orm::DatabaseConnection;
 use sea_orm::DbErr;
-use sea_orm::IntoSimpleExpr;
-use sea_orm::ModelTrait;
+
 use sea_orm::QueryFilter;
 use sea_orm::QueryOrder;
 use sea_orm::QuerySelect;
-use sea_orm::QueryTrait;
-use sea_orm::RelationTrait;
+
 use sea_orm::Set;
 use sea_orm::{Database, EntityTrait};
 use tauri::async_runtime;
@@ -22,9 +19,7 @@ use Valuable as V;
 
 use super::error::AppError;
 
-use super::lib::cargar_todas_las_relaciones_prod_prov;
 use super::lib::cargar_todos_los_provs;
-use super::lib::cargar_todos_los_valuables;
 use super::lib::map_model_prod;
 use super::lib::map_model_prov;
 use super::lib::save;
@@ -65,23 +60,23 @@ async fn get_cantidad_productos() -> Result<usize, DbErr> {
     let res = entity::producto::Entity::find().all(&db).await?;
     Ok(res.len())
 }
-fn check_codes(prods: &mut Vec<Producto>) {
-    for i in 0..prods.len() {
-        println!("Producto {}", i);
-        for j in 0..prods[i].codigos_de_barras.len() {
-            for k in i + 1..prods.len() {
-                let mut l = 0;
-                while l < prods[k].codigos_de_barras.len() {
-                    if prods[i].codigos_de_barras[j] == prods[k].codigos_de_barras[l] {
-                        prods[k].rm_code(l);
-                    } else {
-                        l += 1;
-                    }
-                }
-            }
-        }
-    }
-}
+// fn check_codes(prods: &mut Vec<Producto>) {
+//     for i in 0..prods.len() {
+//         println!("Producto {}", i);
+//         for j in 0..prods[i].codigos_de_barras.len() {
+//             for k in i + 1..prods.len() {
+//                 let mut l = 0;
+//                 while l < prods[k].codigos_de_barras.len() {
+//                     if prods[i].codigos_de_barras[j] == prods[k].codigos_de_barras[l] {
+//                         prods[k].rm_code(l);
+//                     } else {
+//                         l += 1;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
 async fn get_db() -> Result<DatabaseConnection, DbErr> {
     Database::connect("sqlite://db.sqlite?mode=rwc").await
 }
