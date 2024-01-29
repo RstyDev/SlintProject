@@ -18,7 +18,7 @@ pub enum Valuable {
 }
 
 impl Valuable {
-    // pub fn get_price(&self, politica: f64) -> f64 {
+    // pub fn price(&self, politica: f64) -> f64 {
     //     match self {
     //         V::Pes(a) => redondeo(politica, a.0 as f64 * a.1.precio_peso),
     //         V::Prod(a) => a.1.redondear(politica).precio_de_venta,
@@ -31,60 +31,60 @@ impl Valuable {
     //         _ => (),
     //     }
     // }
-    pub fn get_descripcion(&self, conf: &Config) -> String {
+    pub fn descripcion(&self, conf: &Config) -> String {
         let res = match self {
-            V::Pes(a) => a.1.get_descripcion().to_string(),
-            V::Rub(a) => a.1.get_descripcion().to_string(),
-            V::Prod(a) => match conf.get_formato() {
-                Formato::Mtv => match a.1.get_presentacion() {
+            V::Pes(a) => a.1.descripcion().to_string(),
+            V::Rub(a) => a.1.descripcion().to_string(),
+            V::Prod(a) => match conf.formato() {
+                Formato::Mtv => match a.1.presentacion() {
                     Presentacion::Gr(cant) => format!(
                         "{} {} {} {} Gr",
-                        a.1.get_marca(),
-                        a.1.get_tipo_producto(),
-                        a.1.get_variedad(),
+                        a.1.marca(),
+                        a.1.tipo_producto(),
+                        a.1.variedad(),
                         cant
                     ),
                     Presentacion::CC(cant) => format!(
                         "{} {} {} {} CC",
-                        a.1.get_marca(),
-                        a.1.get_tipo_producto(),
-                        a.1.get_variedad(),
+                        a.1.marca(),
+                        a.1.tipo_producto(),
+                        a.1.variedad(),
                         cant
                     ),
                     Presentacion::Kg(cant) => format!(
                         "{} {} {} {} Kg",
-                        a.1.get_marca(),
-                        a.1.get_tipo_producto(),
-                        a.1.get_variedad(),
+                        a.1.marca(),
+                        a.1.tipo_producto(),
+                        a.1.variedad(),
                         cant
                     ),
                     Presentacion::Lt(cant) => format!(
                         "{} {} {} {} Lt",
-                        a.1.get_marca(),
-                        a.1.get_tipo_producto(),
-                        a.1.get_variedad(),
+                        a.1.marca(),
+                        a.1.tipo_producto(),
+                        a.1.variedad(),
                         cant
                     ),
                     Presentacion::Ml(cant) => format!(
                         "{} {} {} {} Ml",
-                        a.1.get_marca(),
-                        a.1.get_tipo_producto(),
-                        a.1.get_variedad(),
+                        a.1.marca(),
+                        a.1.tipo_producto(),
+                        a.1.variedad(),
                         cant
                     ),
                     Presentacion::Un(cant) => format!(
                         "{} {} {} {} Un",
-                        a.1.get_marca(),
-                        a.1.get_tipo_producto(),
-                        a.1.get_variedad(),
+                        a.1.marca(),
+                        a.1.tipo_producto(),
+                        a.1.variedad(),
                         cant
                     ),
                 },
                 Formato::Tmv => format!(
                     "{} {} {}",
-                    a.1.get_tipo_producto(),
-                    a.1.get_marca(),
-                    a.1.get_variedad()
+                    a.1.tipo_producto(),
+                    a.1.marca(),
+                    a.1.variedad()
                 ),
             },
         };
@@ -109,9 +109,9 @@ impl Save for Valuable {
 impl PartialEq for Valuable {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (V::Pes(a), V::Pes(b)) => *a.1.get_id() == *b.1.get_id(),
-            (V::Prod(a), V::Prod(b)) => a.1.get_id() == b.1.get_id(),
-            (V::Rub(a), V::Rub(b)) => a.1.get_id() == b.1.get_id(),
+            (V::Pes(a), V::Pes(b)) => *a.1.id() == *b.1.id(),
+            (V::Prod(a), V::Prod(b)) => a.1.id() == b.1.id(),
+            (V::Rub(a), V::Rub(b)) => a.1.id() == b.1.id(),
             (_, _) => false,
         }
     }

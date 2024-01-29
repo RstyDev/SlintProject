@@ -32,22 +32,22 @@ impl Pesable {
             descripcion: Arc::from(descripcion),
         }
     }
-    pub fn get_id(&self) -> &i32 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
-    pub fn get_codigo(&self) -> &i64 {
+    pub fn codigo(&self) -> &i64 {
         &self.codigo
     }
-    pub fn get_precio_peso(&self) -> &f64 {
+    pub fn precio_peso(&self) -> &f64 {
         &self.precio_peso
     }
-    pub fn get_porcentaje(&self) -> &f64 {
+    pub fn porcentaje(&self) -> &f64 {
         &self.porcentaje
     }
-    pub fn get_costo_kilo(&self) -> &f64 {
+    pub fn costo_kilo(&self) -> &f64 {
         &self.costo_kilo
     }
-    pub fn get_descripcion(&self) -> Arc<str> {
+    pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
     }
 }

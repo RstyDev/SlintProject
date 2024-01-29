@@ -19,21 +19,21 @@ impl RelacionProdProv {
             codigo_interno,
         }
     }
-    pub fn get_id_producto(&self) -> &i32 {
+    pub fn id_producto(&self) -> &i32 {
         &self.id_producto
     }
-    pub fn get_id_proveedor(&self) -> &i32 {
+    pub fn id_proveedor(&self) -> &i32 {
         &self.id_proveedor
     }
-    pub fn get_codigo_interno(&self) -> Option<i64> {
+    pub fn codigo_interno(&self) -> Option<i64> {
         self.codigo_interno
     }
 }
 impl Save for RelacionProdProv {
     async fn save(&self) -> Result<(), DbErr> {
         let model = relacion_prod_prov::ActiveModel {
-            producto: Set(*self.get_id_producto()),
-            proveedor: Set(*self.get_id_producto()),
+            producto: Set(*self.id_producto()),
+            proveedor: Set(*self.id_producto()),
             codigo: Set(self.codigo_interno),
             ..Default::default()
         };

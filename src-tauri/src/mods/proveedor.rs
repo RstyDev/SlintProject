@@ -21,13 +21,13 @@ impl Proveedor {
             contacto,
         }
     }
-    pub fn get_nombre(&self) -> Arc<str> {
+    pub fn nombre(&self) -> Arc<str> {
         Arc::clone(&self.nombre)
     }
-    pub fn get_id(&self) -> &i32 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
-    pub fn get_contacto(&self) -> &Option<i64> {
+    pub fn contacto(&self) -> &Option<i64> {
         &self.contacto
     }
 }

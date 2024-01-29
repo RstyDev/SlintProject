@@ -76,7 +76,7 @@ fn agregar_producto(
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
-            Ok(producto.get_nombre_completo())
+            Ok(producto.nombre_completo())
         }
         Err(e) => Err(e.to_string()),
     }
@@ -104,7 +104,7 @@ fn agregar_pesable<'a>(
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
-            Ok(pesable.get_descripcion().to_string())
+            Ok(pesable.descripcion().to_string())
         }
         Err(a) => Err(a.to_string()),
     }
@@ -126,7 +126,7 @@ fn agregar_rubro(
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
-            Ok(rubro.get_descripcion().to_string())
+            Ok(rubro.descripcion().to_string())
         }
         Err(a) => Err(a.to_string()),
     }
@@ -136,7 +136,7 @@ fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Result<Vec<String>> {
     let res;
     match sistema.lock() {
         Ok(a) => {
-            res = Ok(async_runtime::block_on(a.get_proveedores())
+            res = Ok(async_runtime::block_on(a.proveedores())
                 .iter()
                 .map(|x| x.to_string())
                 .collect());
@@ -159,7 +159,7 @@ fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
     let res: Result<Vec<String>>;
     match sistema.lock() {
         Ok(a) => {
-            res = Ok(async_runtime::block_on(a.get_productos())
+            res = Ok(async_runtime::block_on(a.productos())
                 .iter()
                 .map(|x| serde_json::to_string_pretty(&x).unwrap())
                 .collect())
@@ -173,7 +173,7 @@ fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
 fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Result<Vec<Valuable>> {
     let res;
     match sistema.lock() {
-        Ok(a) => match async_runtime::block_on(a.get_prods_filtrado(filtro)) {
+        Ok(a) => match async_runtime::block_on(a.prods_filtrado(filtro)) {
             Ok(productos) => {
                 res = Ok(productos
                     .iter()
@@ -327,9 +327,9 @@ fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta> {
     match sistema.lock() {
         Ok(a) => {
             if pos == 1 {
-                res = Ok(a.get_venta(1).clone());
+                res = Ok(a.venta(1).clone());
             } else {
-                res = Ok(a.get_venta(0).clone());
+                res = Ok(a.venta(0).clone());
             }
         }
         Err(e) => res = Err(e.to_string()),
@@ -340,7 +340,7 @@ fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta> {
 fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config> {
     let res;
     match sistema.lock() {
-        Ok(sis) => res = Ok(sis.get_configs().clone()),
+        Ok(sis) => res = Ok(sis.configs().clone()),
         Err(e) => res = Err(e.to_string()),
     }
 
@@ -378,7 +378,7 @@ fn close_window(window: tauri::Window) -> Result<()> {
 fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
     let res;
     match sistema.lock() {
-        Ok(sis) => res = Ok(sis.get_configs().get_medios_pago()),
+        Ok(sis) => res = Ok(sis.configs().medios_pago()),
         Err(e) => res = Err(e.to_string()),
     }
     res
@@ -387,7 +387,7 @@ fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
 #[tauri::command]
 fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
     let res;
-    res = prod.get_descripcion(&conf);
+    res = prod.descripcion(&conf);
     res
 }
 
@@ -414,7 +414,7 @@ fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Res
 #[tauri::command]
 fn get_stash(sistema: State<Mutex<Sistema>>) -> Result<Vec<Venta>> {
     match sistema.lock() {
-        Ok(sis) => Ok(sis.get_stash().clone()),
+        Ok(sis) => Ok(sis.stash().clone()),
         Err(e) => Err(e.to_string()),
     }
 }

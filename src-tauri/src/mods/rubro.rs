@@ -24,13 +24,13 @@ impl Rubro {
             descripcion: Arc::from(descripcion),
         }
     }
-    pub fn get_id(&self) -> &i32 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
-    pub fn get_monto(&self) -> &f64 {
+    pub fn monto(&self) -> &f64 {
         &self.monto
     }
-    pub fn get_descripcion(&self) -> Arc<str> {
+    pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
     }
 }

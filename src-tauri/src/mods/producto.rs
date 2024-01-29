@@ -48,35 +48,35 @@ impl Producto {
             presentacion,
         }
     }
-    pub fn get_id(&self) -> &i32 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
-    pub fn get_codigos_de_barras(&self) -> &Vec<i64> {
+    pub fn codigos_de_barras(&self) -> &Vec<i64> {
         &self.codigos_de_barras
     }
-    pub fn get_precio_de_venta(&self) -> &f64 {
+    pub fn precio_de_venta(&self) -> &f64 {
         &self.precio_de_venta
     }
-    pub fn get_porcentaje(&self) -> &f64 {
+    pub fn porcentaje(&self) -> &f64 {
         &self.porcentaje
     }
-    pub fn get_precio_de_costo(&self) -> &f64 {
+    pub fn precio_de_costo(&self) -> &f64 {
         &self.precio_de_costo
     }
-    pub fn get_tipo_producto(&self) -> Arc<str> {
+    pub fn tipo_producto(&self) -> Arc<str> {
         Arc::clone(&self.tipo_producto)
     }
-    pub fn get_marca(&self) -> Arc<str> {
+    pub fn marca(&self) -> Arc<str> {
         Arc::clone(&self.marca)
     }
-    pub fn get_variedad(&self) -> Arc<str> {
+    pub fn variedad(&self) -> Arc<str> {
         Arc::clone(&self.variedad)
     }
-    pub fn get_presentacion(&self) -> &Presentacion {
+    pub fn presentacion(&self) -> &Presentacion {
         &self.presentacion
     }
 
-    pub fn get_nombre_completo(&self) -> String {
+    pub fn nombre_completo(&self) -> String {
         format!(
             "{} {} {} {}",
             self.marca, self.tipo_producto, self.variedad, self.presentacion

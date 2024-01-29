@@ -157,7 +157,7 @@ pub async fn cargar_todos_los_productos(
     db: &DatabaseConnection,
 ) -> Result<(), DbErr> {
     for producto in productos {
-        let encontrado = entity::producto::Entity::find_by_id(*producto.get_id())
+        let encontrado = entity::producto::Entity::find_by_id(*producto.id())
             .one(db)
             .await?;
         let mut model: ActiveModel;
@@ -166,25 +166,25 @@ pub async fn cargar_todos_los_productos(
             Some(m) => {
                 codigo_prod = m.id;
                 model = m.into();
-                model.marca = Set(producto.get_marca().to_string());
-                model.porcentaje = Set(*producto.get_porcentaje());
-                model.precio_de_costo = Set(*producto.get_precio_de_costo());
-                model.precio_de_venta = Set(*producto.get_precio_de_venta());
-                model.presentacion = Set(producto.get_presentacion().to_string());
-                model.tipo_producto = Set(producto.get_tipo_producto().to_string());
+                model.marca = Set(producto.marca().to_string());
+                model.porcentaje = Set(*producto.porcentaje());
+                model.precio_de_costo = Set(*producto.precio_de_costo());
+                model.precio_de_venta = Set(*producto.precio_de_venta());
+                model.presentacion = Set(producto.presentacion().to_string());
+                model.tipo_producto = Set(producto.tipo_producto().to_string());
                 model.updated_at = Set(Utc::now().naive_utc().to_string());
-                model.variedad = Set(producto.get_variedad().to_string());
+                model.variedad = Set(producto.variedad().to_string());
                 model.update(db).await?;
             }
             None => {
                 model = producto::ActiveModel {
-                    precio_de_venta: Set(*producto.get_precio_de_venta()),
-                    porcentaje: Set(*producto.get_porcentaje()),
-                    precio_de_costo: Set(*producto.get_precio_de_costo()),
-                    tipo_producto: Set(producto.get_tipo_producto().to_string()),
-                    marca: Set(producto.get_marca().to_string()),
-                    variedad: Set(producto.get_variedad().to_string()),
-                    presentacion: Set(producto.get_presentacion().to_string()),
+                    precio_de_venta: Set(*producto.precio_de_venta()),
+                    porcentaje: Set(*producto.porcentaje()),
+                    precio_de_costo: Set(*producto.precio_de_costo()),
+                    tipo_producto: Set(producto.tipo_producto().to_string()),
+                    marca: Set(producto.marca().to_string()),
+                    variedad: Set(producto.variedad().to_string()),
+                    presentacion: Set(producto.presentacion().to_string()),
                     updated_at: Set(Utc::now().naive_utc().to_string()),
                     ..Default::default()
                 };
@@ -202,7 +202,7 @@ pub async fn cargar_todos_los_productos(
             .await?;
 
         let codigos_model: Vec<codigo_barras::ActiveModel> = producto
-            .get_codigos_de_barras()
+            .codigos_de_barras()
             .iter()
             .map(|x| codigo_barras::ActiveModel {
                 codigo: Set(*x),
@@ -232,15 +232,15 @@ pub async fn cargar_todos_los_pesables(
         match i {
             V::Pes(a) => {
                 let model = pesable::ActiveModel {
-                    codigo: Set(*a.1.get_codigo()),
-                    precio_peso: Set(*a.1.get_precio_peso()),
-                    porcentaje: Set(*a.1.get_porcentaje()),
-                    costo_kilo: Set(*a.1.get_costo_kilo()),
-                    descripcion: Set(a.1.get_descripcion().to_string()),
+                    codigo: Set(*a.1.codigo()),
+                    precio_peso: Set(*a.1.precio_peso()),
+                    porcentaje: Set(*a.1.porcentaje()),
+                    costo_kilo: Set(*a.1.costo_kilo()),
+                    descripcion: Set(a.1.descripcion().to_string()),
                     updated_at: Set(Utc::now().naive_utc().to_string()),
-                    id: Set(*a.1.get_id()),
+                    id: Set(*a.1.id()),
                 };
-                if entity::pesable::Entity::find_by_id(*a.1.get_id())
+                if entity::pesable::Entity::find_by_id(*a.1.id())
                     .one(db)
                     .await?
                     .is_some()
@@ -263,12 +263,12 @@ pub async fn cargar_todos_los_rubros(
         match i {
             V::Rub(a) => {
                 let model = entity::rubro::ActiveModel {
-                    id: Set(*a.1.get_id()),
-                    monto: Set(*a.1.get_monto()),
-                    descripcion: Set(a.1.get_descripcion().to_string()),
+                    id: Set(*a.1.id()),
+                    monto: Set(*a.1.monto()),
+                    descripcion: Set(a.1.descripcion().to_string()),
                     updated_at: Set(Utc::now().naive_utc().to_string()),
                 };
-                if entity::rubro::Entity::find_by_id(*a.1.get_id())
+                if entity::rubro::Entity::find_by_id(*a.1.id())
                     .one(db)
                     .await?
                     .is_some()
@@ -305,10 +305,10 @@ pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>) -> Result<(), D
     let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
     for prov in proveedores {
         let model = entity::proveedor::ActiveModel {
-            id: Set(*prov.get_id()),
+            id: Set(*prov.id()),
             updated_at: Set(Utc::now().naive_utc().to_string()),
-            nombre: Set(prov.get_nombre().to_string()),
-            contacto: Set(prov.get_contacto().clone()),
+            nombre: Set(prov.nombre().to_string()),
+            contacto: Set(prov.contacto().clone()),
         };
         if entity::proveedor::Entity::find_by_id(model.clone().id.unwrap())
             .one(&db)
@@ -331,23 +331,23 @@ pub async fn cargar_todas_las_relaciones_prod_prov(
         if let Some(rel) = entity::relacion_prod_prov::Entity::find()
             .filter(
                 Condition::all()
-                    .add(entity::relacion_prod_prov::Column::Producto.eq(*x.get_id_producto()))
-                    .add(entity::relacion_prod_prov::Column::Proveedor.eq(*x.get_id_proveedor())),
+                    .add(entity::relacion_prod_prov::Column::Producto.eq(*x.id_producto()))
+                    .add(entity::relacion_prod_prov::Column::Proveedor.eq(*x.id_proveedor())),
             )
             .one(&db)
             .await?
         {
-            if rel.codigo != x.get_codigo_interno() {
+            if rel.codigo != x.codigo_interno() {
                 let mut act = rel.into_active_model();
-                act.codigo = Set(x.get_codigo_interno());
+                act.codigo = Set(x.codigo_interno());
                 act.clone().update(&db).await?;
                 println!("updating {:?}", act);
             }
         } else {
             let model = entity::relacion_prod_prov::ActiveModel {
-                producto: Set(*x.get_id_producto()),
-                proveedor: Set(*x.get_id_proveedor()),
-                codigo: Set(x.get_codigo_interno()),
+                producto: Set(*x.id_producto()),
+                proveedor: Set(*x.id_proveedor()),
+                codigo: Set(x.codigo_interno()),
                 ..Default::default()
             };
             println!("inserting {:?}", model);
