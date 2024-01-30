@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
-    id: i32,
+    id: i64,
     pub codigos_de_barras: Vec<i64>,
     precio_de_venta: f64,
     porcentaje: f64,
@@ -25,7 +25,7 @@ pub struct Producto {
 
 impl Producto {
     pub fn new(
-        id: i32,
+        id: i64,
         codigos_de_barras: Vec<i64>,
         precio_de_venta: f64,
         porcentaje: f64,
@@ -47,7 +47,7 @@ impl Producto {
             presentacion,
         }
     }
-    pub fn id(&self) -> &i32 {
+    pub fn id(&self) -> &i64 {
         &self.id
     }
     pub fn codigos_de_barras(&self) -> &Vec<i64> {
@@ -120,7 +120,7 @@ impl Save for Producto {
         for codigo in &self.codigos_de_barras {
             let cod_model = codigo_barras::ActiveModel {
                 codigo: Set(*codigo),
-                producto: Set(res.last_insert_id as i64),
+                producto: Set(res.last_insert_id),
                 ..Default::default()
             };
             cod_model.insert(&db).await?;

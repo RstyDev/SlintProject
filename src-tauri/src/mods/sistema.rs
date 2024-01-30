@@ -21,6 +21,10 @@ use tauri::async_runtime;
 use tauri::async_runtime::JoinHandle;
 use Valuable as V;
 
+use crate::mods::lib::cargar_todas_las_relaciones_prod_prov;
+use crate::mods::lib::cargar_todos_los_provs;
+use crate::mods::lib::cargar_todos_los_valuables;
+
 use super::error::AppError;
 
 use super::lib::map_model_prod;
@@ -38,7 +42,6 @@ use super::{
     valuable::{Valuable, ValuableTrait},
     venta::Venta,
 };
-#[derive(Clone)]
 pub struct Sistema {
     write_db: Arc<DatabaseConnection>,
     read_db: Arc<DatabaseConnection>,
@@ -94,10 +97,10 @@ impl<'a> Sistema {
         let path_proveedores = "Proveedores.json";
         let path_relaciones = "Relaciones.json";
         let path_configs = "Configs.json";
-        let path_rubros = "Rubros.json";
         let path_pesables = "Pesables.json";
         let mut productos: Vec<Producto> = Vec::new();
         let mut rubros: Vec<Rubro> = Vec::new();
+        let path_rubros = "Rubros.json";
         let mut pesables: Vec<Pesable> = Vec::new();
         let mut proveedores: Vec<Proveedor> = Vec::new();
         let stash = Vec::new();
@@ -177,17 +180,15 @@ impl<'a> Sistema {
         //     sis.productos[i].unifica_codes()
         // }
 
-        // let prod_load_handle =
-        //     async_runtime::spawn(cargar_todos_los_valuables(sis.productos.clone()));
-        // let prov_load_handle =
-        //     async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
-        // let rel_load_handle = async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(
-        //     sis.relaciones.clone(),
-        // ));
+        let prod_load_handle = async_runtime::spawn(cargar_todos_los_valuables(valuables));
+        let prov_load_handle =
+            async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
 
-        // async_runtime::block_on(prod_load_handle)??;
-        // async_runtime::block_on(prov_load_handle)??;
-        // async_runtime::block_on(rel_load_handle)??;
+        async_runtime::block_on(prod_load_handle)??;
+        async_runtime::block_on(prov_load_handle)??;
+        async_runtime::block_on(cargar_todas_las_relaciones_prod_prov(
+            sis.relaciones.clone(),
+        ))?;
         async_runtime::block_on(medios_handle)??;
         Ok(sis)
     }
@@ -385,7 +386,7 @@ impl<'a> Sistema {
             .iter()
             .map(|x| codigo_barras::ActiveModel {
                 codigo: Set(*x),
-                producto: Set(res_prod.last_insert_id as i64),
+                producto: Set(res_prod.last_insert_id),
                 ..Default::default()
             })
             .collect();
@@ -405,8 +406,8 @@ impl<'a> Sistema {
                 .await?
             {
                 let relacion_model = relacion_prod_prov::ActiveModel {
-                    producto: Set(res_prod.last_insert_id as i64),
-                    proveedor: Set(prov.id as i64),
+                    producto: Set(res_prod.last_insert_id),
+                    proveedor: Set(prov.id),
                     codigo: Set(codigo),
                     ..Default::default()
                 };
@@ -434,11 +435,11 @@ impl<'a> Sistema {
             match codigos_prov[i].parse::<i64>() {
                 Ok(a) => {
                     self.relaciones
-                        .push(RelacionProdProv::new(*producto.id(), i as i32, Some(a)))
+                        .push(RelacionProdProv::new(*producto.id(), i as i64, Some(a)))
                 }
                 Err(_) => {
                     self.relaciones
-                        .push(RelacionProdProv::new(*producto.id(), i as i32, None))
+                        .push(RelacionProdProv::new(*producto.id(), i as i64, None))
                 }
             };
         }
@@ -493,12 +494,12 @@ impl<'a> Sistema {
                 let contacto = Some(contacto.parse()?);
                 let proveedor = proveedor.to_lowercase();
                 prov = Proveedor::new(
-                    self.proveedores.len() as i32 + 1,
+                    self.proveedores.len() as i64 + 1,
                     proveedor.as_str(),
                     contacto,
                 );
             } else {
-                prov = Proveedor::new(self.proveedores.len() as i32 + 1, proveedor, None);
+                prov = Proveedor::new(self.proveedores.len() as i64 + 1, proveedor, None);
             }
             handle = async_runtime::spawn(save(prov.clone()));
             self.proveedores.push(prov);
@@ -631,7 +632,8 @@ impl<'a> Sistema {
     pub fn filtrar_marca(&self, filtro: &str) -> Res<Vec<String>> {
         let mut hash = HashSet::new();
         async_runtime::block_on(async {
-            entity::producto::Entity::find().filter(entity::producto::Column::Marca.contains(filtro))
+            entity::producto::Entity::find()
+                .filter(entity::producto::Column::Marca.contains(filtro))
                 .order_by(entity::producto::Column::Marca, sea_orm::Order::Asc)
                 .all(self.read_db())
                 .await?
@@ -646,7 +648,8 @@ impl<'a> Sistema {
     pub fn filtrar_tipo_producto(&self, filtro: &str) -> Res<Vec<String>> {
         let mut hash = HashSet::new();
         async_runtime::block_on(async {
-            entity::producto::Entity::find().filter(entity::producto::Column::TipoProducto.contains(filtro))
+            entity::producto::Entity::find()
+                .filter(entity::producto::Column::TipoProducto.contains(filtro))
                 .order_by(entity::producto::Column::TipoProducto, sea_orm::Order::Asc)
                 .all(self.read_db())
                 .await?

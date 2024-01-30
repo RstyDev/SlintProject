@@ -13,7 +13,7 @@ use super::{
     config::Config,
     error::AppError,
     lib::{redondeo, Save},
-    pago::{ MedioPago, Pago},
+    pago::{MedioPago, Pago},
     valuable::Valuable,
 };
 
@@ -82,9 +82,7 @@ impl<'a> Venta {
         self.monto_total = 0.0;
         for i in &self.productos {
             match &i {
-                V::Pes(a) => {
-                    self.monto_total += redondeo(politica, a.0 as f64 * a.1.precio_peso())
-                }
+                V::Pes(a) => self.monto_total += redondeo(politica, a.0 as f64 * a.1.precio_peso()),
                 V::Prod(a) => self.monto_total += a.1.precio_de_venta() * a.0 as f64,
                 V::Rub(a) => self.monto_total += a.1.monto() * a.0 as f64,
             }
@@ -202,14 +200,13 @@ impl Save for Venta {
                 .pagos
                 .iter()
                 .map(|x| {
-                    let model = async_runtime::block_on(medio_from_db(
-                        x.medio().to_string().as_str(),
-                    ));
+                    let model =
+                        async_runtime::block_on(medio_from_db(x.medio().to_string().as_str()));
 
                     pago::ActiveModel {
-                        medio_pago: Set(model.id as i64),
+                        medio_pago: Set(model.id),
                         monto: Set(x.monto()),
-                        venta: Set(saved_model.clone().id as i64),
+                        venta: Set(saved_model.clone().id),
                         ..Default::default()
                     }
                 })
@@ -223,8 +220,8 @@ impl Save for Venta {
                 .iter()
                 .filter_map(|x| match x {
                     V::Prod(a) => Some(entity::relacion_venta_prod::ActiveModel {
-                        producto: Set(*a.1.id() as i64),
-                        venta: Set(saved_model.id as i64),
+                        producto: Set(*a.1.id()),
+                        venta: Set(saved_model.id),
                         ..Default::default()
                     }),
                     _ => None,
@@ -238,9 +235,9 @@ impl Save for Venta {
                 .iter()
                 .filter_map(|x| match x {
                     V::Rub(a) => Some(entity::relacion_venta_rub::ActiveModel {
-                        cantidad: Set(a.0 as i32),
-                        rubro: Set(*a.1.id() as i64),
-                        venta: Set(saved_model.id as i64),
+                        cantidad: Set(a.0),
+                        rubro: Set(*a.1.id()),
+                        venta: Set(saved_model.id),
                         ..Default::default()
                     }),
                     _ => None,
@@ -254,9 +251,9 @@ impl Save for Venta {
                 .iter()
                 .filter_map(|x| match x {
                     V::Pes(a) => Some(entity::relacion_venta_pes::ActiveModel {
-                        cantidad: Set(a.0 as f64),
-                        pesable: Set(*a.1.id() as i64),
-                        venta: Set(saved_model.id as i64),
+                        cantidad: Set(a.0),
+                        pesable: Set(*a.1.id()),
+                        venta: Set(saved_model.id),
                         ..Default::default()
                     }),
                     _ => None,

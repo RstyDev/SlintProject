@@ -80,12 +80,9 @@ impl Valuable {
                         cant
                     ),
                 },
-                Formato::Tmv => format!(
-                    "{} {} {}",
-                    a.1.tipo_producto(),
-                    a.1.marca(),
-                    a.1.variedad()
-                ),
+                Formato::Tmv => {
+                    format!("{} {} {}", a.1.tipo_producto(), a.1.marca(), a.1.variedad())
+                }
             },
         };
 

@@ -161,7 +161,7 @@ pub async fn cargar_todos_los_productos(
             .one(db)
             .await?;
         let mut model: ActiveModel;
-        let codigo_prod: i32;
+        let codigo_prod: i64;
         match encontrado {
             Some(m) => {
                 codigo_prod = m.id;
@@ -206,7 +206,7 @@ pub async fn cargar_todos_los_productos(
             .iter()
             .map(|x| codigo_barras::ActiveModel {
                 codigo: Set(*x),
-                producto: Set(codigo_prod as i64),
+                producto: Set(codigo_prod),
                 ..Default::default()
             })
             .collect();
@@ -345,8 +345,8 @@ pub async fn cargar_todas_las_relaciones_prod_prov(
             }
         } else {
             let model = entity::relacion_prod_prov::ActiveModel {
-                producto: Set(*x.id_producto() as i64),
-                proveedor: Set(*x.id_proveedor() as i64),
+                producto: Set(*x.id_producto()),
+                proveedor: Set(*x.id_proveedor()),
                 codigo: Set(x.codigo_interno()),
                 ..Default::default()
             };

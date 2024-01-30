@@ -415,7 +415,7 @@ impl MigrationTrait for Migration {
                     .table(Config::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(CodigoBarras::Id)
+                        ColumnDef::new(Config::Id)
                             .big_integer()
                             .not_null()
                             .auto_increment()
@@ -423,7 +423,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(
                         ColumnDef::new(Config::CantidadProductos)
-                            .integer()
+                            .small_integer()
                             .not_null(),
                     )
                     .col(ColumnDef::new(Config::FormatoProducto).string().not_null())

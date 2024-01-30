@@ -6,7 +6,7 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "relacion_prod_prov")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: i32,
+    pub id: i64,
     pub producto: i64,
     pub proveedor: i64,
     pub codigo: Option<i64>,

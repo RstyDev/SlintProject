@@ -86,7 +86,7 @@ fn agregar_producto(
 fn agregar_pesable<'a>(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-    id: i32,
+    id: i64,
     codigo: i64,
     precio_peso: f64,
     porcentaje: f64,
@@ -113,7 +113,7 @@ fn agregar_pesable<'a>(
 fn agregar_rubro(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-    id: i32,
+    id: i64,
     monto: f64,
     descripcion: &str,
 ) -> Result<String> {
@@ -307,31 +307,30 @@ fn get_filtrado(
     tipo_filtro: &str,
 ) -> Result<Vec<String>> {
     let res;
-    res=match sistema.lock() {
+    res = match sistema.lock() {
         Ok(a) => {
             if tipo_filtro.eq("marca") {
-                match a.filtrar_marca(&filtro){
-                    Ok(a)=>Ok(a),
-                    Err(e)=>Err(e.to_string())
+                match a.filtrar_marca(&filtro) {
+                    Ok(a) => Ok(a),
+                    Err(e) => Err(e.to_string()),
                 }
             } else if tipo_filtro.eq("tipo_producto") {
-                match a.filtrar_tipo_producto(&filtro){
-                    Ok(a)=>Ok(a),
-                    Err(e)=>Err(e.to_string())
+                match a.filtrar_tipo_producto(&filtro) {
+                    Ok(a) => Ok(a),
+                    Err(e) => Err(e.to_string()),
                 }
             } else {
                 Err(format!("Parámetro incorrecto {tipo_filtro}"))
             }
         }
-        Err(e) =>  Err(e.to_string()),
+        Err(e) => Err(e.to_string()),
     };
 
-    let res=match res{
+    let res = match res {
         Ok(a) => Ok(a),
         Err(e) => Err(e.to_string()),
     };
-        
-    
+
     res
 }
 

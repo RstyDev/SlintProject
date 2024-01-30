@@ -11,20 +11,20 @@ use super::{
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
-    id: i32,
+    id: i64,
     monto: f64,
     descripcion: Arc<str>,
 }
 
 impl Rubro {
-    pub fn new(id: i32, monto: f64, descripcion: &str) -> Rubro {
+    pub fn new(id: i64, monto: f64, descripcion: &str) -> Rubro {
         Rubro {
             id,
             monto,
             descripcion: Arc::from(descripcion),
         }
     }
-    pub fn id(&self) -> &i32 {
+    pub fn id(&self) -> &i64 {
         &self.id
     }
     pub fn monto(&self) -> &f64 {

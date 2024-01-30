@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pesable {
-    id: i32,
+    id: i64,
     codigo: i64,
     precio_peso: f64,
     porcentaje: f64,
@@ -16,7 +16,7 @@ pub struct Pesable {
 }
 impl Pesable {
     pub fn new(
-        id: i32,
+        id: i64,
         codigo: i64,
         precio_peso: f64,
         porcentaje: f64,
@@ -32,7 +32,7 @@ impl Pesable {
             descripcion: Arc::from(descripcion),
         }
     }
-    pub fn id(&self) -> &i32 {
+    pub fn id(&self) -> &i64 {
         &self.id
     }
     pub fn codigo(&self) -> &i64 {

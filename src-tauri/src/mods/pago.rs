@@ -11,10 +11,10 @@ pub struct MedioPago {
     id: i64,
 }
 impl MedioPago {
-    pub fn new(medio: &str, id: i32) -> MedioPago {
+    pub fn new(medio: &str, id: i64) -> MedioPago {
         MedioPago {
             medio: Arc::from(medio),
-            id: id as i64,
+            id,
         }
     }
 }
@@ -44,7 +44,7 @@ impl Save for Pago {
             .await?
             .unwrap();
         let model = pago::ActiveModel {
-            medio_pago: Set(medio_id.id as i64),
+            medio_pago: Set(medio_id.id),
             monto: Set(self.monto),
             ..Default::default()
         };
@@ -69,7 +69,7 @@ impl Default for Pago {
         let res = async_runtime::block_on(medio_from_db("Efectivo"));
         let medio_pago = MedioPago {
             medio: Arc::from(res.medio),
-            id: res.id as i64,
+            id: res.id,
         };
         Pago {
             medio_pago,
