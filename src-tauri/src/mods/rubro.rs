@@ -42,7 +42,7 @@ impl Save for Rubro {
             id: Set(self.id),
             monto: Set(self.monto),
             descripcion: Set(self.descripcion.to_string()),
-            updated_at: Set(Utc::now().naive_utc().to_string()),
+            updated_at: Set(Utc::now().naive_local().to_string()),
         };
         model.insert(&db).await?;
         Ok(())

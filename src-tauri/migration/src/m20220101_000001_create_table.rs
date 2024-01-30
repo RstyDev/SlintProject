@@ -313,47 +313,6 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(RelacionVentaPago::Table)
-                    .if_not_exists()
-                    .col(
-                        ColumnDef::new(RelacionVentaPago::Id)
-                            .big_integer()
-                            .not_null()
-                            .auto_increment()
-                            .primary_key(),
-                    )
-                    .col(
-                        ColumnDef::new(RelacionVentaPago::Pago)
-                            .big_integer()
-                            .not_null(),
-                    )
-                    .foreign_key(
-                        ForeignKeyCreateStatement::new()
-                            .name("pago_fk")
-                            .from(RelacionVentaPago::Table, RelacionVentaPago::Pago)
-                            .to(Pago::Table, Pago::Id)
-                            .on_delete(ForeignKeyAction::Cascade)
-                            .on_update(ForeignKeyAction::Cascade),
-                    )
-                    .col(
-                        ColumnDef::new(RelacionVentaPago::Venta)
-                            .big_integer()
-                            .not_null(),
-                    )
-                    .foreign_key(
-                        ForeignKeyCreateStatement::new()
-                            .name("venta_fk")
-                            .from(RelacionVentaPago::Table, RelacionVentaPago::Venta)
-                            .to(Venta::Table, Venta::Id)
-                            .on_delete(ForeignKeyAction::Cascade)
-                            .on_update(ForeignKeyAction::Cascade),
-                    )
-                    .to_owned(),
-            )
-            .await?;
-        manager
-            .create_table(
-                Table::create()
                     .table(RelacionProdProv::Table)
                     .if_not_exists()
                     .col(
@@ -459,9 +418,6 @@ impl MigrationTrait for Migration {
             .drop_table(Table::drop().table(Pago::Table).to_owned())
             .await?;
         manager
-            .drop_table(Table::drop().table(RelacionVentaPago::Table).to_owned())
-            .await?;
-        manager
             .drop_table(Table::drop().table(RelacionVentaProd::Table).to_owned())
             .await?;
         manager
@@ -534,13 +490,7 @@ enum Pago {
     Monto,
     Venta,
 }
-#[derive(DeriveIden)]
-enum RelacionVentaPago {
-    Table,
-    Id,
-    Venta,
-    Pago,
-}
+
 #[derive(DeriveIden)]
 enum RelacionVentaProd {
     Table,

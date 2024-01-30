@@ -12,9 +12,9 @@ use Valuable as V;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {
-    Prod((u16, Producto)),
+    Prod((u8, Producto)),
     Pes((f32, Pesable)),
-    Rub((u16, Rubro)),
+    Rub((u8, Rubro)),
 }
 
 impl Valuable {

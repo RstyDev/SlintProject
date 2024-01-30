@@ -10,7 +10,6 @@ pub mod pesable;
 pub mod producto;
 pub mod proveedor;
 pub mod relacion_prod_prov;
-pub mod relacion_venta_pago;
 pub mod relacion_venta_pes;
 pub mod relacion_venta_prod;
 pub mod relacion_venta_rub;

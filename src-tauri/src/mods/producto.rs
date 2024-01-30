@@ -113,7 +113,7 @@ impl Save for Producto {
             marca: Set(self.marca.to_string()),
             variedad: Set(self.variedad.to_string()),
             presentacion: Set(format!("{}", self.presentacion)),
-            updated_at: Set(Utc::now().naive_utc().to_string()),
+            updated_at: Set(Utc::now().naive_local().to_string()),
             ..Default::default()
         };
         let res = entity::producto::Entity::insert(model).exec(&db).await?;

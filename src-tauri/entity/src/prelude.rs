@@ -8,7 +8,6 @@ pub use super::pesable::Entity as Pesable;
 pub use super::producto::Entity as Producto;
 pub use super::proveedor::Entity as Proveedor;
 pub use super::relacion_prod_prov::Entity as RelacionProdProv;
-pub use super::relacion_venta_pago::Entity as RelacionVentaPago;
 pub use super::relacion_venta_pes::Entity as RelacionVentaPes;
 pub use super::relacion_venta_prod::Entity as RelacionVentaProd;
 pub use super::relacion_venta_rub::Entity as RelacionVentaRub;

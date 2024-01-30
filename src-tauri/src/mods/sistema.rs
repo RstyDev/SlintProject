@@ -180,15 +180,15 @@ impl<'a> Sistema {
         //     sis.productos[i].unifica_codes()
         // }
 
-        let prod_load_handle = async_runtime::spawn(cargar_todos_los_valuables(valuables));
-        let prov_load_handle =
-            async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
+        // let prod_load_handle = async_runtime::spawn(cargar_todos_los_valuables(valuables));
+        // let prov_load_handle =
+        //     async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
 
-        async_runtime::block_on(prod_load_handle)??;
-        async_runtime::block_on(prov_load_handle)??;
-        async_runtime::block_on(cargar_todas_las_relaciones_prod_prov(
-            sis.relaciones.clone(),
-        ))?;
+        // async_runtime::block_on(prod_load_handle)??;
+        // async_runtime::block_on(prov_load_handle)??;
+        // async_runtime::block_on(cargar_todas_las_relaciones_prod_prov(
+        //     sis.relaciones.clone(),
+        // ))?;
         async_runtime::block_on(medios_handle)??;
         Ok(sis)
     }
@@ -376,7 +376,7 @@ impl<'a> Sistema {
             marca: Set(marca.to_owned()),
             variedad: Set(variedad.to_owned()),
             presentacion: Set(presentacion.to_string()),
-            updated_at: Set(Utc::now().naive_utc().to_string()),
+            updated_at: Set(Utc::now().naive_local().to_string()),
             ..Default::default()
         };
         let res_prod = entity::producto::Entity::insert(prod_model)
