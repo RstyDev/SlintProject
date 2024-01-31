@@ -27,8 +27,10 @@ use crate::mods::lib::cargar_todos_los_valuables;
 
 use super::error::AppError;
 
+use super::lib::map_model_pes;
 use super::lib::map_model_prod;
 use super::lib::map_model_prov;
+use super::lib::map_model_rub;
 use super::lib::save;
 use super::proveedor::Proveedor;
 use super::valuable::Presentacion;
@@ -192,16 +194,107 @@ impl<'a> Sistema {
         async_runtime::block_on(medios_handle)??;
         Ok(sis)
     }
-    pub async fn productos(&self) -> Res<Vec<Valuable>> {
-        let prods = match entity::producto::Entity::find().all(self.read_db()).await {
-            Ok(a) => a,
-            Err(e) => return Err(AppError::DbError(e)),
-        };
-        let mut res = vec![];
-        for prod in prods {
-            res.push(V::Prod((0, map_model_prod(&prod, self.read_db()).await?)));
-        }
+    // pub async fn productos(&self) -> Res<Vec<Valuable>> {
+    //     let prods = match entity::producto::Entity::find().all(self.read_db()).await {
+    //         Ok(a) => a,
+    //         Err(e) => return Err(AppError::DbError(e)),
+    //     };
+    //     let mut res = vec![];
+    //     for prod in prods {
+    //         res.push(V::Prod((0, map_model_prod(&prod, self.read_db()).await?)));
+    //     }
+    //     Ok(res)
+    // }
+    pub async fn val_filtrado(&self, filtro: &str) -> Result<Vec<Valuable>, AppError> {
+        let mut res: Vec<Valuable>;
+        res = self
+            .prods_filtrado(filtro)
+            .await?
+            .iter()
+            .cloned()
+            .map(|x| V::Prod((0, x)))
+            .collect();
+        res.append(
+            &mut self
+                .pes_filtrado(filtro)
+                .await?
+                .iter()
+                .cloned()
+                .map(|x| V::Pes((0.0, x)))
+                .collect(),
+        );
+        res.append(
+            &mut self
+                .rub_filtrado(filtro)
+                .await?
+                .iter()
+                .cloned()
+                .map(|x| V::Rub((0, x)))
+                .collect(),
+        );
         Ok(res)
+    }
+    pub async fn pes_filtrado(&self, filtro: &str) -> Result<Vec<Pesable>, AppError> {
+        let filtros = filtro.split(' ').collect::<Vec<&str>>();
+        let mut prods = Vec::new();
+        let mut res = Vec::new();
+        for i in 0..filtros.len() {
+            if i == 0 {
+                res = entity::pesable::Entity::find()
+                    .filter(entity::pesable::Column::Descripcion.contains(filtros[i]))
+                    .order_by_asc(entity::pesable::Column::Id)
+                    .limit(Some((self.configs().cantidad_productos() * 2) as u64))
+                    .all(self.read_db())
+                    .await?;
+            } else {
+                res = res
+                    .iter()
+                    .cloned()
+                    .filter(|modelo| {
+                        modelo
+                            .descripcion
+                            .to_lowercase()
+                            .contains(filtros[i].to_lowercase().as_str())
+                    })
+                    .take(*self.configs().cantidad_productos() as usize)
+                    .collect();
+            }
+        }
+        for model in &res {
+            prods.push(map_model_pes(model));
+        }
+        Ok(prods.to_owned())
+    }
+    pub async fn rub_filtrado(&self, filtro: &str) -> Result<Vec<Rubro>, AppError> {
+        let filtros = filtro.split(' ').collect::<Vec<&str>>();
+        let mut prods = Vec::new();
+        let mut res = Vec::new();
+        for i in 0..filtros.len() {
+            if i == 0 {
+                res = entity::rubro::Entity::find()
+                    .filter(entity::rubro::Column::Descripcion.contains(filtros[i]))
+                    .order_by_asc(entity::rubro::Column::Id)
+                    .limit(Some((self.configs().cantidad_productos() * 2) as u64))
+                    .all(self.read_db())
+                    .await?;
+            } else {
+                res = res
+                    .iter()
+                    .cloned()
+                    .filter(|modelo| {
+                        modelo
+                            .descripcion
+                            .to_lowercase()
+                            .contains(filtros[i].to_lowercase().as_str())
+                    })
+                    .take(*self.configs().cantidad_productos() as usize)
+                    .collect();
+            }
+        }
+        for model in &res {
+            prods.push(map_model_rub(model));
+        }
+        Ok(prods)
     }
     pub async fn prods_filtrado(&self, filtro: &str) -> Result<Vec<Producto>, AppError> {
         let filtros = filtro.split(' ').collect::<Vec<&str>>();

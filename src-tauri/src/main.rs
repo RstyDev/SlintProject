@@ -154,33 +154,28 @@ fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Result<Vec<String>> {
     res
 }
 
-#[tauri::command]
-fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
-    let res: Result<Vec<String>>;
-    match sistema.lock() {
-        Ok(a) => {
-            res = Ok(async_runtime::block_on(a.productos())
-                .iter()
-                .map(|x| serde_json::to_string_pretty(&x).unwrap())
-                .collect())
-        }
-        Err(e) => res = Err(e.to_string()),
-    }
-    res
-}
+// #[tauri::command]
+// fn get_productos(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
+//     let res: Result<Vec<String>>;
+//     match sistema.lock() {
+//         Ok(a) => {
+//             res = Ok(async_runtime::block_on(a.productos())
+//                 .iter()
+//                 .map(|x| serde_json::to_string_pretty(&x).unwrap())
+//                 .collect())
+//         }
+//         Err(e) => res = Err(e.to_string()),
+//     }
+//     res
+// }
 
 #[tauri::command]
 fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Result<Vec<Valuable>> {
     let res;
     match sistema.lock() {
-        Ok(a) => match async_runtime::block_on(a.prods_filtrado(filtro)) {
-            Ok(productos) => {
-                res = Ok(productos
-                    .iter()
-                    .map(|x| Valuable::Prod((0, x.clone())))
-                    .collect());
-            }
-            Err(e) => return Err(e.to_string()),
+        Ok(a) => match async_runtime::block_on(a.val_filtrado(filtro)) {
+            Ok(a) => {res=Ok(a)}
+            Err(e) => {res=Err(e.to_string())}
         },
         Err(e) => res = Err(e.to_string()),
     }
@@ -492,7 +487,7 @@ fn main() {
             close_window,
             get_proveedores,
             get_filtrado,
-            get_productos,
+            // get_productos,
             get_productos_filtrado,
             agregar_producto_a_venta,
             descontar_producto_de_venta,

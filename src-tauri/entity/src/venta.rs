@@ -32,8 +32,6 @@ impl Related<super::pago::Entity> for Entity {
     }
 }
 
-
-
 impl Related<super::relacion_venta_pes::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::RelacionVentaPes.def()
