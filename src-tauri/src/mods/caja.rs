@@ -1,5 +1,7 @@
 use chrono::{NaiveDateTime, Utc};
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryOrder, Set};
+use sea_orm::{
+    ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryOrder, Set,
+};
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -19,7 +21,6 @@ impl Caja {
         db: Arc<DatabaseConnection>,
         monto_inicio: Option<f64>,
     ) -> Result<Caja, AppError> {
-        
         let caja;
         caja = match entity::caja::Entity::find()
             .order_by_desc(entity::caja::Column::Id)
@@ -87,11 +88,18 @@ impl Caja {
         }
         Ok(aux)
     }
-    pub async fn update_total(&mut self,db:&DatabaseConnection, monto:f64)->Result<(),AppError>{
-        self.ventas_totales+=monto;
-        let model=entity::caja::Entity::find_by_id(self.id).one(db).await?.unwrap();
-        let mut model=model.into_active_model();
-        model.ventas_totales=Set(self.ventas_totales);
+    pub async fn update_total(
+        &mut self,
+        db: &DatabaseConnection,
+        monto: f64,
+    ) -> Result<(), AppError> {
+        self.ventas_totales += monto;
+        let model = entity::caja::Entity::find_by_id(self.id)
+            .one(db)
+            .await?
+            .unwrap();
+        let mut model = model.into_active_model();
+        model.ventas_totales = Set(self.ventas_totales);
         model.update(db).await?;
         Ok(())
     }

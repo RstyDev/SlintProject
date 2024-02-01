@@ -825,7 +825,7 @@ impl<'a> Sistema {
     pub fn stash(&self) -> &Vec<Venta> {
         &self.stash
     }
-    pub async fn update_total(&mut self,monto:f64)->Result<(),AppError>{
+    pub async fn update_total(&mut self, monto: f64) -> Result<(), AppError> {
         self.caja.update_total(&self.write_db, monto).await
     }
 }
