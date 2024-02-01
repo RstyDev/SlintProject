@@ -4,6 +4,7 @@ use std::{
     num::{ParseFloatError, ParseIntError},
     time::SystemTimeError,
 };
+use chrono::ParseError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -30,4 +31,6 @@ pub enum AppError {
     ParseIntError(#[from] ParseIntError),
     #[error("Error de tauri")]
     TauriError(#[from] tauri::Error),
+    #[error("Error de conversion de fecha")]
+    ChronoParseError(#[from] ParseError),
 }

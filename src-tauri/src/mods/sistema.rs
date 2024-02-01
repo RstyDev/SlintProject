@@ -181,17 +181,19 @@ impl<'a> Sistema {
         // for i in 0..sis.productos.len() {
         //     sis.productos[i].unifica_codes()
         // }
+        let freshed = true;
+        if freshed {
+            let prod_load_handle = async_runtime::spawn(cargar_todos_los_valuables(valuables));
+            let prov_load_handle =
+                async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
 
-        // let prod_load_handle = async_runtime::spawn(cargar_todos_los_valuables(valuables));
-        // let prov_load_handle =
-        //     async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
-
-        // async_runtime::block_on(prod_load_handle)??;
-        // async_runtime::block_on(prov_load_handle)??;
-        // async_runtime::block_on(cargar_todas_las_relaciones_prod_prov(
-        //     sis.relaciones.clone(),
-        // ))?;
-        async_runtime::block_on(medios_handle)??;
+            async_runtime::block_on(prod_load_handle)??;
+            async_runtime::block_on(prov_load_handle)??;
+            async_runtime::block_on(cargar_todas_las_relaciones_prod_prov(
+                sis.relaciones.clone(),
+            ))?;
+            async_runtime::block_on(medios_handle)??;
+        }
         Ok(sis)
     }
     // pub async fn productos(&self) -> Res<Vec<Valuable>> {

@@ -391,7 +391,26 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
-
+        manager
+            .create_table(
+                Table::create()
+                    .table(Caja::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Caja::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Caja::Inicio).string().not_null())
+                    .col(ColumnDef::new(Caja::Cierre).string())
+                    .col(ColumnDef::new(Caja::MontoInicio).double().not_null())
+                    .col(ColumnDef::new(Caja::MontoCierre).double())
+                    .col(ColumnDef::new(Caja::VentasTotales).double().not_null())
+                    .to_owned(),
+            )
+            .await?;
         Ok(())
     }
 
@@ -537,4 +556,14 @@ enum Config {
     FormatoProducto,
     ModoMayus,
     CantidadProductos,
+}
+#[derive(DeriveIden)]
+enum Caja {
+    Table,
+    Id,
+    Inicio,
+    Cierre,
+    MontoInicio,
+    MontoCierre,
+    VentasTotales,
 }

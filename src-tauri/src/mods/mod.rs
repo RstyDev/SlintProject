@@ -1,3 +1,4 @@
+pub mod caja;
 pub mod config;
 pub mod error;
 pub mod lib;

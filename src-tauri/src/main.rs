@@ -174,8 +174,8 @@ fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Resul
     let res;
     match sistema.lock() {
         Ok(a) => match async_runtime::block_on(a.val_filtrado(filtro)) {
-            Ok(a) => {res=Ok(a)}
-            Err(e) => {res=Err(e.to_string())}
+            Ok(a) => res = Ok(a),
+            Err(e) => res = Err(e.to_string()),
         },
         Err(e) => res = Err(e.to_string()),
     }

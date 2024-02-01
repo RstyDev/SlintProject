@@ -350,10 +350,11 @@ function dibujar_venta(venta) {
 
   let pagos = document.getElementById('pagos');
   for (let i = 0; i < venta.pagos.length; i++) {
+    console.log(venta.pagos[i].medio_pago.medio);
     pagos.innerHTML += `
   <form class="pago">
   <input class="input-monto" type="number" step="0.01" disabled value="${venta.pagos[i].monto}"></input>
-  <input class="opciones-pagos" value="${venta.pagos[i].medio_pago}" disabled>
+  <input class="opciones-pagos" value="${venta.pagos[i].medio_pago.medio}" disabled>
   </input>
   <input class="boton-eliminar-pago" value="Eliminar" type="submit">
     </form>
@@ -466,7 +467,7 @@ function borrarBusqueda() {
   buscador.value = '';
   document.querySelector('#cuadro-principal').replaceChildren([]);
   get_venta_actual().then(venta => {
-    dibujar_venta(venta)
+    dibujar_venta(venta);
     setFoco(buscador, document.getElementById('productos'));
   });
 }
@@ -515,75 +516,130 @@ function dibujarProductos(objetos) {
   }
   tabla.appendChild(tr);
 
-  for (let i = 0; i < objetos.length; i++) {
-    let tr2 = document.createElement('tr')
-    tr2.style.maxHeight = '1.5em';
-    tr2.tabIndex = 2;
-    tr2.id = objetos[i].Prod[1].id;
-    let cantidad;
-    let presentacion;
-    switch (Object.keys(objetos[i].Prod[1].presentacion)[0]) {
-      case 'Gr':
-        cantidad = objetos[i].Prod[1].presentacion.Gr;
-        presentacion = 'Gr';
+  for (let i = 0; i < objetos.length; i++) { //hay que ver este for
+    console.log(Object.keys(objetos[i])[0]);
+    switch (Object.keys(objetos[i])[0]){
+      case 'Prod':
+        agregarProd(tabla,objetos[i]);
         break;
-      case 'Un':
-        cantidad = objetos[i].Prod[1].presentacion.Un;
-        presentacion = 'Un';
+      case 'Pes':
+        agregarPes(tabla, objetos[i]);
         break;
-      case 'Lt':
-        cantidad = objetos[i].Prod[1].presentacion.Lt;
-        presentacion = 'Lt';
+      case 'Rub':
+        agregarRub(tabla, objetos[i]);
         break;
-      case 'Ml':
-        cantidad = objetos[i].Prod[1].presentacion.Ml;
-        presentacion = 'Ml';
-        break;
-      case 'CC':
-        cantidad = objetos[i].Prod[1].presentacion.CC;
-        presentacion = 'CC';
-        break;
-      case 'Kg':
-        cantidad = objetos[i].Prod[1].presentacion.Kg;
-        presentacion = 'Kg';
-        break;
+      
     }
-    let id = document.createElement('td');
-    id.innerHTML = objetos[i].Prod[1].id;
-    id.style.display = 'none'
-    let producto = document.createElement('td');
-    producto.classList.add(`${configs.modo_mayus}`);
-    producto.innerHTML = objetos[i].Prod[1].tipo_producto + ' ' + objetos[i].Prod[1].marca + ' ' + objetos[i].Prod[1].variedad + ' ' + cantidad + ' ' + presentacion;
-    tr2.appendChild(producto);
-    let precio = document.createElement('td');
-    precio.innerHTML = "$  " + objetos[i].Prod[1].precio_de_venta;
-    precio.style.textAlign = 'end'
-    tr2.appendChild(precio);
-    tr2.addEventListener('click', () => {
-      let focused = tr2.parentNode.getElementsByClassName('focuseado');
-      for (let i = 0; i < focused.length; i++) {
-        focused[i].classList.toggle('focuseado', false);
-      }
-      tr2.classList.toggle('focuseado', true);
-      focuseado = tr2;
-
-    });
-    tr2.addEventListener('dblclick', () => {
-      agregarProdVentaAct(focuseado.id).then(venta => {
-        dibujar_venta(venta);
-        setFoco(buscador, document.getElementById('productos'));
-      });
-    });
-    tr2.addEventListener('keydown', (e) => {
-      navigate(e)
-    });
-    tr2.appendChild(id);
-    tabla.appendChild(tr2);
   }
   container.appendChild(tabla);
   if (tr.nextElementSibling) {
     focus(tr.nextElementSibling);
   }
+}
+function agregarRub(tabla,objeto){
+  console.log(objeto);
+}
+function agregarPes(tabla,objeto){
+  let tr2 = document.createElement('tr')
+        tr2.style.maxHeight = '1.5em';
+        tr2.tabIndex = 2;
+        tr2.id = objeto.Pes[1].id;
+        let id = document.createElement('td');
+        id.innerHTML = objeto.Pes[1].id;
+        id.style.display = 'none'
+        let producto = document.createElement('td');
+        producto.classList.add(`${configs.modo_mayus}`);
+        producto.innerHTML = objeto.Pes[1].descripcion;
+        tr2.appendChild(producto);
+        let precio = document.createElement('td');
+        precio.innerHTML = "$  " + objeto.Pes[1].precio_peso;
+        precio.style.textAlign = 'end'
+        tr2.appendChild(precio);
+        tr2.addEventListener('click', () => {
+          let focused = tr2.parentNode.getElementsByClassName('focuseado');
+          for (let i = 0; i < focused.length; i++) {
+            focused[i].classList.toggle('focuseado', false);
+          }
+          tr2.classList.toggle('focuseado', true);
+          focuseado = tr2;
+      
+        });
+        tr2.addEventListener('dblclick', () => {
+          agregarProdVentaAct(focuseado.id).then(venta => {
+            dibujar_venta(venta);
+            setFoco(buscador, document.getElementById('productos'));
+          });
+        });
+        tr2.addEventListener('keydown', (e) => {
+          navigate(e)
+        });
+        tr2.appendChild(id);
+        tabla.appendChild(tr2);
+}
+function agregarProd(tabla,objeto){
+  let tr2 = document.createElement('tr')
+        tr2.style.maxHeight = '1.5em';
+        tr2.tabIndex = 2;
+        tr2.id = objeto.Prod[1].id;
+        let cantidad;
+        let presentacion;
+        switch (Object.keys(objeto.Prod[1].presentacion)[0]) {
+          case 'Gr':
+            cantidad = objeto.Prod[1].presentacion.Gr;
+            presentacion = 'Gr';
+            break;
+          case 'Un':
+            cantidad = objeto.Prod[1].presentacion.Un;
+            presentacion = 'Un';
+            break;
+          case 'Lt':
+            cantidad = objeto.Prod[1].presentacion.Lt;
+            presentacion = 'Lt';
+            break;
+          case 'Ml':
+            cantidad = objeto.Prod[1].presentacion.Ml;
+            presentacion = 'Ml';
+            break;
+          case 'CC':
+            cantidad = objeto.Prod[1].presentacion.CC;
+            presentacion = 'CC';
+            break;
+          case 'Kg':
+            cantidad = objeto.Prod[1].presentacion.Kg;
+            presentacion = 'Kg';
+            break;
+        }
+        let id = document.createElement('td');
+        id.innerHTML = objeto.Prod[1].id;
+        id.style.display = 'none'
+        let producto = document.createElement('td');
+        producto.classList.add(`${configs.modo_mayus}`);
+        producto.innerHTML = objeto.Prod[1].tipo_producto + ' ' + objeto.Prod[1].marca + ' ' + objeto.Prod[1].variedad + ' ' + cantidad + ' ' + presentacion;
+        tr2.appendChild(producto);
+        let precio = document.createElement('td');
+        precio.innerHTML = "$  " + objeto.Prod[1].precio_de_venta;
+        precio.style.textAlign = 'end'
+        tr2.appendChild(precio);
+        tr2.addEventListener('click', () => {
+          let focused = tr2.parentNode.getElementsByClassName('focuseado');
+          for (let i = 0; i < focused.length; i++) {
+            focused[i].classList.toggle('focuseado', false);
+          }
+          tr2.classList.toggle('focuseado', true);
+          focuseado = tr2;
+      
+        });
+        tr2.addEventListener('dblclick', () => {
+          agregarProdVentaAct(focuseado.id).then(venta => {
+            dibujar_venta(venta);
+            setFoco(buscador, document.getElementById('productos'));
+          });
+        });
+        tr2.addEventListener('keydown', (e) => {
+          navigate(e)
+        });
+        tr2.appendChild(id);
+        tabla.appendChild(tr2);
 }
 function focus(obj) {
   if (focuseado) {
@@ -592,7 +648,6 @@ function focus(obj) {
   focuseado = obj;
   focuseado.classList.toggle('focuseado');
 }
-
 
 
 
@@ -728,7 +783,10 @@ function setFoco(foco, focuseable) {
 window.addEventListener("DOMContentLoaded", () => {
   buscador = document.querySelector('#buscador');
   buscador.addEventListener('focus', () => {
-    setFoco(buscador, document.getElementById('productos'))
+  let prod=document.getElementById('productos');
+    if (prod){
+      setFoco(buscador, prod)
+    }
   });
   borrarBusqueda();
   agrProdContHandle();
@@ -759,9 +817,7 @@ async function buscarProducto(filtrado) {
 
 
 
-async function set_configs(configs) {
-  await invoke("set_configs", { configs: configs })
-}
+
 
 
 

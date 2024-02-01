@@ -3,15 +3,18 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "config")]
+#[sea_orm(table_name = "caja")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub cantidad_productos: i32,
-    pub formato_producto: String,
-    pub modo_mayus: String,
+    pub inicio: String,
+    pub cierre: Option<String>,
     #[sea_orm(column_type = "Double")]
-    pub politica_redondeo: f64,
+    pub monto_inicio: f64,
+    #[sea_orm(column_type = "Double", nullable)]
+    pub monto_cierre: Option<f64>,
+    #[sea_orm(column_type = "Double")]
+    pub ventas_totales: f64,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

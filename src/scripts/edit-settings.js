@@ -38,9 +38,10 @@ get_configs().then(conf => {
     document.querySelector('#input-cantidad-productos').value = configs.cantidad_productos;
 
 })
-
+changeConfigsHandle();
 function changeConfigsHandle() {
     document.querySelector('#cambiar-configs-submit').addEventListener('submit', (e) => {
+
       e.preventDefault();
       let configs2 = {
         "politica_redondeo": parseFloat(e.target.children[1].value),
@@ -49,8 +50,16 @@ function changeConfigsHandle() {
         "cantidad_productos": parseInt(e.target.children[7].value),
         "medios_pago": configs.medios_pago
       }
-      set_configs(configs2)
+      try{
+        set_configs(configs2);
+        close_window();
+      }catch{
+        console.log("No se hizo")
+      }
     })
+}
+async function set_configs(configs) {
+  await invoke("set_configs", { configs: configs })
 }
 
 document.addEventListener('keydown',(e)=>{
