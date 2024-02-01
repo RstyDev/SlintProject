@@ -7,7 +7,7 @@ use super::{
 };
 use chrono::Utc;
 use entity::{codigo_barras, producto};
-use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait, PaginatorTrait, Set};
+use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait,Set};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -81,9 +81,9 @@ impl Producto {
             self.marca, self.tipo_producto, self.variedad, self.presentacion
         )
     }
-    pub fn rm_code(&mut self, i: usize) {
-        self.codigos_de_barras.remove(i);
-    }
+    // pub fn rm_code(&mut self, i: usize) {
+    //     self.codigos_de_barras.remove(i);
+    // }
 
     // pub fn unifica_codes(&mut self) {
     //     let mut i=0;

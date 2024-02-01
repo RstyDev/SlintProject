@@ -1,10 +1,10 @@
+use chrono::ParseError;
 use sea_orm::DbErr;
 use std::{
     io,
     num::{ParseFloatError, ParseIntError},
     time::SystemTimeError,
 };
-use chrono::ParseError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -33,4 +33,6 @@ pub enum AppError {
     TauriError(#[from] tauri::Error),
     #[error("Error de conversion de fecha")]
     ChronoParseError(#[from] ParseError),
+    #[error("Error de inicializacion {0}")]
+    InicialationError(String),
 }

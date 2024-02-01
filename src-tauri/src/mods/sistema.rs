@@ -21,6 +21,7 @@ use tauri::async_runtime;
 use tauri::async_runtime::JoinHandle;
 use Valuable as V;
 
+use crate::mods::caja::Caja;
 use crate::mods::lib::cargar_todas_las_relaciones_prod_prov;
 use crate::mods::lib::cargar_todos_los_provs;
 use crate::mods::lib::cargar_todos_los_valuables;
@@ -47,6 +48,7 @@ use super::{
 pub struct Sistema {
     write_db: Arc<DatabaseConnection>,
     read_db: Arc<DatabaseConnection>,
+    caja: Caja,
     configs: Config,
     ventas: (Venta, Venta),
     proveedores: Vec<Proveedor>,
@@ -95,6 +97,8 @@ impl<'a> Sistema {
         let read_db = Arc::from(async_runtime::block_on(get_db(
             "sqlite://db.sqlite?mode=ro",
         ))?);
+        let aux = Arc::clone(&write_db);
+        let caja = async_runtime::spawn(Caja::new(aux, Some(0.0)));
         let path_productos = "Productos.json";
         let path_proveedores = "Proveedores.json";
         let path_relaciones = "Relaciones.json";
@@ -160,10 +164,11 @@ impl<'a> Sistema {
             configs.push(Config::default());
             crear_file(path_configs, &mut configs)?;
         }
-
+        let caja = async_runtime::block_on(caja)??;
         let sis = Sistema {
             write_db,
             read_db,
+            caja,
             configs: configs[0].clone(),
             ventas: (Venta::new(), Venta::new()),
             proveedores: proveedores.clone(),
@@ -181,7 +186,7 @@ impl<'a> Sistema {
         // for i in 0..sis.productos.len() {
         //     sis.productos[i].unifica_codes()
         // }
-        let freshed = true;
+        let freshed: bool = false;
         if freshed {
             let prod_load_handle = async_runtime::spawn(cargar_todos_los_valuables(valuables));
             let prov_load_handle =
@@ -762,22 +767,23 @@ impl<'a> Sistema {
         &self.read_db
     }
     fn cerrar_venta(&mut self, pos: usize) -> Res<()> {
-        let handle;
         match pos {
             0 => {
-                handle = async_runtime::spawn(save(self.ventas.0.clone()));
+                async_runtime::spawn(save(self.ventas.0.clone()));
                 self.registro.push(self.ventas.0.clone());
+                async_runtime::block_on(self.update_total(self.ventas.0.monto_total()))?;
                 self.ventas.0 = Venta::new();
             }
             1 => {
-                handle = async_runtime::spawn(save(self.ventas.1.clone()));
+                async_runtime::spawn(save(self.ventas.1.clone()));
                 self.registro.push(self.ventas.1.clone());
+                async_runtime::block_on(self.update_total(self.ventas.1.monto_total()))?;
                 self.ventas.1 = Venta::new();
             }
             _ => return Err(AppError::SaleSelection.into()),
         };
 
-        Ok(async_runtime::block_on(handle)??)
+        Ok(())
     }
     pub fn stash_sale(&mut self, pos: usize) -> Res<()> {
         match pos {
@@ -818,5 +824,8 @@ impl<'a> Sistema {
     }
     pub fn stash(&self) -> &Vec<Venta> {
         &self.stash
+    }
+    pub async fn update_total(&mut self,monto:f64)->Result<(),AppError>{
+        self.caja.update_total(&self.write_db, monto).await
     }
 }

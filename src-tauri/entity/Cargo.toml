@@ -10,6 +10,7 @@ path = "src/mod.rs"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
+chrono = "0.4.31"
 
 [dependencies.sea-orm]
 #path = "../../../" # remove this line in your own project

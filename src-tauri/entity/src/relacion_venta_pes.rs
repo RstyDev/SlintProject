@@ -6,9 +6,9 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "relacion_venta_pes")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: i32,
+    pub id: i64,
     #[sea_orm(column_type = "Double")]
-    pub cantidad: f64,
+    pub cantidad: f32,
     pub pesable: i64,
     pub venta: i64,
 }
