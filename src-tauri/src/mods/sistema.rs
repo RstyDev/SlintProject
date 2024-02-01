@@ -25,6 +25,7 @@ use crate::mods::caja::Caja;
 use crate::mods::lib::cargar_todas_las_relaciones_prod_prov;
 use crate::mods::lib::cargar_todos_los_provs;
 use crate::mods::lib::cargar_todos_los_valuables;
+use crate::mods::vendedor::Vendedor;
 
 use super::error::AppError;
 
@@ -49,6 +50,7 @@ pub struct Sistema {
     write_db: Arc<DatabaseConnection>,
     read_db: Arc<DatabaseConnection>,
     caja: Caja,
+    vendedor: Vendedor,
     configs: Config,
     ventas: (Venta, Venta),
     proveedores: Vec<Proveedor>,
@@ -97,7 +99,10 @@ impl<'a> Sistema {
         let read_db = Arc::from(async_runtime::block_on(get_db(
             "sqlite://db.sqlite?mode=ro",
         ))?);
+
         let aux = Arc::clone(&write_db);
+        let aux2= Arc::clone(&write_db);
+        let vendedor=async_runtime::spawn(Vendedor::get_or_def(aux2));
         let caja = async_runtime::spawn(Caja::new(aux, Some(0.0)));
         let path_productos = "Productos.json";
         let path_proveedores = "Proveedores.json";
@@ -164,11 +169,13 @@ impl<'a> Sistema {
             configs.push(Config::default());
             crear_file(path_configs, &mut configs)?;
         }
+        let vendedor=async_runtime::block_on(vendedor)??;
         let caja = async_runtime::block_on(caja)??;
         let sis = Sistema {
             write_db,
             read_db,
             caja,
+            vendedor,
             configs: configs[0].clone(),
             ventas: (Venta::new(), Venta::new()),
             proveedores: proveedores.clone(),
@@ -186,8 +193,8 @@ impl<'a> Sistema {
         // for i in 0..sis.productos.len() {
         //     sis.productos[i].unifica_codes()
         // }
-        let freshed: bool = false;
-        if freshed {
+        
+        if async_runtime::block_on(entity::producto::Entity::find().count(sis.read_db()))?>0 {
             let prod_load_handle = async_runtime::spawn(cargar_todos_los_valuables(valuables));
             let prov_load_handle =
                 async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
