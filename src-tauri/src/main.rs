@@ -11,7 +11,10 @@ use tauri::{
     async_runtime::{self, block_on},
     State,
 };
-
+#[derive(Clone, serde::Serialize)]
+struct Payload{
+    message: String
+}
 mod mods;
 
 #[tauri::command]
@@ -460,6 +463,26 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
+async fn open_confirm_stash(handle: tauri::AppHandle, act: &str) -> Result<()> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "confirm-stash", /* the unique window label */
+        tauri::WindowUrl::App("/pages/want-to-stash.html".parse().unwrap()),
+    )
+    .always_on_top(true)
+    .resizable(false)
+    .inner_size(400.0, 150.0)
+    .build()
+    {
+        Ok(a) => match a.emit("get-venta", Payload {message:act.into()}){
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string()),
+            }
+            
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
 async fn open_edit_settings(handle: tauri::AppHandle) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
@@ -502,6 +525,7 @@ fn main() {
             get_descripcion_valuable,
             open_add_product,
             open_add_prov,
+            open_confirm_stash,
             open_edit_settings,
             stash_sale,
             unstash_sale,

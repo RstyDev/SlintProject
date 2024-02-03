@@ -10,6 +10,8 @@ let idUlt;
 let buscador;
 let beep=new Audio('assets/beep.mp3');
 let error=new Audio('assets/error.mp3');
+beep.volume=1;
+error.volume=0.2;
 
 get_configs().then(conf => {
   configs = conf;
@@ -49,6 +51,9 @@ function navigate(e) {
       }
     }
   }
+}
+async function open_confirm_stash(act){
+  return await invoke("open_confirm_stash", {"act":act});
 }
 
 async function agregar_pago(medio_pago, m) {
@@ -712,13 +717,20 @@ function escYf10Press() {
       e.preventDefault();
       pasarAPagar();
     } else if (e.ctrlKey) {
-      if (e.keyCode == 9 || e.keyCode == 97) {
+      if (e.keyCode == 9) {
         let boton = document.querySelector('#v-b');
         if (posicionVenta == 0) {
           cambiar_venta(boton)
         } else {
           cambiar_venta(boton.previousElementSibling)
         }
+      }else if (e.keyCode==71){
+        e.preventDefault();
+        open_confirm_stash(''+posicionVenta);
+        console.log("aca stash");
+      }else if (e.keyCode==83){
+        e.preventDefault();
+        console.log("aca unstash");
       }
     }
   })

@@ -609,8 +609,7 @@ impl<'a> Sistema {
         Ok(async_runtime::block_on(handle)??)
     }
     async fn producto(&mut self, id: i64) -> Result<Valuable, AppError> {
-        let res: Result<Valuable, AppError>;
-
+        
         let model;
 
         match entity::producto::Entity::find_by_id(id)
