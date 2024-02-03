@@ -50,16 +50,13 @@ pub struct Sistema {
     write_db: Arc<DatabaseConnection>,
     read_db: Arc<DatabaseConnection>,
     caja: Caja,
-    vendedor: Vendedor,
+    vendedor: Arc<Vendedor>,
     configs: Config,
     ventas: (Venta, Venta),
     proveedores: Vec<Proveedor>,
-    path_productos: String,
     path_proveedores: String,
     path_relaciones: String,
     path_configs: String,
-    path_pesables: String,
-    path_rubros: String,
     relaciones: Vec<RelacionProdProv>,
     stash: Vec<Venta>,
     registro: Vec<Venta>,
@@ -169,22 +166,19 @@ impl<'a> Sistema {
             configs.push(Config::default());
             crear_file(path_configs, &mut configs)?;
         }
-        let vendedor=async_runtime::block_on(vendedor)??;
+        let vendedor=Arc::from(async_runtime::block_on(vendedor)??);
         let caja = async_runtime::block_on(caja)??;
         let sis = Sistema {
             write_db,
             read_db,
             caja,
-            vendedor,
+            vendedor:Arc::clone(&vendedor),
             configs: configs[0].clone(),
-            ventas: (Venta::new(), Venta::new()),
+            ventas: (Venta::new(Arc::clone(&vendedor)), Venta::new(vendedor)),
             proveedores: proveedores.clone(),
-            path_productos: path_productos.to_string(),
             path_proveedores: path_proveedores.to_string(),
             path_relaciones: path_relaciones.to_string(),
             path_configs: path_configs.to_string(),
-            path_pesables: path_pesables.to_string(),
-            path_rubros: path_rubros.to_string(),
             relaciones,
             stash,
             registro,
@@ -194,7 +188,7 @@ impl<'a> Sistema {
         //     sis.productos[i].unifica_codes()
         // }
         
-        if async_runtime::block_on(entity::producto::Entity::find().count(sis.read_db()))?>0 {
+        if async_runtime::block_on(entity::producto::Entity::find().count(sis.read_db()))?==0 {
             let prod_load_handle = async_runtime::spawn(cargar_todos_los_valuables(valuables));
             let prov_load_handle =
                 async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
@@ -614,8 +608,8 @@ impl<'a> Sistema {
         }
         Ok(async_runtime::block_on(handle)??)
     }
-    async fn producto(&mut self, id: i32) -> Result<Valuable, AppError> {
-        let res: Result<Valuable, AppError> = Err(AppError::ProductNotFound(id.to_string()));
+    async fn producto(&mut self, id: i64) -> Result<Valuable, AppError> {
+        let res: Result<Valuable, AppError>;
 
         let model;
 
@@ -635,11 +629,15 @@ impl<'a> Sistema {
             }
         }
     }
-    pub async fn agregar_producto_a_venta(&mut self, id: i32, pos: usize) -> Res<Venta> {
+    pub async fn agregar_producto_a_venta(&mut self, id: i64, pos: usize) -> Res<Venta> {
         let res = self
             .producto(id)
             .await?
             .redondear(&self.configs().politica());
+        if id<0{
+            println!("id =-1");
+            return Err(AppError::ProductNotFound(String::from("Producto inexistente")));
+        }
         let result;
         match pos {
             0 => {
@@ -659,7 +657,7 @@ impl<'a> Sistema {
 
         result
     }
-    pub fn descontar_producto_de_venta(&mut self, id: i32, pos: usize) -> Result<Venta, AppError> {
+    pub fn descontar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
         let res = async_runtime::block_on(self.producto(id))?;
         Ok(match pos {
             0 => self
@@ -673,7 +671,7 @@ impl<'a> Sistema {
             _ => return Err(AppError::SaleSelection.into()),
         })
     }
-    pub fn incrementar_producto_a_venta(&mut self, id: i32, pos: usize) -> Result<Venta, AppError> {
+    pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
         let res = async_runtime::block_on(self.producto(id))?;
         let result;
         match pos {
@@ -695,7 +693,7 @@ impl<'a> Sistema {
         }
         result
     }
-    pub fn eliminar_producto_de_venta(&mut self, id: i32, pos: usize) -> Result<Venta, AppError> {
+    pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
         let res = async_runtime::block_on(self.producto(id))?;
         let result;
         match pos {
@@ -707,7 +705,7 @@ impl<'a> Sistema {
                         &self.configs,
                     );
                 } else {
-                    self.ventas.0 = Venta::new();
+                    self.ventas.0 = Venta::new(Arc::clone(&self.vendedor));
                     result = Ok(self.ventas.0.clone());
                 }
             }
@@ -719,7 +717,7 @@ impl<'a> Sistema {
                         &self.configs,
                     );
                 } else {
-                    self.ventas.1 = Venta::new();
+                    self.ventas.1 = Venta::new(Arc::clone(&self.vendedor));
                     result = Ok(self.ventas.1.clone());
                 }
             }
@@ -779,13 +777,13 @@ impl<'a> Sistema {
                 async_runtime::spawn(save(self.ventas.0.clone()));
                 self.registro.push(self.ventas.0.clone());
                 async_runtime::block_on(self.update_total(self.ventas.0.monto_total()))?;
-                self.ventas.0 = Venta::new();
+                self.ventas.0 = Venta::new(Arc::clone(&self.vendedor));
             }
             1 => {
                 async_runtime::spawn(save(self.ventas.1.clone()));
                 self.registro.push(self.ventas.1.clone());
                 async_runtime::block_on(self.update_total(self.ventas.1.monto_total()))?;
-                self.ventas.1 = Venta::new();
+                self.ventas.1 = Venta::new(Arc::clone(&self.vendedor));
             }
             _ => return Err(AppError::SaleSelection.into()),
         };
@@ -796,11 +794,11 @@ impl<'a> Sistema {
         match pos {
             0 => {
                 self.stash.push(self.ventas.0.clone());
-                self.ventas.0 = Venta::new();
+                self.ventas.0 = Venta::new(Arc::clone(&self.vendedor));
             }
             1 => {
                 self.stash.push(self.ventas.1.clone());
-                self.ventas.1 = Venta::new();
+                self.ventas.1 = Venta::new(Arc::clone(&self.vendedor));
             }
             _ => return Err(AppError::SaleSelection.into()),
         };
