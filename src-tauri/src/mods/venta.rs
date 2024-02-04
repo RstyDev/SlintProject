@@ -3,9 +3,9 @@ use entity::{
     pago,
     venta::{self},
 };
-use std::sync::Arc;
 use sea_orm::{Database, DbErr, EntityTrait, Set};
 use serde::Serialize;
+use std::sync::Arc;
 use tauri::async_runtime;
 
 use Valuable as V;
@@ -13,7 +13,12 @@ use Valuable as V;
 use crate::mods::pago::medio_from_db;
 
 use super::{
-    config::Config, error::AppError, lib::{redondeo, Save}, pago::{MedioPago, Pago}, valuable::Valuable, vendedor::Vendedor
+    config::Config,
+    error::AppError,
+    lib::{redondeo, Save},
+    pago::{MedioPago, Pago},
+    valuable::Valuable,
+    vendedor::Vendedor,
 };
 
 #[derive(Debug, Clone, Default, Serialize)]
@@ -32,7 +37,7 @@ impl<'a> Venta {
             productos: Vec::new(),
             pagos: Vec::new(),
             monto_pagado: 0.0,
-            vendedor
+            vendedor,
         }
     }
     pub fn monto_total(&self) -> f64 {

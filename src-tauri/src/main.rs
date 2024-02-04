@@ -9,11 +9,11 @@ type Result<T> = std::result::Result<T, String>;
 use std::sync::Mutex;
 use tauri::{
     async_runtime::{self, block_on},
-    State,
+     State,
 };
 #[derive(Clone, serde::Serialize)]
-struct Payload{
-    message: String
+struct Payload {
+    message: String,
 }
 mod mods;
 
@@ -474,11 +474,25 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: &str) -> Result<()> {
     .inner_size(400.0, 150.0)
     .build()
     {
-        Ok(a) => match a.emit("get-venta", Payload {message:act.into()}){
+        Ok(a) => {
+            println!("{:#?}",a.is_decorated());
+            if let Err(e)=a.emit("get-venta", Payload{message: act.into()}){
+                return Err(e.to_string())
+            }
+            println!("{:#?}",a.label());
+            std::thread::sleep(std::time::Duration::from_millis(900));
+            println!("{:#?}",a.is_decorated());
+            match a.emit(
+                "get-venta",
+                Payload {
+                    message: act.into(),
+                },
+            ) {
                 Ok(_) => Ok(()),
                 Err(e) => Err(e.to_string()),
             }
-            
+        }
+
         Err(e) => Err(e.to_string()),
     }
 }

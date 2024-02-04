@@ -98,8 +98,8 @@ impl<'a> Sistema {
         ))?);
 
         let aux = Arc::clone(&write_db);
-        let aux2= Arc::clone(&write_db);
-        let vendedor=async_runtime::spawn(Vendedor::get_or_def(aux2));
+        let aux2 = Arc::clone(&write_db);
+        let vendedor = async_runtime::spawn(Vendedor::get_or_def(aux2));
         let caja = async_runtime::spawn(Caja::new(aux, Some(0.0)));
         let path_productos = "Productos.json";
         let path_proveedores = "Proveedores.json";
@@ -166,13 +166,13 @@ impl<'a> Sistema {
             configs.push(Config::default());
             crear_file(path_configs, &mut configs)?;
         }
-        let vendedor=Arc::from(async_runtime::block_on(vendedor)??);
+        let vendedor = Arc::from(async_runtime::block_on(vendedor)??);
         let caja = async_runtime::block_on(caja)??;
         let sis = Sistema {
             write_db,
             read_db,
             caja,
-            vendedor:Arc::clone(&vendedor),
+            vendedor: Arc::clone(&vendedor),
             configs: configs[0].clone(),
             ventas: (Venta::new(Arc::clone(&vendedor)), Venta::new(vendedor)),
             proveedores: proveedores.clone(),
@@ -187,8 +187,8 @@ impl<'a> Sistema {
         // for i in 0..sis.productos.len() {
         //     sis.productos[i].unifica_codes()
         // }
-        
-        if async_runtime::block_on(entity::producto::Entity::find().count(sis.read_db()))?==0 {
+
+        if async_runtime::block_on(entity::producto::Entity::find().count(sis.read_db()))? == 0 {
             let prod_load_handle = async_runtime::spawn(cargar_todos_los_valuables(valuables));
             let prov_load_handle =
                 async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
@@ -609,7 +609,6 @@ impl<'a> Sistema {
         Ok(async_runtime::block_on(handle)??)
     }
     async fn producto(&mut self, id: i64) -> Result<Valuable, AppError> {
-        
         let model;
 
         match entity::producto::Entity::find_by_id(id)
@@ -633,9 +632,11 @@ impl<'a> Sistema {
             .producto(id)
             .await?
             .redondear(&self.configs().politica());
-        if id<0{
+        if id < 0 {
             println!("id =-1");
-            return Err(AppError::ProductNotFound(String::from("Producto inexistente")));
+            return Err(AppError::ProductNotFound(String::from(
+                "Producto inexistente",
+            )));
         }
         let result;
         match pos {
