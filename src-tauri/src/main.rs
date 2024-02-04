@@ -9,11 +9,12 @@ type Result<T> = std::result::Result<T, String>;
 use std::sync::Mutex;
 use tauri::{
     async_runtime::{self, block_on},
-     State,
+    State,
 };
 #[derive(Clone, serde::Serialize)]
 struct Payload {
-    message: String,
+    message: Option<String>,
+    pos: Option<usize>,
 }
 mod mods;
 
@@ -403,12 +404,22 @@ fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
 }
 
 #[tauri::command]
-fn stash_sale(sistema: State<Mutex<Sistema>>, pos: usize) -> Result<()> {
+fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: usize) -> Result<()> {
     match sistema.lock() {
-        Ok(mut sis) => match sis.stash_sale(pos) {
-            Ok(a) => Ok(a),
-            Err(e) => Err(e.to_string()),
-        },
+        Ok(mut sis) => {
+            if let Err(e) = sis.stash_sale(pos) {
+                return Err(e.to_string());
+            }
+            if let Err(e)=window.emit("main", Payload{ message: Some("dibujar venta".into()), pos: None }){
+                return Err(e.to_string());
+            }
+            if let Err(e) = window.close() {
+                return Err(e.to_string());
+            }
+            println!("{:#?}",sis.stash());
+            Ok(())
+        }
+
         Err(e) => Err(e.to_string()),
     }
 }
@@ -463,7 +474,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
-async fn open_confirm_stash(handle: tauri::AppHandle, act: &str) -> Result<()> {
+async fn open_confirm_stash(handle: tauri::AppHandle, act: usize) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "confirm-stash", /* the unique window label */
@@ -475,22 +486,17 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: &str) -> Result<()> {
     .build()
     {
         Ok(a) => {
-            println!("{:#?}",a.is_decorated());
-            if let Err(e)=a.emit("get-venta", Payload{message: act.into()}){
-                return Err(e.to_string())
+            std::thread::sleep(std::time::Duration::from_millis(500));
+            if let Err(e) = a.emit("get-venta", Payload {message:None, pos: Some(act) } ) {
+                return Err(e.to_string());
             }
-            println!("{:#?}",a.label());
-            std::thread::sleep(std::time::Duration::from_millis(900));
-            println!("{:#?}",a.is_decorated());
-            match a.emit(
-                "get-venta",
-                Payload {
-                    message: act.into(),
-                },
-            ) {
-                Ok(_) => Ok(()),
-                Err(e) => Err(e.to_string()),
+            for _ in 0..5 {
+                std::thread::sleep(std::time::Duration::from_millis(175));
+                if let Err(e) = a.emit("get-venta", Payload { message: None, pos:Some(act) }) {
+                    return Err(e.to_string());
+                }
             }
+            Ok(())
         }
 
         Err(e) => Err(e.to_string()),
@@ -506,6 +512,22 @@ async fn open_edit_settings(handle: tauri::AppHandle) -> Result<()> {
     .always_on_top(true)
     .resizable(false)
     .inner_size(750.0, 360.0)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
+async fn open_stash(handle: tauri::AppHandle) -> Result<()> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "add-product", /* the unique window label */
+        tauri::WindowUrl::App("/pages/stash.html".parse().unwrap()),
+    )
+    .always_on_top(true)
+    .resizable(false)
+    .inner_size(900.0, 600.0)
     .build()
     {
         Ok(_) => Ok(()),
@@ -541,9 +563,10 @@ fn main() {
             open_add_prov,
             open_confirm_stash,
             open_edit_settings,
-            stash_sale,
+            stash_n_close,
             unstash_sale,
             get_stash,
+            open_stash
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

@@ -1,4 +1,9 @@
 const { invoke } = window.__TAURI__.tauri;
+const { emit, listen } = window.__TAURI__.event;
+
+
+
+
 const mensaje1 = document.querySelector('#mensaje1-msg');
 let posicionVenta = 0;
 let focuseado;
@@ -54,6 +59,9 @@ function navigate(e) {
 }
 async function open_confirm_stash(act){
   return await invoke("open_confirm_stash", {"act":act});
+}
+async function open_stash(act){
+  return await invoke("open_stash");
 }
 
 async function agregar_pago(medio_pago, m) {
@@ -726,11 +734,10 @@ function escYf10Press() {
         }
       }else if (e.keyCode==71){
         e.preventDefault();
-        open_confirm_stash(''+posicionVenta);
-        console.log("aca stash");
+        open_confirm_stash(posicionVenta);
       }else if (e.keyCode==83){
         e.preventDefault();
-        console.log("aca unstash");
+        open_stash();
       }
     }
   })
@@ -873,3 +880,8 @@ function calcFont(height, ps) {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+const unlisten = await listen('main', (pl) => {
+  if (pl.payload.message=='dibujar venta'){
+    get_venta_actual().then(venta => dibujar_venta(venta));
+  }
+})

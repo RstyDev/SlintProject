@@ -1,11 +1,37 @@
-
-const { emit, listen } = window.__TAURI__.event;
-
 const { invoke } = window.__TAURI__.tauri;
+const { emit, listen } = window.__TAURI__.event;
+var venta;
 
-console.log("igual aca");
-// listen to the `click` event and get a function to remove the event listener
-// there's also a `once` function that subscribes to an event and automatically unsubscribes the listener on the first event
+async function stash_n_close(venta) {
+  return await invoke("stash_n_close", { "pos": venta });
+}
+
+async function close_window() {
+  return await invoke("close_window");
+}
+
+document.addEventListener('keydown',(e)=>{
+  e.preventDefault();
+  if (e.keyCode==13){
+    stash_n_close(venta);
+  }
+  else if (e.keyCode==27){
+    close_window();
+  }
+})
+
 const unlisten = await listen('get-venta', (pl) => {
-  console.log('pl');
+  if (!venta){
+    console.log(pl);
+    venta=pl.payload.pos;
+    document.getElementById('botones').innerHTML=`<button class="boton" id="si">Si</button>
+    <button class="boton" id="no">No</button>`;
+    console.log(pl);
+    document.getElementById('si').addEventListener('click',()=>{
+      stash_n_close(venta);
+    });
+    document.getElementById('no').addEventListener('click',()=>{
+      close_window();
+    });
+  }
 })
