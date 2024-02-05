@@ -67,7 +67,7 @@ async function open_stash(act){
 
 async function agregar_pago(medio_pago, m) {
   let monto = parseFloat(m);
-  return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos_izq": posA });
+  return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos": posA });
 }
 async function eliminar_pago(index) {
   return await invoke("eliminar_pago", { "pos_izq": posA, "index": index });
@@ -409,7 +409,7 @@ function dibujar_venta(venta) {
   document.getElementById('boton-agregar-pago').addEventListener('click', (e) => {
     e.preventDefault();
     if (parseFloat(e.target.parentNode.children[0].value) > 0) {
-      agregar_pago(e.target.parentNode.children[1].value, e.target.parentNode.children[0].value).then(pago => {
+      agregar_pago(e.target.parentNode.children[1].value, e.target.parentNode.children[0].value, posA).then(pago => {
         if (isNaN(pago)) {
           console.log('error ' + pago);
         } else {
