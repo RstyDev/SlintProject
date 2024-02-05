@@ -1,13 +1,12 @@
 use chrono::Utc;
-use entity::producto::{self, ActiveModel, Model};
+use entity::producto::{self, ActiveModel};
 use entity::{codigo_barras, pesable};
-use sea_orm::prelude::DateTimeUtc;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, Database, DatabaseConnection, DbErr, EntityTrait,
     IntoActiveModel, QueryFilter, Set,
 };
 use serde::{de::DeserializeOwned, Serialize};
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{Read, Write};
 use Valuable as V;
 
@@ -91,14 +90,14 @@ pub fn redondeo(politica: &f64, numero: f64) -> f64 {
   //         Err(e) => panic!("No se pudo pushear porque {}", e),
   //     };
   // }
-pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Res<Vec<i64>> {
-    let a = entity::codigo_barras::Entity::find()
-        .filter(Condition::all().add(entity::codigo_barras::Column::Producto.eq(id)))
-        .all(db)
-        .await?;
-    // unifica_codes(&mut a);
-    Ok(a.iter().map(|x| x.codigo).collect())
-}
+  // pub async fn get_codigos_db_filtrado(db: &DatabaseConnection, id: i64) -> Res<Vec<i64>> {
+  //     let a = entity::codigo_barras::Entity::find()
+  //         .filter(Condition::all().add(entity::codigo_barras::Column::Producto.eq(id)))
+  //         .all(db)
+  //         .await?;
+  //     // unifica_codes(&mut a);
+  //     Ok(a.iter().map(|x| x.codigo).collect())
+  // }
 
 pub async fn map_model_prod(
     prod: &entity::producto::Model,

@@ -1,9 +1,10 @@
 use chrono::Utc;
-use entity::{
-    pago,
-    venta::{self},
+use entity::pago;
+type Res<T> = std::result::Result<T, AppError>;
+use sea_orm::{
+    ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel,
+    QueryOrder, Set,
 };
-use sea_orm::{Database, DbErr, EntityTrait, Set};
 use serde::Serialize;
 use std::sync::Arc;
 use tauri::async_runtime;
@@ -23,6 +24,7 @@ use super::{
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct Venta {
+    id: i64,
     monto_total: f64,
     productos: Vec<Valuable>,
     pagos: Vec<Pago>,
@@ -31,14 +33,32 @@ pub struct Venta {
 }
 
 impl<'a> Venta {
-    pub fn new(vendedor: Arc<Vendedor>) -> Venta {
-        Venta {
+    pub async fn new(vendedor: Arc<Vendedor>, db: &DatabaseConnection) -> Res<Venta> {
+        let venta = entity::venta::Entity::find()
+            .order_by_desc(entity::venta::Column::Id)
+            .one(db)
+            .await?;
+        let id = match venta {
+            Some(a) => a.id + 1,
+            None => 0,
+        };
+        let venta = Venta {
             monto_total: 0.0,
             productos: Vec::new(),
             pagos: Vec::new(),
             monto_pagado: 0.0,
             vendedor,
+            id,
+        };
+        entity::venta::ActiveModel {
+            id: Set(venta.id),
+            monto_total: Set(venta.monto_total),
+            monto_pagado: Set(venta.monto_pagado),
+            time: Set(Utc::now().naive_local().to_string()),
         }
+        .insert(db)
+        .await?;
+        Ok(venta)
     }
     pub fn monto_total(&self) -> f64 {
         self.monto_total
@@ -186,18 +206,17 @@ impl<'a> Venta {
 }
 impl Save for Venta {
     async fn save(&self) -> Result<(), DbErr> {
-        let model_venta = venta::ActiveModel {
-            monto_total: Set(self.monto_total),
-            monto_pagado: Set(self.monto_pagado),
-            time: Set(Utc::now().naive_local().to_string()),
-            ..Default::default()
-        };
-
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
+        let mut venta = entity::venta::Entity::find_by_id(self.id)
+            .one(&db)
+            .await?
+            .unwrap()
+            .into_active_model();
+        venta.monto_total = Set(self.monto_total);
+        venta.monto_pagado = Set(self.monto_pagado);
+        venta.time = Set(Utc::now().naive_local().to_string());
 
-        let result = entity::venta::Entity::insert(model_venta).exec(&db).await?;
-
-        println!("id de venta: {}", result.last_insert_id);
+        venta.update(&db).await?;
 
         let mut pay_models = vec![];
         for pago in &self.pagos {
@@ -205,7 +224,7 @@ impl Save for Venta {
             pay_models.push(pago::ActiveModel {
                 medio_pago: Set(model.id),
                 monto: Set(pago.monto()),
-                venta: Set(result.last_insert_id),
+                venta: Set(self.id),
                 ..Default::default()
             });
         }
@@ -232,7 +251,7 @@ impl Save for Venta {
             .filter_map(|x| match x {
                 V::Prod(a) => Some(entity::relacion_venta_prod::ActiveModel {
                     producto: Set(*a.1.id()),
-                    venta: Set(result.last_insert_id),
+                    venta: Set(self.id),
                     cantidad: Set(a.0),
                     ..Default::default()
                 }),
@@ -250,7 +269,7 @@ impl Save for Venta {
                 V::Rub(a) => Some(entity::relacion_venta_rub::ActiveModel {
                     cantidad: Set(a.0),
                     rubro: Set(*a.1.id()),
-                    venta: Set(result.last_insert_id),
+                    venta: Set(self.id),
                     ..Default::default()
                 }),
                 _ => None,
@@ -277,7 +296,7 @@ impl Save for Venta {
                 V::Pes(a) => Some(entity::relacion_venta_pes::ActiveModel {
                     cantidad: Set(a.0),
                     pesable: Set(*a.1.id()),
-                    venta: Set(result.last_insert_id),
+                    venta: Set(self.id),
                     ..Default::default()
                 }),
                 _ => None,

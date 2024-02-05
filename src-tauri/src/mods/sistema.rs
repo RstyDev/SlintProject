@@ -46,6 +46,7 @@ use super::{
     valuable::{Valuable, ValuableTrait},
     venta::Venta,
 };
+
 pub struct Sistema {
     write_db: Arc<DatabaseConnection>,
     read_db: Arc<DatabaseConnection>,
@@ -168,13 +169,17 @@ impl<'a> Sistema {
         }
         let vendedor = Arc::from(async_runtime::block_on(vendedor)??);
         let caja = async_runtime::block_on(caja)??;
+        let w1 = Arc::clone(&write_db);
         let sis = Sistema {
             write_db,
             read_db,
             caja,
             vendedor: Arc::clone(&vendedor),
             configs: configs[0].clone(),
-            ventas: (Venta::new(Arc::clone(&vendedor)), Venta::new(vendedor)),
+            ventas: (
+                async_runtime::block_on(Venta::new(Arc::clone(&vendedor), w1.as_ref()))?,
+                async_runtime::block_on(Venta::new(vendedor, w1.as_ref()))?,
+            ),
             proveedores: proveedores.clone(),
             path_proveedores: path_proveedores.to_string(),
             path_relaciones: path_relaciones.to_string(),
@@ -368,35 +373,32 @@ impl<'a> Sistema {
     pub fn configs(&self) -> &Config {
         &self.configs
     }
-    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64, pos: usize) -> Res<f64> {
+    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64, pos: bool) -> Res<f64> {
         let res;
-        match pos {
-            0 => {
-                if !medio_pago.eq("Efectivo")
-                    && self.ventas.0.monto_pagado() + monto > self.ventas.0.monto_total()
-                {
-                    return Err(AppError::AmountError {
-                        a_pagar: self.ventas.0.monto_total() - self.ventas.0.monto_pagado(),
-                        pagado: monto,
-                    });
-                } else {
-                    res = Ok(self.ventas.0.agregar_pago(medio_pago, monto));
-                }
+        if pos {
+            if !medio_pago.eq("Efectivo")
+                && self.ventas.0.monto_pagado() + monto > self.ventas.0.monto_total()
+            {
+                return Err(AppError::AmountError {
+                    a_pagar: self.ventas.0.monto_total() - self.ventas.0.monto_pagado(),
+                    pagado: monto,
+                });
+            } else {
+                res = Ok(self.ventas.0.agregar_pago(medio_pago, monto));
             }
-            1 => {
-                if !medio_pago.eq("Efectivo")
-                    && self.ventas.1.monto_pagado() + monto > self.ventas.1.monto_total()
-                {
-                    return Err(AppError::AmountError {
-                        a_pagar: self.ventas.1.monto_total() - self.ventas.1.monto_pagado(),
-                        pagado: monto,
-                    });
-                } else {
-                    res = Ok(self.ventas.1.agregar_pago(medio_pago, monto));
-                }
+        } else {
+            if !medio_pago.eq("Efectivo")
+                && self.ventas.1.monto_pagado() + monto > self.ventas.1.monto_total()
+            {
+                return Err(AppError::AmountError {
+                    a_pagar: self.ventas.1.monto_total() - self.ventas.1.monto_pagado(),
+                    pagado: monto,
+                });
+            } else {
+                res = Ok(self.ventas.1.agregar_pago(medio_pago, monto));
             }
-            _ => return Err(AppError::SaleSelection),
         }
+
         if let Ok(a) = res {
             if a <= 0.0 {
                 self.cerrar_venta(pos)?
@@ -404,19 +406,16 @@ impl<'a> Sistema {
         }
         res
     }
-    pub fn eliminar_pago(&mut self, pos: usize, index: usize) -> Res<Venta> {
+    pub fn eliminar_pago(&mut self, pos: bool, index: usize) -> Res<Venta> {
         let res;
-        match pos {
-            0 => {
-                self.ventas.0.eliminar_pago(index);
-                res = self.ventas.0.clone()
-            }
-            1 => {
-                self.ventas.1.eliminar_pago(index);
-                res = self.ventas.1.clone()
-            }
-            _ => return Err(AppError::SaleSelection.into()),
+        if pos {
+            self.ventas.0.eliminar_pago(index);
+            res = self.ventas.0.clone()
+        } else {
+            self.ventas.1.eliminar_pago(index);
+            res = self.ventas.1.clone()
         }
+
         Ok(res)
     }
     pub fn set_configs(&mut self, configs: Config) {
@@ -627,7 +626,7 @@ impl<'a> Sistema {
             }
         }
     }
-    pub async fn agregar_producto_a_venta(&mut self, id: i64, pos: usize) -> Res<Venta> {
+    pub async fn agregar_producto_a_venta(&mut self, id: i64, pos: bool) -> Res<Venta> {
         let res = self
             .producto(id)
             .await?
@@ -639,36 +638,30 @@ impl<'a> Sistema {
             )));
         }
         let result;
-        match pos {
-            0 => {
-                result = Ok(self
-                    .ventas
-                    .0
-                    .agregar_producto(res, &self.configs().politica()))
-            }
-            1 => {
-                result = Ok(self
-                    .ventas
-                    .1
-                    .agregar_producto(res, &self.configs().politica()))
-            }
-            _ => result = Err(AppError::SaleSelection.into()),
+        if pos {
+            result = Ok(self
+                .ventas
+                .0
+                .agregar_producto(res, &self.configs().politica()))
+        } else {
+            result = Ok(self
+                .ventas
+                .1
+                .agregar_producto(res, &self.configs().politica()))
         }
 
         result
     }
-    pub fn descontar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
+    pub fn descontar_producto_de_venta(&mut self, id: i64, pos: bool) -> Result<Venta, AppError> {
         let res = async_runtime::block_on(self.producto(id))?;
-        Ok(match pos {
-            0 => self
-                .ventas
+        Ok(if pos {
+            self.ventas
                 .0
-                .restar_producto(res, &self.configs().politica(), &self.configs)?,
-            1 => self
-                .ventas
+                .restar_producto(res, &self.configs().politica(), &self.configs)?
+        } else {
+            self.ventas
                 .1
-                .restar_producto(res, &self.configs().politica(), &self.configs)?,
-            _ => return Err(AppError::SaleSelection.into()),
+                .restar_producto(res, &self.configs().politica(), &self.configs)?
         })
     }
     pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
@@ -693,41 +686,42 @@ impl<'a> Sistema {
         }
         result
     }
-    pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
+    pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: bool) -> Result<Venta, AppError> {
         let res = async_runtime::block_on(self.producto(id))?;
         let result;
-        match pos {
-            0 => {
-                if self.ventas.0.productos().len() > 1 {
-                    result = self.ventas.0.eliminar_producto(
-                        res,
-                        &self.configs().politica(),
-                        &self.configs,
-                    );
-                } else {
-                    self.ventas.0 = Venta::new(Arc::clone(&self.vendedor));
-                    result = Ok(self.ventas.0.clone());
-                }
+        if pos {
+            if self.ventas.0.productos().len() > 1 {
+                result =
+                    self.ventas
+                        .0
+                        .eliminar_producto(res, &self.configs().politica(), &self.configs);
+            } else {
+                self.ventas.0 = async_runtime::block_on(Venta::new(
+                    Arc::clone(&self.vendedor),
+                    self.write_db(),
+                ))?;
+                result = Ok(self.ventas.0.clone());
             }
-            1 => {
-                if self.ventas.1.productos().len() > 1 {
-                    result = self.ventas.1.eliminar_producto(
-                        res,
-                        &self.configs().politica(),
-                        &self.configs,
-                    );
-                } else {
-                    self.ventas.1 = Venta::new(Arc::clone(&self.vendedor));
-                    result = Ok(self.ventas.1.clone());
-                }
+        } else {
+            if self.ventas.1.productos().len() > 1 {
+                result =
+                    self.ventas
+                        .1
+                        .eliminar_producto(res, &self.configs().politica(), &self.configs);
+            } else {
+                self.ventas.1 = async_runtime::block_on(Venta::new(
+                    Arc::clone(&self.vendedor),
+                    self.write_db(),
+                ))?;
+                result = Ok(self.ventas.1.clone());
             }
-            _ => result = Err(AppError::SaleSelection),
         }
+
         result
     }
-    pub fn venta(&self, pos: usize) -> Venta {
+    pub fn venta(&self, pos: bool) -> Venta {
         let res;
-        if pos == 0 {
+        if pos {
             res = self.ventas.0.clone();
         } else {
             res = self.ventas.1.clone();
@@ -771,57 +765,49 @@ impl<'a> Sistema {
     pub fn read_db(&self) -> &DatabaseConnection {
         &self.read_db
     }
-    fn cerrar_venta(&mut self, pos: usize) -> Res<()> {
-        match pos {
-            0 => {
-                async_runtime::spawn(save(self.ventas.0.clone()));
-                self.registro.push(self.ventas.0.clone());
-                async_runtime::block_on(self.update_total(self.ventas.0.monto_total()))?;
-                self.ventas.0 = Venta::new(Arc::clone(&self.vendedor));
-            }
-            1 => {
-                async_runtime::spawn(save(self.ventas.1.clone()));
-                self.registro.push(self.ventas.1.clone());
-                async_runtime::block_on(self.update_total(self.ventas.1.monto_total()))?;
-                self.ventas.1 = Venta::new(Arc::clone(&self.vendedor));
-            }
-            _ => return Err(AppError::SaleSelection.into()),
+    fn cerrar_venta(&mut self, pos: bool) -> Res<()> {
+        if pos {
+            async_runtime::spawn(save(self.ventas.0.clone()));
+            self.registro.push(self.ventas.0.clone());
+            async_runtime::block_on(self.update_total(self.ventas.0.monto_total()))?;
+            self.ventas.0 =
+                async_runtime::block_on(Venta::new(Arc::clone(&self.vendedor), self.write_db()))?;
+        } else {
+            async_runtime::spawn(save(self.ventas.1.clone()));
+            self.registro.push(self.ventas.1.clone());
+            async_runtime::block_on(self.update_total(self.ventas.1.monto_total()))?;
+            self.ventas.1 =
+                async_runtime::block_on(Venta::new(Arc::clone(&self.vendedor), self.write_db()))?;
         };
 
         Ok(())
     }
-    pub fn stash_sale(&mut self, pos: usize) -> Res<()> {
-        match pos {
-            0 => {
-                self.stash.push(self.ventas.0.clone());
-                self.ventas.0 = Venta::new(Arc::clone(&self.vendedor));
-            }
-            1 => {
-                self.stash.push(self.ventas.1.clone());
-                self.ventas.1 = Venta::new(Arc::clone(&self.vendedor));
-            }
-            _ => return Err(AppError::SaleSelection.into()),
+    pub fn stash_sale(&mut self, pos: bool) -> Res<()> {
+        if pos {
+            self.stash.push(self.ventas.0.clone());
+            self.ventas.0 =
+                async_runtime::block_on(Venta::new(Arc::clone(&self.vendedor), self.write_db()))?;
+        } else {
+            self.stash.push(self.ventas.1.clone());
+            self.ventas.1 =
+                async_runtime::block_on(Venta::new(Arc::clone(&self.vendedor), self.write_db()))?;
         };
         Ok(())
     }
-    pub fn unstash_sale(&mut self, pos: usize, index: usize) -> Res<()> {
+    pub fn unstash_sale(&mut self, pos: bool, index: usize) -> Res<()> {
         if index < self.stash.len() {
-            match pos {
-                0 => {
-                    if self.ventas.0.productos().len() > 0 {
-                        self.stash.push(self.ventas.0.to_owned());
-                    }
-                    self.ventas.0 = self.stash.remove(index);
-                    Ok(())
+            if pos {
+                if self.ventas.0.productos().len() > 0 {
+                    self.stash.push(self.ventas.0.to_owned());
                 }
-                1 => {
-                    if self.ventas.1.productos().len() > 0 {
-                        self.stash.push(self.ventas.1.to_owned());
-                    }
-                    self.ventas.1 = self.stash.remove(index);
-                    Ok(())
+                self.ventas.0 = self.stash.remove(index);
+                Ok(())
+            } else {
+                if self.ventas.1.productos().len() > 0 {
+                    self.stash.push(self.ventas.1.to_owned());
                 }
-                _ => Err(AppError::SaleSelection.into()),
+                self.ventas.1 = self.stash.remove(index);
+                Ok(())
             }
         } else {
             Err(AppError::SaleSelection.into())

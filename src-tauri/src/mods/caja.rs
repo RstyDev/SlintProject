@@ -2,7 +2,6 @@ use chrono::{NaiveDateTime, Utc};
 use sea_orm::{
     ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryOrder, Set,
 };
-use std::str::FromStr;
 use std::sync::Arc;
 
 use super::error::AppError;

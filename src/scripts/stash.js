@@ -10,7 +10,10 @@ async function get_stash(){
 
 
 
-get_stash().then(stash=>{console.log(stash)})
+get_stash().then(stash=>{
+    console.log(stash);
+    
+})
 
 
 

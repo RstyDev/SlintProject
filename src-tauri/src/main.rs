@@ -14,7 +14,7 @@ use tauri::{
 #[derive(Clone, serde::Serialize)]
 struct Payload {
     message: Option<String>,
-    pos: Option<usize>,
+    pos: Option<bool>,
 }
 mod mods;
 
@@ -187,11 +187,10 @@ fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Resul
 }
 
 #[tauri::command]
-fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: &str, pos: &str) -> Result<Venta> {
+fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: &str, pos: bool) -> Result<Venta> {
     let res;
     match sistema.lock() {
         Ok(mut a) => {
-            let pos = pos.parse().unwrap();
             res =
                 match async_runtime::block_on(a.agregar_producto_a_venta(id.parse().unwrap(), pos))
                 {
@@ -207,20 +206,17 @@ fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: &str, pos: &str)
 fn descontar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     id: &str,
-    pos: &str,
+    pos: bool,
 ) -> Result<Venta> {
     let res;
     match sistema.lock() {
-        Ok(mut a) => {
-            let pos = pos.parse().unwrap();
-            match a.descontar_producto_de_venta(id.parse().unwrap(), pos) {
-                Ok(a) => {
-                    println!("{:?}", a);
-                    res = Ok(a)
-                }
-                Err(e) => res = Err(e.to_string()),
+        Ok(mut a) => match a.descontar_producto_de_venta(id.parse().unwrap(), pos) {
+            Ok(a) => {
+                println!("{:?}", a);
+                res = Ok(a)
             }
-        }
+            Err(e) => res = Err(e.to_string()),
+        },
         Err(e) => res = Err(e.to_string()),
     };
     res
@@ -252,12 +248,11 @@ fn incrementar_producto_a_venta(
 fn eliminar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     id: &str,
-    pos: &str,
+    pos: bool,
 ) -> Result<Venta> {
     let res;
     match sistema.lock() {
         Ok(mut a) => {
-            let pos = pos.parse().unwrap();
             res = match a.eliminar_producto_de_venta(id.parse().unwrap(), pos) {
                 Ok(a) => Ok(a),
                 Err(e) => Err(e.to_string()),
@@ -273,7 +268,7 @@ fn agregar_pago(
     sistema: State<Mutex<Sistema>>,
     medio_pago: &str,
     monto: f64,
-    pos: usize,
+    pos: bool,
 ) -> Result<f64> {
     let res;
     match sistema.lock() {
@@ -289,7 +284,7 @@ fn agregar_pago(
 }
 
 #[tauri::command]
-fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<Venta> {
+fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => match a.eliminar_pago(pos, index) {
             Ok(a) => Ok(a),
@@ -334,15 +329,11 @@ fn get_filtrado(
 }
 
 #[tauri::command]
-fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: i32) -> Result<Venta> {
+fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: bool) -> Result<Venta> {
     let res;
     match sistema.lock() {
         Ok(a) => {
-            if pos == 1 {
-                res = Ok(a.venta(1).clone());
-            } else {
-                res = Ok(a.venta(0).clone());
-            }
+            res = Ok(a.venta(pos).clone());
         }
         Err(e) => res = Err(e.to_string()),
     }
@@ -404,19 +395,25 @@ fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
 }
 
 #[tauri::command]
-fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: usize) -> Result<()> {
+fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: bool) -> Result<()> {
     match sistema.lock() {
         Ok(mut sis) => {
             if let Err(e) = sis.stash_sale(pos) {
                 return Err(e.to_string());
             }
-            if let Err(e)=window.emit("main", Payload{ message: Some("dibujar venta".into()), pos: None }){
+            if let Err(e) = window.emit(
+                "main",
+                Payload {
+                    message: Some("dibujar venta".into()),
+                    pos: None,
+                },
+            ) {
                 return Err(e.to_string());
             }
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
-            println!("{:#?}",sis.stash());
+            println!("{:#?}", sis.stash());
             Ok(())
         }
 
@@ -424,7 +421,7 @@ fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: usi
     }
 }
 #[tauri::command]
-fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: usize, index: usize) -> Result<()> {
+fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Result<()> {
     match sistema.lock() {
         Ok(mut sis) => match sis.unstash_sale(pos, index) {
             Ok(a) => Ok(a),
@@ -474,7 +471,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
-async fn open_confirm_stash(handle: tauri::AppHandle, act: usize) -> Result<()> {
+async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "confirm-stash", /* the unique window label */
@@ -487,12 +484,24 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: usize) -> Result<()> 
     {
         Ok(a) => {
             std::thread::sleep(std::time::Duration::from_millis(500));
-            if let Err(e) = a.emit("get-venta", Payload {message:None, pos: Some(act) } ) {
+            if let Err(e) = a.emit(
+                "get-venta",
+                Payload {
+                    message: None,
+                    pos: Some(act),
+                },
+            ) {
                 return Err(e.to_string());
             }
             for _ in 0..5 {
                 std::thread::sleep(std::time::Duration::from_millis(175));
-                if let Err(e) = a.emit("get-venta", Payload { message: None, pos:Some(act) }) {
+                if let Err(e) = a.emit(
+                    "get-venta",
+                    Payload {
+                        message: None,
+                        pos: Some(act),
+                    },
+                ) {
                     return Err(e.to_string());
                 }
             }

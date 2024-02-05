@@ -5,6 +5,7 @@ const { emit, listen } = window.__TAURI__.event;
 
 
 const mensaje1 = document.querySelector('#mensaje1-msg');
+let posA=true;
 let posicionVenta = 0;
 let focuseado;
 let timeoutId;
@@ -66,10 +67,10 @@ async function open_stash(act){
 
 async function agregar_pago(medio_pago, m) {
   let monto = parseFloat(m);
-  return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos": posicionVenta });
+  return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos_izq": posA });
 }
 async function eliminar_pago(index) {
-  return await invoke("eliminar_pago", { "pos": posicionVenta, "index": index });
+  return await invoke("eliminar_pago", { "pos_izq": posA, "index": index });
 }
 async function get_configs() {
   return await invoke("get_configs");
@@ -118,16 +119,16 @@ function eliminarProducto(e) {
 
 
 function cambiar_venta(boton) {
-  if (boton.nextElementSibling && posicionVenta == 1) {
+  if (boton.nextElementSibling && !posA) {
     boton.classList.toggle('v-actual');
     boton.nextElementSibling.classList.toggle('v-actual');
-    posicionVenta = 0;
+    posA = true;
     get_venta_actual().then(venta => dibujar_venta(venta));
     setFoco(buscador, document.getElementById('productos'));
-  } else if (boton.previousElementSibling && posicionVenta == 0) {
+  } else if (boton.previousElementSibling && posA) {
     boton.classList.toggle('v-actual');
     boton.previousElementSibling.classList.toggle('v-actual');
-    posicionVenta = 1;
+    posA = false;
     get_venta_actual().then(venta => dibujar_venta(venta));
     setFoco(buscador, document.getElementById('productos'));
   }
@@ -415,10 +416,10 @@ function dibujar_venta(venta) {
           if (pago > 0) {
             pasarAPagar();
           } else {
-            if (posicionVenta == 0) {
-              posicionVenta = 1;
+            if (posA) {
+              posA = false;
             } else {
-              posicionVenta = 0;
+              posA = true;
             }
             get_venta_actual().then(venta => {
               dibujar_venta(venta);
@@ -436,7 +437,7 @@ function dibujar_venta(venta) {
   })
   let va = document.getElementById('v-a');
   let vb = document.getElementById('v-b');
-  if (posicionVenta == 0) {
+  if (posA) {
     va.classList.toggle('v-actual', true);
     vb.classList.toggle('v-actual', false);
   } else {
@@ -469,22 +470,22 @@ function dibujar_venta(venta) {
 
 
 async function get_venta_actual() {
-  let res = await invoke("get_venta_actual", { pos: posicionVenta });
+  let res = await invoke("get_venta_actual", { pos: posA });
   // console.log(ret)
   return res;
 }
 async function incrementarProdVentaAct(id) {
-  return await invoke("incrementar_producto_a_venta", { id: "" + id, pos: "" + posicionVenta });
+  return await invoke("incrementar_producto_a_venta", { id: "" + id, pos:  posA });
 }
 async function agregarProdVentaAct(id) {
-  return await invoke("agregar_producto_a_venta", { id: "" + id, pos: "" + posicionVenta });
+  return await invoke("agregar_producto_a_venta", { id: "" + id, pos: posA });
 }
 async function descontarProdVentaAct(id) {
-  return await invoke("descontar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta });
+  return await invoke("descontar_producto_de_venta", { id: "" + id, pos: posA });
 }
 
 async function eliminarProdVentaAct(id) {
-  return await invoke("eliminar_producto_de_venta", { id: "" + id, pos: "" + posicionVenta })
+  return await invoke("eliminar_producto_de_venta", { id: "" + id, pos: posA })
 }
 function borrarBusqueda() {
   buscador.value = '';
@@ -570,7 +571,41 @@ function dibujarProductos(objetos) {
   }
 }
 function agregarRub(tabla, objeto) {
-  console.log(objeto);
+  let tr2 = document.createElement('tr')
+  tr2.style.maxHeight = '1.5em';
+  tr2.tabIndex = 2;
+  tr2.id = objeto.Rub[1].id;
+  let id = document.createElement('td');
+  id.innerHTML = objeto.Rub[1].id;
+  id.style.display = 'none'
+  let producto = document.createElement('td');
+  producto.classList.add(`${configs.modo_mayus}`);
+  producto.innerHTML = objeto.Rub[1].descripcion;
+  tr2.appendChild(producto);
+  let precio = document.createElement('td');
+  precio.innerHTML = "$  " + objeto.Rub[1].precio_peso;
+  precio.style.textAlign = 'end'
+  tr2.appendChild(precio);
+  tr2.addEventListener('click', () => {
+    let focused = tr2.parentNode.getElementsByClassName('focuseado');
+    for (let i = 0; i < focused.length; i++) {
+      focused[i].classList.toggle('focuseado', false);
+    }
+    tr2.classList.toggle('focuseado', true);
+    focuseado = tr2;
+
+  });
+  tr2.addEventListener('dblclick', () => {
+    agregarProdVentaAct(focuseado.id).then(venta => {
+      dibujar_venta(venta);
+      setFoco(buscador, document.getElementById('productos'));
+    });
+  });
+  tr2.addEventListener('keydown', (e) => {
+    navigate(e)
+  });
+  tr2.appendChild(id);
+  tabla.appendChild(tr2);
 }
 function agregarPes(tabla, objeto) {
   let tr2 = document.createElement('tr')
@@ -727,14 +762,14 @@ function escYf10Press() {
     } else if (e.ctrlKey) {
       if (e.keyCode == 9) {
         let boton = document.querySelector('#v-b');
-        if (posicionVenta == 0) {
+        if (posA) {
           cambiar_venta(boton)
         } else {
           cambiar_venta(boton.previousElementSibling)
         }
       }else if (e.keyCode==71){
         e.preventDefault();
-        open_confirm_stash(posicionVenta);
+        open_confirm_stash(posA);
       }else if (e.keyCode==83){
         e.preventDefault();
         open_stash();

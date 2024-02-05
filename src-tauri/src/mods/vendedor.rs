@@ -19,9 +19,9 @@ impl Default for Vendedor {
 }
 
 impl Vendedor {
-    pub fn new(id: i64, nombre: Arc<str>) -> Vendedor {
-        Vendedor { id, nombre }
-    }
+    // pub fn new(id: i64, nombre: Arc<str>) -> Vendedor {
+    //     Vendedor { id, nombre }
+    // }
     pub async fn get_or_def(db: Arc<DatabaseConnection>) -> Result<Vendedor, AppError> {
         let vend = entity::vendedor::Entity::find()
             .order_by_desc(entity::vendedor::Column::Id)
@@ -48,10 +48,10 @@ impl Vendedor {
 
         Ok(vendedor)
     }
-    pub fn id(&self) -> &i64 {
-        &self.id
-    }
-    pub fn nombre(&self) -> &str {
-        &self.nombre
-    }
+    // pub fn id(&self) -> &i64 {
+    //     &self.id
+    // }
+    // pub fn nombre(&self) -> &str {
+    //     &self.nombre
+    // }
 }
