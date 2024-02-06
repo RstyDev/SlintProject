@@ -677,26 +677,23 @@ impl<'a> Sistema {
                 .restar_producto(res, &self.configs().politica(), &self.configs)?
         })
     }
-    pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: usize) -> Result<Venta, AppError> {
+    pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: bool) -> Result<Venta, AppError> {
         let res = async_runtime::block_on(self.producto(id))?;
         let result;
-        match pos {
-            0 => {
+        if pos{
                 result = self.ventas.0.incrementar_producto(
                     res,
                     &self.configs().politica(),
                     &self.configs,
                 );
-            }
-            1 => {
+            }else {
                 result = self.ventas.1.incrementar_producto(
                     res,
                     &self.configs().politica(),
                     &self.configs,
                 );
             }
-            _ => result = Err(AppError::SaleSelection),
-        }
+          
         result
     }
     pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: bool) -> Result<Venta, AppError> {

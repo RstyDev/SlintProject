@@ -142,12 +142,13 @@ async function get_descripcion_valuable(prod, conf) {
 
 function dibujar_venta(venta) {
   let cuadro = document.querySelector('#cuadro-principal');
-
+  productosVentaAct=venta.productos;
+  buscador.value='';
   cuadro.replaceChildren([]);
 
 
 
-  let strings = "";
+  
   cuadro.innerHTML = `
   <section class="ayb">
   <a id="v-a" class="a-boton"> Venta A </a>
@@ -155,7 +156,6 @@ function dibujar_venta(venta) {
   </section>
   <section id="cuadro-venta" >
     <section id="productos" class="focuseable">
-    
     </section>
     <section id="monto-total"> TOTAL ${venta.monto_total}</section>
   </section> 

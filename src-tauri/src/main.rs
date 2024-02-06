@@ -229,12 +229,11 @@ fn descontar_producto_de_venta(
 fn incrementar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
     id: &str,
-    pos: &str,
+    pos: bool,
 ) -> Result<Venta> {
     let res;
     match sistema.lock() {
         Ok(mut a) => {
-            let pos = pos.parse().unwrap();
             match a.incrementar_producto_a_venta(id.parse().unwrap(), pos) {
                 Ok(a) => {
                     println!("{:?}", a);
