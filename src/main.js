@@ -16,6 +16,8 @@ let idUlt;
 let buscador;
 let beep=new Audio('assets/beep.mp3');
 let error=new Audio('assets/error.mp3');
+let productosDib=[];
+let productosVentaAct=[];
 beep.volume=1;
 error.volume=0.2;
 
@@ -39,7 +41,7 @@ function navigate(e) {
     } else if (e.keyCode == 13) {
       e.preventDefault();
       if (document.getElementById('tabla-productos').children.length > 1) {
-        agregarProdVentaAct(focuseado.id).then(venta => {
+        agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
           e.preventDefault();
           buscador.value = '';
           dibujar_venta(venta)
@@ -477,8 +479,8 @@ async function get_venta_actual() {
 async function incrementarProdVentaAct(id) {
   return await invoke("incrementar_producto_a_venta", { id: "" + id, pos:  posA });
 }
-async function agregarProdVentaAct(id) {
-  return await invoke("agregar_producto_a_venta", { id: "" + id, pos: posA });
+async function agregarProdVentaAct(prod) {
+  return await invoke("agregar_producto_a_venta", { prod: prod, pos: posA });
 }
 async function descontarProdVentaAct(id) {
   return await invoke("descontar_producto_de_venta", { id: "" + id, pos: posA });
@@ -520,7 +522,7 @@ async function get_filtrado(filtro, tipo_filtro, objetivo) {
   }
 }
 
-function dibujarProductos(objetos) {
+function dibujarProductos() {
 
   let container = document.querySelector('#cuadro-principal');
 
@@ -543,17 +545,17 @@ function dibujarProductos(objetos) {
   }
   tabla.appendChild(tr);
 
-  for (let i = 0; i < objetos.length; i++) { //hay que ver este for
-    console.log(Object.keys(objetos[i])[0]);
-    switch (Object.keys(objetos[i])[0]) {
+  for (let i = 0; i < productosDib.length; i++) { //hay que ver este for
+    console.log(Object.keys(productosDib[i])[0]);
+    switch (Object.keys(productosDib[i])[0]) {
       case 'Prod':
-        agregarProd(tabla, objetos[i]);
+        agregarProd(tabla, productosDib[i],i);
         break;
       case 'Pes':
-        agregarPes(tabla, objetos[i]);
+        agregarPes(tabla, productosDib[i],i);
         break;
       case 'Rub':
-        agregarRub(tabla, objetos[i]);
+        agregarRub(tabla, productosDib[i],i);
         break;
 
     }
@@ -570,11 +572,11 @@ function dibujarProductos(objetos) {
     }
   }
 }
-function agregarRub(tabla, objeto) {
+function agregarRub(tabla, objeto,i) {
   let tr2 = document.createElement('tr')
   tr2.style.maxHeight = '1.5em';
   tr2.tabIndex = 2;
-  tr2.id = objeto.Rub[1].id;
+  tr2.id = i;
   let id = document.createElement('td');
   id.innerHTML = objeto.Rub[1].id;
   id.style.display = 'none'
@@ -596,7 +598,8 @@ function agregarRub(tabla, objeto) {
 
   });
   tr2.addEventListener('dblclick', () => {
-    agregarProdVentaAct(focuseado.id).then(venta => {
+    
+    agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
       dibujar_venta(venta);
       setFoco(buscador, document.getElementById('productos'));
     });
@@ -607,11 +610,11 @@ function agregarRub(tabla, objeto) {
   tr2.appendChild(id);
   tabla.appendChild(tr2);
 }
-function agregarPes(tabla, objeto) {
+function agregarPes(tabla, objeto,i) {
   let tr2 = document.createElement('tr')
   tr2.style.maxHeight = '1.5em';
   tr2.tabIndex = 2;
-  tr2.id = objeto.Pes[1].id;
+  tr2.id = i;
   let id = document.createElement('td');
   id.innerHTML = objeto.Pes[1].id;
   id.style.display = 'none'
@@ -633,7 +636,8 @@ function agregarPes(tabla, objeto) {
 
   });
   tr2.addEventListener('dblclick', () => {
-    agregarProdVentaAct(focuseado.id).then(venta => {
+    
+    agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
       dibujar_venta(venta);
       setFoco(buscador, document.getElementById('productos'));
     });
@@ -644,11 +648,11 @@ function agregarPes(tabla, objeto) {
   tr2.appendChild(id);
   tabla.appendChild(tr2);
 }
-function agregarProd(tabla, objeto) {
+function agregarProd(tabla, objeto,i) {
   let tr2 = document.createElement('tr')
   tr2.style.maxHeight = '1.5em';
   tr2.tabIndex = 2;
-  tr2.id = objeto.Prod[1].id;
+  tr2.id = i;
   let cantidad;
   let presentacion;
   switch (Object.keys(objeto.Prod[1].presentacion)[0]) {
@@ -698,7 +702,8 @@ function agregarProd(tabla, objeto) {
 
   });
   tr2.addEventListener('dblclick', () => {
-    agregarProdVentaAct(focuseado.id).then(venta => {
+    console.log(productosDib[focuseado.id]);
+    agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
       dibujar_venta(venta);
       setFoco(buscador, document.getElementById('productos'));
     });
@@ -883,8 +888,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
 async function buscarProducto(filtrado) {
   clearTimeout(timeoutId);
-  let objetos = await invoke("get_productos_filtrado", { filtro: filtrado });
-  dibujarProductos(objetos);
+  productosDib = await invoke("get_productos_filtrado", { filtro: filtrado });
+  console.log(productosDib);
+  dibujarProductos();
 
 }
 

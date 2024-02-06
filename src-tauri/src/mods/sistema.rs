@@ -626,29 +626,42 @@ impl<'a> Sistema {
             }
         }
     }
-    pub async fn agregar_producto_a_venta(&mut self, id: i64, pos: bool) -> Res<Venta> {
-        let res = self
-            .producto(id)
-            .await?
-            .redondear(&self.configs().politica());
-        if id < 0 {
-            println!("id =-1");
+    pub async fn agregar_producto_a_venta(&mut self, prod: V, pos: bool) -> Res<Venta> {
+        let existe = match &prod {
+            Valuable::Prod(a) => entity::producto::Entity::find_by_id(*a.1.id())
+                .one(self.read_db())
+                .await?
+                .is_some(),
+            Valuable::Pes(a) => entity::pesable::Entity::find_by_id(*a.1.id())
+                .one(self.read_db())
+                .await?
+                .is_some(),
+            Valuable::Rub(a) => entity::rubro::Entity::find_by_id(*a.1.id())
+                .one(self.read_db())
+                .await?
+                .is_some(),
+        };
+        let result;
+
+        if existe {
+            if pos {
+                result = Ok(self
+                    .ventas
+                    .0
+                    .agregar_producto(prod, &self.configs().politica()))
+            } else {
+                result = Ok(self
+                    .ventas
+                    .1
+                    .agregar_producto(prod, &self.configs().politica()))
+            }
+        } else {
             return Err(AppError::ProductNotFound(String::from(
                 "Producto inexistente",
             )));
         }
-        let result;
-        if pos {
-            result = Ok(self
-                .ventas
-                .0
-                .agregar_producto(res, &self.configs().politica()))
-        } else {
-            result = Ok(self
-                .ventas
-                .1
-                .agregar_producto(res, &self.configs().politica()))
-        }
+
+        
 
         result
     }

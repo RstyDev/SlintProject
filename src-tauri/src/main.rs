@@ -187,12 +187,16 @@ fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Resul
 }
 
 #[tauri::command]
-fn agregar_producto_a_venta(sistema: State<Mutex<Sistema>>, id: &str, pos: bool) -> Result<Venta> {
+fn agregar_producto_a_venta(
+    sistema: State<Mutex<Sistema>>,
+    prod: Valuable,
+    pos: bool,
+) -> Result<Venta> {
     let res;
     match sistema.lock() {
         Ok(mut a) => {
             res =
-                match async_runtime::block_on(a.agregar_producto_a_venta(id.parse().unwrap(), pos))
+                match async_runtime::block_on(a.agregar_producto_a_venta(prod, pos))
                 {
                     Ok(a) => Ok(a),
                     Err(e) => Err(e.to_string()),
