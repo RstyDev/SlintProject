@@ -195,12 +195,10 @@ fn agregar_producto_a_venta(
     let res;
     match sistema.lock() {
         Ok(mut a) => {
-            res =
-                match async_runtime::block_on(a.agregar_producto_a_venta(prod, pos))
-                {
-                    Ok(a) => Ok(a),
-                    Err(e) => Err(e.to_string()),
-                }
+            res = match async_runtime::block_on(a.agregar_producto_a_venta(prod, pos)) {
+                Ok(a) => Ok(a),
+                Err(e) => Err(e.to_string()),
+            }
         }
         Err(e) => res = Err(e.to_string()),
     };
@@ -233,15 +231,13 @@ fn incrementar_producto_a_venta(
 ) -> Result<Venta> {
     let res;
     match sistema.lock() {
-        Ok(mut a) => {
-            match a.incrementar_producto_a_venta(id.parse().unwrap(), pos) {
-                Ok(a) => {
-                    println!("{:?}", a);
-                    res = Ok(a)
-                }
-                Err(e) => res = Err(e.to_string()),
+        Ok(mut a) => match a.incrementar_producto_a_venta(id.parse().unwrap(), pos) {
+            Ok(a) => {
+                println!("{:?}", a);
+                res = Ok(a)
             }
-        }
+            Err(e) => res = Err(e.to_string()),
+        },
         Err(e) => res = Err(e.to_string()),
     };
     res
@@ -448,14 +444,85 @@ async fn open_add_product(handle: tauri::AppHandle) -> Result<()> {
         "add-product", /* the unique window label */
         tauri::WindowUrl::App("/pages/add-product.html".parse().unwrap()),
     )
-    .always_on_top(true)
+    .always_on_top(true).center()
     .resizable(false)
-    .inner_size(800.0, 380.0)
+    .inner_size(800.0, 400.0)
     .build()
     {
         Ok(_) => Ok(()),
         Err(e) => Err(e.to_string()),
     }
+}
+#[tauri::command]
+async fn open_add_pesable(handle: tauri::AppHandle) -> Result<()> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "add-pesable", /* the unique window label */
+        tauri::WindowUrl::App("/pages/add-pesable.html".parse().unwrap()),
+    )
+    .always_on_top(true).center()
+    .resizable(false)
+    .inner_size(800.0, 400.0)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
+async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "add-rubro", /* the unique window label */
+        tauri::WindowUrl::App("/pages/add-rubro.html".parse().unwrap()),
+    )
+    .always_on_top(true).center()
+    .resizable(false)
+    .inner_size(800.0, 400.0)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
+async fn open_add_select(handle: tauri::AppHandle) -> Result<()> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "add-select",
+        tauri::WindowUrl::App("/pages/add-select.html".parse().unwrap()),
+    )
+    .always_on_top(true).center()
+    .resizable(false)
+    .inner_size(330.0, 80.0)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
+async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &str) -> Result<()> {
+    let mut res;
+    match dato {
+        "Producto" => {
+            res = open_add_product(handle).await;
+        }
+        "Pesable" => {
+            res=open_add_pesable(handle).await;
+        }
+        "Rubro" => {
+            res=open_add_rubro(handle).await;
+        }
+        _ => return Err("Solo existen Producto, Pesable y Rubro".to_string()),
+    }
+    if res.is_ok(){
+        res=match window.close() {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+    res
 }
 #[tauri::command]
 async fn open_add_prov(handle: tauri::AppHandle) -> Result<()> {
@@ -464,7 +531,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Result<()> {
         "add-product", /* the unique window label */
         tauri::WindowUrl::App("/pages/add-prov.html".parse().unwrap()),
     )
-    .always_on_top(true)
+    .always_on_top(true).center()
     .resizable(false)
     .inner_size(800.0, 110.0)
     .build()
@@ -480,7 +547,7 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Result<()> {
         "confirm-stash", /* the unique window label */
         tauri::WindowUrl::App("/pages/want-to-stash.html".parse().unwrap()),
     )
-    .always_on_top(true)
+    .always_on_top(true).center()
     .resizable(false)
     .inner_size(400.0, 150.0)
     .build()
@@ -521,7 +588,7 @@ async fn open_edit_settings(handle: tauri::AppHandle) -> Result<()> {
         "add-product", /* the unique window label */
         tauri::WindowUrl::App("/pages/edit-settings.html".parse().unwrap()),
     )
-    .always_on_top(true)
+    .always_on_top(true).center()
     .resizable(false)
     .inner_size(750.0, 360.0)
     .build()
@@ -537,7 +604,7 @@ async fn open_stash(handle: tauri::AppHandle) -> Result<()> {
         "add-product", /* the unique window label */
         tauri::WindowUrl::App("/pages/stash.html".parse().unwrap()),
     )
-    .always_on_top(true)
+    .always_on_top(true).center()
     .resizable(false)
     .inner_size(900.0, 600.0)
     .build()
@@ -571,6 +638,8 @@ fn main() {
             set_configs,
             get_medios_pago,
             get_descripcion_valuable,
+            open_add_select,
+            select_window,
             open_add_product,
             open_add_prov,
             open_confirm_stash,

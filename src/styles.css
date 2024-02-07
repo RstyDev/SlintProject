@@ -543,11 +543,21 @@ label {
   width: 100%;
 }
 
-
-
 #agregar-producto-container {
   display: grid;
   grid-template-columns: 35% 65% ;
+  grid-template-rows: auto auto;
+  & #agregar-producto{
+    grid-column-start: 2;
+    grid-row: 1/span 2;
+  }
+  & #input-codigo{
+    margin-top: 20px;
+    grid-column-start: 1;
+  }
+  & #agregar-proveedor-producto{
+    grid-column-start: 1;
+  }
 
   & form {
     display: flex;

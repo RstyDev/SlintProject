@@ -78,8 +78,8 @@ async function get_configs() {
   return await invoke("get_configs");
 }
 
-async function open_add_product() {
-  return await invoke("open_add_product");
+async function open_add_select() {
+  return await invoke("open_add_select");
 }
 async function open_add_prov() {
   return await invoke("open_add_prov");
@@ -822,7 +822,7 @@ function menuButtonHandle() {
 
 function agrProdContHandle() {
   document.getElementById("agregar-producto-mostrar").onclick = function () {
-    open_add_product();
+    open_add_select();
     let barra = document.querySelector('#barra-de-opciones');
     barra.classList.remove('visible');
     barra.classList.remove('para-hamburguesa');
@@ -843,7 +843,7 @@ function cambiarConfHandle() {
 
 
 function mostrarContainerHandle(s2) {
-  open_add_product();
+  open_add_select();
   let barra = document.querySelector('#barra-de-opciones');
   barra.classList.remove('visible');
   barra.classList.remove('para-hamburguesa');
