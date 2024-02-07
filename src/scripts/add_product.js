@@ -4,20 +4,81 @@ let timeoutId;
 let proveedores_producto = [];
 let codigosProv = [];
 let codigosProd = [];
-
+let formSection=document.getElementById('form-section');
 
 window.addEventListener("DOMContentLoaded", () => {
-    agrProvSubmit();
+    dibujarProdForm();
+    
+
+
+});
+
+document.getElementById('clase').addEventListener('change',(e)=>{
+    console.log(e.target)
+})
+
+function dibujarProdForm(){
+    formSection.innerHTML=`<div id="agregar-producto-container" class="main-screen">
+    
+    <section id="input-codigo">
+    </section>
+    <section id="agregar-proveedor-producto">
+        <form >
+          
+          <section id="agr-codigo">
+            <select name="Proveedor" id="proveedor" required>
+              <option value="" selected disabled hidden>Seleccione una opción</option>
+            </select>
+            <input type="number" id="codigo_prov" placeholder="Codigo interno del proveedor">
+            
+            <button type="submit">Agregar</button>
+          </section>
+        </form>
+    </section>
+    <section>
+    <form id="agregar-producto-submit">
+        <input id="tipo_producto" list="opciones-tipo-producto" placeholder="Tipo de producto" required />
+        <datalist id="opciones-tipo-producto">
+        </datalist>
+
+        <input id="marca" list="opciones-marca" placeholder="Marca" required />
+        <datalist id="opciones-marca">
+        </datalist>
+
+      <input id="variedad" placeholder="Variedad" required />
+
+      <input type="number" id="cantidad" placeholder="Cantidad" required />
+        <select name="presentacion" id="presentacion" required>
+          <option value="" selected disabled hidden>Elige una opción</option>
+          <option value="Gr">Grs.</option>
+          <option value="Un">Un.</option>
+          <option value="Lt">Lt.</option>
+          <option value="Ml">Ml.</option>
+          <option value="CC">CC.</option>
+          <option value="Kg">Kg.</option>
+        </select>
+
+
+        <input type="number" id="precio_de_costo" placeholder="Precio de costo" required />
+
+
+        <input type="number" id="porcentaje" placeholder="Porcentaje" value='40' required />
+
+
+        <input type="number" id="precio_de_venta" placeholder="Precio de venta" required />
+
+        <button id="agregar-producto-button">Agregar producto</button>
+    </form>
+    </section>
+  </div>`;
+  agrProvSubmit();
     agrCodSubmit();
     agrTipoProd();
     salePriceHandle();
     percentageHandle();
     costPriceHandle();
     agrProdSubmit();
-
-
-});
-
+}
 
 
 
@@ -27,9 +88,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
 
-
-
-async function agregarProducto(tpProd, mark, variety, amount, pres, precio_de_venta, percent, precio_de_costo) {
+async function agregarProducto(tpProd, mark, variety, amount, pres, precio_de_venta, percent, precio_de_costo,esPesable) {
     console.log("agregando " + mark)
     console.log("Producto agregado: " + await invoke("agregar_producto", { proveedores: proveedores_producto, codigosProv: codigosProv, codigosDeBarras: codigosProd, precioDeVenta: precio_de_venta.value, porcentaje: percent.value, precioDeCosto: precio_de_costo.value, tipoProducto: tpProd.value, marca: mark.value, variedad: variety.value, cantidad: amount.value, presentacion: pres.value }));
     proveedores_producto = [];
@@ -97,9 +156,9 @@ function salePriceHandle() {
     });
 }
 function agrProdSubmit() {
-    console.log('boton apretado')
     let tpProd = document.querySelector('#tipo_producto');
     let mark = document.querySelector('#marca');
+    let esPesable=document.getElementById('es-pesable');
     let variety = document.querySelector('#variedad');
     let amount = document.querySelector('#cantidad');
     let pres = document.querySelector('#presentacion');
@@ -108,7 +167,7 @@ function agrProdSubmit() {
     let precio_de_costo = document.querySelector('#precio_de_costo');
     document.querySelector('#agregar-producto-button').addEventListener("click", (e) => {
         e.preventDefault();
-        agregarProducto(tpProd, mark, variety, amount, pres, precio_de_venta, percent, precio_de_costo);
+        agregarProducto(tpProd, mark, variety, amount, pres, precio_de_venta, percent, precio_de_costo,esPesable);
     })
 
 }
@@ -154,33 +213,34 @@ function agrCodSubmit() {
     })
 }
 function agrProvSubmit() {
-    document.querySelector("#agregar-proveedor-a-producto").addEventListener("submit", (e) => {
+    document.querySelector("#agregar-proveedor-producto").firstElementChild.addEventListener("submit", (e) => {
         e.preventDefault();
         console.log(e.target)
-        let res = document.querySelector('#proveedor').value;
-        let cod = document.querySelector('#codigo_prov').value;
-        if (!proveedores_producto.includes(res)) {
-            proveedores_producto.push(res);
-            codigosProv.push(cod);
-        }
-        let sect=document.createElement('section');
-        let inp=document.createElement('input');
-        inp.value=res;
-        let val=document.createElement('input');
-        val.value=cod;
-        inp.disabled='true';
-        val.type='double';
-        val.disabled='true';
-        let but=document.createElement('button');
-        but.innerText='Eliminar';
-        but.addEventListener('click',(a)=>{
-            a.preventDefault();
-            e.target.removeChild(sect);
-        })
-        sect.appendChild(inp);
-        sect.appendChild(val);
-        sect.appendChild(but);
-        e.target.insertBefore(sect,document.getElementById('agr-codigo'));
+        // console.log(e.target);
+        // let res = document.querySelector('#proveedor').value;
+        // let cod = document.querySelector('#codigo_prov').value;
+        // if (!proveedores_producto.includes(res)) {
+        //     proveedores_producto.push(res);
+        //     codigosProv.push(cod);
+        // }
+        // let sect=document.createElement('section');
+        // let inp=document.createElement('input');
+        // inp.value=res;
+        // let val=document.createElement('input');
+        // val.value=cod;
+        // inp.disabled='true';
+        // val.type='double';
+        // val.disabled='true';
+        // let but=document.createElement('button');
+        // but.innerText='Eliminar';
+        // but.addEventListener('click',(a)=>{
+        //     a.preventDefault();
+        //     e.target.removeChild(sect);
+        // })
+        // sect.appendChild(inp);
+        // sect.appendChild(val);
+        // sect.appendChild(but);
+        // e.target.insertBefore(sect,document.getElementById('agr-codigo'));
 
     });
 }

@@ -543,17 +543,11 @@ label {
   width: 100%;
 }
 
-#agregar-proveedor-container,
-#cambiar-configs-container {
-  flex-direction: column;
-  align-items: center;
 
-
-}
 
 #agregar-producto-container {
   display: grid;
-  grid-template-columns: 65% 35%;
+  grid-template-columns: 35% 65% ;
 
   & form {
     display: flex;
@@ -563,6 +557,9 @@ label {
     & section {
       display: inline-block;
     }
+  }
+  & #input-codigo{
+
   }
 }
 
