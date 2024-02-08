@@ -132,6 +132,7 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
+                    .col(ColumnDef::new(Rubro::Codigo).big_integer().not_null())
                     .col(ColumnDef::new(Rubro::Monto).double().not_null())
                     .col(ColumnDef::new(Rubro::Descripcion).string().not_null())
                     .col(ColumnDef::new(Rubro::UpdatedAt).date_time().not_null())
@@ -513,6 +514,7 @@ enum Pesable {
 enum Rubro {
     Table,
     Id,
+    Codigo,
     Monto,
     Descripcion,
     UpdatedAt,

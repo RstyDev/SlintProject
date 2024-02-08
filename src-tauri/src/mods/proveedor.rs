@@ -37,7 +37,7 @@ impl Save for Proveedor {
             id: Set(self.id),
             nombre: Set(self.nombre.to_string()),
             contacto: Set(self.contacto),
-            updated_at: Set(Utc::now().naive_local().to_string()),
+            updated_at: Set(Utc::now().naive_local()),
         };
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
         println!("conectado");

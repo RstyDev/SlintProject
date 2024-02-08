@@ -63,7 +63,7 @@ impl Save for Pesable {
             porcentaje: Set(self.porcentaje),
             costo_kilo: Set(self.costo_kilo),
             descripcion: Set(self.descripcion.to_string()),
-            updated_at: Set(Utc::now().naive_local().to_string()),
+            updated_at: Set(Utc::now().naive_local()),
         };
         model.insert(&db).await?;
         Ok(())

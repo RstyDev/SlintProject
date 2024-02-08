@@ -9,6 +9,7 @@ use sea_orm::Condition;
 use sea_orm::DatabaseConnection;
 use sea_orm::DbErr;
 
+use sea_orm::IntoActiveModel;
 use sea_orm::PaginatorTrait;
 use sea_orm::QueryFilter;
 use sea_orm::QueryOrder;
@@ -97,7 +98,6 @@ impl<'a> Sistema {
         let read_db = Arc::from(async_runtime::block_on(get_db(
             "sqlite://db.sqlite?mode=ro",
         ))?);
-
         let aux = Arc::clone(&write_db);
         let aux2 = Arc::clone(&write_db);
         let vendedor = async_runtime::spawn(Vendedor::get_or_def(aux2));
@@ -170,6 +170,7 @@ impl<'a> Sistema {
         let vendedor = Arc::from(async_runtime::block_on(vendedor)??);
         let caja = async_runtime::block_on(caja)??;
         let w1 = Arc::clone(&write_db);
+
         let sis = Sistema {
             write_db,
             read_db,
@@ -476,7 +477,7 @@ impl<'a> Sistema {
             marca: Set(marca.to_owned()),
             variedad: Set(variedad.to_owned()),
             presentacion: Set(presentacion.to_string()),
-            updated_at: Set(Utc::now().naive_local().to_string()),
+            updated_at: Set(Utc::now().naive_local()),
             ..Default::default()
         };
         let res_prod = entity::producto::Entity::insert(prod_model)
@@ -661,8 +662,6 @@ impl<'a> Sistema {
             )));
         }
 
-        
-
         result
     }
     pub fn descontar_producto_de_venta(&mut self, id: i64, pos: bool) -> Result<Venta, AppError> {
@@ -680,20 +679,18 @@ impl<'a> Sistema {
     pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: bool) -> Result<Venta, AppError> {
         let res = async_runtime::block_on(self.producto(id))?;
         let result;
-        if pos{
-                result = self.ventas.0.incrementar_producto(
-                    res,
-                    &self.configs().politica(),
-                    &self.configs,
-                );
-            }else {
-                result = self.ventas.1.incrementar_producto(
-                    res,
-                    &self.configs().politica(),
-                    &self.configs,
-                );
-            }
-          
+        if pos {
+            result =
+                self.ventas
+                    .0
+                    .incrementar_producto(res, &self.configs().politica(), &self.configs);
+        } else {
+            result =
+                self.ventas
+                    .1
+                    .incrementar_producto(res, &self.configs().politica(), &self.configs);
+        }
+
         result
     }
     pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: bool) -> Result<Venta, AppError> {

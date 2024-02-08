@@ -54,7 +54,7 @@ impl<'a> Venta {
             id: Set(venta.id),
             monto_total: Set(venta.monto_total),
             monto_pagado: Set(venta.monto_pagado),
-            time: Set(Utc::now().naive_local().to_string()),
+            time: Set(Utc::now().naive_local()),
         }
         .insert(db)
         .await?;
@@ -214,7 +214,7 @@ impl Save for Venta {
             .into_active_model();
         venta.monto_total = Set(self.monto_total);
         venta.monto_pagado = Set(self.monto_pagado);
-        venta.time = Set(Utc::now().naive_local().to_string());
+        venta.time = Set(Utc::now().naive_local());
 
         venta.update(&db).await?;
 

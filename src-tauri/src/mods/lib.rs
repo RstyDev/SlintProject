@@ -135,7 +135,7 @@ pub async fn map_model_prod(
     ))
 }
 pub fn map_model_rub(rub: &entity::rubro::Model) -> Rubro {
-    Rubro::new(rub.id, rub.monto, rub.descripcion.as_str())
+    Rubro::new(rub.id, rub.codigo, rub.monto, rub.descripcion.as_str())
 }
 
 pub fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
@@ -171,7 +171,7 @@ pub async fn cargar_todos_los_productos(
                 model.precio_de_venta = Set(*producto.precio_de_venta());
                 model.presentacion = Set(producto.presentacion().to_string());
                 model.tipo_producto = Set(producto.tipo_producto().to_string());
-                model.updated_at = Set(Utc::now().naive_local().to_string());
+                model.updated_at = Set(Utc::now().naive_local());
                 model.variedad = Set(producto.variedad().to_string());
                 model.update(db).await?;
             }
@@ -184,7 +184,7 @@ pub async fn cargar_todos_los_productos(
                     marca: Set(producto.marca().to_string()),
                     variedad: Set(producto.variedad().to_string()),
                     presentacion: Set(producto.presentacion().to_string()),
-                    updated_at: Set(Utc::now().naive_local().to_string()),
+                    updated_at: Set(Utc::now().naive_local()),
                     ..Default::default()
                 };
 
@@ -236,7 +236,7 @@ pub async fn cargar_todos_los_pesables(
                     porcentaje: Set(*a.1.porcentaje()),
                     costo_kilo: Set(*a.1.costo_kilo()),
                     descripcion: Set(a.1.descripcion().to_string()),
-                    updated_at: Set(Utc::now().naive_local().to_string()),
+                    updated_at: Set(Utc::now().naive_local()),
                     id: Set(*a.1.id()),
                 };
                 if entity::pesable::Entity::find_by_id(*a.1.id())
@@ -265,7 +265,8 @@ pub async fn cargar_todos_los_rubros(
                     id: Set(*a.1.id()),
                     monto: Set(*a.1.monto()),
                     descripcion: Set(a.1.descripcion().to_string()),
-                    updated_at: Set(Utc::now().naive_local().to_string()),
+                    updated_at: Set(Utc::now().naive_local()),
+                    codigo: Set(*a.1.codigo()),
                 };
                 if entity::rubro::Entity::find_by_id(*a.1.id())
                     .one(db)
@@ -305,7 +306,7 @@ pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>) -> Result<(), D
     for prov in proveedores {
         let model = entity::proveedor::ActiveModel {
             id: Set(*prov.id()),
-            updated_at: Set(Utc::now().naive_local().to_string()),
+            updated_at: Set(Utc::now().naive_local()),
             nombre: Set(prov.nombre().to_string()),
             contacto: Set(prov.contacto().clone()),
         };
