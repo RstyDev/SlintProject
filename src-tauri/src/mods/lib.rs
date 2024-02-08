@@ -8,6 +8,7 @@ use sea_orm::{
 use serde::{de::DeserializeOwned, Serialize};
 use std::fs::File;
 use std::io::{Read, Write};
+use std::sync::Arc;
 use Valuable as V;
 
 type Res<T> = std::result::Result<T, AppError>;
@@ -135,7 +136,7 @@ pub async fn map_model_prod(
     ))
 }
 pub fn map_model_rub(rub: &entity::rubro::Model) -> Rubro {
-    Rubro::new(rub.id, rub.codigo, rub.monto, rub.descripcion.as_str())
+    Rubro::new(rub.id, rub.codigo, rub.monto, Arc::from(rub.descripcion.as_str()))
 }
 
 pub fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
@@ -263,7 +264,7 @@ pub async fn cargar_todos_los_rubros(
             V::Rub(a) => {
                 let model = entity::rubro::ActiveModel {
                     id: Set(*a.1.id()),
-                    monto: Set(*a.1.monto()),
+                    monto: Set(a.1.monto().copied()),
                     descripcion: Set(a.1.descripcion().to_string()),
                     updated_at: Set(Utc::now().naive_local()),
                     codigo: Set(*a.1.codigo()),

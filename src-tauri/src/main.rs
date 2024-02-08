@@ -117,14 +117,20 @@ fn agregar_pesable<'a>(
 fn agregar_rubro(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-    codigo:i64,
-    id: i64,
-    monto: f64,
+    codigo: i64,
     descripcion: &str,
 ) -> Result<String> {
     match sistema.lock() {
         Ok(mut sis) => {
-            let rubro = Rubro::new(id,codigo, monto, descripcion);
+            let rubro = match async_runtime::block_on(Rubro::new_to_db(
+                codigo,
+                None,
+                descripcion,
+                sis.read_db(),
+            )) {
+                Ok(a) => a,
+                Err(e) => return Err(e.to_string()),
+            };
             if let Err(e) = sis.agregar_rubro(rubro.clone()) {
                 return Err(e.to_string());
             }
@@ -349,6 +355,7 @@ fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config> {
 
     res
 }
+
 #[tauri::command]
 fn set_configs(
     window: tauri::Window,
@@ -356,9 +363,13 @@ fn set_configs(
     configs: Config,
 ) -> Result<()> {
     let mut res = Ok(());
+    let db = match sistema.lock() {
+        Ok(a) => a.write_db().clone(),
+        Err(e) => return Err(e.to_string()),
+    };
     match sistema.lock() {
         Ok(mut sis) => {
-            sis.set_configs(configs);
+            sis.set_configs(configs, &db);
             if let Err(e) = window.close() {
                 return Err(e.to_string());
             }
@@ -465,7 +476,7 @@ async fn open_add_pesable(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(350.0, 200.0)
+    .inner_size(350.0, 260.0)
     .build()
     {
         Ok(_) => Ok(()),
@@ -482,7 +493,7 @@ async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(350.0, 160.0)
+    .inner_size(350.0, 180.0)
     .build()
     {
         Ok(_) => Ok(()),
@@ -660,7 +671,7 @@ fn main() {
             stash_n_close,
             unstash_sale,
             get_stash,
-            open_stash
+            open_stash,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

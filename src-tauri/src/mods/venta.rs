@@ -110,7 +110,7 @@ impl<'a> Venta {
             match &i {
                 V::Pes(a) => self.monto_total += redondeo(politica, a.0 as f64 * a.1.precio_peso()),
                 V::Prod(a) => self.monto_total += a.1.precio_de_venta() * a.0 as f64,
-                V::Rub(a) => self.monto_total += a.1.monto() * a.0 as f64,
+                V::Rub(a) => self.monto_total += a.1.monto().unwrap() * a.0 as f64,
             }
         }
     }

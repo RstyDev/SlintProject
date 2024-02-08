@@ -2,7 +2,8 @@ type Res<T> = std::result::Result<T, AppError>;
 use chrono::Utc;
 use entity::codigo_barras;
 use entity::*;
-
+use migration::Migrator;
+use migration::MigratorTrait;
 use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
 use sea_orm::Condition;
@@ -56,9 +57,6 @@ pub struct Sistema {
     configs: Config,
     ventas: (Venta, Venta),
     proveedores: Vec<Proveedor>,
-    path_proveedores: String,
-    path_relaciones: String,
-    path_configs: String,
     relaciones: Vec<RelacionProdProv>,
     stash: Vec<Venta>,
     registro: Vec<Venta>,
@@ -98,24 +96,94 @@ impl<'a> Sistema {
         let read_db = Arc::from(async_runtime::block_on(get_db(
             "sqlite://db.sqlite?mode=ro",
         ))?);
+
+        async_runtime::block_on(async {
+            if let Err(_) = entity::caja::Entity::find().one(read_db.as_ref()).await {
+                Migrator::fresh(write_db.as_ref()).await
+            } else {
+                println!("Dio ok");
+                Ok(())
+            }
+        })
+        .unwrap();
+        let path_proveedores = "Proveedores.json";
+        let path_relaciones = "Relaciones.json";
+        let mut relaciones = Vec::new();
+        leer_file(&mut relaciones, path_relaciones)?;
+        let mut proveedores: Vec<Proveedor> = Vec::new();
+        leer_file(&mut proveedores, path_proveedores)?;
+
         let aux = Arc::clone(&write_db);
         let aux2 = Arc::clone(&write_db);
         let vendedor = async_runtime::spawn(Vendedor::get_or_def(aux2));
         let caja = async_runtime::spawn(Caja::new(aux, Some(0.0)));
+
+        let stash = Vec::new();
+        let registro = Vec::new();
+
+        println!(
+            "Acá la cantidad de producto actual {}",
+            async_runtime::block_on(get_cantidad_productos()).unwrap()
+        );
+
+        let vendedor = Arc::from(async_runtime::block_on(vendedor)??);
+        let caja = async_runtime::block_on(caja)??;
+        let w1 = Arc::clone(&write_db);
+        let db = Arc::clone(&read_db);
+        let sis = Sistema {
+            write_db,
+            read_db,
+            caja,
+            vendedor: Arc::clone(&vendedor),
+            configs: async_runtime::block_on(Config::get_or_def(db.as_ref()))?,
+            ventas: (
+                async_runtime::block_on(Venta::new(Arc::clone(&vendedor), w1.as_ref()))?,
+                async_runtime::block_on(Venta::new(vendedor, w1.as_ref()))?,
+            ),
+            proveedores: proveedores.clone(),
+            relaciones,
+            stash,
+            registro,
+        };
+        sis.procesar()?;
+        Ok(sis)
+    }
+    fn procesar(&self) -> Res<()> {
         let path_productos = "Productos.json";
-        let path_proveedores = "Proveedores.json";
-        let path_relaciones = "Relaciones.json";
+        println!("procesando");
         let path_configs = "Configs.json";
         let path_pesables = "Pesables.json";
+        let mut configs = Vec::<Config>::new();
+        leer_file(&mut configs, path_configs)?;
+        if configs.len() == 0 {
+            configs.push(Config::default());
+            crear_file(path_configs, &mut configs)?;
+        }
         let mut productos: Vec<Producto> = Vec::new();
         let mut rubros: Vec<Rubro> = Vec::new();
         let path_rubros = "Rubros.json";
         let mut pesables: Vec<Pesable> = Vec::new();
-        let mut proveedores: Vec<Proveedor> = Vec::new();
-        let stash = Vec::new();
-        let registro = Vec::new();
-        let write_db2 = Arc::clone(&write_db);
-        let read_db2 = Arc::clone(&read_db);
+
+        leer_file(&mut rubros, path_rubros)?;
+        leer_file(&mut pesables, path_pesables)?;
+        leer_file(&mut productos, path_productos)?;
+        // check_codes(&mut productos);
+
+        let mut rubros_valuable: Vec<Valuable> =
+            rubros.iter().map(|a| V::Rub((0, a.to_owned()))).collect();
+        let mut pesables_valuable: Vec<Valuable> = pesables
+            .iter()
+            .map(|a| V::Pes((0.0, a.to_owned())))
+            .collect();
+        let mut valuables: Vec<Valuable> = productos
+            .clone()
+            .iter()
+            .map(|a| V::Prod((0, a.to_owned())))
+            .collect();
+        valuables.append(&mut pesables_valuable);
+        valuables.append(&mut rubros_valuable);
+        let write_db2 = Arc::clone(&self.write_db);
+        let read_db2 = Arc::clone(&self.read_db);
         let medios_handle: JoinHandle<Result<(), AppError>> = async_runtime::spawn(async move {
             let medios = vec!["Efectivo", "Crédito", "Débito"];
             for medio in medios {
@@ -134,91 +202,21 @@ impl<'a> Sistema {
             }
             return Ok(());
         });
-
-        println!(
-            "Acá la cantidad de producto actual {}",
-            async_runtime::block_on(get_cantidad_productos()).unwrap()
-        );
-        leer_file(&mut rubros, path_rubros)?;
-        leer_file(&mut pesables, path_pesables)?;
-        leer_file(&mut productos, path_productos)?;
-        leer_file(&mut proveedores, path_proveedores)?;
-        // check_codes(&mut productos);
-
-        let mut rubros_valuable: Vec<Valuable> =
-            rubros.iter().map(|a| V::Rub((0, a.to_owned()))).collect();
-        let mut pesables_valuable: Vec<Valuable> = pesables
-            .iter()
-            .map(|a| V::Pes((0.0, a.to_owned())))
-            .collect();
-        let mut valuables: Vec<Valuable> = productos
-            .clone()
-            .iter()
-            .map(|a| V::Prod((0, a.to_owned())))
-            .collect();
-        valuables.append(&mut pesables_valuable);
-        valuables.append(&mut rubros_valuable);
-
-        let mut relaciones = Vec::new();
-        leer_file(&mut relaciones, path_relaciones)?;
-        let mut configs = Vec::<Config>::new();
-        leer_file(&mut configs, path_configs)?;
-        if configs.len() == 0 {
-            configs.push(Config::default());
-            crear_file(path_configs, &mut configs)?;
-        }
-        let vendedor = Arc::from(async_runtime::block_on(vendedor)??);
-        let caja = async_runtime::block_on(caja)??;
-        let w1 = Arc::clone(&write_db);
-
-        let sis = Sistema {
-            write_db,
-            read_db,
-            caja,
-            vendedor: Arc::clone(&vendedor),
-            configs: configs[0].clone(),
-            ventas: (
-                async_runtime::block_on(Venta::new(Arc::clone(&vendedor), w1.as_ref()))?,
-                async_runtime::block_on(Venta::new(vendedor, w1.as_ref()))?,
-            ),
-            proveedores: proveedores.clone(),
-            path_proveedores: path_proveedores.to_string(),
-            path_relaciones: path_relaciones.to_string(),
-            path_configs: path_configs.to_string(),
-            relaciones,
-            stash,
-            registro,
-        };
-
-        // for i in 0..sis.productos.len() {
-        //     sis.productos[i].unifica_codes()
-        // }
-
-        if async_runtime::block_on(entity::producto::Entity::find().count(sis.read_db()))? == 0 {
+        if async_runtime::block_on(entity::producto::Entity::find().count(self.read_db()))? == 0 {
             let prod_load_handle = async_runtime::spawn(cargar_todos_los_valuables(valuables));
             let prov_load_handle =
-                async_runtime::spawn(cargar_todos_los_provs(sis.proveedores.clone()));
+                async_runtime::spawn(cargar_todos_los_provs(self.proveedores.clone()));
 
             async_runtime::block_on(prod_load_handle)??;
             async_runtime::block_on(prov_load_handle)??;
             async_runtime::block_on(cargar_todas_las_relaciones_prod_prov(
-                sis.relaciones.clone(),
+                self.relaciones.clone(),
             ))?;
             async_runtime::block_on(medios_handle)??;
         }
-        Ok(sis)
+        Ok(())
     }
-    // pub async fn productos(&self) -> Res<Vec<Valuable>> {
-    //     let prods = match entity::producto::Entity::find().all(self.read_db()).await {
-    //         Ok(a) => a,
-    //         Err(e) => return Err(AppError::DbError(e)),
-    //     };
-    //     let mut res = vec![];
-    //     for prod in prods {
-    //         res.push(V::Prod((0, map_model_prod(&prod, self.read_db()).await?)));
-    //     }
-    //     Ok(res)
-    // }
+
     pub async fn val_filtrado(&self, filtro: &str) -> Result<Vec<Valuable>, AppError> {
         let mut res: Vec<Valuable>;
         res = self
@@ -374,6 +372,7 @@ impl<'a> Sistema {
     pub fn configs(&self) -> &Config {
         &self.configs
     }
+
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64, pos: bool) -> Res<f64> {
         let res;
         if pos {
@@ -419,11 +418,21 @@ impl<'a> Sistema {
 
         Ok(res)
     }
-    pub fn set_configs(&mut self, configs: Config) {
+    pub fn set_configs(&mut self, configs: Config, db: &DatabaseConnection) {
         self.configs = configs;
-        if let Err(e) = crear_file(&self.path_configs, &vec![&self.configs]) {
-            panic!("{e}");
-        }
+        async_runtime::block_on(async {
+            let mut res = entity::config::Entity::find()
+                .one(db)
+                .await
+                .unwrap()
+                .unwrap()
+                .into_active_model();
+            res.cantidad_productos = Set(*self.configs().cantidad_productos());
+            res.formato_producto = Set(self.configs().formato().to_string());
+            res.modo_mayus = Set(self.configs().modo_mayus().to_string());
+            res.politica_redondeo = Set(self.configs().politica());
+            res.update(db).await.unwrap();
+        });
     }
 
     fn proveedor_esta(&self, proveedor: &str) -> bool {
@@ -544,7 +553,6 @@ impl<'a> Sistema {
                 }
             };
         }
-        crear_file(&self.path_relaciones, &self.relaciones)?;
 
         result
     }
@@ -604,7 +612,6 @@ impl<'a> Sistema {
             }
             handle = async_runtime::spawn(save(prov.clone()));
             self.proveedores.push(prov);
-            crear_file(&self.path_proveedores, &self.proveedores)?;
         }
         Ok(async_runtime::block_on(handle)??)
     }

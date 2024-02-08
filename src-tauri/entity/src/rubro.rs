@@ -8,8 +8,8 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
     pub codigo: i64,
-    #[sea_orm(column_type = "Double")]
-    pub monto: f64,
+    #[sea_orm(column_type = "Double", nullable)]
+    pub monto: Option<f64>,
     pub descripcion: String,
     pub updated_at: NaiveDateTime,
 }

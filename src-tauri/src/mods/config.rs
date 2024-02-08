@@ -1,4 +1,9 @@
+
+use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
+
+use super::error::AppError;
+type Res<T> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -10,6 +15,35 @@ pub struct Config {
 }
 
 impl Config {
+    pub async fn get_or_def(db: &DatabaseConnection) -> Res<Config> {
+        match entity::config::Entity::find().one(db).await? {
+            Some(a) => {
+                let medios = entity::medio_pago::Entity::find()
+                    .all(db)
+                    .await?
+                    .iter()
+                    .map(|x| x.medio.clone())
+                    .collect::<Vec<String>>();
+                Ok(Config {
+                    politica_redondeo: a.politica_redondeo,
+                    formato_producto: match a.formato_producto.as_str() {
+                        "Mtv" => Formato::Mtv,
+                        "Tmv" => Formato::Tmv,
+                        _ => panic!("no existe mas que mtv y tmv"),
+                    },
+                    modo_mayus: match a.modo_mayus.as_str() {
+                        "Upper" => Mayusculas::Upper,
+                        "Lower" => Mayusculas::Lower,
+                        "Camel" => Mayusculas::Camel,
+                        _ => panic!("no existe mas que lower, camel y upper"),
+                    },
+                    cantidad_productos: a.cantidad_productos,
+                    medios_pago: medios,
+                })
+            }
+            None => Ok(Config::default()),
+        }
+    }
     pub fn cantidad_productos(&self) -> &u8 {
         &self.cantidad_productos
     }
@@ -22,9 +56,9 @@ impl Config {
     pub fn formato(&self) -> &Formato {
         &self.formato_producto
     }
-    // pub fn modo_mayus(&self) -> Mayusculas {
-    //     self.modo_mayus.clone()
-    // }
+    pub fn modo_mayus(&self) -> Mayusculas {
+        self.modo_mayus.clone()
+    }
 }
 impl Default for Config {
     fn default() -> Self {
@@ -48,10 +82,28 @@ pub enum Formato {
     Tmv,
     Mtv,
 }
+impl ToString for Formato {
+    fn to_string(&self) -> String {
+        match self {
+            Formato::Tmv => String::from("Tmv"),
+            Formato::Mtv => String::from("Mtv"),
+        }
+    }
+}
+
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub enum Mayusculas {
     #[default]
     Upper,
     Lower,
     Camel,
+}
+impl ToString for Mayusculas {
+    fn to_string(&self) -> String {
+        match self {
+            Mayusculas::Upper => String::from("Upper"),
+            Mayusculas::Lower => String::from("Lower"),
+            Mayusculas::Camel => String::from("Camel"),
+        }
+    }
 }
