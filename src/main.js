@@ -25,7 +25,7 @@ get_configs().then(conf => {
   configs = conf;
 });
 
-
+procesar();
 
 
 function navigate(e) {
@@ -59,6 +59,10 @@ function navigate(e) {
       }
     }
   }
+}
+
+async function procesar(){
+  return await invoke("procesar");
 }
 async function open_confirm_stash(act){
   return await invoke("open_confirm_stash", {"act":act});
