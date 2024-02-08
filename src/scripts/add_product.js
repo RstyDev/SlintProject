@@ -53,7 +53,6 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 function handle_codigos(e, input) {
     codigosProd.push(input.children[input.children.length - 2].value);
-    console.log(codigosProd);
     while (input.parentElement.children.length > 9) {
         input.parentElement.removeChild(input.parentElement.children[0])
     }

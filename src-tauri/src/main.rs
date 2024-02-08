@@ -438,7 +438,6 @@ fn get_stash(sistema: State<Mutex<Sistema>>) -> Result<Vec<Venta>> {
     }
 }
 
-#[tauri::command]
 async fn open_add_product(handle: tauri::AppHandle) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
@@ -456,7 +455,6 @@ async fn open_add_product(handle: tauri::AppHandle) -> Result<()> {
         Err(e) => Err(e.to_string()),
     }
 }
-#[tauri::command]
 async fn open_add_pesable(handle: tauri::AppHandle) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
@@ -467,14 +465,13 @@ async fn open_add_pesable(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(800.0, 400.0)
+    .inner_size(350.0, 200.0)
     .build()
     {
         Ok(_) => Ok(()),
         Err(e) => Err(e.to_string()),
     }
 }
-#[tauri::command]
 async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
@@ -485,7 +482,7 @@ async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(800.0, 400.0)
+    .inner_size(350.0, 160.0)
     .build()
     {
         Ok(_) => Ok(()),
@@ -657,7 +654,6 @@ fn main() {
             get_descripcion_valuable,
             open_add_select,
             select_window,
-            open_add_product,
             open_add_prov,
             open_confirm_stash,
             open_edit_settings,

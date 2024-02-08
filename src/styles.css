@@ -542,7 +542,10 @@ label {
   text-align: center;
   width: 100%;
 }
-
+.add-form{
+  display: flex;
+  flex-direction: column;
+}
 #agregar-producto-container {
   display: grid;
   grid-template-columns: 35% 65% ;
