@@ -1,9 +1,7 @@
 use chrono::Utc;
 type Res<T> = std::result::Result<T, AppError>;
 use entity::rubro;
-use sea_orm::{
-    ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait,  Set,
-};
+use sea_orm::{ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -81,17 +79,14 @@ impl Save for Rubro {
 }
 impl ValuableTrait for Rubro {
     fn redondear(&self, politica: &f64) -> Rubro {
-        match &self.monto{
-            Some(a) => {
-                Rubro {
-                    id: self.id,
-                    codigo: self.codigo,
-                    monto: Some(redondeo(politica, *a)),
-                    descripcion: self.descripcion.clone(),
-                }        
-            }
+        match &self.monto {
+            Some(a) => Rubro {
+                id: self.id,
+                codigo: self.codigo,
+                monto: Some(redondeo(politica, *a)),
+                descripcion: self.descripcion.clone(),
+            },
             None => self.clone(),
         }
-        
     }
 }

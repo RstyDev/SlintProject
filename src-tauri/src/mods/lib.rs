@@ -136,7 +136,12 @@ pub async fn map_model_prod(
     ))
 }
 pub fn map_model_rub(rub: &entity::rubro::Model) -> Rubro {
-    Rubro::new(rub.id, rub.codigo, rub.monto, Arc::from(rub.descripcion.as_str()))
+    Rubro::new(
+        rub.id,
+        rub.codigo,
+        rub.monto,
+        Arc::from(rub.descripcion.as_str()),
+    )
 }
 
 pub fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {

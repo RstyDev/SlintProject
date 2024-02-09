@@ -145,10 +145,20 @@ impl<'a> Sistema {
             stash,
             registro,
         };
-        Sistema::procesar(Arc::clone(&sis.write_db), Arc::clone(&sis.read_db), sis.proveedores.clone(), sis.relaciones.clone())?;
+        Sistema::procesar(
+            Arc::clone(&sis.write_db),
+            Arc::clone(&sis.read_db),
+            sis.proveedores.clone(),
+            sis.relaciones.clone(),
+        )?;
         Ok(sis)
     }
-    fn procesar(write_db:Arc<DatabaseConnection>,read_db:Arc<DatabaseConnection>,proveedores:Vec<Proveedor>,relaciones:Vec<RelacionProdProv>) -> Res<()> {
+    fn procesar(
+        write_db: Arc<DatabaseConnection>,
+        read_db: Arc<DatabaseConnection>,
+        proveedores: Vec<Proveedor>,
+        relaciones: Vec<RelacionProdProv>,
+    ) -> Res<()> {
         let path_productos = "Productos.json";
         println!("procesando");
         let path_configs = "Configs.json";
@@ -184,7 +194,7 @@ impl<'a> Sistema {
         valuables.append(&mut rubros_valuable);
         let write_db2 = Arc::clone(&write_db);
         let read_db2 = Arc::clone(&read_db);
-        let medios_handle: JoinHandle<Result<(), AppError>> = async_runtime::spawn(async move {
+        let _: JoinHandle<Result<(), AppError>> = async_runtime::spawn(async move {
             let medios = vec!["Efectivo", "Crédito", "Débito"];
             for medio in medios {
                 if entity::medio_pago::Entity::find()
@@ -203,13 +213,9 @@ impl<'a> Sistema {
             return Ok(());
         });
         if async_runtime::block_on(entity::producto::Entity::find().count(read_db.as_ref()))? == 0 {
-            let prod_load_handle = async_runtime::spawn(cargar_todos_los_valuables(valuables));
-            let prov_load_handle =
-                async_runtime::spawn(cargar_todos_los_provs(proveedores));
-
-            async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(
-                relaciones,
-            ))?;
+            async_runtime::spawn(cargar_todos_los_valuables(valuables));
+            async_runtime::spawn(cargar_todos_los_provs(proveedores));
+            async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(relaciones));
         }
         Ok(())
     }
