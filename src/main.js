@@ -5,7 +5,7 @@ const { emit, listen } = window.__TAURI__.event;
 
 
 const mensaje1 = document.querySelector('#mensaje1-msg');
-let posA=true;
+let posA = true;
 let posicionVenta = 0;
 let focuseado;
 let timeoutId;
@@ -14,18 +14,17 @@ let codigosProd = [];
 let configs;
 let idUlt;
 let buscador;
-let beep=new Audio('assets/beep.mp3');
-let error=new Audio('assets/error.mp3');
-let productosDib=[];
-let productosVentaAct=[];
-beep.volume=1;
-error.volume=0.2;
+let beep = new Audio('assets/beep.mp3');
+let error = new Audio('assets/error.mp3');
+let productosDib = [];
+let productosVentaAct = [];
+beep.volume = 1;
+error.volume = 0.2;
 
 get_configs().then(conf => {
   configs = conf;
 });
 
-procesar();
 
 
 function navigate(e) {
@@ -45,12 +44,10 @@ function navigate(e) {
           e.preventDefault();
           buscador.value = '';
           dibujar_venta(venta)
-          
+
           beep.play();
-          console.log("aca suena beep")
         });
       } else {
-        console.log("aca suena chicharra")
         error.play();
         borrarBusqueda();
         buscador.classList.add("error");
@@ -61,13 +58,11 @@ function navigate(e) {
   }
 }
 
-async function procesar(){
-  return await invoke("procesar");
+
+async function open_confirm_stash(act) {
+  return await invoke("open_confirm_stash", { "act": act });
 }
-async function open_confirm_stash(act){
-  return await invoke("open_confirm_stash", {"act":act});
-}
-async function open_stash(act){
+async function open_stash(act) {
   return await invoke("open_stash");
 }
 
@@ -146,13 +141,13 @@ async function get_descripcion_valuable(prod, conf) {
 
 function dibujar_venta(venta) {
   let cuadro = document.querySelector('#cuadro-principal');
-  productosVentaAct=venta.productos;
-  buscador.value='';
+  productosVentaAct = venta.productos;
+  buscador.value = '';
   cuadro.replaceChildren([]);
 
 
 
-  
+
   cuadro.innerHTML = `
   <section class="ayb">
   <a id="v-a" class="a-boton"> Venta A </a>
@@ -481,7 +476,7 @@ async function get_venta_actual() {
   return res;
 }
 async function incrementarProdVentaAct(id) {
-  return await invoke("incrementar_producto_a_venta", { id: "" + id, pos:  posA });
+  return await invoke("incrementar_producto_a_venta", { id: "" + id, pos: posA });
 }
 async function agregarProdVentaAct(prod) {
   return await invoke("agregar_producto_a_venta", { prod: prod, pos: posA });
@@ -553,13 +548,13 @@ function dibujarProductos() {
     console.log(Object.keys(productosDib[i])[0]);
     switch (Object.keys(productosDib[i])[0]) {
       case 'Prod':
-        agregarProd(tabla, productosDib[i],i);
+        agregarProd(tabla, productosDib[i], i);
         break;
       case 'Pes':
-        agregarPes(tabla, productosDib[i],i);
+        agregarPes(tabla, productosDib[i], i);
         break;
       case 'Rub':
-        agregarRub(tabla, productosDib[i],i);
+        agregarRub(tabla, productosDib[i], i);
         break;
 
     }
@@ -576,7 +571,7 @@ function dibujarProductos() {
     }
   }
 }
-function agregarRub(tabla, objeto,i) {
+function agregarRub(tabla, objeto, i) {
   let tr2 = document.createElement('tr')
   tr2.style.maxHeight = '1.5em';
   tr2.tabIndex = 2;
@@ -602,7 +597,7 @@ function agregarRub(tabla, objeto,i) {
 
   });
   tr2.addEventListener('dblclick', () => {
-    
+
     agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
       dibujar_venta(venta);
       setFoco(buscador, document.getElementById('productos'));
@@ -614,7 +609,7 @@ function agregarRub(tabla, objeto,i) {
   tr2.appendChild(id);
   tabla.appendChild(tr2);
 }
-function agregarPes(tabla, objeto,i) {
+function agregarPes(tabla, objeto, i) {
   let tr2 = document.createElement('tr')
   tr2.style.maxHeight = '1.5em';
   tr2.tabIndex = 2;
@@ -640,7 +635,7 @@ function agregarPes(tabla, objeto,i) {
 
   });
   tr2.addEventListener('dblclick', () => {
-    
+
     agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
       dibujar_venta(venta);
       setFoco(buscador, document.getElementById('productos'));
@@ -652,7 +647,7 @@ function agregarPes(tabla, objeto,i) {
   tr2.appendChild(id);
   tabla.appendChild(tr2);
 }
-function agregarProd(tabla, objeto,i) {
+function agregarProd(tabla, objeto, i) {
   let tr2 = document.createElement('tr')
   tr2.style.maxHeight = '1.5em';
   tr2.tabIndex = 2;
@@ -733,7 +728,7 @@ function focus(obj) {
 
 function buscadorHandle() {
   buscador.addEventListener('input', () => {
-    if (buscador.value.length == 0) {
+    if (buscador.value.length < 1) {
       clearTimeout(timeoutId);
       borrarBusqueda();
     } else {
@@ -776,10 +771,10 @@ function escYf10Press() {
         } else {
           cambiar_venta(boton.previousElementSibling)
         }
-      }else if (e.keyCode==71){
+      } else if (e.keyCode == 71) {
         e.preventDefault();
         open_confirm_stash(posA);
-      }else if (e.keyCode==83){
+      } else if (e.keyCode == 83) {
         e.preventDefault();
         open_stash();
       }
@@ -892,7 +887,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
 async function buscarProducto(filtrado) {
   clearTimeout(timeoutId);
-  productosDib = await invoke("get_productos_filtrado", { filtro: filtrado });
+  console.log(!buscador.value.length < 1);
+  productosDib = await invoke("get_productos_filtrado", { filtro: ''+filtrado });
+  console.log(filtrado);
   console.log(productosDib);
   dibujarProductos();
 
@@ -926,7 +923,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 const unlisten = await listen('main', (pl) => {
-  if (pl.payload.message=='dibujar venta'){
+  if (pl.payload.message == 'dibujar venta') {
     get_venta_actual().then(venta => dibujar_venta(venta));
   }
 })

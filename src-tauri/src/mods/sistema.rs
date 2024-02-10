@@ -220,10 +220,10 @@ impl<'a> Sistema {
         Ok(())
     }
 
-    pub async fn val_filtrado(&self, filtro: &str) -> Result<Vec<Valuable>, AppError> {
+    pub async fn val_filtrado(&self, filtro: &str,db:&DatabaseConnection) -> Result<Vec<Valuable>, AppError> {
         let mut res: Vec<Valuable>;
         res = self
-            .prods_filtrado(filtro)
+            .prods_filtrado(filtro,db)
             .await?
             .iter()
             .cloned()
@@ -231,7 +231,7 @@ impl<'a> Sistema {
             .collect();
         res.append(
             &mut self
-                .pes_filtrado(filtro)
+                .pes_filtrado(filtro,db)
                 .await?
                 .iter()
                 .cloned()
@@ -240,7 +240,7 @@ impl<'a> Sistema {
         );
         res.append(
             &mut self
-                .rub_filtrado(filtro)
+                .rub_filtrado(filtro,db)
                 .await?
                 .iter()
                 .cloned()
@@ -249,9 +249,10 @@ impl<'a> Sistema {
         );
         Ok(res)
     }
-    pub async fn pes_filtrado(&self, filtro: &str) -> Result<Vec<Pesable>, AppError> {
+    pub async fn pes_filtrado(&self, filtro: &str,db:&DatabaseConnection) -> Result<Vec<Pesable>, AppError> {
         let filtros = filtro.split(' ').collect::<Vec<&str>>();
         let mut prods = Vec::new();
+        
         let mut res = Vec::new();
         for i in 0..filtros.len() {
             if i == 0 {
@@ -280,7 +281,7 @@ impl<'a> Sistema {
         }
         Ok(prods.to_owned())
     }
-    pub async fn rub_filtrado(&self, filtro: &str) -> Result<Vec<Rubro>, AppError> {
+    pub async fn rub_filtrado(&self, filtro: &str,db:&DatabaseConnection) -> Result<Vec<Rubro>, AppError> {
         let filtros = filtro.split(' ').collect::<Vec<&str>>();
         let mut prods = Vec::new();
         let mut res = Vec::new();
@@ -311,51 +312,63 @@ impl<'a> Sistema {
         }
         Ok(prods)
     }
-    pub async fn prods_filtrado(&self, filtro: &str) -> Result<Vec<Producto>, AppError> {
-        let filtros = filtro.split(' ').collect::<Vec<&str>>();
+    pub async fn prods_filtrado(&self, filtro: &str,db:&DatabaseConnection) -> Result<Vec<Producto>, AppError> {
         let mut prods = Vec::new();
         let mut res = Vec::new();
-        for i in 0..filtros.len() {
-            if i == 0 {
-                res = entity::producto::Entity::find()
-                    .filter(
-                        Condition::any()
-                            .add(entity::producto::Column::Marca.contains(filtros[i]))
-                            .add(entity::producto::Column::TipoProducto.contains(filtros[i]))
-                            .add(entity::producto::Column::Variedad.contains(filtros[i])),
-                    )
-                    .order_by_asc(entity::producto::Column::Id)
-                    .limit(Some((self.configs().cantidad_productos() * 2) as u64))
-                    .all(self.read_db())
-                    .await?;
-            } else {
-                res = res
-                    .iter()
-                    .cloned()
-                    .filter(|modelo| {
-                        modelo
-                            .marca
-                            .to_lowercase()
-                            .contains(filtros[i].to_lowercase().as_str())
-                            || modelo
-                                .variedad
-                                .to_lowercase()
-                                .contains(filtros[i].to_lowercase().as_str())
-                            || modelo
-                                .tipo_producto
-                                .to_lowercase()
-                                .contains(filtros[i].to_lowercase().as_str())
+        match filtro.parse::<f64>(){
+            Ok(code) => {
+                if let Some(id)=entity::codigo_barras::Entity::find().filter(entity::codigo_barras::Column::Codigo.eq(code)).one(db).await?{
+                    prods.push({
+                        let model=entity::producto::Entity::find_by_id(id.producto).one(db).await?.unwrap();
+                        map_model_prod(&model, db).await?
                     })
-                    .take(*self.configs().cantidad_productos() as usize)
-                    .collect();
-            }
-        }
-        for model in &res {
-            prods.push(
-                map_model_prod(model, self.read_db())
-                    .await?
-                    .redondear(&self.configs().politica()),
-            );
+                }
+            },
+            Err(_) => {
+                let filtros = filtro.split(' ').collect::<Vec<&str>>();
+                for i in 0..filtros.len() {
+                    if i == 0 {
+                        res = entity::producto::Entity::find()
+                            .filter(
+                                Condition::any()
+                                    .add(entity::producto::Column::Marca.contains(filtros[i]))
+                                    .add(entity::producto::Column::TipoProducto.contains(filtros[i]))
+                                    .add(entity::producto::Column::Variedad.contains(filtros[i])),
+                            )
+                            .order_by_asc(entity::producto::Column::Id)
+                            .limit(Some((self.configs().cantidad_productos() * 2) as u64))
+                            .all(self.read_db())
+                            .await?;
+                    } else {
+                        res = res
+                            .iter()
+                            .cloned()
+                            .filter(|modelo| {
+                                modelo
+                                    .marca
+                                    .to_lowercase()
+                                    .contains(filtros[i].to_lowercase().as_str())
+                                    || modelo
+                                        .variedad
+                                        .to_lowercase()
+                                        .contains(filtros[i].to_lowercase().as_str())
+                                    || modelo
+                                        .tipo_producto
+                                        .to_lowercase()
+                                        .contains(filtros[i].to_lowercase().as_str())
+                            })
+                            .take(*self.configs().cantidad_productos() as usize)
+                            .collect();
+                    }
+                }
+                for model in &res {
+                    prods.push(
+                        map_model_prod(model, self.read_db())
+                            .await?
+                            .redondear(&self.configs().politica()),
+                    );
+                }
+            },
         }
         Ok(prods)
     }

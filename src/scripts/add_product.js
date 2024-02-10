@@ -134,6 +134,7 @@ function agrTipoProd() {
     });
 }
 function agrCodSubmit() {
+
     let input = document.querySelector('#input-codigo');
     input.innerHTML =
         `
@@ -144,8 +145,15 @@ function agrCodSubmit() {
 
         if (e.keyCode == 13) {
             e.preventDefault();
-            handle_codigos(e.target.nextElementSibling, input);
-            e.value = '';
+            check_codes(input.children[input.children.length - 2].value).then(disponible=>{
+                if (disponible){
+                    handle_codigos(e.target.nextElementSibling, input);
+                }else{
+                    buscador.classList.add("error");
+                    setTimeout(() => { buscador.classList.toggle("error") }, 1000)    
+                }
+                e.value = '';
+            })
 
         }
     })
@@ -248,7 +256,9 @@ document.addEventListener('keydown',(e)=>{
     }
 })
 
-
+async function check_codes(code){
+    return await invoke("check_codes",{code:code});
+}
 async function close_window() {
     return await invoke("close_window");
 }
