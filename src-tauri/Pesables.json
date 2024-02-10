@@ -1,15 +1,7 @@
 [
   {
     "id": 1,
-    "codigo": 131514,
-    "precio_peso": 2000.0,
-    "porcentaje": 40.0,
-    "costo_kilo": 2800.0,
-    "descripcion": "Pan Flautita"
-  },
-  {
-    "id": 2,
-    "codigo": 131514,
+    "codigo": 1,
     "precio_peso": 2000.0,
     "porcentaje": 40.0,
     "costo_kilo": 2800.0,

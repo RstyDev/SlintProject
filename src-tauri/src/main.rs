@@ -185,7 +185,7 @@ fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Result<Vec<String>> {
 fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Result<Vec<Valuable>> {
     let res;
     match sistema.lock() {
-        Ok(a) => match async_runtime::block_on(a.val_filtrado(filtro,a.read_db())) {
+        Ok(a) => match async_runtime::block_on(a.val_filtrado(filtro, a.read_db())) {
             Ok(a) => res = Ok(a),
             Err(e) => res = Err(e.to_string()),
         },
@@ -270,32 +270,48 @@ fn eliminar_producto_de_venta(
     res
 }
 #[tauri::command]
-async fn check_codes(code: i64)->Result<bool>{
-    match Database::connect("sqlite://db.sqlite?mode=ro").await{
+async fn check_codes(code: i64) -> Result<bool> {
+    match Database::connect("sqlite://db.sqlite?mode=ro").await {
         Ok(db) => {
-            let mut disp=true;
-            if disp{
-                disp=match entity::codigo_barras::Entity::find().filter(entity::codigo_barras::Column::Codigo.eq(code)).one(&db).await{
-                    Ok(a) => if a.is_none(){
-                        match entity::pesable::Entity::find().filter(entity::pesable::Column::Codigo.eq(code)).one(&db).await{
-                            Ok(a) => if a.is_none(){
-                                match entity::rubro::Entity::find().filter(entity::rubro::Column::Codigo.eq(code)).one(&db).await{
-                                    Ok(a) => a.is_none(),
-                                    Err(e) => return Err(e.to_string()),
+            let mut disp = true;
+            if disp {
+                disp = match entity::codigo_barras::Entity::find()
+                    .filter(entity::codigo_barras::Column::Codigo.eq(code))
+                    .one(&db)
+                    .await
+                {
+                    Ok(a) => {
+                        if a.is_none() {
+                            match entity::pesable::Entity::find()
+                                .filter(entity::pesable::Column::Codigo.eq(code))
+                                .one(&db)
+                                .await
+                            {
+                                Ok(a) => {
+                                    if a.is_none() {
+                                        match entity::rubro::Entity::find()
+                                            .filter(entity::rubro::Column::Codigo.eq(code))
+                                            .one(&db)
+                                            .await
+                                        {
+                                            Ok(a) => a.is_none(),
+                                            Err(e) => return Err(e.to_string()),
+                                        }
+                                    } else {
+                                        false
+                                    }
                                 }
-                            }else{
-                                false
-                            },
-                            Err(e) => return Err(e.to_string()),
+                                Err(e) => return Err(e.to_string()),
+                            }
+                        } else {
+                            false
                         }
-                    }else{
-                        false
-                    },
+                    }
                     Err(e) => return Err(e.to_string()),
                 }
             }
             Ok(disp)
-        },
+        }
         Err(e) => Err(e.to_string()),
     }
 }
