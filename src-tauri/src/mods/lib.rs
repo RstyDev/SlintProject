@@ -22,7 +22,7 @@ use super::proveedor::Proveedor;
 use super::relacion_prod_prov::RelacionProdProv;
 use super::rubro::Rubro;
 use super::valuable::Presentacion;
-
+pub struct Mapper;
 pub trait Save {
     async fn save(&self) -> Result<(), DbErr>;
 }
@@ -99,7 +99,8 @@ pub fn redondeo(politica: &f64, numero: f64) -> f64 {
   //     // unifica_codes(&mut a);
   //     Ok(a.iter().map(|x| x.codigo).collect())
   // }
-
+impl Mapper{
+    
 pub async fn map_model_prod(
     prod: &entity::producto::Model,
     db: &DatabaseConnection,
@@ -135,11 +136,11 @@ pub async fn map_model_prod(
         presentacion,
     ))
 }
-pub fn map_model_rub(rub: &entity::rubro::Model) -> Rubro {
+pub fn map_model_rub(rub: &entity::rubro::Model,monto:f64) -> Rubro {
     Rubro::new(
         rub.id,
         rub.codigo,
-        rub.monto,
+        Some(monto),
         Arc::from(rub.descripcion.as_str()),
     )
 }
@@ -157,6 +158,9 @@ pub fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
 pub fn map_model_prov(prov: &entity::proveedor::Model) -> Proveedor {
     Proveedor::new(prov.id, prov.nombre.as_str(), prov.contacto)
 }
+}
+
+
 pub async fn cargar_todos_los_productos(
     productos: &Vec<Producto>,
     db: &DatabaseConnection,

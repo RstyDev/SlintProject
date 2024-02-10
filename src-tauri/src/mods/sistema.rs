@@ -31,10 +31,7 @@ use crate::mods::vendedor::Vendedor;
 
 use super::error::AppError;
 
-use super::lib::map_model_pes;
-use super::lib::map_model_prod;
-use super::lib::map_model_prov;
-use super::lib::map_model_rub;
+use super::lib::Mapper;
 use super::lib::save;
 use super::proveedor::Proveedor;
 use super::valuable::Presentacion;
@@ -231,7 +228,7 @@ impl<'a> Sistema {
             .await?
             .iter()
             .cloned()
-            .map(|x| V::Prod((0, x)))
+            .map(|x| V::Prod(x))
             .collect();
         res.append(
             &mut self
@@ -239,7 +236,7 @@ impl<'a> Sistema {
                 .await?
                 .iter()
                 .cloned()
-                .map(|x| V::Pes((0.0, x)))
+                .map(|x| V::Pes(x))
                 .collect(),
         );
         res.append(
@@ -248,7 +245,7 @@ impl<'a> Sistema {
                 .await?
                 .iter()
                 .cloned()
-                .map(|x| V::Rub((0, x)))
+                .map(|x| V::Rub(x))
                 .collect(),
         );
         Ok(res)
@@ -257,7 +254,8 @@ impl<'a> Sistema {
         &self,
         filtro: &str,
         db: &DatabaseConnection,
-    ) -> Result<Vec<Pesable>, AppError> {
+    ) -> Result<Vec<(f32,Pesable)>, AppError> {
+        let (cant,filtro)=Sistema::splitx(filtro)?;
         let mut prods = Vec::new();
         match filtro.parse::<i64>() {
             Ok(code) => {
@@ -266,7 +264,7 @@ impl<'a> Sistema {
                     .one(db)
                     .await?
                 {
-                    prods.push(map_model_pes(&model))
+                    prods.push((cant,Mapper::map_model_pes(&model)))
                 }
             }
             Err(_) => {
@@ -296,7 +294,7 @@ impl<'a> Sistema {
                     }
                 }
                 for model in &res {
-                    prods.push(map_model_pes(model));
+                    prods.push((cant,Mapper::map_model_pes(model)));
                 }
             }
         }
@@ -306,8 +304,9 @@ impl<'a> Sistema {
         &self,
         filtro: &str,
         db: &DatabaseConnection,
-    ) -> Result<Vec<Rubro>, AppError> {
+    ) -> Result<Vec<(u8,Rubro)>, AppError> {
         let mut prods = Vec::new();
+        let (cant,filtro)=Sistema::splitx(filtro)?;
         match filtro.parse::<i64>() {
             Ok(code) => {
                 if let Some(model) = entity::rubro::Entity::find()
@@ -315,7 +314,7 @@ impl<'a> Sistema {
                     .one(db)
                     .await?
                 {
-                    prods.push(map_model_rub(&model))
+                    prods.push((cant as u8,Mapper::map_model_rub(&model,cant as f64)))
                 }
             }
             Err(_) => {
@@ -344,7 +343,7 @@ impl<'a> Sistema {
                     }
                 }
                 for model in &res {
-                    prods.push(map_model_rub(model));
+                    prods.push((cant as u8,Mapper::map_model_rub(model,cant as f64)));
                 }
             }
         }
@@ -354,7 +353,8 @@ impl<'a> Sistema {
         &self,
         filtro: &str,
         db: &DatabaseConnection,
-    ) -> Result<Vec<Producto>, AppError> {
+    ) -> Result<Vec<(u8,Producto)>, AppError> {
+        let (cant,filtro)=Sistema::splitx(filtro)?;
         let mut prods = Vec::new();
         match filtro.parse::<f64>() {
             Ok(code) => {
@@ -368,9 +368,9 @@ impl<'a> Sistema {
                             .one(db)
                             .await?
                             .unwrap();
-                        map_model_prod(&model, db)
+                        (cant as u8,Mapper::map_model_prod(&model, db)
                             .await?
-                            .redondear(&self.configs().politica())
+                            .redondear(&self.configs().politica()))
                     })
                 }
             }
@@ -415,23 +415,30 @@ impl<'a> Sistema {
                     }
                 }
                 for model in &res {
-                    prods.push(
-                        map_model_prod(model, self.read_db())
+                    prods.push((cant as u8,
+                        Mapper::map_model_prod(model, self.read_db())
                             .await?
                             .redondear(&self.configs().politica()),
-                    );
+                    ));
                 }
             }
         }
         Ok(prods)
     }
-
+    fn splitx(filtro:&str)->Res<(f32,&str)>{
+        let partes=filtro.split('*').collect::<Vec<&str>>();
+        match partes.len(){
+            1=>Ok((1.0,partes[0])),
+            2=>Ok((partes[0].parse::<f32>()?,partes[1])),
+            _=>Err(AppError::ParseError)
+        }
+    }
     pub async fn proveedores(&self) -> Vec<Proveedor> {
         match entity::proveedor::Entity::find().all(self.read_db()).await {
             Ok(a) => {
                 let res = a
                     .iter()
-                    .map(|x| map_model_prov(x))
+                    .map(|x| Mapper::map_model_prov(x))
                     .collect::<Vec<Proveedor>>();
                 res
             }
@@ -694,7 +701,7 @@ impl<'a> Sistema {
             Some(a) => {
                 model = a.to_owned();
 
-                return Ok(V::Prod((0, map_model_prod(&model, self.read_db()).await?)));
+                return Ok(V::Prod((0, Mapper::map_model_prod(&model, self.read_db()).await?)));
             }
             None => {
                 return Err(AppError::ProductNotFound(format!(

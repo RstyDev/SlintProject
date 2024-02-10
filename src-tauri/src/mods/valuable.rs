@@ -14,7 +14,7 @@ use Valuable as V;
 pub enum Valuable {
     Prod((u8, Producto)),
     Pes((f32, Pesable)),
-    Rub((u8, Rubro)),
+    Rub((u8,Rubro)),
 }
 
 impl Valuable {

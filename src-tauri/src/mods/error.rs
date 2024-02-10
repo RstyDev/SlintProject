@@ -29,6 +29,8 @@ pub enum AppError {
     ParseFloatError(#[from] ParseFloatError),
     #[error("Error de conversion de enteros")]
     ParseIntError(#[from] ParseIntError),
+    #[error("Error de conversion")]
+    ParseError,
     #[error("Error de tauri")]
     TauriError(#[from] tauri::Error),
     #[error("Error de conversion de fecha")]
