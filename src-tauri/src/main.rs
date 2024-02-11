@@ -667,6 +667,27 @@ async fn open_edit_settings(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
+fn open_main(handle: tauri::AppHandle,window: tauri::Window)->Result<()>{
+    match tauri::WindowBuilder::new(
+        &handle,
+        "system", /* the unique window label */
+        tauri::WindowUrl::App("/pages/main.html".parse().unwrap()),
+    )
+    .resizable(true)
+    .maximized(true)
+    .inner_size(500.0, 360.0)
+    .build()
+    {
+        Ok(_) => {
+            if let Err(e)=window.close(){
+                println!("{:#?}",e);
+                return Err(e.to_string())
+            }
+            Ok(())},
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
 async fn open_stash(handle: tauri::AppHandle) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
@@ -718,7 +739,7 @@ fn main() {
             unstash_sale,
             get_stash,
             open_stash,
-            check_codes
+            check_codes,open_main
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
