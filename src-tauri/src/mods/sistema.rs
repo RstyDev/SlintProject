@@ -27,13 +27,16 @@ use crate::mods::caja::Caja;
 use crate::mods::lib::cargar_todas_las_relaciones_prod_prov;
 use crate::mods::lib::cargar_todos_los_provs;
 use crate::mods::lib::cargar_todos_los_valuables;
+use crate::mods::lib::get_hash;
+use crate::mods::user::Rango;
 use crate::mods::vendedor::Vendedor;
 
 use super::error::AppError;
 
-use super::lib::Mapper;
 use super::lib::save;
+use super::lib::Mapper;
 use super::proveedor::Proveedor;
+use super::user::User;
 use super::valuable::Presentacion;
 use super::{
     config::Config,
@@ -47,6 +50,7 @@ use super::{
 };
 
 pub struct Sistema {
+    user: Option<User>,
     write_db: Arc<DatabaseConnection>,
     read_db: Arc<DatabaseConnection>,
     caja: Caja,
@@ -128,6 +132,7 @@ impl<'a> Sistema {
         let w1 = Arc::clone(&write_db);
         let db = Arc::clone(&read_db);
         let sis = Sistema {
+            user: None,
             write_db,
             read_db,
             caja,
@@ -149,6 +154,9 @@ impl<'a> Sistema {
             sis.relaciones.clone(),
         )?;
         Ok(sis)
+    }
+    pub fn user(&self) -> Option<&User> {
+        self.user.as_ref()
     }
     fn procesar(
         write_db: Arc<DatabaseConnection>,
@@ -209,14 +217,53 @@ impl<'a> Sistema {
             }
             return Ok(());
         });
-        if async_runtime::block_on(entity::producto::Entity::find().count(read_db.as_ref()))? == 0 {
+        if async_runtime::block_on(entity::user::Entity::find().count(read_db.as_ref()))? == 0 {
+            async_runtime::spawn(async move {
+                let db = Arc::clone(&write_db);
+                let model = entity::user::ActiveModel {
+                    user_id: Set("admin".to_owned()),
+                    pass: Set(get_hash("1234")),
+                    rango: Set(Rango::Admin.to_string()),
+                    ..Default::default()
+                };
+                model.insert(db.as_ref()).await.unwrap();
+            });
             async_runtime::spawn(cargar_todos_los_valuables(valuables));
             async_runtime::spawn(cargar_todos_los_provs(proveedores));
             async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(relaciones));
         }
         Ok(())
     }
-
+    pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<()> {
+        match entity::user::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(entity::user::Column::UserId.eq(id.to_string()))
+                    .add(entity::user::Column::Pass.eq(pass)),
+            )
+            .one(self.read_db())
+            .await?
+        {
+            Some(user) => {
+                println!("{}", pass);
+                println!("{}", user.pass);
+                self.user = Some(User::new(
+                    Arc::from(user.user_id),
+                    user.pass,
+                    user.rango.as_str(),
+                ));
+                Ok(())
+            }
+            None => match entity::user::Entity::find()
+                .filter(entity::user::Column::UserId.eq(id))
+                .one(self.read_db())
+                .await?
+            {
+                Some(_) => Err(AppError::IncorrectError("Contraseña".to_string())),
+                None => Err(AppError::IncorrectError("Usuario".to_string())),
+            },
+        }
+    }
     pub async fn val_filtrado(
         &self,
         filtro: &str,
@@ -254,8 +301,8 @@ impl<'a> Sistema {
         &self,
         filtro: &str,
         db: &DatabaseConnection,
-    ) -> Result<Vec<(f32,Pesable)>, AppError> {
-        let (cant,filtro)=Sistema::splitx(filtro)?;
+    ) -> Result<Vec<(f32, Pesable)>, AppError> {
+        let (cant, filtro) = Sistema::splitx(filtro)?;
         let mut prods = Vec::new();
         match filtro.parse::<i64>() {
             Ok(code) => {
@@ -264,7 +311,7 @@ impl<'a> Sistema {
                     .one(db)
                     .await?
                 {
-                    prods.push((cant,Mapper::map_model_pes(&model)))
+                    prods.push((cant, Mapper::map_model_pes(&model)))
                 }
             }
             Err(_) => {
@@ -294,7 +341,7 @@ impl<'a> Sistema {
                     }
                 }
                 for model in &res {
-                    prods.push((cant,Mapper::map_model_pes(model)));
+                    prods.push((cant, Mapper::map_model_pes(model)));
                 }
             }
         }
@@ -304,9 +351,9 @@ impl<'a> Sistema {
         &self,
         filtro: &str,
         db: &DatabaseConnection,
-    ) -> Result<Vec<(u8,Rubro)>, AppError> {
+    ) -> Result<Vec<(u8, Rubro)>, AppError> {
         let mut prods = Vec::new();
-        let (cant,filtro)=Sistema::splitx(filtro)?;
+        let (cant, filtro) = Sistema::splitx(filtro)?;
         match filtro.parse::<i64>() {
             Ok(code) => {
                 if let Some(model) = entity::rubro::Entity::find()
@@ -314,7 +361,7 @@ impl<'a> Sistema {
                     .one(db)
                     .await?
                 {
-                    prods.push((cant as u8,Mapper::map_model_rub(&model,cant as f64)))
+                    prods.push((cant as u8, Mapper::map_model_rub(&model, cant as f64)))
                 }
             }
             Err(_) => {
@@ -343,7 +390,7 @@ impl<'a> Sistema {
                     }
                 }
                 for model in &res {
-                    prods.push((cant as u8,Mapper::map_model_rub(model,cant as f64)));
+                    prods.push((cant as u8, Mapper::map_model_rub(model, cant as f64)));
                 }
             }
         }
@@ -353,8 +400,8 @@ impl<'a> Sistema {
         &self,
         filtro: &str,
         db: &DatabaseConnection,
-    ) -> Result<Vec<(u8,Producto)>, AppError> {
-        let (cant,filtro)=Sistema::splitx(filtro)?;
+    ) -> Result<Vec<(u8, Producto)>, AppError> {
+        let (cant, filtro) = Sistema::splitx(filtro)?;
         let mut prods = Vec::new();
         match filtro.parse::<f64>() {
             Ok(code) => {
@@ -368,9 +415,12 @@ impl<'a> Sistema {
                             .one(db)
                             .await?
                             .unwrap();
-                        (cant as u8,Mapper::map_model_prod(&model, db)
-                            .await?
-                            .redondear(&self.configs().politica()))
+                        (
+                            cant as u8,
+                            Mapper::map_model_prod(&model, db)
+                                .await?
+                                .redondear(&self.configs().politica()),
+                        )
                     })
                 }
             }
@@ -415,7 +465,8 @@ impl<'a> Sistema {
                     }
                 }
                 for model in &res {
-                    prods.push((cant as u8,
+                    prods.push((
+                        cant as u8,
                         Mapper::map_model_prod(model, self.read_db())
                             .await?
                             .redondear(&self.configs().politica()),
@@ -425,12 +476,12 @@ impl<'a> Sistema {
         }
         Ok(prods)
     }
-    fn splitx(filtro:&str)->Res<(f32,&str)>{
-        let partes=filtro.split('*').collect::<Vec<&str>>();
-        match partes.len(){
-            1=>Ok((1.0,partes[0])),
-            2=>Ok((partes[0].parse::<f32>()?,partes[1])),
-            _=>Err(AppError::ParseError)
+    fn splitx(filtro: &str) -> Res<(f32, &str)> {
+        let partes = filtro.split('*').collect::<Vec<&str>>();
+        match partes.len() {
+            1 => Ok((1.0, partes[0])),
+            2 => Ok((partes[0].parse::<f32>()?, partes[1])),
+            _ => Err(AppError::ParseError),
         }
     }
     pub async fn proveedores(&self) -> Vec<Proveedor> {
@@ -701,7 +752,10 @@ impl<'a> Sistema {
             Some(a) => {
                 model = a.to_owned();
 
-                return Ok(V::Prod((0, Mapper::map_model_prod(&model, self.read_db()).await?)));
+                return Ok(V::Prod((
+                    0,
+                    Mapper::map_model_prod(&model, self.read_db()).await?,
+                )));
             }
             None => {
                 return Err(AppError::ProductNotFound(format!(

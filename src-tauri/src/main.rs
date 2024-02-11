@@ -1,12 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use mods::lib::get_hash;
 use mods::{
     config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, valuable::Valuable,
     venta::Venta,
 };
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 type Result<T> = std::result::Result<T, String>;
-
 use std::sync::Mutex;
 use tauri::{
     async_runtime::{self, block_on},
@@ -666,27 +666,7 @@ async fn open_edit_settings(handle: tauri::AppHandle) -> Result<()> {
         Err(e) => Err(e.to_string()),
     }
 }
-#[tauri::command]
-fn open_main(handle: tauri::AppHandle,window: tauri::Window)->Result<()>{
-    match tauri::WindowBuilder::new(
-        &handle,
-        "system", /* the unique window label */
-        tauri::WindowUrl::App("/pages/main.html".parse().unwrap()),
-    )
-    .resizable(true)
-    .maximized(true)
-    .inner_size(500.0, 360.0)
-    .build()
-    {
-        Ok(_) => {
-            if let Err(e)=window.close(){
-                println!("{:#?}",e);
-                return Err(e.to_string())
-            }
-            Ok(())},
-        Err(e) => Err(e.to_string()),
-    }
-}
+
 #[tauri::command]
 async fn open_stash(handle: tauri::AppHandle) -> Result<()> {
     match tauri::WindowBuilder::new(
@@ -704,6 +684,46 @@ async fn open_stash(handle: tauri::AppHandle) -> Result<()> {
         Ok(_) => Ok(()),
         Err(e) => Err(e.to_string()),
     }
+}
+#[tauri::command]
+async fn open_login(handle: tauri::AppHandle) -> Result<()> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "login", /* the unique window label */
+        tauri::WindowUrl::App("/pages/login.html".parse().unwrap()),
+    )
+    .inner_size(600.0, 400.0)
+    .resizable(false)
+    .closable(false)
+    .always_on_top(true)
+    .center()
+    // .minimizable(false)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
+fn try_login(
+    sistema: State<Mutex<Sistema>>,
+    window: tauri::Window,
+    id: &str,
+    pass: &str,
+) -> Result<()> {
+    match sistema.lock() {
+        Ok(mut sis) => match async_runtime::block_on(sis.try_login(id, get_hash(pass))) {
+            Ok(_) => {
+                println!("{:#?}", sis.user());
+                if let Err(e) = window.close() {
+                    return Err(e.to_string());
+                }
+            }
+            Err(e) => return Err(e.to_string()),
+        },
+        Err(e) => return Err(e.to_string()),
+    }
+    Ok(())
 }
 fn main() {
     let app = tauri::Builder::default()
@@ -739,7 +759,9 @@ fn main() {
             unstash_sale,
             get_stash,
             open_stash,
-            check_codes,open_main
+            check_codes,
+            open_login,
+            try_login,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

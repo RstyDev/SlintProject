@@ -11,6 +11,8 @@ use thiserror::Error;
 pub enum AppError {
     #[error("Error de monto, el monto a pagar es: {a_pagar:?},el monto pagado es: {pagado:?}")]
     AmountError { a_pagar: f64, pagado: f64 },
+    #[error("{0} incorrecto/a")]
+    IncorrectError(String),
     #[error("Solo existen dos posiciones para venta")]
     SaleSelection,
     #[error("Presentacion seleccionada incorrecta, no existe {0}")]

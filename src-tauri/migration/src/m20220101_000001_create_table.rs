@@ -428,6 +428,24 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(User::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(User::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(User::UserId).string().not_null())
+                    .col(ColumnDef::new(User::Pass).big_integer().not_null())
+                    .col(ColumnDef::new(User::Rango).string().not_null())
+                    .to_owned(),
+            )
+            .await?;
         Ok(())
     }
 
@@ -590,4 +608,12 @@ enum Vendedor {
     Table,
     Id,
     Nombre,
+}
+#[derive(DeriveIden)]
+enum User {
+    Table,
+    Id,
+    UserId,
+    Pass,
+    Rango,
 }

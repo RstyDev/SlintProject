@@ -6,7 +6,9 @@ use sea_orm::{
     IntoActiveModel, QueryFilter, Set,
 };
 use serde::{de::DeserializeOwned, Serialize};
+use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
+use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
 use std::sync::Arc;
 use Valuable as V;
@@ -26,7 +28,11 @@ pub struct Mapper;
 pub trait Save {
     async fn save(&self) -> Result<(), DbErr>;
 }
-
+pub fn get_hash(pass: &str) -> i64 {
+    let mut h = DefaultHasher::new();
+    pass.hash(&mut h);
+    h.finish() as i64
+}
 pub async fn save<T: Save>(dato: T) -> Result<(), DbErr> {
     dato.save().await
 }
@@ -99,67 +105,65 @@ pub fn redondeo(politica: &f64, numero: f64) -> f64 {
   //     // unifica_codes(&mut a);
   //     Ok(a.iter().map(|x| x.codigo).collect())
   // }
-impl Mapper{
-    
-pub async fn map_model_prod(
-    prod: &entity::producto::Model,
-    db: &DatabaseConnection,
-) -> Res<Producto> {
-    let mut parts = prod.presentacion.split(' ');
-    let cods = entity::codigo_barras::Entity::find()
-        .filter(entity::codigo_barras::Column::Producto.eq(prod.id))
-        .all(db)
-        .await?
-        .iter()
-        .map(|c| c.codigo)
-        .collect();
-    let p1 = parts.next().unwrap();
-    let p2 = parts.next().unwrap();
-    let presentacion = match p2 {
-        "Gr" => Presentacion::Gr(p1.parse()?),
-        "Un" => Presentacion::Un(p1.parse()?),
-        "Lt" => Presentacion::Lt(p1.parse()?),
-        "Ml" => Presentacion::Ml(p1.parse()?),
-        "CC" => Presentacion::CC(p1.parse()?),
-        "Kg" => Presentacion::Kg(p1.parse()?),
-        a => return Err(AppError::SizeSelection(a.to_string())),
-    };
-    Ok(Producto::new(
-        prod.id,
-        cods,
-        prod.precio_de_venta,
-        prod.porcentaje,
-        prod.precio_de_costo,
-        prod.tipo_producto.as_str(),
-        prod.marca.as_str(),
-        prod.variedad.as_str(),
-        presentacion,
-    ))
-}
-pub fn map_model_rub(rub: &entity::rubro::Model,monto:f64) -> Rubro {
-    Rubro::new(
-        rub.id,
-        rub.codigo,
-        Some(monto),
-        Arc::from(rub.descripcion.as_str()),
-    )
-}
+impl Mapper {
+    pub async fn map_model_prod(
+        prod: &entity::producto::Model,
+        db: &DatabaseConnection,
+    ) -> Res<Producto> {
+        let mut parts = prod.presentacion.split(' ');
+        let cods = entity::codigo_barras::Entity::find()
+            .filter(entity::codigo_barras::Column::Producto.eq(prod.id))
+            .all(db)
+            .await?
+            .iter()
+            .map(|c| c.codigo)
+            .collect();
+        let p1 = parts.next().unwrap();
+        let p2 = parts.next().unwrap();
+        let presentacion = match p2 {
+            "Gr" => Presentacion::Gr(p1.parse()?),
+            "Un" => Presentacion::Un(p1.parse()?),
+            "Lt" => Presentacion::Lt(p1.parse()?),
+            "Ml" => Presentacion::Ml(p1.parse()?),
+            "CC" => Presentacion::CC(p1.parse()?),
+            "Kg" => Presentacion::Kg(p1.parse()?),
+            a => return Err(AppError::SizeSelection(a.to_string())),
+        };
+        Ok(Producto::new(
+            prod.id,
+            cods,
+            prod.precio_de_venta,
+            prod.porcentaje,
+            prod.precio_de_costo,
+            prod.tipo_producto.as_str(),
+            prod.marca.as_str(),
+            prod.variedad.as_str(),
+            presentacion,
+        ))
+    }
+    pub fn map_model_rub(rub: &entity::rubro::Model, monto: f64) -> Rubro {
+        Rubro::new(
+            rub.id,
+            rub.codigo,
+            Some(monto),
+            Arc::from(rub.descripcion.as_str()),
+        )
+    }
 
-pub fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
-    Pesable::new(
-        pes.id,
-        pes.codigo,
-        pes.precio_peso,
-        pes.porcentaje,
-        pes.costo_kilo,
-        pes.descripcion.as_str(),
-    )
+    pub fn map_model_pes(pes: &entity::pesable::Model) -> Pesable {
+        Pesable::new(
+            pes.id,
+            pes.codigo,
+            pes.precio_peso,
+            pes.porcentaje,
+            pes.costo_kilo,
+            pes.descripcion.as_str(),
+        )
+    }
+    pub fn map_model_prov(prov: &entity::proveedor::Model) -> Proveedor {
+        Proveedor::new(prov.id, prov.nombre.as_str(), prov.contacto)
+    }
 }
-pub fn map_model_prov(prov: &entity::proveedor::Model) -> Proveedor {
-    Proveedor::new(prov.id, prov.nombre.as_str(), prov.contacto)
-}
-}
-
 
 pub async fn cargar_todos_los_productos(
     productos: &Vec<Producto>,

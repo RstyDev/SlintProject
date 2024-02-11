@@ -86,7 +86,7 @@ impl<'a> Venta {
                 let mut prod = self.productos.remove(i);
                 match &prod {
                     V::Pes(a) => prod = V::Pes((a.0, a.1.clone())),
-                    V::Prod(a) => prod = V::Prod((a.0 , a.1.clone())),
+                    V::Prod(a) => prod = V::Prod((a.0, a.1.clone())),
                     V::Rub(a) => self.productos.push(V::Rub(a.clone())),
                 }
                 self.productos.insert(i, prod);
@@ -95,9 +95,9 @@ impl<'a> Venta {
         }
         if !esta {
             let prod = match producto {
-                V::Pes(a) => V::Pes((a.0 , a.1.clone())),
+                V::Pes(a) => V::Pes((a.0, a.1.clone())),
                 V::Prod(a) => V::Prod((a.0, a.1.clone())),
-                V::Rub(a) => V::Rub((a.0 , a.1.clone())),
+                V::Rub(a) => V::Rub((a.0, a.1.clone())),
             };
             self.productos.push(prod);
         }
