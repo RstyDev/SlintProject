@@ -584,7 +584,6 @@ function agregarRub(tabla, objeto, i) {
   producto.innerHTML = objeto.Rub[1].descripcion;
   tr2.appendChild(producto);
   let precio = document.createElement('td');
-  precio.innerHTML = "$  " + objeto.Rub[1].precio_peso;
   precio.style.textAlign = 'end'
   tr2.appendChild(precio);
   tr2.addEventListener('click', () => {
