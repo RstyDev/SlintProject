@@ -1,16 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-      <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tauri App</title>
+    <script type="module" src="./index.js" defer></script>
+</head>
 
-<script type="module" src="./index.js" defer></script></head>
 <body>
-    <form id="inicio">
-      <input type="text" id="id">
+    <header class="container">
+        <div id="header">
+            <div id="menu-image">
+                <a id="menu-button"><img src="/assets/menu.svg" class="boton" alt="menu image"></a>
+                <div id="barra-de-opciones">
+                    <a id="agregar-producto-mostrar" class="a-boton">Agregar Producto</a>
+                    <a id="agregar-proveedor-mostrar" class="a-boton">Agregar Proveedor</a>
+                    <a id="cambiar-configs-mostrar" class="a-boton">Configuraciones</a>
+                </div>
 
-    </form>
+            </div>
+
+            <!-- <h1>Welcome to Tauri!</h1> -->
+            <div>
+                <form autocomplete="off">
+                    <input type="text" id="buscador">
+                </form>
+            </div>
+        </div>
+    </header>
+    <main>
+
+
+
+
+        <div id="msg-container">
+            <p id="mensaje1-msg"></p>
+        </div>
+        <section id="cuadro-principal" class="main-screen">
+
+        </section>
+    </main>
+
+
+
+
+
+
+
+
 </body>
+
 </html>

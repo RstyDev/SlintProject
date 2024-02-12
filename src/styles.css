@@ -546,6 +546,16 @@ label {
   display: flex;
   flex-direction: column;
 }
+#form-login{
+  height: 90svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  & *{
+    margin: 5px;
+  }
+}
 #agregar-producto-container {
   display: grid;
   grid-template-columns: 35% 65% ;
