@@ -102,7 +102,6 @@ impl<'a> Sistema {
             if let Err(_) = entity::caja::Entity::find().one(read_db.as_ref()).await {
                 Migrator::fresh(write_db.as_ref()).await
             } else {
-                println!("Dio ok");
                 Ok(())
             }
         })
@@ -169,7 +168,6 @@ impl<'a> Sistema {
         relaciones: Vec<RelacionProdProv>,
     ) -> Res<()> {
         let path_productos = "Productos.json";
-        println!("procesando");
         let path_configs = "Configs.json";
         let path_pesables = "Pesables.json";
         let mut configs = Vec::<Config>::new();

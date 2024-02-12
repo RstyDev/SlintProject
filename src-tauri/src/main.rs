@@ -115,14 +115,14 @@ fn agregar_pesable<'a>(
             Rango::Admin => {
                 let pesable =
                     Pesable::new(id, codigo, precio_peso, porcentaje, costo_kilo, descripcion);
-
-                if let Err(e) = sis.agregar_pesable(pesable.clone()) {
+                let desc=pesable.descripcion().to_string();
+                if let Err(e) = sis.agregar_pesable(pesable) {
                     return Err(e.to_string());
                 }
                 if let Err(e) = window.close() {
                     return Err(e.to_string());
                 }
-                Ok(pesable.descripcion().to_string())
+                Ok(desc)
             }
             Rango::Cajero => Err(DENEGADO.to_string()),
         },

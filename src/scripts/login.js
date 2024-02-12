@@ -1,16 +1,8 @@
 const { invoke } = window.__TAURI__.tauri;
-var error = new Audio('../assets/error.mp3');
+var error = new Audio('./../assets/error.mp3');
 const id=document.getElementById('id');
 const pass=document.getElementById('pass');
-async function try_login(id, pass) {
 
-  try{
-    return await invoke("try_login", {id:id, pass:pass});
-  }catch (error){
-    console.log(error)
-    return callback(error)
-  }
-}
 
 document.getElementById('form-login').addEventListener('submit',async (e)=>{
   e.preventDefault();
