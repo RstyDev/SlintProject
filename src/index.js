@@ -909,7 +909,9 @@ function PlaySound(soundObj) {
 
 
 
-
+function dibujar_base(){
+  document.getElementsByTagName('body')[0].innerHTML=``;
+}
 
 
 
@@ -930,9 +932,11 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+open_login();
 const unlisten2 = await listen('inicio-sesion', (pl) => {
-    if (pl.payload.message == 'correcto') {
+    if (pl.payload.message == 'Correcto') {
       console.log("aca se dibuja todo");
+      dibujar_base();
     }
   })
 const unlisten = await listen('main', (pl) => {
@@ -940,5 +944,3 @@ const unlisten = await listen('main', (pl) => {
     get_venta_actual().then(venta => dibujar_venta(venta));
   }
 })
-
-open_login();

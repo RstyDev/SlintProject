@@ -693,7 +693,7 @@ async fn open_login(handle: tauri::AppHandle) -> Result<()> {
         tauri::WindowUrl::App("/pages/login.html".parse().unwrap()),
     )
     .inner_size(600.0, 400.0)
-    .resizable(false)
+    .resizable(false).minimizable(false)
     .closable(false)
     .always_on_top(true)
     .center()
