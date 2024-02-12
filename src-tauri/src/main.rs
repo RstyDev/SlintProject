@@ -714,7 +714,12 @@ fn try_login(
     match sistema.lock() {
         Ok(mut sis) => match async_runtime::block_on(sis.try_login(id, get_hash(pass))) {
             Ok(_) => {
-                println!("{:#?}", sis.user());
+                if let Err(e)= window.emit("inicio-sesion",Payload {
+                    message: Some("Correcto".to_string()),
+                    pos: None,
+                }){
+                    return Err(e.to_string())
+                }
                 if let Err(e) = window.close() {
                     return Err(e.to_string());
                 }

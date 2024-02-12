@@ -929,6 +929,12 @@ function calcFont(height, ps) {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+const unlisten2 = await listen('inicio-sesion', (pl) => {
+    if (pl.payload.message == 'correcto') {
+      console.log("aca se dibuja todo");
+    }
+  })
 const unlisten = await listen('main', (pl) => {
   if (pl.payload.message == 'dibujar venta') {
     get_venta_actual().then(venta => dibujar_venta(venta));
