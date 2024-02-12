@@ -3,7 +3,7 @@ use std::sync::Arc;
 pub struct User {
     id: Arc<str>,
     pass: i64,
-    permiso: Rango,
+    rango: Rango,
 }
 #[derive(Debug)]
 pub enum Rango {
@@ -11,13 +11,16 @@ pub enum Rango {
     Cajero,
 }
 impl User {
-    pub fn new(id: Arc<str>, pass: i64, permiso: &str) -> User {
-        let permiso = match permiso {
+    pub fn new(id: Arc<str>, pass: i64, rango: &str) -> User {
+        let rango = match rango {
             "Admin" => Rango::Admin,
             "Cajero" => Rango::Cajero,
             _ => panic!("No existe"),
         };
-        User { id, pass, permiso }
+        User { id, pass, rango }
+    }
+    pub fn rango(&self) -> &Rango {
+        &self.rango
     }
 }
 impl ToString for Rango {

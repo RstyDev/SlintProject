@@ -8,9 +8,9 @@ const { emit, listen } = window.__TAURI__.event;
 
 
 
+let mensaje1;
 
 
-const mensaje1 = document.querySelector('#mensaje1-msg');
 let posA = true;
 let posicionVenta = 0;
 let focuseado;
@@ -865,7 +865,51 @@ function setFoco(foco, focuseable) {
   foco.select();
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+
+
+async function buscarProducto(filtrado) {
+  clearTimeout(timeoutId);
+  console.log(!buscador.value.length < 1);
+  productosDib = await invoke("get_productos_filtrado", { filtro: ''+filtrado });
+  console.log(filtrado);
+  console.log(productosDib);
+  dibujarProductos();
+
+}
+
+function PlaySound(soundObj) {
+  var sound = document.getElementById(soundObj);
+  sound.Play();
+}
+
+
+
+function dibujar_base(){
+  document.getElementsByTagName('body')[0].innerHTML =`<header class="container">
+        <div id="header">
+            <div id="menu-image">
+                <a id="menu-button"><img src="/assets/menu.svg" class="boton" alt="menu image"></a>
+                <div id="barra-de-opciones">
+                    <a id="agregar-producto-mostrar" class="a-boton">Agregar Producto</a>
+                    <a id="agregar-proveedor-mostrar" class="a-boton">Agregar Proveedor</a>
+                    <a id="cambiar-configs-mostrar" class="a-boton">Configuraciones</a>
+                </div>
+            </div>
+            <div>
+                <form autocomplete="off">
+                    <input type="text" id="buscador">
+                </form>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div id="msg-container">
+            <p id="mensaje1-msg"></p>
+        </div>
+        <section id="cuadro-principal" class="main-screen">
+        </section>
+    </main>`;
+  mensaje1 = document.querySelector('#mensaje1-msg');
   buscador = document.querySelector('#buscador');
   buscador.addEventListener('focus', () => {
     let prod = document.getElementById('productos');
@@ -890,27 +934,6 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
 
-});
-
-async function buscarProducto(filtrado) {
-  clearTimeout(timeoutId);
-  console.log(!buscador.value.length < 1);
-  productosDib = await invoke("get_productos_filtrado", { filtro: ''+filtrado });
-  console.log(filtrado);
-  console.log(productosDib);
-  dibujarProductos();
-
-}
-
-function PlaySound(soundObj) {
-  var sound = document.getElementById(soundObj);
-  sound.Play();
-}
-
-
-
-function dibujar_base(){
-  document.getElementsByTagName('body')[0].innerHTML=``;
 }
 
 

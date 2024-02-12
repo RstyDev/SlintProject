@@ -245,8 +245,6 @@ impl<'a> Sistema {
             .await?
         {
             Some(user) => {
-                println!("{}", pass);
-                println!("{}", user.pass);
                 self.user = Some(User::new(
                     Arc::from(user.user_id),
                     user.pass,
@@ -545,11 +543,11 @@ impl<'a> Sistema {
 
         Ok(res)
     }
-    pub fn set_configs(&mut self, configs: Config, db: &DatabaseConnection) {
+    pub fn set_configs(&mut self, configs: Config) {
         self.configs = configs;
         async_runtime::block_on(async {
             let mut res = entity::config::Entity::find()
-                .one(db)
+                .one(self.read_db())
                 .await
                 .unwrap()
                 .unwrap()
@@ -558,7 +556,7 @@ impl<'a> Sistema {
             res.formato_producto = Set(self.configs().formato().to_string());
             res.modo_mayus = Set(self.configs().modo_mayus().to_string());
             res.politica_redondeo = Set(self.configs().politica());
-            res.update(db).await.unwrap();
+            res.update(self.write_db()).await.unwrap();
         });
     }
 
