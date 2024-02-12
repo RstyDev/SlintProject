@@ -155,6 +155,10 @@ impl<'a> Sistema {
         )?;
         Ok(sis)
     }
+    pub async fn agregar_usuario(user:User,db:&DatabaseConnection)->Res<()>{
+        let model=entity::user::Entity::find().filter(entity::user::Column::UserId.eq(user.id())).one(db).await?;
+        todo!()
+    }
     pub fn user(&self) -> Option<&User> {
         self.user.as_ref()
     }

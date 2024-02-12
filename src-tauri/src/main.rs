@@ -50,6 +50,10 @@ fn agregar_proveedor(
     }
 }
 #[tauri::command]
+fn agregar_usuario(){
+    todo!()
+}
+#[tauri::command]
 fn agregar_producto(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
