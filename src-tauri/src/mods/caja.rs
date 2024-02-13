@@ -3,9 +3,9 @@ use sea_orm::{
     ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryOrder, Set,
 };
 use std::sync::Arc;
-
+type Res<T> = std::result::Result<T, AppError>;
 use super::error::AppError;
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Caja {
     id: i64,
     inicio: NaiveDateTime,
@@ -86,6 +86,23 @@ impl Caja {
             model.insert(db.as_ref()).await?;
         }
         Ok(aux)
+    }
+    pub async fn set_n_save(&mut self, db: &DatabaseConnection, monto: f64) -> Res<()> {
+        match entity::caja::Entity::find_by_id(self.id).one(db).await? {
+            Some(model) => {
+                let mut model = model.into_active_model();
+                model.cierre = Set(Some(Utc::now().naive_local()));
+                model.monto_cierre = Set(Some(monto));
+                model.update(db).await?;
+                Ok(())
+            }
+            None => {
+                return Err(AppError::NotFound {
+                    objeto: String::from("Caja"),
+                    instancia: self.id.to_string(),
+                })
+            }
+        }
     }
     pub async fn update_total(
         &mut self,

@@ -219,6 +219,18 @@ fn buscador(name: &str) -> String {
     format!("Hello, {}! You've been mensajed from Rust!", name)
 }
 #[tauri::command]
+fn cerrar_caja(sistema: State<Mutex<Sistema>>, monto_actual: f64) -> Result<()> {
+    match sistema.lock() {
+        Ok(mut sis) => {
+            if let Err(e) = sis.cerrar_caja(monto_actual) {
+                return Err(e.to_string());
+            }
+            Ok(())
+        }
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
 async fn check_codes(code: i64) -> Result<bool> {
     match Database::connect("sqlite://db.sqlite?mode=ro").await {
         Ok(db) => {
@@ -791,6 +803,7 @@ fn main() {
             agregar_rubro,
             agregar_usuario,
             buscador,
+            cerrar_caja,
             check_codes,
             close_window,
             descontar_producto_de_venta,

@@ -119,9 +119,19 @@ impl<'a> Sistema {
         )?;
         Ok(sis)
     }
+    fn generar_reporte_caja(&self) {
+        println!("{:#?}", self.caja);
+    }
+    pub fn cerrar_caja(&mut self, monto_actual: f64) -> Res<()> {
+        self.generar_reporte_caja();
+        let db = Arc::clone(&self.write_db);
+        async_runtime::block_on(self.caja.set_n_save(db.as_ref(), monto_actual))?;
+        self.caja =
+            async_runtime::block_on(Caja::new(Arc::clone(&self.write_db), Some(monto_actual)))?;
+        Ok(())
+    }
     pub fn eliminar_usuario(&self, user: User) -> Res<()> {
-        let db = Arc::clone(&self.read_db);
-        async_runtime::spawn(Db::eliminar_usuario(user, db));
+        async_runtime::spawn(Db::eliminar_usuario(user, Arc::clone(&self.read_db)));
         Ok(())
     }
     pub fn agregar_usuario(&self, user: User) -> Res<()> {
