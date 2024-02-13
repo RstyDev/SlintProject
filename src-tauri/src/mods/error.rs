@@ -20,7 +20,7 @@ pub enum AppError {
     #[error("{objeto:?} {instancia:?} existente")]
     ExistingError { objeto: String, instancia: String },
     #[error("No encontrado el {objeto:?} de id {instancia:?}")]
-    NotFound {objeto:String,instancia:String},
+    NotFound { objeto: String, instancia: String },
     #[error("Error de archivo")]
     FileSystemError(#[from] io::Error),
     #[error("Error de hora del sistema")]

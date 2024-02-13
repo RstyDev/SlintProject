@@ -1,11 +1,13 @@
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-#[derive(Debug)]
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     id: Arc<str>,
     pass: i64,
     rango: Rango,
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Rango {
     Admin,
     Cajero,

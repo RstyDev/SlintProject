@@ -2,11 +2,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use mods::lib::get_hash;
 use mods::user::User;
-use std::sync::Arc;
 use mods::{
     config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, user::Rango,
     valuable::Valuable, venta::Venta,
 };
+use std::sync::Arc;
 
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 type Result<T> = std::result::Result<T, String>;
@@ -33,7 +33,7 @@ fn agregar_proveedor(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     proveedor: &str,
-    contacto: &str,
+    contacto: Option<i64>,
 ) -> Result<()> {
     match sistema.lock() {
         Ok(mut sis) => match sis.user().unwrap().rango() {
@@ -52,12 +52,31 @@ fn agregar_proveedor(
     }
 }
 #[tauri::command]
-fn agregar_usuario(sistema:State<Mutex<Sistema>>, id:&str, pass:&str,rango:&str)->Result<()> {
-    match sistema.lock(){
-    Ok(sis) => if let Err(e)= async_runtime::block_on(sis.agregar_usuario(User::new(Arc::from(id), get_hash(pass), rango))){
-        return Err(e.to_string())
-    },
-    Err(e) => return Err(e.to_string()),
+fn eliminar_usuario(sistema: State<Mutex<Sistema>>, user: User) -> Result<()> {
+    match sistema.lock() {
+        Ok(sis) => {
+            if let Err(e) = sis.eliminar_usuario(user) {
+                return Err(e.to_string());
+            }
+        }
+        Err(e) => return Err(e.to_string()),
+    }
+    Ok(())
+}
+#[tauri::command]
+fn agregar_usuario(
+    sistema: State<Mutex<Sistema>>,
+    id: &str,
+    pass: &str,
+    rango: &str,
+) -> Result<()> {
+    match sistema.lock() {
+        Ok(sis) => {
+            if let Err(e) = sis.agregar_usuario(User::new(Arc::from(id), get_hash(pass), rango)) {
+                return Err(e.to_string());
+            }
+        }
+        Err(e) => return Err(e.to_string()),
     }
     Ok(())
 }
@@ -765,6 +784,8 @@ fn main() {
             get_proveedores,
             get_filtrado,
             // get_productos,
+            agregar_usuario,
+            eliminar_usuario,
             get_productos_filtrado,
             agregar_producto_a_venta,
             descontar_producto_de_venta,

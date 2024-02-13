@@ -10,29 +10,7 @@ use sea_orm::Condition;
 use sea_orm::DatabaseConnection;
 use sea_orm::DbErr;
 
-use sea_orm::IntoActiveModel;
-use sea_orm::PaginatorTrait;
-use sea_orm::QueryFilter;
-use sea_orm::QueryOrder;
-use sea_orm::QuerySelect;
-use sea_orm::Set;
-use sea_orm::{Database, EntityTrait};
-use std::collections::HashSet;
-use std::sync::Arc;
-use tauri::async_runtime;
-use tauri::async_runtime::JoinHandle;
-use Valuable as V;
-
-use crate::mods::caja::Caja;
-use crate::mods::lib::cargar_todas_las_relaciones_prod_prov;
-use crate::mods::lib::cargar_todos_los_provs;
-use crate::mods::lib::cargar_todos_los_valuables;
-use crate::mods::lib::get_hash;
-use crate::mods::user::Rango;
-use crate::mods::vendedor::Vendedor;
-
 use super::error::AppError;
-
 use super::lib::save;
 use super::lib::Mapper;
 use super::proveedor::Proveedor;
@@ -48,6 +26,22 @@ use super::{
     valuable::{Valuable, ValuableTrait},
     venta::Venta,
 };
+use crate::mods::caja::Caja;
+use crate::mods::lib::{get_hash, Db};
+use crate::mods::user::Rango;
+use crate::mods::vendedor::Vendedor;
+use sea_orm::IntoActiveModel;
+use sea_orm::PaginatorTrait;
+use sea_orm::QueryFilter;
+use sea_orm::QueryOrder;
+use sea_orm::QuerySelect;
+use sea_orm::Set;
+use sea_orm::{Database, EntityTrait};
+use std::collections::HashSet;
+use std::sync::Arc;
+use tauri::async_runtime;
+use tauri::async_runtime::JoinHandle;
+use Valuable as V;
 
 pub struct Sistema {
     user: Option<User>,
@@ -154,35 +148,13 @@ impl<'a> Sistema {
         )?;
         Ok(sis)
     }
-    pub async fn eliminar_usuario(&self, user:User)->Res<()>{
-        let model = match entity::user::Entity::find().filter(entity::user::Column::UserId.eq(user.id())).one(self.read_db()).await?{
-            Some(a) => a.into_active_model(),
-            None => return Err(AppError::NotFound { objeto: String::from("Usuario"), instancia: user.id().to_string() }),
-        };
-        model.delete(self.write_db()).await?;
+    pub fn eliminar_usuario(&self, user: User) -> Res<()> {
+        let db = Arc::clone(&self.read_db);
+        async_runtime::spawn(Db::eliminar_usuario(user, db));
         Ok(())
     }
-    pub async fn agregar_usuario(&self,user: User) -> Res<()> {
-        match entity::user::Entity::find()
-            .filter(entity::user::Column::UserId.eq(user.id()))
-            .one(self.read_db())
-            .await?
-        {
-            Some(_) => Err(AppError::ExistingError {
-                objeto: String::from("Usuario"),
-                instancia: user.id().to_string(),
-            }),
-            None => {
-                let model = entity::user::ActiveModel {
-                    user_id: Set(user.id().to_string()),
-                    pass: Set(*user.pass()),
-                    rango: Set(user.rango().to_string()),
-                    ..Default::default()
-                };
-                model.insert(self.write_db()).await?;
-                Ok(())
-            }
-        }
+    pub fn agregar_usuario(&self, user: User) -> Res<()> {
+        async_runtime::block_on(Db::agregar_usuario(user, Arc::clone(&self.write_db)))
     }
     pub fn user(&self) -> Option<&User> {
         self.user.as_ref()
@@ -256,9 +228,9 @@ impl<'a> Sistema {
                 };
                 model.insert(db.as_ref()).await.unwrap();
             });
-            async_runtime::spawn(cargar_todos_los_valuables(valuables));
-            async_runtime::spawn(cargar_todos_los_provs(proveedores));
-            async_runtime::spawn(cargar_todas_las_relaciones_prod_prov(relaciones));
+            async_runtime::spawn(Db::cargar_todos_los_valuables(valuables));
+            async_runtime::spawn(Db::cargar_todos_los_provs(proveedores));
+            async_runtime::spawn(Db::cargar_todas_las_relaciones_prod_prov(relaciones));
         }
         Ok(())
     }
@@ -588,15 +560,6 @@ impl<'a> Sistema {
         });
     }
 
-    fn proveedor_esta(&self, proveedor: &str) -> bool {
-        let mut res = false;
-        for i in &self.proveedores {
-            if i.nombre().eq_ignore_ascii_case(proveedor) {
-                res = true;
-            }
-        }
-        res
-    }
     pub async fn agregar_producto(
         &mut self,
         proveedores: Vec<&str>,
@@ -742,34 +705,9 @@ impl<'a> Sistema {
         // self.productos.push(V::Rub((0, rubro)));
         Ok(async_runtime::block_on(handle)??)
     }
-    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: &str) -> Res<()> {
-        let handle;
-        if self.proveedor_esta(&proveedor) {
-            return Err(AppError::ExistingError {
-                objeto: String::from("Proveedor"),
-                instancia: proveedor.to_string(),
-            });
-        } else {
-            let prov;
-            if contacto.len() > 0 {
-                let contacto: String = contacto
-                    .chars()
-                    .filter(|x| -> bool { x.is_numeric() })
-                    .collect();
-                let contacto = Some(contacto.parse()?);
-                let proveedor = proveedor.to_lowercase();
-                prov = Proveedor::new(
-                    self.proveedores.len() as i64 + 1,
-                    proveedor.as_str(),
-                    contacto,
-                );
-            } else {
-                prov = Proveedor::new(self.proveedores.len() as i64 + 1, proveedor, None);
-            }
-            handle = async_runtime::spawn(save(prov.clone()));
-            self.proveedores.push(prov);
-        }
-        Ok(async_runtime::block_on(handle)??)
+    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i64>) -> Res<()> {
+        async_runtime::block_on(Proveedor::new_to_db(proveedor, contacto, self.write_db()))?;
+        Ok(())
     }
     async fn producto(&mut self, id: i64) -> Result<Valuable, AppError> {
         let model;
@@ -787,7 +725,10 @@ impl<'a> Sistema {
                 )));
             }
             None => {
-                return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",id) });
+                return Err(AppError::NotFound {
+                    objeto: String::from("Producto"),
+                    instancia: format!("{}", id),
+                });
             }
         }
     }
@@ -821,7 +762,10 @@ impl<'a> Sistema {
                     .agregar_producto(prod, &self.configs().politica()))
             }
         } else {
-            return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",prod.descripcion(&self.configs())) });
+            return Err(AppError::NotFound {
+                objeto: String::from("Producto"),
+                instancia: format!("{}", prod.descripcion(&self.configs())),
+            });
         }
 
         result
