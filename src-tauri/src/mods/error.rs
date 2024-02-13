@@ -11,16 +11,16 @@ use thiserror::Error;
 pub enum AppError {
     #[error("Error de monto, el monto a pagar es: {a_pagar:?},el monto pagado es: {pagado:?}")]
     AmountError { a_pagar: f64, pagado: f64 },
-    #[error("{0} incorrecto/a")]
+    #[error("Error de {0}")]
     IncorrectError(String),
     #[error("Solo existen dos posiciones para venta")]
     SaleSelection,
     #[error("Presentacion seleccionada incorrecta, no existe {0}")]
     SizeSelection(String),
-    #[error("Proveedor {0} existente")]
-    ExistingProviderError(String),
-    #[error("No encontrado el producto de id {0}")]
-    ProductNotFound(String),
+    #[error("{objeto:?} {instancia:?} existente")]
+    ExistingError { objeto: String, instancia: String },
+    #[error("No encontrado el {objeto:?} de id {instancia:?}")]
+    NotFound {objeto:String,instancia:String},
     #[error("Error de archivo")]
     FileSystemError(#[from] io::Error),
     #[error("Error de hora del sistema")]

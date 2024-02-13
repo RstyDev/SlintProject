@@ -124,7 +124,7 @@ impl<'a> Venta {
         politica: &f64,
         conf: &Config,
     ) -> Result<Venta, AppError> {
-        let mut res = Err(AppError::ProductNotFound(producto.descripcion(conf)));
+        let mut res = Err(AppError::NotFound{objeto:String::from("Producto"),instancia:format!("{}",producto.descripcion(conf))});
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -162,7 +162,7 @@ impl<'a> Venta {
         politica: &f64,
         conf: &Config,
     ) -> Result<Venta, AppError> {
-        let mut res = Err(AppError::ProductNotFound(producto.descripcion(conf)));
+        let mut res = Err(AppError::NotFound{objeto:String::from("Producto"),instancia:format!("{}",producto.descripcion(conf))});
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -188,7 +188,7 @@ impl<'a> Venta {
         politica: &f64,
         conf: &Config,
     ) -> Result<Venta, AppError> {
-        let mut res = Err(AppError::ProductNotFound(producto.descripcion(conf)));
+        let mut res = Err(AppError::NotFound{objeto:String::from("Producto"),instancia:format!("{}",producto.descripcion(conf))});
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {

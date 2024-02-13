@@ -154,9 +154,35 @@ impl<'a> Sistema {
         )?;
         Ok(sis)
     }
-    pub async fn agregar_usuario(user:User,db:&DatabaseConnection)->Res<()>{
-        let model=entity::user::Entity::find().filter(entity::user::Column::UserId.eq(user.id())).one(db).await?;
-        todo!()
+    pub async fn eliminar_usuario(&self, user:User)->Res<()>{
+        let model = match entity::user::Entity::find().filter(entity::user::Column::UserId.eq(user.id())).one(self.read_db()).await?{
+            Some(a) => a.into_active_model(),
+            None => return Err(AppError::NotFound { objeto: String::from("Usuario"), instancia: user.id().to_string() }),
+        };
+        model.delete(self.write_db()).await?;
+        Ok(())
+    }
+    pub async fn agregar_usuario(&self,user: User) -> Res<()> {
+        match entity::user::Entity::find()
+            .filter(entity::user::Column::UserId.eq(user.id()))
+            .one(self.read_db())
+            .await?
+        {
+            Some(_) => Err(AppError::ExistingError {
+                objeto: String::from("Usuario"),
+                instancia: user.id().to_string(),
+            }),
+            None => {
+                let model = entity::user::ActiveModel {
+                    user_id: Set(user.id().to_string()),
+                    pass: Set(*user.pass()),
+                    rango: Set(user.rango().to_string()),
+                    ..Default::default()
+                };
+                model.insert(self.write_db()).await?;
+                Ok(())
+            }
+        }
     }
     pub fn user(&self) -> Option<&User> {
         self.user.as_ref()
@@ -719,7 +745,10 @@ impl<'a> Sistema {
     pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: &str) -> Res<()> {
         let handle;
         if self.proveedor_esta(&proveedor) {
-            return Err(AppError::ExistingProviderError(proveedor.to_string()));
+            return Err(AppError::ExistingError {
+                objeto: String::from("Proveedor"),
+                instancia: proveedor.to_string(),
+            });
         } else {
             let prov;
             if contacto.len() > 0 {
@@ -758,9 +787,7 @@ impl<'a> Sistema {
                 )));
             }
             None => {
-                return Err(AppError::ProductNotFound(format!(
-                    "No encontrado el producto id {id}"
-                )));
+                return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",id) });
             }
         }
     }
@@ -794,9 +821,7 @@ impl<'a> Sistema {
                     .agregar_producto(prod, &self.configs().politica()))
             }
         } else {
-            return Err(AppError::ProductNotFound(String::from(
-                "Producto inexistente",
-            )));
+            return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",prod.descripcion(&self.configs())) });
         }
 
         result

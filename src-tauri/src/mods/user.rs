@@ -22,8 +22,11 @@ impl User {
     pub fn rango(&self) -> &Rango {
         &self.rango
     }
-    pub fn id(&self)->&str{
+    pub fn id(&self) -> &str {
         self.id.as_ref()
+    }
+    pub fn pass(&self) -> &i64 {
+        &self.pass
     }
 }
 impl ToString for Rango {

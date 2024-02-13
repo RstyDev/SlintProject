@@ -1,6 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use mods::lib::get_hash;
+use mods::user::User;
+use std::sync::Arc;
 use mods::{
     config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, user::Rango,
     valuable::Valuable, venta::Venta,
@@ -50,8 +52,14 @@ fn agregar_proveedor(
     }
 }
 #[tauri::command]
-fn agregar_usuario(){
-    todo!()
+fn agregar_usuario(sistema:State<Mutex<Sistema>>, id:&str, pass:&str,rango:&str)->Result<()> {
+    match sistema.lock(){
+    Ok(sis) => if let Err(e)= async_runtime::block_on(sis.agregar_usuario(User::new(Arc::from(id), get_hash(pass), rango))){
+        return Err(e.to_string())
+    },
+    Err(e) => return Err(e.to_string()),
+    }
+    Ok(())
 }
 #[tauri::command]
 fn agregar_producto(
@@ -115,7 +123,7 @@ fn agregar_pesable<'a>(
             Rango::Admin => {
                 let pesable =
                     Pesable::new(id, codigo, precio_peso, porcentaje, costo_kilo, descripcion);
-                let desc=pesable.descripcion().to_string();
+                let desc = pesable.descripcion().to_string();
                 if let Err(e) = sis.agregar_pesable(pesable) {
                     return Err(e.to_string());
                 }
