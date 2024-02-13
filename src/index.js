@@ -10,7 +10,7 @@ const { emit, listen } = window.__TAURI__.event;
 
 let mensaje1;
 
-
+let user;
 let posA = true;
 let posicionVenta = 0;
 let focuseado;
@@ -84,7 +84,12 @@ async function eliminar_pago(index) {
 async function get_configs() {
   return await invoke("get_configs");
 }
-
+async function get_user() {
+  return await invoke("get_user");
+}
+async function open_add_user() {
+  return await invoke("open_add_user");
+}
 async function open_add_select() {
   return await invoke("open_add_select");
 }
@@ -386,7 +391,7 @@ function dibujar_venta(venta) {
     console.log(venta.pagos[i].medio_pago.medio);
     pagos.innerHTML += `
   <form class="pago">
-  <input class="input-monto" type="number" step="0.01" disabled value="${venta.pagos[i].monto}"></input>
+  <input class="input-monto" type="number" step="0.01" disabled value="${venta.pagos[i].monto}" required></input>
   <input class="opciones-pagos" value="${venta.pagos[i].medio_pago.medio}" disabled>
   </input>
   <input class="boton-eliminar-pago" value="Eliminar" type="submit">
@@ -397,7 +402,7 @@ function dibujar_venta(venta) {
 
   pagos.innerHTML += `
   <form class="pago">
-  <input class="input-monto" id="input-activo" type="number" step="0.01" placeholder="Monto"></input>
+  <input class="input-monto" id="input-activo" type="number" step="0.01" placeholder="Monto" required></input>
   <select class="opciones-pagos">
   </select>
   <input id="boton-agregar-pago" value="Cash" type="submit">
@@ -885,13 +890,21 @@ function PlaySound(soundObj) {
 
 
 function dibujar_base(){
-  document.getElementsByTagName('body')[0].innerHTML =`<header class="container">
+  get_user().then(usuario=>{
+    user=usuario;
+    let boton_add_user='';
+    console.log(usuario);
+    if (usuario.rango=='Admin'){
+      boton_add_user='<a id="agregar-usuario-mostrar" class="a-boton">Agregar Usuario</a>'
+    }
+    document.getElementsByTagName('body')[0].innerHTML =`<header class="container">
         <div id="header">
             <div id="menu-image">
                 <a id="menu-button"><img src="/assets/menu.svg" class="boton" alt="menu image"></a>
                 <div id="barra-de-opciones">
                     <a id="agregar-producto-mostrar" class="a-boton">Agregar Producto</a>
                     <a id="agregar-proveedor-mostrar" class="a-boton">Agregar Proveedor</a>
+                    ${boton_add_user}
                     <a id="cambiar-configs-mostrar" class="a-boton">Configuraciones</a>
                 </div>
             </div>
@@ -909,8 +922,18 @@ function dibujar_base(){
         <section id="cuadro-principal" class="main-screen">
         </section>
     </main>`;
+  boton_add_user=document.getElementById('agregar-usuario-mostrar');
+  if (boton_add_user){
+    boton_add_user.addEventListener('click',(e)=>{
+      let barra = document.querySelector('#barra-de-opciones');
+      barra.classList.remove('visible');
+      barra.classList.remove('para-hamburguesa');
+      open_add_user();
+    })
+  }
   mensaje1 = document.querySelector('#mensaje1-msg');
   buscador = document.querySelector('#buscador');
+
   buscador.addEventListener('focus', () => {
     let prod = document.getElementById('productos');
     if (prod) {
@@ -930,10 +953,8 @@ function dibujar_base(){
     let barra = document.querySelector('#barra-de-opciones');
     barra.classList.remove('visible');
     barra.classList.remove('para-hamburguesa');
-
   }
-
-
+  })
 }
 
 
@@ -958,7 +979,6 @@ function sleep(ms) {
 open_login();
 const unlisten2 = await listen('inicio-sesion', (pl) => {
     if (pl.payload.message == 'Correcto') {
-      console.log("aca se dibuja todo");
       dibujar_base();
     }
   })

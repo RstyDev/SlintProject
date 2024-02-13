@@ -7,11 +7,11 @@ document.addEventListener('keydown',(e)=>{
 async function close_window() {
     return await invoke("close_window");
 }
+async function select(dato){
+    return await invoke("select_window", {dato:dato})
+}
 let clase=document.getElementById('clase');
 clase.focus();
 clase.addEventListener('change',()=>{
     select(clase.value);
 })
-async function select(dato){
-    return await invoke("select_window", {dato:dato})
-}

@@ -150,7 +150,14 @@ get_stash().then(stash => {
 
 })
 
-
+document.addEventListener('keydown',(e)=>{
+    if (e.keyCode==27){
+        close_window();
+    }
+})
+async function close_window() {
+    return await invoke("close_window");
+}
 
 const unlisten = await listen('get-venta', (pl) => {
 

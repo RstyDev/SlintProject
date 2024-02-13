@@ -57,28 +57,6 @@ pub struct Sistema {
     registro: Vec<Venta>,
 }
 
-async fn get_cantidad_productos() -> Result<u64, DbErr> {
-    let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-    Ok(entity::producto::Entity::find().count(&db).await?)
-}
-// fn check_codes(prods: &mut Vec<Producto>) {
-//     for i in 0..prods.len() {
-//         println!("Producto {}", i);
-//         for j in 0..prods[i].codigos_de_barras.len() {
-//             for k in i + 1..prods.len() {
-//                 let mut l = 0;
-//                 while l < prods[k].codigos_de_barras.len() {
-//                     if prods[i].codigos_de_barras[j] == prods[k].codigos_de_barras[l] {
-//                         prods[k].rm_code(l);
-//                     } else {
-//                         l += 1;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
-
 async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
     Database::connect(path).await
 }
@@ -111,15 +89,8 @@ impl<'a> Sistema {
         let aux2 = Arc::clone(&write_db);
         let vendedor = async_runtime::spawn(Vendedor::get_or_def(aux2));
         let caja = async_runtime::spawn(Caja::new(aux, Some(0.0)));
-
         let stash = Vec::new();
         let registro = Vec::new();
-
-        println!(
-            "Acá la cantidad de producto actual {}",
-            async_runtime::block_on(get_cantidad_productos()).unwrap()
-        );
-
         let vendedor = Arc::from(async_runtime::block_on(vendedor)??);
         let caja = async_runtime::block_on(caja)??;
         let w1 = Arc::clone(&write_db);
@@ -156,8 +127,8 @@ impl<'a> Sistema {
     pub fn agregar_usuario(&self, user: User) -> Res<()> {
         async_runtime::block_on(Db::agregar_usuario(user, Arc::clone(&self.write_db)))
     }
-    pub fn user(&self) -> Option<&User> {
-        self.user.as_ref()
+    pub fn user(&self) -> Option<User> {
+        self.user.clone()
     }
     fn procesar(
         write_db: Arc<DatabaseConnection>,
@@ -250,6 +221,7 @@ impl<'a> Sistema {
                     user.pass,
                     user.rango.as_str(),
                 ));
+                println!("{:#?}", self.user);
                 Ok(())
             }
             None => match entity::user::Entity::find()
