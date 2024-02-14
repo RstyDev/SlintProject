@@ -36,7 +36,12 @@ input:disabled {
   height: fit-content;
 
 }
-
+#tabla-productos {
+  height: fit-content;
+}
+#tabla-productos tr{
+  max-height: 2em;
+}
 #tabla-productos tr:hover {
   background-color: #666;
 }
@@ -581,9 +586,7 @@ label {
       display: inline-block;
     }
   }
-  & #input-codigo{
-
-  }
+  
 }
 
 #cerrar-agregar-proveedor,

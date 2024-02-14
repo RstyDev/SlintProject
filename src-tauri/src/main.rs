@@ -7,6 +7,7 @@ use mods::{
     valuable::Valuable, venta::Venta,
 };
 use std::sync::Arc;
+use tauri::Manager;
 
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 type Result<T> = std::result::Result<T, String>;
@@ -581,7 +582,7 @@ async fn open_add_user(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
-fn open_cerrar_caja(handle: tauri::AppHandle) -> Result<()> {
+async fn open_cerrar_caja(handle: tauri::AppHandle) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "cerrar-caja",
@@ -591,7 +592,7 @@ fn open_cerrar_caja(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(400.0, 800.0)
+    .inner_size(400.0, 620.0)
     .build()
     {
         Ok(_) => Ok(()),
@@ -707,14 +708,21 @@ fn try_login(
     match sistema.lock() {
         Ok(mut sis) => match async_runtime::block_on(sis.try_login(id, get_hash(pass))) {
             Ok(_) => {
-                if let Err(e) = window.emit(
+                match window.emit(
                     "inicio-sesion",
                     Payload {
                         message: Some("Correcto".to_string()),
                         pos: None,
                     },
                 ) {
-                    return Err(e.to_string());
+                    Err(e) => return Err(e.to_string()),
+                    Ok(_) => {
+                        if let Some(window) = tauri::Window::get_window(&window, "main") {
+                            if let Err(e) = window.maximize() {
+                                return Err(e.to_string());
+                            }
+                        }
+                    }
                 }
                 if let Err(e) = window.close() {
                     return Err(e.to_string());

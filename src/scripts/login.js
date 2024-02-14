@@ -3,7 +3,7 @@ var error = new Audio('./../assets/error.mp3');
 const id=document.getElementById('id');
 const pass=document.getElementById('pass');
 
-
+id.focus();
 document.getElementById('form-login').addEventListener('submit',async (e)=>{
   e.preventDefault();
   try{

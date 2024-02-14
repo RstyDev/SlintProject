@@ -231,7 +231,6 @@ impl<'a> Sistema {
                     user.pass,
                     user.rango.as_str(),
                 ));
-                println!("{:#?}", self.user);
                 Ok(())
             }
             None => match entity::user::Entity::find()
