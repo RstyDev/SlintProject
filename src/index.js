@@ -501,6 +501,9 @@ async function descontarProdVentaAct(id) {
 async function eliminarProdVentaAct(id) {
   return await invoke("eliminar_producto_de_venta", { id: "" + id, pos: posA })
 }
+async function open_cerrar_caja(){
+  return await invoke("open_cerrar_caja")
+}
 function borrarBusqueda() {
   buscador.value = '';
   document.querySelector('#cuadro-principal').replaceChildren([]);
@@ -893,19 +896,26 @@ function dibujar_base(){
   get_user().then(usuario=>{
     user=usuario;
     let boton_add_user='';
+    let boton_conf='';
+    let boton_agregar_producto='';
+    let boton_agregar_prov='';
     console.log(usuario);
     if (usuario.rango=='Admin'){
+      boton_agregar_producto='<a id="agregar-producto-mostrar" class="a-boton">Agregar Producto</a>'
       boton_add_user='<a id="agregar-usuario-mostrar" class="a-boton">Agregar Usuario</a>'
+      boton_conf='<a id="cambiar-configs-mostrar" class="a-boton">Configuraciones</a>'
+      boton_agregar_prov='<a id="agregar-proveedor-mostrar" class="a-boton">Agregar Proveedor</a>'
     }
     document.getElementsByTagName('body')[0].innerHTML =`<header class="container">
         <div id="header">
             <div id="menu-image">
                 <a id="menu-button"><img src="/assets/menu.svg" class="boton" alt="menu image"></a>
                 <div id="barra-de-opciones">
-                    <a id="agregar-producto-mostrar" class="a-boton">Agregar Producto</a>
-                    <a id="agregar-proveedor-mostrar" class="a-boton">Agregar Proveedor</a>
+                    <a id="cerrar-caja-mostrar" class="a-boton">Cerrar Caja</a>
+                    ${boton_agregar_producto}
+                    ${boton_agregar_prov}
                     ${boton_add_user}
-                    <a id="cambiar-configs-mostrar" class="a-boton">Configuraciones</a>
+                    ${boton_conf}
                 </div>
             </div>
             <div>
@@ -923,6 +933,12 @@ function dibujar_base(){
         </section>
     </main>`;
   boton_add_user=document.getElementById('agregar-usuario-mostrar');
+  document.getElementById('cerrar-caja-mostrar').addEventListener('click',()=>{
+    open_cerrar_caja();
+  })
+  if (document.getElementById('agregar-producto-mostrar')){
+    agrProdContHandle();
+  }
   if (boton_add_user){
     boton_add_user.addEventListener('click',(e)=>{
       let barra = document.querySelector('#barra-de-opciones');
@@ -930,6 +946,9 @@ function dibujar_base(){
       barra.classList.remove('para-hamburguesa');
       open_add_user();
     })
+  }
+  if (document.getElementById('cambiar-configs-mostrar')){
+    cambiarConfHandle();
   }
   mensaje1 = document.querySelector('#mensaje1-msg');
   buscador = document.querySelector('#buscador');
@@ -941,11 +960,11 @@ function dibujar_base(){
     }
   });
   borrarBusqueda();
-  agrProdContHandle();
+  
   buscadorHandle();
   optionBarHandle()
   menuButtonHandle();
-  cambiarConfHandle();
+  
   escYf10Press();
 
   document.getElementById("agregar-proveedor-mostrar").onclick = function () {

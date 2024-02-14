@@ -23,6 +23,58 @@ struct Payload {
 }
 mod mods;
 
+async fn open_add_product(handle: tauri::AppHandle) -> Result<()> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "add-product", /* the unique window label */
+        tauri::WindowUrl::App("/pages/add-product.html".parse().unwrap()),
+    )
+    .always_on_top(true)
+    .center()
+    .resizable(false)
+    .minimizable(false)
+    .inner_size(800.0, 400.0)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+async fn open_add_pesable(handle: tauri::AppHandle) -> Result<()> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "add-pesable", /* the unique window label */
+        tauri::WindowUrl::App("/pages/add-pesable.html".parse().unwrap()),
+    )
+    .always_on_top(true)
+    .center()
+    .resizable(false)
+    .minimizable(false)
+    .inner_size(350.0, 260.0)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "add-rubro", /* the unique window label */
+        tauri::WindowUrl::App("/pages/add-rubro.html".parse().unwrap()),
+    )
+    .always_on_top(true)
+    .center()
+    .resizable(false)
+    .minimizable(false)
+    .inner_size(350.0, 180.0)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
 #[tauri::command]
 fn agregar_pago(
     sistema: State<Mutex<Sistema>>,
@@ -201,8 +253,10 @@ fn agregar_usuario(
             Rango::Admin => {
                 match sis.agregar_usuario(User::new(Arc::from(id), get_hash(pass), rango)) {
                     Ok(_) => {
-                        if let Err(e) = window.close() {
-                            return Err(e.to_string());
+                        if let Err(_) = window.close() {
+                            if let Err(e) = window.close() {
+                                return Err(e.to_string());
+                            }
                         }
                     }
                     Err(e) => return Err(e.to_string()),
@@ -527,6 +581,24 @@ async fn open_add_user(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
+fn open_cerrar_caja(handle: tauri::AppHandle) -> Result<()> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "cerrar-caja",
+        tauri::WindowUrl::App("/pages/cerrar-caja.html".parse().unwrap()),
+    )
+    .always_on_top(true)
+    .center()
+    .resizable(false)
+    .minimizable(false)
+    .inner_size(400.0, 800.0)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
 async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,
@@ -739,58 +811,6 @@ fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Resu
     }
 }
 
-async fn open_add_product(handle: tauri::AppHandle) -> Result<()> {
-    match tauri::WindowBuilder::new(
-        &handle,
-        "add-product", /* the unique window label */
-        tauri::WindowUrl::App("/pages/add-product.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(800.0, 400.0)
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
-}
-async fn open_add_pesable(handle: tauri::AppHandle) -> Result<()> {
-    match tauri::WindowBuilder::new(
-        &handle,
-        "add-pesable", /* the unique window label */
-        tauri::WindowUrl::App("/pages/add-pesable.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(350.0, 260.0)
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
-}
-async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
-    match tauri::WindowBuilder::new(
-        &handle,
-        "add-rubro", /* the unique window label */
-        tauri::WindowUrl::App("/pages/add-rubro.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(350.0, 180.0)
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
-}
-
 fn main() {
     let app = tauri::Builder::default()
         .manage(Mutex::new(Sistema::new().unwrap()))
@@ -823,6 +843,7 @@ fn main() {
             open_add_prov,
             open_add_select,
             open_add_user,
+            open_cerrar_caja,
             open_confirm_stash,
             open_edit_settings,
             open_login,
