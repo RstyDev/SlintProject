@@ -1,12 +1,15 @@
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
+use super::error::AppError;
+type Res<T> = std::result::Result<T, AppError>;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     id: Arc<str>,
+    nombre: Arc<str>,
     pass: i64,
     rango: Rango,
-    nombre: Arc<str>,
 }
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Rango {
@@ -14,7 +17,48 @@ pub enum Rango {
     Cajero,
 }
 impl User {
-    pub fn new(id: Arc<str>, pass: i64, rango: &str, nombre: &str) -> User {
+    pub async fn new_to_db(
+        id: Arc<str>,
+        nombre: Arc<str>,
+        pass: i64,
+        rango: &str,
+        db: &DatabaseConnection,
+    ) -> Res<User> {
+        let rango2 = match rango {
+            "Admin" => Rango::Admin,
+            "Cajero" => Rango::Cajero,
+            _ => panic!("No existe"),
+        };
+        match entity::user::Entity::find()
+            .filter(entity::user::Column::UserId.eq(id.as_ref()))
+            .one(db)
+            .await?
+        {
+            Some(_) => Ok(User {
+                id,
+                nombre,
+                pass,
+                rango: rango2,
+            }),
+            None => {
+                entity::user::ActiveModel {
+                    user_id: Set(id.to_string()),
+                    pass: Set(pass),
+                    rango: Set(rango.to_string()),
+                    ..Default::default()
+                }
+                .insert(db)
+                .await?;
+                Ok(User {
+                    id,
+                    nombre,
+                    pass,
+                    rango: rango2,
+                })
+            }
+        }
+    }
+    pub fn new(id: Arc<str>, nombre: Arc<str>, pass: i64, rango: &str) -> User {
         let rango = match rango {
             "Admin" => Rango::Admin,
             "Cajero" => Rango::Cajero,

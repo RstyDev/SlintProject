@@ -128,12 +128,22 @@ impl<'a> Sistema {
         async_runtime::spawn(Db::eliminar_usuario(user, Arc::clone(&self.read_db)));
         Ok(())
     }
-    pub fn agregar_usuario(&self, user: User) -> Res<()> {
-        async_runtime::block_on(Db::agregar_usuario(user, Arc::clone(&self.write_db)))
+    pub fn agregar_usuario(&self, id: &str, nombre: &str, pass: &str, rango: &str) -> Res<User> {
+        async_runtime::block_on(User::new_to_db(
+            Arc::from(id),
+            Arc::from(nombre),
+            get_hash(pass),
+            rango,
+            self.write_db(),
+        ))
     }
+
     // pub fn user(&self) -> Option<User> {
     //     self.user.clone()
     // }
+    pub fn caja(&self) -> &Caja {
+        &self.caja
+    }
     fn procesar(
         write_db: Arc<DatabaseConnection>,
         read_db: Arc<DatabaseConnection>,
@@ -223,9 +233,9 @@ impl<'a> Sistema {
             Some(user) => {
                 self.user = Some(Arc::from(User::new(
                     Arc::from(user.user_id),
+                    Arc::from(user.nombre),
                     user.pass,
                     user.rango.as_str(),
-                    user.nombre.as_str(),
                 )));
                 self.ventas = (
                     Venta::new(Some(self.arc_user()), &self.write_db).await?,

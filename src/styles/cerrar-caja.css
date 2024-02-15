@@ -9,3 +9,6 @@
 #c2, input{
     grid-column-start: 2;
 }
+body{
+    display: flex;
+}

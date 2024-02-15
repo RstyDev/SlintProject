@@ -1,12 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use mods::caja::Caja;
 use mods::lib::get_hash;
 use mods::user::User;
 use mods::{
     config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, user::Rango,
     valuable::Valuable, venta::Venta,
 };
-use std::sync::Arc;
 use tauri::Manager;
 
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
@@ -246,29 +246,27 @@ fn agregar_usuario(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     id: &str,
+    nombre: &str,
     pass: &str,
     rango: &str,
-    nombre: &str,
-) -> Result<()> {
+) -> Result<User> {
     match sistema.lock() {
         Ok(sis) => match sis.arc_user().rango() {
-            Rango::Admin => {
-                match sis.agregar_usuario(User::new(Arc::from(id), get_hash(pass), rango, nombre)) {
-                    Ok(_) => {
-                        if let Err(_) = window.close() {
-                            if let Err(e) = window.close() {
-                                return Err(e.to_string());
-                            }
+            Rango::Admin => match sis.agregar_usuario(id, nombre, pass, rango) {
+                Ok(user) => {
+                    if let Err(_) = window.close() {
+                        if let Err(e) = window.close() {
+                            return Err(e.to_string());
                         }
                     }
-                    Err(e) => return Err(e.to_string()),
+                    Ok(user)
                 }
-            }
-            Rango::Cajero => return Err(DENEGADO.to_string()),
+                Err(e) => Err(e.to_string()),
+            },
+            Rango::Cajero => Err(DENEGADO.to_string()),
         },
-        Err(e) => return Err(e.to_string()),
+        Err(e) => Err(e.to_string()),
     }
-    Ok(())
 }
 #[tauri::command]
 fn buscador(name: &str) -> String {
@@ -400,6 +398,13 @@ fn eliminar_usuario(sistema: State<Mutex<Sistema>>, user: User) -> Result<()> {
         Err(e) => return Err(e.to_string()),
     }
     Ok(())
+}
+#[tauri::command]
+fn get_caja(sistema: State<Mutex<Sistema>>) -> Result<Caja> {
+    match sistema.lock() {
+        Ok(sis) => Ok(sis.caja().clone()),
+        Err(e) => Err(e.to_string()),
+    }
 }
 #[tauri::command]
 fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config> {
@@ -839,6 +844,7 @@ fn main() {
             eliminar_pago,
             eliminar_producto_de_venta,
             eliminar_usuario,
+            get_caja,
             get_configs,
             get_descripcion_valuable,
             get_filtrado,

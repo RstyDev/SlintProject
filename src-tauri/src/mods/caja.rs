@@ -1,11 +1,12 @@
 use chrono::{NaiveDateTime, Utc};
+use serde::{Serialize,Deserialize};
 use sea_orm::{
     ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryOrder, Set,
 };
 use std::sync::Arc;
 type Res<T> = std::result::Result<T, AppError>;
 use super::error::AppError;
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug,Serialize,Deserialize)]
 pub struct Caja {
     id: i64,
     inicio: NaiveDateTime,
