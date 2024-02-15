@@ -6,6 +6,7 @@ pub struct User {
     id: Arc<str>,
     pass: i64,
     rango: Rango,
+    nombre: Arc<str>,
 }
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Rango {
@@ -13,13 +14,18 @@ pub enum Rango {
     Cajero,
 }
 impl User {
-    pub fn new(id: Arc<str>, pass: i64, rango: &str) -> User {
+    pub fn new(id: Arc<str>, pass: i64, rango: &str, nombre: &str) -> User {
         let rango = match rango {
             "Admin" => Rango::Admin,
             "Cajero" => Rango::Cajero,
             _ => panic!("No existe"),
         };
-        User { id, pass, rango }
+        User {
+            id,
+            pass,
+            rango,
+            nombre: Arc::from(nombre),
+        }
     }
     pub fn rango(&self) -> &Rango {
         &self.rango
@@ -29,6 +35,9 @@ impl User {
     }
     pub fn pass(&self) -> &i64 {
         &self.pass
+    }
+    pub fn nombre(&self) -> &str {
+        self.nombre.as_ref()
     }
 }
 impl ToString for Rango {

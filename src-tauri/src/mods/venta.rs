@@ -18,8 +18,8 @@ use super::{
     error::AppError,
     lib::{redondeo, Save},
     pago::{MedioPago, Pago},
+    user::User,
     valuable::Valuable,
-    vendedor::Vendedor,
 };
 
 #[derive(Debug, Clone, Default, Serialize)]
@@ -29,11 +29,11 @@ pub struct Venta {
     productos: Vec<Valuable>,
     pagos: Vec<Pago>,
     monto_pagado: f64,
-    vendedor: Arc<Vendedor>,
+    vendedor: Option<Arc<User>>,
 }
 
 impl<'a> Venta {
-    pub async fn new(vendedor: Arc<Vendedor>, db: &DatabaseConnection) -> Res<Venta> {
+    pub async fn new(vendedor: Option<Arc<User>>, db: &DatabaseConnection) -> Res<Venta> {
         let venta = entity::venta::Entity::find()
             .order_by_desc(entity::venta::Column::Id)
             .one(db)

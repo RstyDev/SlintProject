@@ -8,6 +8,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
     pub user_id: String,
+    pub nombre: String,
     pub pass: i64,
     pub rango: String,
 }

@@ -415,22 +415,6 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Vendedor::Table)
-                    .if_not_exists()
-                    .col(
-                        ColumnDef::new(Vendedor::Id)
-                            .big_integer()
-                            .not_null()
-                            .auto_increment()
-                            .primary_key(),
-                    )
-                    .col(ColumnDef::new(Vendedor::Nombre).string().not_null())
-                    .to_owned(),
-            )
-            .await?;
-        manager
-            .create_table(
-                Table::create()
                     .table(User::Table)
                     .if_not_exists()
                     .col(
@@ -441,6 +425,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(User::UserId).string().not_null())
+                    .col(ColumnDef::new(User::Nombre).string().not_null())
                     .col(ColumnDef::new(User::Pass).big_integer().not_null())
                     .col(ColumnDef::new(User::Rango).string().not_null())
                     .to_owned(),
@@ -603,17 +588,13 @@ enum Caja {
     MontoCierre,
     VentasTotales,
 }
-#[derive(DeriveIden)]
-enum Vendedor {
-    Table,
-    Id,
-    Nombre,
-}
+
 #[derive(DeriveIden)]
 enum User {
     Table,
     Id,
     UserId,
+    Nombre,
     Pass,
     Rango,
 }

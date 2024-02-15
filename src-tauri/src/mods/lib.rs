@@ -201,6 +201,7 @@ impl Db {
                     user_id: Set(user.id().to_string()),
                     pass: Set(*user.pass()),
                     rango: Set(user.rango().to_string()),
+                    nombre: Set(user.nombre().to_string()),
                     ..Default::default()
                 };
                 model.insert(db.as_ref()).await?;

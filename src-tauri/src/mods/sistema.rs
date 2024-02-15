@@ -29,7 +29,6 @@ use super::{
 use crate::mods::caja::Caja;
 use crate::mods::lib::{get_hash, Db};
 use crate::mods::user::Rango;
-use crate::mods::vendedor::Vendedor;
 use sea_orm::IntoActiveModel;
 use sea_orm::PaginatorTrait;
 use sea_orm::QueryFilter;
@@ -44,11 +43,10 @@ use tauri::async_runtime::JoinHandle;
 use Valuable as V;
 
 pub struct Sistema {
-    user: Option<User>,
+    user: Option<Arc<User>>,
     write_db: Arc<DatabaseConnection>,
     read_db: Arc<DatabaseConnection>,
     caja: Caja,
-    vendedor: Arc<Vendedor>,
     configs: Config,
     ventas: (Venta, Venta),
     proveedores: Vec<Proveedor>,
@@ -86,12 +84,9 @@ impl<'a> Sistema {
         leer_file(&mut proveedores, path_proveedores)?;
 
         let aux = Arc::clone(&write_db);
-        let aux2 = Arc::clone(&write_db);
-        let vendedor = async_runtime::spawn(Vendedor::get_or_def(aux2));
         let caja = async_runtime::spawn(Caja::new(aux, Some(0.0)));
         let stash = Vec::new();
         let registro = Vec::new();
-        let vendedor = Arc::from(async_runtime::block_on(vendedor)??);
         let caja = async_runtime::block_on(caja)??;
         let w1 = Arc::clone(&write_db);
         let db = Arc::clone(&read_db);
@@ -100,11 +95,10 @@ impl<'a> Sistema {
             write_db,
             read_db,
             caja,
-            vendedor: Arc::clone(&vendedor),
             configs: async_runtime::block_on(Config::get_or_def(db.as_ref()))?,
             ventas: (
-                async_runtime::block_on(Venta::new(Arc::clone(&vendedor), w1.as_ref()))?,
-                async_runtime::block_on(Venta::new(vendedor, w1.as_ref()))?,
+                async_runtime::block_on(Venta::new(None, w1.as_ref()))?,
+                async_runtime::block_on(Venta::new(None, w1.as_ref()))?,
             ),
             proveedores: proveedores.clone(),
             relaciones,
@@ -137,9 +131,9 @@ impl<'a> Sistema {
     pub fn agregar_usuario(&self, user: User) -> Res<()> {
         async_runtime::block_on(Db::agregar_usuario(user, Arc::clone(&self.write_db)))
     }
-    pub fn user(&self) -> Option<User> {
-        self.user.clone()
-    }
+    // pub fn user(&self) -> Option<User> {
+    //     self.user.clone()
+    // }
     fn procesar(
         write_db: Arc<DatabaseConnection>,
         read_db: Arc<DatabaseConnection>,
@@ -205,6 +199,7 @@ impl<'a> Sistema {
                     user_id: Set("admin".to_owned()),
                     pass: Set(get_hash("1234")),
                     rango: Set(Rango::Admin.to_string()),
+                    nombre: Set("Admin".to_owned()),
                     ..Default::default()
                 };
                 model.insert(db.as_ref()).await.unwrap();
@@ -226,11 +221,16 @@ impl<'a> Sistema {
             .await?
         {
             Some(user) => {
-                self.user = Some(User::new(
+                self.user = Some(Arc::from(User::new(
                     Arc::from(user.user_id),
                     user.pass,
                     user.rango.as_str(),
-                ));
+                    user.nombre.as_str(),
+                )));
+                self.ventas = (
+                    Venta::new(Some(self.arc_user()), &self.write_db).await?,
+                    Venta::new(Some(self.arc_user()), &self.write_db).await?,
+                );
                 Ok(())
             }
             None => match entity::user::Entity::find()
@@ -790,10 +790,8 @@ impl<'a> Sistema {
                         .0
                         .eliminar_producto(res, &self.configs().politica(), &self.configs);
             } else {
-                self.ventas.0 = async_runtime::block_on(Venta::new(
-                    Arc::clone(&self.vendedor),
-                    self.write_db(),
-                ))?;
+                self.ventas.0 =
+                    async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
                 result = Ok(self.ventas.0.clone());
             }
         } else {
@@ -803,10 +801,8 @@ impl<'a> Sistema {
                         .1
                         .eliminar_producto(res, &self.configs().politica(), &self.configs);
             } else {
-                self.ventas.1 = async_runtime::block_on(Venta::new(
-                    Arc::clone(&self.vendedor),
-                    self.write_db(),
-                ))?;
+                self.ventas.1 =
+                    async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
                 result = Ok(self.ventas.1.clone());
             }
         }
@@ -865,26 +861,29 @@ impl<'a> Sistema {
             self.registro.push(self.ventas.0.clone());
             async_runtime::block_on(self.update_total(self.ventas.0.monto_total()))?;
             self.ventas.0 =
-                async_runtime::block_on(Venta::new(Arc::clone(&self.vendedor), self.write_db()))?;
+                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
         } else {
             async_runtime::spawn(save(self.ventas.1.clone()));
             self.registro.push(self.ventas.1.clone());
             async_runtime::block_on(self.update_total(self.ventas.1.monto_total()))?;
             self.ventas.1 =
-                async_runtime::block_on(Venta::new(Arc::clone(&self.vendedor), self.write_db()))?;
+                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
         };
 
         Ok(())
+    }
+    pub fn arc_user(&self) -> Arc<User> {
+        Arc::clone(&self.user.as_ref().unwrap())
     }
     pub fn stash_sale(&mut self, pos: bool) -> Res<()> {
         if pos {
             self.stash.push(self.ventas.0.clone());
             self.ventas.0 =
-                async_runtime::block_on(Venta::new(Arc::clone(&self.vendedor), self.write_db()))?;
+                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
         } else {
             self.stash.push(self.ventas.1.clone());
             self.ventas.1 =
-                async_runtime::block_on(Venta::new(Arc::clone(&self.vendedor), self.write_db()))?;
+                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
         };
         Ok(())
     }

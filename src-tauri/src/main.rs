@@ -85,7 +85,7 @@ fn agregar_pago(
 ) -> Result<f64> {
     match sistema.lock() {
         Ok(mut a) => {
-            a.user().unwrap();
+            a.arc_user();
             match a.agregar_pago(medio_pago, monto, pos) {
                 Ok(a) => Ok(a),
                 Err(e) => Err(e.to_string()),
@@ -106,7 +106,7 @@ fn agregar_pesable<'a>(
     descripcion: &'a str,
 ) -> Result<String> {
     match sistema.lock() {
-        Ok(mut sis) => match sis.user().unwrap().rango() {
+        Ok(mut sis) => match sis.arc_user().rango() {
             Rango::Admin => {
                 let pesable =
                     Pesable::new(id, codigo, precio_peso, porcentaje, costo_kilo, descripcion);
@@ -141,7 +141,7 @@ fn agregar_producto(
     presentacion: &str,
 ) -> Result<String> {
     match sistema.lock() {
-        Ok(mut sis) => match sis.user().unwrap().rango() {
+        Ok(mut sis) => match sis.arc_user().rango() {
             Rango::Admin => {
                 let producto = match block_on(sis.agregar_producto(
                     proveedores,
@@ -177,7 +177,7 @@ fn agregar_producto_a_venta(
 ) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
-            a.user().unwrap();
+            a.arc_user();
             match async_runtime::block_on(a.agregar_producto_a_venta(prod, pos)) {
                 Ok(a) => Ok(a),
                 Err(e) => Err(e.to_string()),
@@ -194,7 +194,7 @@ fn agregar_proveedor(
     contacto: Option<i64>,
 ) -> Result<()> {
     match sistema.lock() {
-        Ok(mut sis) => match sis.user().unwrap().rango() {
+        Ok(mut sis) => match sis.arc_user().rango() {
             Rango::Admin => {
                 if let Err(e) = sis.agregar_proveedor(proveedor, contacto) {
                     return Err(e.to_string());
@@ -217,7 +217,7 @@ fn agregar_rubro(
     descripcion: &str,
 ) -> Result<String> {
     match sistema.lock() {
-        Ok(mut sis) => match sis.user().unwrap().rango() {
+        Ok(mut sis) => match sis.arc_user().rango() {
             Rango::Admin => {
                 let rubro = match async_runtime::block_on(Rubro::new_to_db(
                     codigo,
@@ -248,11 +248,12 @@ fn agregar_usuario(
     id: &str,
     pass: &str,
     rango: &str,
+    nombre: &str,
 ) -> Result<()> {
     match sistema.lock() {
-        Ok(sis) => match sis.user().unwrap().rango() {
+        Ok(sis) => match sis.arc_user().rango() {
             Rango::Admin => {
-                match sis.agregar_usuario(User::new(Arc::from(id), get_hash(pass), rango)) {
+                match sis.agregar_usuario(User::new(Arc::from(id), get_hash(pass), rango, nombre)) {
                     Ok(_) => {
                         if let Err(_) = window.close() {
                             if let Err(e) = window.close() {
@@ -346,7 +347,7 @@ fn descontar_producto_de_venta(
 ) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
-            a.user().unwrap();
+            a.arc_user();
             match a.descontar_producto_de_venta(id.parse().unwrap(), pos) {
                 Ok(a) => {
                     println!("{:?}", a);
@@ -362,7 +363,7 @@ fn descontar_producto_de_venta(
 fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
-            a.user().unwrap();
+            a.arc_user();
             match a.eliminar_pago(pos, index) {
                 Ok(a) => Ok(a),
                 Err(e) => Err(e.to_string()),
@@ -379,7 +380,7 @@ fn eliminar_producto_de_venta(
 ) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
-            a.user().unwrap();
+            a.arc_user();
             match a.eliminar_producto_de_venta(id.parse().unwrap(), pos) {
                 Ok(a) => Ok(a),
                 Err(e) => Err(e.to_string()),
@@ -421,7 +422,7 @@ fn get_filtrado(
 ) -> Result<Vec<String>> {
     match sistema.lock() {
         Ok(a) => {
-            a.user().unwrap();
+            a.arc_user();
             if tipo_filtro.eq("marca") {
                 match a.filtrar_marca(&filtro) {
                     Ok(a) => Ok(a),
@@ -443,7 +444,7 @@ fn get_filtrado(
 fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
     match sistema.lock() {
         Ok(sis) => {
-            sis.user().unwrap();
+            sis.arc_user();
             Ok(sis.configs().medios_pago().clone())
         }
         Err(e) => Err(e.to_string()),
@@ -454,7 +455,7 @@ fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Resul
     let res;
     match sistema.lock() {
         Ok(a) => {
-            a.user().unwrap();
+            a.arc_user();
             match async_runtime::block_on(a.val_filtrado(filtro, a.read_db())) {
                 Ok(a) => res = Ok(a),
                 Err(e) => res = Err(e.to_string()),
@@ -469,7 +470,7 @@ fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Result<Vec<String>> {
     let res;
     match sistema.lock() {
         Ok(a) => {
-            a.user().unwrap();
+            a.arc_user();
             res = Ok(async_runtime::block_on(a.proveedores())
                 .iter()
                 .map(|x| x.to_string())
@@ -483,24 +484,24 @@ fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Result<Vec<String>> {
 fn get_stash(sistema: State<Mutex<Sistema>>) -> Result<Vec<Venta>> {
     match sistema.lock() {
         Ok(sis) => {
-            sis.user().unwrap();
+            sis.arc_user();
             Ok(sis.stash().clone())
         }
         Err(e) => Err(e.to_string()),
     }
 }
 #[tauri::command]
-fn get_user(sistema: State<Mutex<Sistema>>) -> Option<User> {
+fn get_user(sistema: State<Mutex<Sistema>>) -> Result<User> {
     match sistema.lock() {
-        Ok(sis) => sis.user(),
-        Err(_) => None,
+        Ok(sis) => Ok(sis.arc_user().as_ref().clone()),
+        Err(e) => Err(e.to_string()),
     }
 }
 #[tauri::command]
 fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: bool) -> Result<Venta> {
     match sistema.lock() {
         Ok(a) => {
-            a.user().unwrap();
+            a.arc_user();
             Ok(a.venta(pos))
         }
         Err(e) => Err(e.to_string()),
@@ -514,7 +515,7 @@ fn incrementar_producto_a_venta(
 ) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
-            a.user().unwrap();
+            a.arc_user();
             match a.incrementar_producto_a_venta(id.parse().unwrap(), pos) {
                 Ok(a) => {
                     println!("{:?}", a);
@@ -764,7 +765,7 @@ fn set_configs(
     configs: Config,
 ) -> Result<()> {
     match sistema.lock() {
-        Ok(mut sis) => match sis.user().unwrap().rango() {
+        Ok(mut sis) => match sis.arc_user().rango() {
             Rango::Admin => {
                 sis.set_configs(configs);
                 if let Err(e) = window.close() {
@@ -782,7 +783,7 @@ fn set_configs(
 fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: bool) -> Result<()> {
     match sistema.lock() {
         Ok(mut sis) => {
-            sis.user().unwrap();
+            sis.arc_user();
             if let Err(e) = sis.stash_sale(pos) {
                 return Err(e.to_string());
             }
@@ -809,7 +810,7 @@ fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: boo
 fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Result<()> {
     match sistema.lock() {
         Ok(mut sis) => {
-            sis.user().unwrap();
+            sis.arc_user();
             match sis.unstash_sale(pos, index) {
                 Ok(a) => Ok(a),
                 Err(e) => Err(e.to_string()),
