@@ -935,6 +935,9 @@ function dibujar_base(){
   boton_add_user=document.getElementById('agregar-usuario-mostrar');
   document.getElementById('cerrar-caja-mostrar').addEventListener('click',()=>{
     open_cerrar_caja();
+    let barra = document.querySelector('#barra-de-opciones');
+    barra.classList.remove('visible');
+    barra.classList.remove('para-hamburguesa');
   })
   if (document.getElementById('agregar-producto-mostrar')){
     agrProdContHandle();
