@@ -441,6 +441,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(User::UserId).string().not_null())
+                    .col(ColumnDef::new(User::Nombre).string().not_null())
                     .col(ColumnDef::new(User::Pass).big_integer().not_null())
                     .col(ColumnDef::new(User::Rango).string().not_null())
                     .to_owned(),
@@ -614,6 +615,7 @@ enum User {
     Table,
     Id,
     UserId,
+    Nombre,
     Pass,
     Rango,
 }

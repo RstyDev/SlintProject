@@ -186,28 +186,28 @@ impl Db {
         }
         Ok(())
     }
-    pub async fn agregar_usuario(user: User, db: Arc<DatabaseConnection>) -> Res<()> {
-        match entity::user::Entity::find()
-            .filter(entity::user::Column::UserId.eq(user.id()))
-            .one(db.as_ref())
-            .await?
-        {
-            Some(_) => Err(AppError::ExistingError {
-                objeto: String::from("Usuario"),
-                instancia: user.id().to_string(),
-            }),
-            None => {
-                let model = entity::user::ActiveModel {
-                    user_id: Set(user.id().to_string()),
-                    pass: Set(*user.pass()),
-                    rango: Set(user.rango().to_string()),
-                    ..Default::default()
-                };
-                model.insert(db.as_ref()).await?;
-                Ok(())
-            }
-        }
-    }
+    // pub async fn agregar_usuario(user: User, db: Arc<DatabaseConnection>) -> Res<()> {
+    //     match entity::user::Entity::find()
+    //         .filter(entity::user::Column::UserId.eq(user.id()))
+    //         .one(db.as_ref())
+    //         .await?
+    //     {
+    //         Some(_) => Err(AppError::ExistingError {
+    //             objeto: String::from("Usuario"),
+    //             instancia: user.id().to_string(),
+    //         }),
+    //         None => {
+    //             let model = entity::user::ActiveModel {
+    //                 user_id: Set(user.id().to_string()),
+    //                 pass: Set(*user.pass()),
+    //                 rango: Set(user.rango().to_string()),
+    //                 ..Default::default()
+    //             };
+    //             model.insert(db.as_ref()).await?;
+    //             Ok(())
+    //         }
+    //     }
+    // }
 
     pub async fn cargar_todos_los_productos(
         productos: &Vec<Producto>,
