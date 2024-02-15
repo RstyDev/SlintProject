@@ -45,6 +45,7 @@ impl User {
                     user_id: Set(id.to_string()),
                     pass: Set(pass),
                     rango: Set(rango.to_string()),
+                    nombre: Set(nombre.to_string()),
                     ..Default::default()
                 }
                 .insert(db)
