@@ -1263,24 +1263,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fcfdc7a0362c9f4444381a9e697c79d435fe65b52a37466fc2c1184cee9edc6"
 
 [[package]]
-name = "first_app"
-version = "0.0.0"
-dependencies = [
- "async-std",
- "chrono",
- "entity",
- "full",
- "migration",
- "sea-orm",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "thiserror",
- "tokio",
-]
-
-[[package]]
 name = "flate2"
 version = "1.0.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3351,6 +3333,24 @@ dependencies = [
  "spki",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "rsty_cash"
+version = "0.0.0"
+dependencies = [
+ "async-std",
+ "chrono",
+ "entity",
+ "full",
+ "migration",
+ "sea-orm",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]

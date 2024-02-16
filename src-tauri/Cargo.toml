@@ -1,7 +1,7 @@
 [package]
-name = "first_app"
+name = "rsty_cash"
 version = "0.0.0"
-description = "A Tauri App"
+description = "Tauri Rsty SalePoint"
 authors = ["you"]
 license = ""
 repository = ""
