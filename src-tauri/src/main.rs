@@ -8,7 +8,7 @@ use mods::{
     valuable::Valuable, venta::Venta,
 };
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tauri::Manager;
 type Result<T> = std::result::Result<T, String>;
 use std::sync::Mutex;
@@ -274,11 +274,16 @@ fn buscador(name: &str) -> String {
     format!("Hello, {}! You've been mensajed from Rust!", name)
 }
 #[tauri::command]
-fn cerrar_caja(sistema: State<Mutex<Sistema>>, monto_actual: f64) -> Result<()> {
+fn cerrar_caja(sistema: State<Mutex<Sistema>>,window: tauri::Window, monto_actual: f64) -> Result<()> {
     match sistema.lock() {
         Ok(mut sis) => {
-            if let Err(e) = sis.cerrar_caja(monto_actual) {
-                return Err(e.to_string());
+            match sis.cerrar_caja(monto_actual) {
+                Ok(_)=>if let Err(_)=window.close(){
+                    if let Err(e)=window.close(){
+                        return Err(e.to_string())
+                    }
+                }
+                Err(e)=>return Err(e.to_string()),
             }
             Ok(())
         }
@@ -599,7 +604,7 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(400.0, 620.0)
+    .inner_size(650.0, 620.0)
     .build()
     {
         Ok(_) => Ok(()),
