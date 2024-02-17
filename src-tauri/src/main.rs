@@ -7,9 +7,9 @@ use mods::{
     config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, user::Rango,
     valuable::Valuable, venta::Venta,
 };
-use tauri::Manager;
-
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
+use serde::{Deserialize, Serialize};
+use tauri::Manager;
 type Result<T> = std::result::Result<T, String>;
 use std::sync::Mutex;
 use tauri::{
@@ -17,7 +17,7 @@ use tauri::{
     State,
 };
 const DENEGADO: &str = "Permiso denegado";
-#[derive(Clone, serde::Serialize)]
+#[derive(Clone, Serialize)]
 struct Payload {
     message: Option<String>,
     pos: Option<bool>,
@@ -41,6 +41,7 @@ async fn open_add_product(handle: tauri::AppHandle) -> Result<()> {
         Err(e) => Err(e.to_string()),
     }
 }
+
 async fn open_add_pesable(handle: tauri::AppHandle) -> Result<()> {
     match tauri::WindowBuilder::new(
         &handle,

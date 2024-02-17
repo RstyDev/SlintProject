@@ -190,18 +190,11 @@ impl MigrationTrait for Migration {
                             .float()
                             .not_null(),
                     )
+                    .col(ColumnDef::new(RelacionVentaPes::Precio).double().not_null())
                     .col(
                         ColumnDef::new(RelacionVentaPes::Pesable)
-                            .big_integer()
+                            .string()
                             .not_null(),
-                    )
-                    .foreign_key(
-                        ForeignKeyCreateStatement::new()
-                            .name("pesable_fk")
-                            .from(RelacionVentaPes::Table, RelacionVentaPes::Pesable)
-                            .to(Pesable::Table, Pesable::Id)
-                            .on_delete(ForeignKeyAction::Cascade)
-                            .on_update(ForeignKeyAction::Cascade),
                     )
                     .col(
                         ColumnDef::new(RelacionVentaPes::Venta)
@@ -236,19 +229,8 @@ impl MigrationTrait for Migration {
                             .small_integer()
                             .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(RelacionVentaRub::Rubro)
-                            .big_integer()
-                            .not_null(),
-                    )
-                    .foreign_key(
-                        ForeignKeyCreateStatement::new()
-                            .name("rubro_fk")
-                            .from(RelacionVentaRub::Table, RelacionVentaRub::Rubro)
-                            .to(Rubro::Table, Rubro::Id)
-                            .on_delete(ForeignKeyAction::Cascade)
-                            .on_update(ForeignKeyAction::Cascade),
-                    )
+                    .col(ColumnDef::new(RelacionVentaRub::Precio).double().not_null())
+                    .col(ColumnDef::new(RelacionVentaRub::Rubro).string().not_null())
                     .col(
                         ColumnDef::new(RelacionVentaRub::Venta)
                             .big_integer()
@@ -279,20 +261,17 @@ impl MigrationTrait for Migration {
                     )
                     .col(
                         ColumnDef::new(RelacionVentaProd::Producto)
-                            .big_integer()
+                            .string()
                             .not_null(),
-                    )
-                    .foreign_key(
-                        ForeignKeyCreateStatement::new()
-                            .name("producto_fk")
-                            .from(RelacionVentaProd::Table, RelacionVentaProd::Producto)
-                            .to(Producto::Table, Producto::Id)
-                            .on_delete(ForeignKeyAction::Cascade)
-                            .on_update(ForeignKeyAction::Cascade),
                     )
                     .col(
                         ColumnDef::new(RelacionVentaProd::Cantidad)
                             .small_integer()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(RelacionVentaProd::Precio)
+                            .double()
                             .not_null(),
                     )
                     .col(
@@ -536,6 +515,7 @@ enum RelacionVentaProd {
     Table,
     Id,
     Cantidad,
+    Precio,
     Producto,
     Venta,
 }
@@ -544,6 +524,7 @@ enum RelacionVentaPes {
     Table,
     Id,
     Cantidad,
+    Precio,
     Pesable,
     Venta,
 }
@@ -553,6 +534,7 @@ enum RelacionVentaRub {
     Id,
     Cantidad,
     Rubro,
+    Precio,
     Venta,
 }
 #[derive(DeriveIden)]

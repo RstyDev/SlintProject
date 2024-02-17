@@ -2,7 +2,7 @@
 name = "rsty_cash"
 version = "0.0.0"
 description = "Tauri Rsty SalePoint"
-authors = ["you"]
+authors = ["RstyDev"]
 license = ""
 repository = ""
 edition = "2021"

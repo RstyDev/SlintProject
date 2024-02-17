@@ -9,20 +9,14 @@ pub struct Model {
     pub id: i64,
     #[sea_orm(column_type = "Double")]
     pub cantidad: f32,
-    pub pesable: i64,
+    #[sea_orm(column_type = "Double")]
+    pub precio: f64,
+    pub pesable: String,
     pub venta: i64,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(
-        belongs_to = "super::pesable::Entity",
-        from = "Column::Pesable",
-        to = "super::pesable::Column::Id",
-        on_update = "Cascade",
-        on_delete = "Cascade"
-    )]
-    Pesable,
     #[sea_orm(
         belongs_to = "super::venta::Entity",
         from = "Column::Venta",
@@ -31,12 +25,6 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     Venta,
-}
-
-impl Related<super::pesable::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Pesable.def()
-    }
 }
 
 impl Related<super::venta::Entity> for Entity {
