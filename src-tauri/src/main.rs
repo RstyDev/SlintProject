@@ -100,10 +100,10 @@ fn agregar_pesable<'a>(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     id: i64,
-    codigo: i64,
     precio_peso: f64,
-    porcentaje: f64,
+    codigo: i64,
     costo_kilo: f64,
+    porcentaje: f64,
     descripcion: &'a str,
 ) -> Result<String> {
     match sistema.lock() {
