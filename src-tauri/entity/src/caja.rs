@@ -15,6 +15,7 @@ pub struct Model {
     pub monto_cierre: Option<f64>,
     #[sea_orm(column_type = "Double")]
     pub ventas_totales: f64,
+    pub cajero: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -388,6 +388,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Caja::MontoInicio).double().not_null())
                     .col(ColumnDef::new(Caja::MontoCierre).double())
                     .col(ColumnDef::new(Caja::VentasTotales).double().not_null())
+                    .col(ColumnDef::new(Caja::Cajero).double())
                     .to_owned(),
             )
             .await?;
@@ -569,6 +570,7 @@ enum Caja {
     MontoInicio,
     MontoCierre,
     VentasTotales,
+    Cajero,
 }
 
 #[derive(DeriveIden)]

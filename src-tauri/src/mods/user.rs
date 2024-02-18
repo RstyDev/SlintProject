@@ -78,11 +78,11 @@ impl User {
     pub fn id(&self) -> &str {
         self.id.as_ref()
     }
-    pub fn pass(&self) -> &i64 {
-        &self.pass
-    }
-    pub fn nombre(&self) -> &str {
-        self.nombre.as_ref()
+    //pub fn pass(&self) -> &i64 {
+//        &self.pass
+  //}
+    pub fn nombre(&self) -> Arc<str> {
+        Arc::clone(&self.nombre)
     }
 }
 impl ToString for Rango {

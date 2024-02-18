@@ -1,12 +1,13 @@
 use chrono::{NaiveDateTime, Utc};
 use serde::{Serialize,Deserialize};
 use sea_orm::{
-    ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryOrder, Set,
+    ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryOrder, Set, ActiveValue::NotSet,
 };
+use core::fmt;
 use std::sync::Arc;
 type Res<T> = std::result::Result<T, AppError>;
 use super::error::AppError;
-#[derive(Clone, Debug,Serialize,Deserialize)]
+#[derive(Clone,Serialize,Deserialize)]
 pub struct Caja {
     id: i64,
     inicio: NaiveDateTime,
@@ -14,6 +15,20 @@ pub struct Caja {
     ventas_totales: f64,
     monto_inicio: f64,
     monto_cierre: Option<f64>,
+    cajero: Option<Arc<str>>,
+}
+impl fmt::Debug for Caja{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Caja")
+        .field("id", &self.id)
+        .field("inicio", &self.inicio)
+        .field("cierre", &self.cierre)
+        .field("ventas_totales", &self.ventas_totales)
+        .field("monto_inicio",&self.monto_inicio)
+        .field("monto_cierre",&self.monto_cierre)
+        .field("cajero", &self.cajero)
+        .finish()
+}
 }
 
 impl Caja {
@@ -36,6 +51,7 @@ impl Caja {
                         ventas_totales: 0.0,
                         monto_inicio,
                         monto_cierre: None,
+                        cajero:None,
                     }),
                     None => Err(AppError::InicialationError(
                         "Nueva caja requiere un monto de inicio".to_string(),
@@ -48,6 +64,7 @@ impl Caja {
                     ventas_totales: res.ventas_totales,
                     monto_inicio: res.monto_inicio,
                     monto_cierre: None,
+                    cajero: None,
                 }),
             },
             None => match monto_inicio {
@@ -58,6 +75,7 @@ impl Caja {
                     ventas_totales: 0.0,
                     monto_inicio,
                     monto_cierre: None,
+                    cajero:None,
                 }),
                 None => Err(AppError::InicialationError(
                     "Nueva caja requiere monto de inicio".to_string(),
@@ -83,16 +101,26 @@ impl Caja {
                 monto_inicio: Set(aux.monto_inicio),
                 monto_cierre: Set(aux.monto_cierre),
                 ventas_totales: Set(aux.ventas_totales),
+                cajero: match &aux.cajero{
+                    Some(a)=>Set(Some(a.to_string())),
+                    None=>NotSet,
+                },
             };
             model.insert(db.as_ref()).await?;
         }
         Ok(aux)
     }
+
+    pub fn set_cajero(&mut self, cajero:Arc<str>){
+        self.cajero=Some(cajero);
+    }
     pub async fn set_n_save(&mut self, db: &DatabaseConnection, monto: f64) -> Res<()> {
+        self.monto_cierre=Some(monto);
+        self.cierre=Some(Utc::now().naive_local());
         match entity::caja::Entity::find_by_id(self.id).one(db).await? {
             Some(model) => {
                 let mut model = model.into_active_model();
-                model.cierre = Set(Some(Utc::now().naive_local()));
+                model.cierre = Set(self.cierre);
                 model.monto_cierre = Set(Some(monto));
                 model.update(db).await?;
                 Ok(())
@@ -104,6 +132,7 @@ impl Caja {
                 })
             }
         }
+        
     }
     pub async fn update_total(
         &mut self,

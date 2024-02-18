@@ -88,6 +88,7 @@ impl<'a> Sistema {
         let stash = Vec::new();
         let registro = Vec::new();
         let caja = async_runtime::block_on(caja)??;
+        println!("{:#?}",caja);
         let w1 = Arc::clone(&write_db);
         let db = Arc::clone(&read_db);
         let sis = Sistema {
@@ -115,11 +116,19 @@ impl<'a> Sistema {
     }
     fn generar_reporte_caja(&self) {
         println!("{:#?}", self.caja);
+        println!("Faltante");
+    }
+    pub fn user(&self)->Option<Arc<User>>{
+        match &self.user{
+            Some(a)=>{Some(Arc::clone(a))}
+            None=>None,
+        }
     }
     pub fn cerrar_caja(&mut self, monto_actual: f64) -> Res<()> {
-        self.generar_reporte_caja();
+        self.caja.set_cajero(self.user().unwrap().nombre());
         let db = Arc::clone(&self.write_db);
         async_runtime::block_on(self.caja.set_n_save(db.as_ref(), monto_actual))?;
+        self.generar_reporte_caja();
         self.caja =
             async_runtime::block_on(Caja::new(Arc::clone(&self.write_db), Some(monto_actual)))?;
         Ok(())
