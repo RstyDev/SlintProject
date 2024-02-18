@@ -604,7 +604,7 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(650.0, 620.0)
+    .inner_size(640.0, 620.0)
     .build()
     {
         Ok(_) => Ok(()),
