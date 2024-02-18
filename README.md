@@ -1,6 +1,6 @@
 # Tauri + Vanilla
 
-This template should help get you started developing with Tauri in vanilla HTML, CSS and Javascript.
+Aplicación de escritorio de punto de venta desarrollada en Rust con Tauri, vanilla HTML, CSS y JavaScript, con base de datos sqlite integrada, desarrollada por iniciativa propia, con parte de investigación autodidacta, en tiempos libres
 
 ## Recommended IDE Setup
 
