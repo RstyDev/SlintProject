@@ -274,16 +274,22 @@ fn buscador(name: &str) -> String {
     format!("Hello, {}! You've been mensajed from Rust!", name)
 }
 #[tauri::command]
-fn cerrar_caja(sistema: State<Mutex<Sistema>>,window: tauri::Window, monto_actual: f64) -> Result<()> {
+fn cerrar_caja(
+    sistema: State<Mutex<Sistema>>,
+    window: tauri::Window,
+    monto_actual: f64,
+) -> Result<()> {
     match sistema.lock() {
         Ok(mut sis) => {
             match sis.cerrar_caja(monto_actual) {
-                Ok(_)=>if let Err(_)=window.close(){
-                    if let Err(e)=window.close(){
-                        return Err(e.to_string())
+                Ok(_) => {
+                    if let Err(_) = window.close() {
+                        if let Err(e) = window.close() {
+                            return Err(e.to_string());
+                        }
                     }
                 }
-                Err(e)=>return Err(e.to_string()),
+                Err(e) => return Err(e.to_string()),
             }
             Ok(())
         }

@@ -79,8 +79,8 @@ impl User {
         self.id.as_ref()
     }
     //pub fn pass(&self) -> &i64 {
-//        &self.pass
-  //}
+    //        &self.pass
+    //}
     pub fn nombre(&self) -> Arc<str> {
         Arc::clone(&self.nombre)
     }

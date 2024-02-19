@@ -1,4 +1,3 @@
-use thiserror::Error;
 use chrono::ParseError;
 use sea_orm::DbErr;
 use std::{
@@ -6,7 +5,7 @@ use std::{
     num::{ParseFloatError, ParseIntError},
     time::SystemTimeError,
 };
-
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AppError {

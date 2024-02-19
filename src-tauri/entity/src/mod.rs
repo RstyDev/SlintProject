@@ -3,6 +3,7 @@
 pub mod prelude;
 
 pub mod caja;
+pub mod cliente;
 pub mod codigo_barras;
 pub mod config;
 pub mod medio_pago;

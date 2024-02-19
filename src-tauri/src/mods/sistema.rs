@@ -1,45 +1,27 @@
 type Res<T> = std::result::Result<T, AppError>;
-use chrono::Utc;
-use entity::codigo_barras;
-use entity::*;
-use migration::Migrator;
-use migration::MigratorTrait;
-use sea_orm::ActiveModelTrait;
-use sea_orm::ColumnTrait;
-use sea_orm::Condition;
-use sea_orm::DatabaseConnection;
-use sea_orm::DbErr;
-
-use super::error::AppError;
-use super::lib::save;
-use super::lib::Mapper;
-use super::proveedor::Proveedor;
-use super::user::User;
-use super::valuable::Presentacion;
 use super::{
+    caja::Caja,
     config::Config,
-    lib::{crear_file, leer_file},
+    error::AppError,
+    lib::{crear_file, get_hash, leer_file, save, Db, Mapper},
     pesable::Pesable,
     producto::Producto,
+    proveedor::Proveedor,
     relacion_prod_prov::RelacionProdProv,
     rubro::Rubro,
-    valuable::{Valuable, ValuableTrait},
+    user::{Rango, User},
+    valuable::{Presentacion, Valuable, ValuableTrait},
     venta::Venta,
 };
-use crate::mods::caja::Caja;
-use crate::mods::lib::{get_hash, Db};
-use crate::mods::user::Rango;
-use sea_orm::IntoActiveModel;
-use sea_orm::PaginatorTrait;
-use sea_orm::QueryFilter;
-use sea_orm::QueryOrder;
-use sea_orm::QuerySelect;
-use sea_orm::Set;
-use sea_orm::{Database, EntityTrait};
-use std::collections::HashSet;
-use std::sync::Arc;
-use tauri::async_runtime;
-use tauri::async_runtime::JoinHandle;
+use chrono::Utc;
+use entity::*;
+use migration::{Migrator, MigratorTrait};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, Condition, Database, DatabaseConnection, DbErr, EntityTrait,
+    IntoActiveModel, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
+};
+use std::{collections::HashSet, sync::Arc};
+use tauri::{async_runtime, async_runtime::JoinHandle};
 use Valuable as V;
 
 pub struct Sistema {
@@ -88,7 +70,7 @@ impl<'a> Sistema {
         let stash = Vec::new();
         let registro = Vec::new();
         let caja = async_runtime::block_on(caja)??;
-        println!("{:#?}",caja);
+        println!("{:#?}", caja);
         let w1 = Arc::clone(&write_db);
         let db = Arc::clone(&read_db);
         let sis = Sistema {
@@ -118,10 +100,10 @@ impl<'a> Sistema {
         println!("{:#?}", self.caja);
         println!("Faltante");
     }
-    pub fn user(&self)->Option<Arc<User>>{
-        match &self.user{
-            Some(a)=>{Some(Arc::clone(a))}
-            None=>None,
+    pub fn user(&self) -> Option<Arc<User>> {
+        match &self.user {
+            Some(a) => Some(Arc::clone(a)),
+            None => None,
         }
     }
     pub fn cerrar_caja(&mut self, monto_actual: f64) -> Res<()> {

@@ -39,6 +39,15 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Venta::MontoTotal).double().not_null())
                     .col(ColumnDef::new(Venta::MontoPagado).double().not_null())
                     .col(ColumnDef::new(Venta::Time).date_time().not_null())
+                    .col(ColumnDef::new(Venta::Cliente).big_integer())
+                    .foreign_key(
+                        ForeignKeyCreateStatement::new()
+                            .name("cliente_fk")
+                            .from(Venta::Table, Venta::Cliente)
+                            .to(Cliente::Table, Cliente::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -411,6 +420,26 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(Cliente::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Cliente::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Cliente::Nombre).string().not_null())
+                    .col(ColumnDef::new(Cliente::Dni).big_integer().not_null())
+                    .col(ColumnDef::new(Cliente::Credito).boolean().not_null())
+                    .col(ColumnDef::new(Cliente::Activo).boolean().not_null())
+                    .col(ColumnDef::new(Cliente::Created).string().not_null())
+                    .to_owned(),
+            )
+            .await?;
         Ok(())
     }
 
@@ -461,6 +490,7 @@ enum Venta {
     Time,
     MontoTotal,
     MontoPagado,
+    Cliente,
 }
 #[derive(DeriveIden)]
 enum Producto {
@@ -581,4 +611,15 @@ enum User {
     Nombre,
     Pass,
     Rango,
+}
+
+#[derive(DeriveIden)]
+enum Cliente {
+    Table,
+    Id,
+    Nombre,
+    Dni,
+    Credito,
+    Activo,
+    Created,
 }

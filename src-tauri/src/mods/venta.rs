@@ -1,9 +1,10 @@
+use super::cliente::{Cli, Cliente};
 use chrono::Utc;
 use entity::pago;
 type Res<T> = std::result::Result<T, AppError>;
 use sea_orm::{
     ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel,
-    QueryOrder, Set,
+    QueryOrder, Set, Unset,
 };
 use serde::Serialize;
 use std::sync::Arc;
@@ -30,6 +31,7 @@ pub struct Venta {
     pagos: Vec<Pago>,
     monto_pagado: f64,
     vendedor: Option<Arc<User>>,
+    cliente: Cliente,
 }
 
 impl<'a> Venta {
@@ -42,6 +44,7 @@ impl<'a> Venta {
             Some(a) => a.id + 1,
             None => 0,
         };
+        let cliente = Cli::new(None);
         let venta = Venta {
             monto_total: 0.0,
             productos: Vec::new(),
@@ -49,12 +52,17 @@ impl<'a> Venta {
             monto_pagado: 0.0,
             vendedor,
             id,
+            cliente,
         };
         entity::venta::ActiveModel {
             id: Set(venta.id),
             monto_total: Set(venta.monto_total),
             monto_pagado: Set(venta.monto_pagado),
             time: Set(Utc::now().naive_local()),
+            cliente: match venta.cliente {
+                Cliente::Final(_) => Unset(),
+                Cliente::Regular(a) => Set(*a.id()),
+            },
         }
         .insert(db)
         .await?;

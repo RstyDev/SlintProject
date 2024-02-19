@@ -1,4 +1,5 @@
 pub mod caja;
+pub mod cliente;
 pub mod config;
 pub mod error;
 pub mod lib;
