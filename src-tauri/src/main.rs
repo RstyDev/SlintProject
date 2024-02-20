@@ -78,12 +78,17 @@ async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
-fn agregar_cliente(sistema: State<Mutex<Sistema>>,nombre: &str, dni: i64, credito: bool, activo: bool)->Result<Cli>{
-    match sistema.lock(){
-       Ok(sis) => match sis.agregar_cliente(nombre,dni,credito,activo){
+fn agregar_cliente(
+    sistema: State<Mutex<Sistema>>,
+    nombre: &str,
+    dni: i64,
+    credito: bool,
+) -> Result<Cli> {
+    match sistema.lock() {
+        Ok(sis) => match sis.agregar_cliente(nombre, dni, credito, true) {
             Ok(a) => Ok(a),
             Err(e) => Err(e.to_string()),
-       },
+        },
         Err(e) => Err(e.to_string()),
     }
 }
@@ -109,7 +114,7 @@ fn agregar_pago(
 fn agregar_pesable<'a>(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-    id: i64,
+
     precio_peso: f64,
     codigo: i64,
     costo_kilo: f64,
@@ -117,18 +122,23 @@ fn agregar_pesable<'a>(
     descripcion: &'a str,
 ) -> Result<String> {
     match sistema.lock() {
-        Ok(mut sis) => match sis.arc_user().rango() {
+        Ok(sis) => match sis.arc_user().rango() {
             Rango::Admin => {
-                let pesable =
-                    Pesable::new(id, codigo, precio_peso, porcentaje, costo_kilo, descripcion);
-                let desc = pesable.descripcion().to_string();
-                if let Err(e) = sis.agregar_pesable(pesable) {
-                    return Err(e.to_string());
-                }
+                let pesable = match async_runtime::block_on(Pesable::new_to_db(
+                    sis.write_db(),
+                    codigo,
+                    precio_peso,
+                    porcentaje,
+                    costo_kilo,
+                    descripcion,
+                )) {
+                    Ok(a) => a,
+                    Err(e) => return Err(e.to_string()),
+                };
                 if let Err(e) = window.close() {
                     return Err(e.to_string());
                 }
-                Ok(desc)
+                Ok(pesable.descripcion().to_string())
             }
             Rango::Cajero => Err(DENEGADO.to_string()),
         },

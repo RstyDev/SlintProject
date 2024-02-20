@@ -542,7 +542,7 @@ impl<'a> Sistema {
             res.update(self.write_db()).await.unwrap();
         });
     }
-    pub fn agregar_cliente(&self, nombre: &str, dni: i64, credito: bool, activo: bool)->Res<Cli> {
+    pub fn agregar_cliente(&self, nombre: &str, dni: i64, credito: bool, activo: bool) -> Res<Cli> {
         async_runtime::block_on(Cli::new_to_db(
             self.write_db(),
             nombre,
@@ -663,22 +663,6 @@ impl<'a> Sistema {
         }
 
         result
-    }
-    pub fn agregar_pesable(&mut self, pesable: Pesable) -> Res<()> {
-        // let mut pesables: Vec<Pesable> = self
-        //     .productos
-        //     .iter()
-        //     .map(|x| match x {
-        //         V::Pes(a) => Some(a.1.clone()),
-        //         _ => None,
-        //     })
-        //     .flatten()
-        //     .collect();
-        // pesables.push(pesable.clone());
-        // crear_file(&self.path_pesables, &pesables)?;
-        let handle = async_runtime::spawn(save(pesable.clone()));
-        // self.productos.push(V::Pes((0.0, pesable)));
-        Ok(async_runtime::block_on(handle)??)
     }
 
     pub fn agregar_rubro(&mut self, rubro: Rubro) -> Res<()> {
