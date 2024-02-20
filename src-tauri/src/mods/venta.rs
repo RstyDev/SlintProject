@@ -1,10 +1,10 @@
-use super::cliente::{Cli, Cliente};
+use super::cliente::Cliente;
 use chrono::Utc;
 use entity::pago;
 type Res<T> = std::result::Result<T, AppError>;
 use sea_orm::{
-    ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel,
-    QueryOrder, Set, Unset,
+    ActiveModelTrait, ActiveValue::NotSet, Database, DatabaseConnection, DbErr, EntityTrait,
+    IntoActiveModel, QueryOrder, Set, 
 };
 use serde::Serialize;
 use std::sync::Arc;
@@ -44,7 +44,7 @@ impl<'a> Venta {
             Some(a) => a.id + 1,
             None => 0,
         };
-        let cliente = Cli::new(None);
+        let cliente = Cliente::new(None);
         let venta = Venta {
             monto_total: 0.0,
             productos: Vec::new(),
@@ -59,9 +59,9 @@ impl<'a> Venta {
             monto_total: Set(venta.monto_total),
             monto_pagado: Set(venta.monto_pagado),
             time: Set(Utc::now().naive_local()),
-            cliente: match venta.cliente {
-                Cliente::Final(_) => Unset(),
-                Cliente::Regular(a) => Set(*a.id()),
+            cliente: match &venta.cliente {
+                Cliente::Final(_) => NotSet,
+                Cliente::Regular(a) => Set(Some(*a.id())),
             },
         }
         .insert(db)
@@ -232,9 +232,11 @@ impl Save for Venta {
         venta.monto_total = Set(self.monto_total);
         venta.monto_pagado = Set(self.monto_pagado);
         venta.time = Set(Utc::now().naive_local());
-
+        match &self.cliente {
+            Cliente::Final(_) => (),
+            Cliente::Regular(a) => venta.cliente = Set(Some(*a.id())),
+        }
         venta.update(&db).await?;
-
         let mut pay_models = vec![];
         for pago in &self.pagos {
             let model = medio_from_db(&pago.medio().to_string().as_str()).await;
