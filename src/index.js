@@ -157,10 +157,6 @@ function dibujar_venta(venta) {
   productosVentaAct = venta.productos;
   buscador.value = '';
   cuadro.replaceChildren([]);
-
-
-
-
   cuadro.innerHTML = `
   <section class="ayb">
   <a id="v-a" class="a-boton"> Venta A </a>
@@ -196,20 +192,19 @@ function dibujar_venta(venta) {
       
     </section>
      </article>`;
-
-  for (let producto of venta.productos) {
+  for (let i=0;i<venta.productos.length;i++){
     let disabled;
     let art;
-    if (Object.keys(producto) == 'Pes') {
-      if (producto.Pes[0] <= 1) {
+    if (Object.keys(venta.productos[i]) == 'Pes') {
+      if (venta.productos[i].Pes[0] <= 1) {
         disabled = 'disabled';
       } else {
         disabled = '';
       }
 
-      get_descripcion_valuable(producto, configs).then(strings => {
+      get_descripcion_valuable(venta.productos[i], configs).then(strings => {
         art = document.createElement('article');
-        art.id = producto.Pes[1].id;
+        art.id = i;
         art.classList.add('articulo');
         art.innerHTML = `
       <section class="descripcion ${configs.modo_mayus}">
@@ -217,14 +212,14 @@ function dibujar_venta(venta) {
       </section>
       <section class="cantidad">
          <button class="button restar" ${disabled}>-</button>
-         <p class="cantidad-producto"> ${producto.Pes[0]}</p>
+         <p class="cantidad-producto"> ${venta.productos[i].Pes[0]}</p>
          <button class="button sumar">+</button>
       </section>
       <section class="monto">
-         <p>${producto.Pes[1].precio_peso}</p>
+         <p>${venta.productos[i].Pes[1].precio_peso}</p>
       </section>
       <section>
-       <p> ${producto.Pes[1].precio_peso * producto.Pes[0]}</p>
+       <p> ${venta.productos[i].Pes[1].precio_peso * venta.productos[i].Pes[0]}</p>
       </section>
       <section id="borrar">
        <button class="button eliminar">Borrar</button>
@@ -256,16 +251,16 @@ function dibujar_venta(venta) {
 
         hijosRes.innerHTML += `<p>${strings}</p>`
       });
-    } else if (Object.keys(producto) == 'Rub') {
-      if (producto.Rub[0] < 2) {
+    } else if (Object.keys(venta.productos[i]) == 'Rub') {
+      if (venta.productos[i].Rub[0] < 2) {
         disabled = 'disabled';
       } else {
         disabled = '';
       }
 
-      get_descripcion_valuable(producto, configs).then(strings => {
+      get_descripcion_valuable(venta.productos[i], configs).then(strings => {
         let art = document.createElement('article');
-        art.id = producto.Rub[1].id;
+        art.id = i;
         art.classList.add('articulo');
         art.innerHTML = `
       <section class="descripcion ${configs.modo_mayus}">
@@ -273,14 +268,14 @@ function dibujar_venta(venta) {
       </section>
       <section class="cantidad">
          <button class="button restar" ${disabled}>-</button>
-         <p class="cantidad-producto"> ${producto.Rub[0]}</p>
+         <p class="cantidad-producto"> ${venta.productos[i].Rub[0]}</p>
          <button class="button sumar">+</button>
       </section>
       <section class="monto">
-         <p>${producto.Rub[1].monto}</p>
+         <p>${venta.productos[i].Rub[1].monto}</p>
       </section>
       <section>
-       <p> ${producto.Rub[1].monto * producto.Rub[0]}</p>
+       <p> ${venta.productos[i].Rub[1].monto * venta.productos[i].Rub[0]}</p>
       </section>
       <section id="borrar">
        <button class="button eliminar">Borrar</button>
@@ -312,17 +307,17 @@ function dibujar_venta(venta) {
         hijosRes.innerHTML += `<p>${strings}</p>`
       });
 
-    } else if (Object.keys(producto) == 'Prod') {
-      if (producto.Prod[0] < 2) {
+    } else if (Object.keys(venta.productos[i]) == 'Prod') {
+      if (venta.productos[i].Prod[0] < 2) {
         disabled = 'disabled';
       } else {
         disabled = '';
       }
 
-      get_descripcion_valuable(producto, configs).then(strings => {
+      get_descripcion_valuable(venta.productos[i], configs).then(strings => {
 
         let art = document.createElement('article');
-        art.id = producto.Prod[1].id;
+        art.id = i;
         art.classList.add('articulo');
         art.innerHTML = `
       <section class="descripcion ${configs.modo_mayus}">
@@ -330,14 +325,14 @@ function dibujar_venta(venta) {
       </section>
       <section class="cantidad">
          <button class="button restar" ${disabled}>-</button>
-         <p class="cantidad-producto"> ${producto.Prod[0]}</p>
+         <p class="cantidad-producto"> ${venta.productos[i].Prod[0]}</p>
          <button class="button sumar">+</button>
       </section>
       <section class="monto">
-         <p>${producto.Prod[1].precio_de_venta}</p>
+         <p>${venta.productos[i].Prod[1].precio_de_venta}</p>
       </section>
       <section>
-       <p> ${producto.Prod[1].precio_de_venta * producto.Prod[0]}</p>
+       <p> ${venta.productos[i].Prod[1].precio_de_venta * venta.productos[i].Prod[0]}</p>
       </section>
       <section id="borrar">
        <button class="button eliminar">Borrar</button>
@@ -488,18 +483,18 @@ async function get_venta_actual() {
   // console.log(ret)
   return res;
 }
-async function incrementarProdVentaAct(id) {
-  return await invoke("incrementar_producto_a_venta", { id: "" + id, pos: posA });
+async function incrementarProdVentaAct(index) {
+  return await invoke("incrementar_producto_a_venta", { index: parseInt(index), pos: posA });
 }
 async function agregarProdVentaAct(prod) {
   return await invoke("agregar_producto_a_venta", { prod: prod, pos: posA });
 }
-async function descontarProdVentaAct(id) {
-  return await invoke("descontar_producto_de_venta", { id: "" + id, pos: posA });
+async function descontarProdVentaAct(i) {
+  return await invoke("descontar_producto_de_venta", { index: parseInt(i), pos: posA });
 }
 
-async function eliminarProdVentaAct(id) {
-  return await invoke("eliminar_producto_de_venta", { id: "" + id, pos: posA })
+async function eliminarProdVentaAct(index) {
+  return await invoke("eliminar_producto_de_venta", { index:  parseInt(index), pos: posA })
 }
 async function open_cerrar_caja(){
   return await invoke("open_cerrar_caja")
