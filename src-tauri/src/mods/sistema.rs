@@ -665,7 +665,6 @@ impl<'a> Sistema {
         result
     }
 
-    
     pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i64>) -> Res<()> {
         async_runtime::block_on(Proveedor::new_to_db(proveedor, contacto, self.write_db()))?;
         Ok(())
@@ -731,44 +730,53 @@ impl<'a> Sistema {
 
         result
     }
-    pub fn descontar_producto_de_venta(&mut self, id: i64, pos: bool) -> Result<Venta, AppError> {
-        let res = async_runtime::block_on(self.producto(id))?;
+    pub fn descontar_producto_de_venta(
+        &mut self,
+        index: usize,
+        pos: bool,
+    ) -> Result<Venta, AppError> {
         Ok(if pos {
             self.ventas
                 .0
-                .restar_producto(res, &self.configs().politica(), &self.configs)?
+                .restar_producto(index, &self.configs().politica())?
         } else {
             self.ventas
                 .1
-                .restar_producto(res, &self.configs().politica(), &self.configs)?
+                .restar_producto(index, &self.configs().politica())?
         })
     }
-    pub fn incrementar_producto_a_venta(&mut self, id: i64, pos: bool) -> Result<Venta, AppError> {
-        let res = async_runtime::block_on(self.producto(id))?;
+    pub fn incrementar_producto_a_venta(
+        &mut self,
+        index: usize,
+        pos: bool,
+    ) -> Result<Venta, AppError> {
         let result;
         if pos {
-            result =
-                self.ventas
-                    .0
-                    .incrementar_producto(res, &self.configs().politica(), &self.configs);
+            result = self
+                .ventas
+                .0
+                .incrementar_producto(index, &self.configs().politica());
         } else {
-            result =
-                self.ventas
-                    .1
-                    .incrementar_producto(res, &self.configs().politica(), &self.configs);
+            result = self
+                .ventas
+                .1
+                .incrementar_producto(index, &self.configs().politica());
         }
 
         result
     }
-    pub fn eliminar_producto_de_venta(&mut self, prod:Valuable, pos: bool) -> Result<Venta, AppError> {
-        
+    pub fn eliminar_producto_de_venta(
+        &mut self,
+        index: usize,
+        pos: bool,
+    ) -> Result<Venta, AppError> {
         let result;
         if pos {
             if self.ventas.0.productos().len() > 1 {
-                result =
-                    self.ventas
-                        .0
-                        .eliminar_producto(prod, &self.configs().politica(), &self.configs);
+                result = self
+                    .ventas
+                    .0
+                    .eliminar_producto(index, &self.configs().politica());
             } else {
                 self.ventas.0 =
                     async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
@@ -776,10 +784,10 @@ impl<'a> Sistema {
             }
         } else {
             if self.ventas.1.productos().len() > 1 {
-                result =
-                    self.ventas
-                        .1
-                        .eliminar_producto(prod, &self.configs().politica(), &self.configs);
+                result = self
+                    .ventas
+                    .1
+                    .eliminar_producto(index, &self.configs().politica());
             } else {
                 self.ventas.1 =
                     async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;

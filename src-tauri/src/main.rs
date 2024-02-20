@@ -369,13 +369,13 @@ fn close_window(window: tauri::Window) -> Result<()> {
 #[tauri::command]
 fn descontar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
-    id: &str,
+    index: usize,
     pos: bool,
 ) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
             a.arc_user();
-            match a.descontar_producto_de_venta(id.parse().unwrap(), pos) {
+            match a.descontar_producto_de_venta(index, pos) {
                 Ok(a) => {
                     println!("{:?}", a);
                     Ok(a)
@@ -402,13 +402,13 @@ fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Res
 #[tauri::command]
 fn eliminar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
-    prod: Valuable,
+    index: usize,
     pos: bool,
 ) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
             a.arc_user();
-            match a.eliminar_producto_de_venta(prod, pos) {
+            match a.eliminar_producto_de_venta(index, pos) {
                 Ok(a) => Ok(a),
                 Err(e) => Err(e.to_string()),
             }
@@ -544,13 +544,13 @@ fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: bool) -> Result<Venta> 
 #[tauri::command]
 fn incrementar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
-    id: &str,
+    index: usize,
     pos: bool,
 ) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
             a.arc_user();
-            match a.incrementar_producto_a_venta(id.parse().unwrap(), pos) {
+            match a.incrementar_producto_a_venta(index, pos) {
                 Ok(a) => {
                     println!("{:?}", a);
                     Ok(a)

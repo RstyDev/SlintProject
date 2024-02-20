@@ -128,97 +128,68 @@ impl<'a> Venta {
     }
     pub fn restar_producto(
         &mut self,
-        producto: Valuable,
+        index: usize,
         politica: &f64,
-        conf: &Config,
     ) -> Result<Venta, AppError> {
-        let mut res = Err(AppError::NotFound {
-            objeto: String::from("Producto"),
-            instancia: format!("{}", producto.descripcion(conf)),
-        });
-        let mut esta = false;
-        for i in 0..self.productos.len() {
-            if producto == self.productos[i] {
-                let mut prod = self.productos.remove(i);
-                match &prod {
-                    V::Pes(a) => {
-                        if a.0 > 1.0 {
-                            prod = V::Pes((a.0 - 1.0, a.1.clone()))
-                        }
-                    }
-                    V::Prod(a) => {
-                        if a.0 > 1 {
-                            prod = V::Prod((a.0 - 1, a.1.clone()))
-                        }
-                    }
-                    V::Rub(a) => {
-                        if a.0 > 1 {
-                            prod = V::Rub((a.0 - 1, a.1.clone()))
-                        }
+        if self.productos().len() > index {
+            let mut prod = self.productos.remove(index);
+            match &prod {
+                V::Pes(a) => {
+                    if a.0 > 1.0 {
+                        prod = V::Pes((a.0 - 1.0, a.1.clone()))
                     }
                 }
-                self.productos.insert(i, prod);
-                esta = true;
+                V::Prod(a) => {
+                    if a.0 > 1 {
+                        prod = V::Prod((a.0 - 1, a.1.clone()))
+                    }
+                }
+                V::Rub(a) => {
+                    if a.0 > 1 {
+                        prod = V::Rub((a.0 - 1, a.1.clone()))
+                    }
+                }
             }
+            self.productos.insert(index, prod);
+            self.update_monto_total(politica);
+            Ok(self.clone())
+        }else{
+            Err(AppError::NotFound { objeto: String::from("Indice"), instancia: index.to_string() })
         }
-        self.update_monto_total(politica);
-        if esta {
-            res = Ok(self.clone());
-        }
-        res
     }
     pub fn incrementar_producto(
         &mut self,
-        producto: Valuable,
+        index: usize,
         politica: &f64,
-        conf: &Config,
     ) -> Result<Venta, AppError> {
-        let mut res = Err(AppError::NotFound {
-            objeto: String::from("Producto"),
-            instancia: format!("{}", producto.descripcion(conf)),
-        });
-        let mut esta = false;
-        for i in 0..self.productos.len() {
-            if producto == self.productos[i] {
-                esta = true;
-                let mut prod = self.productos.remove(i);
-                match &prod {
-                    V::Pes(a) => prod = V::Pes((a.0 + 1.0, a.1.clone())),
-                    V::Prod(a) => prod = V::Prod((a.0 + 1, a.1.clone())),
-                    V::Rub(a) => prod = V::Rub((a.0 + 1, a.1.clone())),
-                }
-                self.productos.insert(i, prod);
+        if self.productos().len() > index {
+            let mut prod = self.productos.remove(index);
+            match &prod {
+                V::Pes(a) => prod = V::Pes((a.0 + 1.0, a.1.clone())),
+                V::Prod(a) => prod = V::Prod((a.0 + 1, a.1.clone())),
+                V::Rub(a) => prod = V::Rub((a.0 + 1, a.1.clone())),
             }
+            self.productos.insert(index, prod);
+            self.update_monto_total(politica);
+            Ok(self.clone())
+        } else {
+            Err(AppError::NotFound {
+                objeto: String::from("Indice"),
+                instancia: index.to_string(),
+            })
         }
-        self.update_monto_total(politica);
-        if esta {
-            res = Ok(self.clone());
-        }
-        res
     }
-    pub fn eliminar_producto(
-        &mut self,
-        producto: Valuable,
-        politica: &f64,
-        conf: &Config,
-    ) -> Result<Venta, AppError> {
-        let mut res = Err(AppError::NotFound {
-            objeto: String::from("Producto"),
-            instancia: format!("{}", producto.descripcion(conf)),
-        });
-        let mut esta = false;
-        for i in 0..self.productos.len() {
-            if producto == self.productos[i] {
-                self.productos.remove(i);
-                esta = true;
-                break;
-            }
+    pub fn eliminar_producto(&mut self, index: usize, politica: &f64) -> Result<Venta, AppError> {
+        if self.productos().len() > index {
+            self.productos.remove(index);
+            self.update_monto_total(politica);
+            Ok(self.clone())
+        } else {
+            Err(AppError::NotFound {
+                objeto: String::from("Indice"),
+                instancia: index.to_string(),
+            })
         }
-        self.update_monto_total(politica);
-        if esta {
-            res = Ok(self.clone());
-        }
-        res
     }
 }
 impl Save for Venta {
