@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use mods::caja::Caja;
+use mods::cliente::Cli;
 use mods::lib::get_hash;
 use mods::user::User;
 use mods::{
@@ -76,7 +77,16 @@ async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
         Err(e) => Err(e.to_string()),
     }
 }
-
+#[tauri::command]
+fn agregar_cliente(sistema: State<Mutex<Sistema>>,nombre: &str, dni: i64, credito: bool, activo: bool)->Result<Cli>{
+    match sistema.lock(){
+       Ok(sis) => match sis.agregar_cliente(nombre,dni,credito,activo){
+            Ok(a) => Ok(a),
+            Err(e) => Err(e.to_string()),
+       },
+        Err(e) => Err(e.to_string()),
+    }
+}
 #[tauri::command]
 fn agregar_pago(
     sistema: State<Mutex<Sistema>>,
@@ -841,6 +851,7 @@ fn main() {
     let app = tauri::Builder::default()
         .manage(Mutex::new(Sistema::new().unwrap()))
         .invoke_handler(tauri::generate_handler![
+            agregar_cliente,
             agregar_pago,
             agregar_pesable,
             agregar_producto,

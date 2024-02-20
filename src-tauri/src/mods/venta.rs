@@ -4,7 +4,7 @@ use entity::pago;
 type Res<T> = std::result::Result<T, AppError>;
 use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, Database, DatabaseConnection, DbErr, EntityTrait,
-    IntoActiveModel, QueryOrder, Set, 
+    IntoActiveModel, QueryOrder, Set,
 };
 use serde::Serialize;
 use std::sync::Arc;

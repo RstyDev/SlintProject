@@ -1,6 +1,7 @@
 type Res<T> = std::result::Result<T, AppError>;
 use super::{
     caja::Caja,
+    cliente::Cli,
     config::Config,
     error::AppError,
     lib::{crear_file, get_hash, leer_file, save, Db, Mapper},
@@ -541,7 +542,16 @@ impl<'a> Sistema {
             res.update(self.write_db()).await.unwrap();
         });
     }
-
+    pub fn agregar_cliente(&self, nombre: &str, dni: i64, credito: bool, activo: bool)->Res<Cli> {
+        async_runtime::block_on(Cli::new_to_db(
+            self.write_db(),
+            nombre,
+            dni,
+            credito,
+            activo,
+            Utc::now().naive_local(),
+        ))
+    }
     pub async fn agregar_producto(
         &mut self,
         proveedores: Vec<&str>,
