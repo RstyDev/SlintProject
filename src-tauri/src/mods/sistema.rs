@@ -665,22 +665,7 @@ impl<'a> Sistema {
         result
     }
 
-    pub fn agregar_rubro(&mut self, rubro: Rubro) -> Res<()> {
-        // let mut rubros: Vec<Rubro> = self
-        //     .productos
-        //     .iter()
-        //     .map(|x| match x {
-        //         V::Rub(a) => Some(a.1.clone()),
-        //         _ => None,
-        //     })
-        //     .flatten()
-        //     .collect();
-        // rubros.push(rubro.clone());
-        let handle = async_runtime::spawn(save(rubro.clone()));
-        // crear_file(&self.path_rubros, &rubros)?;
-        // self.productos.push(V::Rub((0, rubro)));
-        Ok(async_runtime::block_on(handle)??)
-    }
+    
     pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i64>) -> Res<()> {
         async_runtime::block_on(Proveedor::new_to_db(proveedor, contacto, self.write_db()))?;
         Ok(())
@@ -775,15 +760,15 @@ impl<'a> Sistema {
 
         result
     }
-    pub fn eliminar_producto_de_venta(&mut self, id: i64, pos: bool) -> Result<Venta, AppError> {
-        let res = async_runtime::block_on(self.producto(id))?;
+    pub fn eliminar_producto_de_venta(&mut self, prod:Valuable, pos: bool) -> Result<Venta, AppError> {
+        
         let result;
         if pos {
             if self.ventas.0.productos().len() > 1 {
                 result =
                     self.ventas
                         .0
-                        .eliminar_producto(res, &self.configs().politica(), &self.configs);
+                        .eliminar_producto(prod, &self.configs().politica(), &self.configs);
             } else {
                 self.ventas.0 =
                     async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
@@ -794,7 +779,7 @@ impl<'a> Sistema {
                 result =
                     self.ventas
                         .1
-                        .eliminar_producto(res, &self.configs().politica(), &self.configs);
+                        .eliminar_producto(prod, &self.configs().politica(), &self.configs);
             } else {
                 self.ventas.1 =
                     async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;

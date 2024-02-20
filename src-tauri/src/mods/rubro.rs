@@ -1,7 +1,9 @@
 use chrono::Utc;
 type Res<T> = std::result::Result<T, AppError>;
 use entity::rubro;
-use sea_orm::{ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, Set};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter, Set
+};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -34,20 +36,34 @@ impl Rubro {
         descripcion: &str,
         db: &DatabaseConnection,
     ) -> Res<Rubro> {
-        let model = entity::rubro::ActiveModel {
-            codigo: Set(codigo),
-            monto: Set(monto),
-            descripcion: Set(descripcion.to_string()),
-            updated_at: Set(Utc::now().naive_local()),
-            ..Default::default()
-        };
-        let res = entity::rubro::Entity::insert(model).exec(db).await?;
-        Ok(Rubro {
-            id: res.last_insert_id,
-            codigo,
-            monto,
-            descripcion: Arc::from(descripcion),
-        })
+        match entity::rubro::Entity::find()
+            .filter(entity::rubro::Column::Codigo.eq(codigo))
+            .one(db)
+            .await?
+        {
+            Some(_) => {
+                return Err(AppError::ExistingError {
+                    objeto: String::from("Rubro"),
+                    instancia: format!("{}", codigo),
+                })
+            }
+            None => {
+                let model = entity::rubro::ActiveModel {
+                    codigo: Set(codigo),
+                    monto: Set(monto),
+                    descripcion: Set(descripcion.to_string()),
+                    updated_at: Set(Utc::now().naive_local()),
+                    ..Default::default()
+                };
+                let res = entity::rubro::Entity::insert(model).exec(db).await?;
+                Ok(Rubro {
+                    id: res.last_insert_id,
+                    codigo,
+                    monto,
+                    descripcion: Arc::from(descripcion),
+                })
+            }
+        }
     }
     pub fn id(&self) -> &i64 {
         &self.id

@@ -238,7 +238,7 @@ fn agregar_rubro(
     descripcion: &str,
 ) -> Result<String> {
     match sistema.lock() {
-        Ok(mut sis) => match sis.arc_user().rango() {
+        Ok(sis) => match sis.arc_user().rango() {
             Rango::Admin => {
                 let rubro = match async_runtime::block_on(Rubro::new_to_db(
                     codigo,
@@ -249,9 +249,6 @@ fn agregar_rubro(
                     Ok(a) => a,
                     Err(e) => return Err(e.to_string()),
                 };
-                if let Err(e) = sis.agregar_rubro(rubro.clone()) {
-                    return Err(e.to_string());
-                }
                 if let Err(e) = window.close() {
                     return Err(e.to_string());
                 }
@@ -405,13 +402,13 @@ fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Res
 #[tauri::command]
 fn eliminar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
-    id: &str,
+    prod: Valuable,
     pos: bool,
 ) -> Result<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
             a.arc_user();
-            match a.eliminar_producto_de_venta(id.parse().unwrap(), pos) {
+            match a.eliminar_producto_de_venta(prod, pos) {
                 Ok(a) => Ok(a),
                 Err(e) => Err(e.to_string()),
             }
