@@ -121,7 +121,6 @@ fn agregar_pago(
 fn agregar_pesable<'a>(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-
     precio_peso: f64,
     codigo: i64,
     costo_kilo: f64,
