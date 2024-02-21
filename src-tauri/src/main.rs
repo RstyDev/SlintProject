@@ -9,7 +9,7 @@ use serde::Serialize;
 type Result<T> = std::result::Result<T, String>;
 use std::sync::Mutex;
 use tauri::{
-    async_runtime::{self, block_on},
+    async_runtime::{self, block_on},WindowBuilder,
     CustomMenuItem, Manager, Menu, MenuItem, State, Submenu,
 };
 const DENEGADO: &str = "Permiso denegado";
@@ -30,7 +30,7 @@ async fn open_add_product(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(800.0, 400.0)
+    .inner_size(800.0, 400.0).menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -48,7 +48,7 @@ async fn open_add_pesable(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(350.0, 260.0)
+    .inner_size(350.0, 260.0).menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -65,7 +65,7 @@ async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(350.0, 180.0)
+    .inner_size(350.0, 180.0).menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -583,7 +583,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(430.0, 110.0)
+    .inner_size(430.0, 110.0).menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -601,7 +601,7 @@ async fn open_add_select(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(210.0, 80.0)
+    .inner_size(210.0, 80.0).menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -620,7 +620,7 @@ async fn open_add_user(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(430.0, 200.0)
+    .inner_size(430.0, 200.0).menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -638,7 +638,7 @@ async fn open_agregar_cliente(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(640.0, 400.0)
+    .inner_size(640.0, 400.0).menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -656,7 +656,7 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(640.0, 620.0)
+    .inner_size(640.0, 620.0).menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -674,7 +674,7 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(400.0, 150.0)
+    .inner_size(400.0, 150.0).menu(Menu::new())
     .build()
     {
         Ok(a) => {
@@ -717,7 +717,7 @@ async fn open_edit_settings(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(500.0, 360.0)
+    .inner_size(500.0, 360.0).menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -736,7 +736,7 @@ async fn open_login(handle: tauri::AppHandle) -> Result<()> {
     .minimizable(false)
     .closable(false)
     .always_on_top(true)
-    .center()
+    .center().menu(Menu::new())
     // .minimizable(false)
     .build()
     {
@@ -755,7 +755,7 @@ async fn open_stash(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(900.0, 600.0)
+    .inner_size(900.0, 600.0).menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -938,15 +938,16 @@ fn main() {
             set_configs,
             stash_n_close,
             unstash_sale,
-        ])
-        .menu(menu).on_menu_event(|e|
-            {match e.menu_item_id(){
-                "cerrar caja"=>async_runtime::block_on(open_cerrar_caja()).unwrap(),
-                _=>(),
-            }}
-        )
+        ]).menu(menu)
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
-
+            let window=app.get_window("main").unwrap();
+            let handle=app.handle();
+            window.on_menu_event(move |event|{
+                match event.menu_item_id(){
+                    "cerrar caja"=>async_runtime::block_on(open_cerrar_caja(handle.clone())),
+                    _=>Ok(())
+                };
+            }); 
     app.run(|_, _| {})
 }

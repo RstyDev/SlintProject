@@ -2,7 +2,8 @@ use chrono::Utc;
 type Res<T> = std::result::Result<T, AppError>;
 use entity::rubro;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter, Set
+    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
+    Set,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

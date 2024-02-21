@@ -125,11 +125,7 @@ impl<'a> Venta {
         let pago = self.pagos.remove(index);
         self.monto_pagado -= pago.monto();
     }
-    pub fn restar_producto(
-        &mut self,
-        index: usize,
-        politica: &f64,
-    ) -> Result<Venta, AppError> {
+    pub fn restar_producto(&mut self, index: usize, politica: &f64) -> Result<Venta, AppError> {
         if self.productos().len() > index {
             let mut prod = self.productos.remove(index);
             match &prod {
@@ -152,8 +148,11 @@ impl<'a> Venta {
             self.productos.insert(index, prod);
             self.update_monto_total(politica);
             Ok(self.clone())
-        }else{
-            Err(AppError::NotFound { objeto: String::from("Indice"), instancia: index.to_string() })
+        } else {
+            Err(AppError::NotFound {
+                objeto: String::from("Indice"),
+                instancia: index.to_string(),
+            })
         }
     }
     pub fn incrementar_producto(
