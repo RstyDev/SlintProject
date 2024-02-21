@@ -1,9 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use crate::mods::lib::get_hash;
 use mods::caja::Caja;
 use mods::cliente::Cli;
-use mods::error::AppError;
-use mods::lib::get_hash;
 use mods::user::User;
 use mods::{
     config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, user::Rango,
@@ -869,9 +868,9 @@ fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: boo
                 return Err(e.to_string());
             }
             let mut res = window.close();
-                while let Err(_) = res {
-                    res = window.close();
-                }
+            while let Err(_) = res {
+                res = window.close();
+            }
             println!("{:#?}", sis.stash());
             Ok(())
         }

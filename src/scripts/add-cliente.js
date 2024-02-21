@@ -12,9 +12,6 @@ get_rango().then(r=>{
     rango=r;
     if (rango!='Admin'){
         document.getElementById('cred').disabled='true'
-    }else{
-        let aux=cred.value;
-        console.log(aux)
     }
 })
 async function get_rango(){
@@ -27,8 +24,7 @@ document.getElementsByClassName('add-form')[0].addEventListener('submit',(e)=>{
     e.preventDefault();
     let credito;
     if (rango=='Admin'){
-        credito=cred.value=='on';
-        
+        credito=cred.checked;
     }else{
         credito=false;
     }
