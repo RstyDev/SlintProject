@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use mods::caja::Caja;
 use mods::cliente::Cli;
+use mods::error::AppError;
 use mods::lib::get_hash;
 use mods::user::User;
 use mods::{
@@ -80,13 +81,20 @@ async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
 #[tauri::command]
 fn agregar_cliente(
     sistema: State<Mutex<Sistema>>,
+    window: tauri::Window,
     nombre: &str,
     dni: i64,
     credito: bool,
 ) -> Result<Cli> {
     match sistema.lock() {
         Ok(sis) => match sis.agregar_cliente(nombre, dni, credito, true) {
-            Ok(a) => Ok(a),
+            Ok(a) => {
+                let mut res = window.close();
+                while let Err(_) = res {
+                    res = window.close();
+                }
+                Ok(a)
+            }
             Err(e) => Err(e.to_string()),
         },
         Err(e) => Err(e.to_string()),
@@ -135,8 +143,9 @@ fn agregar_pesable<'a>(
                     Ok(a) => a,
                     Err(e) => return Err(e.to_string()),
                 };
-                if let Err(e) = window.close() {
-                    return Err(e.to_string());
+                let mut res = window.close();
+                while let Err(_) = res {
+                    res = window.close();
                 }
                 Ok(pesable.descripcion().to_string())
             }
@@ -180,8 +189,9 @@ fn agregar_producto(
                     Ok(a) => a,
                     Err(e) => return Err(e.to_string()),
                 };
-                if let Err(e) = window.close() {
-                    return Err(e.to_string());
+                let mut res = window.close();
+                while let Err(_) = res {
+                    res = window.close();
                 }
                 Ok(producto.nombre_completo())
             }
@@ -220,8 +230,9 @@ fn agregar_proveedor(
                 if let Err(e) = sis.agregar_proveedor(proveedor, contacto) {
                     return Err(e.to_string());
                 }
-                if let Err(e) = window.close() {
-                    return Err(e.to_string());
+                let mut res = window.close();
+                while let Err(_) = res {
+                    res = window.close();
                 }
                 Ok(())
             }
@@ -249,8 +260,9 @@ fn agregar_rubro(
                     Ok(a) => a,
                     Err(e) => return Err(e.to_string()),
                 };
-                if let Err(e) = window.close() {
-                    return Err(e.to_string());
+                let mut res = window.close();
+                while let Err(_) = res {
+                    res = window.close();
                 }
                 Ok(rubro.descripcion().to_string())
             }
@@ -272,10 +284,9 @@ fn agregar_usuario(
         Ok(sis) => match sis.arc_user().rango() {
             Rango::Admin => match sis.agregar_usuario(id, nombre, pass, rango) {
                 Ok(user) => {
-                    if let Err(_) = window.close() {
-                        if let Err(e) = window.close() {
-                            return Err(e.to_string());
-                        }
+                    let mut res = window.close();
+                    while let Err(_) = res {
+                        res = window.close();
                     }
                     Ok(user)
                 }
@@ -300,10 +311,9 @@ fn cerrar_caja(
         Ok(mut sis) => {
             match sis.cerrar_caja(monto_actual) {
                 Ok(_) => {
-                    if let Err(_) = window.close() {
-                        if let Err(e) = window.close() {
-                            return Err(e.to_string());
-                        }
+                    let mut res = window.close();
+                    while let Err(_) = res {
+                        res = window.close();
                     }
                 }
                 Err(e) => return Err(e.to_string()),
@@ -361,8 +371,9 @@ async fn check_codes(code: i64) -> Result<bool> {
 }
 #[tauri::command]
 fn close_window(window: tauri::Window) -> Result<()> {
-    if let Err(e) = window.close() {
-        return Err(e.to_string());
+    let mut res = window.close();
+    while let Err(_) = res {
+        res = window.close();
     }
     Ok(())
 }
@@ -515,6 +526,13 @@ fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Result<Vec<String>> {
     res
 }
 #[tauri::command]
+fn get_rango(sistema: State<Mutex<Sistema>>) -> Result<Rango> {
+    match sistema.lock() {
+        Ok(sis) => Ok(sis.arc_user().rango().clone()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
 fn get_stash(sistema: State<Mutex<Sistema>>) -> Result<Vec<Venta>> {
     match sistema.lock() {
         Ok(sis) => {
@@ -610,6 +628,24 @@ async fn open_add_user(handle: tauri::AppHandle) -> Result<()> {
     .resizable(false)
     .minimizable(false)
     .inner_size(430.0, 200.0)
+    .build()
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
+async fn open_agregar_cliente(handle: tauri::AppHandle) -> Result<()> {
+    match tauri::WindowBuilder::new(
+        &handle,
+        "cerrar-caja",
+        tauri::WindowUrl::App("/pages/add-cliente.html".parse().unwrap()),
+    )
+    .always_on_top(true)
+    .center()
+    .resizable(false)
+    .minimizable(false)
+    .inner_size(640.0, 400.0)
     .build()
     {
         Ok(_) => Ok(()),
@@ -759,8 +795,9 @@ fn try_login(
                         }
                     }
                 }
-                if let Err(e) = window.close() {
-                    return Err(e.to_string());
+                let mut res = window.close();
+                while let Err(_) = res {
+                    res = window.close();
                 }
             }
             Err(e) => return Err(e.to_string()),
@@ -802,8 +839,9 @@ fn set_configs(
         Ok(mut sis) => match sis.arc_user().rango() {
             Rango::Admin => {
                 sis.set_configs(configs);
-                if let Err(e) = window.close() {
-                    return Err(e.to_string());
+                let mut res = window.close();
+                while let Err(_) = res {
+                    res = window.close();
                 }
                 Ok(())
             }
@@ -830,9 +868,10 @@ fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: boo
             ) {
                 return Err(e.to_string());
             }
-            if let Err(e) = window.close() {
-                return Err(e.to_string());
-            }
+            let mut res = window.close();
+                while let Err(_) = res {
+                    res = window.close();
+                }
             println!("{:#?}", sis.stash());
             Ok(())
         }
@@ -881,6 +920,7 @@ fn main() {
             get_medios_pago,
             get_productos_filtrado,
             get_proveedores,
+            get_rango,
             get_stash,
             get_user,
             get_venta_actual,
@@ -888,6 +928,7 @@ fn main() {
             open_add_prov,
             open_add_select,
             open_add_user,
+            open_agregar_cliente,
             open_cerrar_caja,
             open_confirm_stash,
             open_edit_settings,

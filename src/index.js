@@ -87,6 +87,9 @@ async function get_configs() {
 async function get_user() {
   return await invoke("get_user");
 }
+async function open_agregar_cliente(){
+  return await invoke("open_agregar_cliente");
+}
 async function open_add_user() {
   return await invoke("open_add_user");
 }
@@ -895,6 +898,7 @@ function dibujar_base(){
     let boton_agregar_producto='';
     let boton_agregar_prov='';
     console.log(usuario);
+    
     if (usuario.rango=='Admin'){
       boton_agregar_producto='<a id="agregar-producto-mostrar" class="a-boton">Agregar Producto</a>'
       boton_add_user='<a id="agregar-usuario-mostrar" class="a-boton">Agregar Usuario</a>'
@@ -907,6 +911,7 @@ function dibujar_base(){
                 <a id="menu-button"><img src="/assets/menu.svg" class="boton" alt="menu image"></a>
                 <div id="barra-de-opciones">
                     <a id="cerrar-caja-mostrar" class="a-boton">Cerrar Caja</a>
+                    <a id="agregar-cliente-mostrar" class="a-boton">Agregar Cliente</a>
                     ${boton_agregar_producto}
                     ${boton_agregar_prov}
                     ${boton_add_user}
@@ -928,6 +933,7 @@ function dibujar_base(){
         </section>
     </main>`;
   boton_add_user=document.getElementById('agregar-usuario-mostrar');
+  
   document.getElementById('cerrar-caja-mostrar').addEventListener('click',()=>{
     open_cerrar_caja();
     let barra = document.querySelector('#barra-de-opciones');
@@ -936,18 +942,20 @@ function dibujar_base(){
   })
   if (document.getElementById('agregar-producto-mostrar')){
     agrProdContHandle();
-  }
-  if (boton_add_user){
-    boton_add_user.addEventListener('click',(e)=>{
+    cambiarConfHandle();
+    boton_add_user.addEventListener('click',()=>{
       let barra = document.querySelector('#barra-de-opciones');
       barra.classList.remove('visible');
       barra.classList.remove('para-hamburguesa');
       open_add_user();
     })
   }
-  if (document.getElementById('cambiar-configs-mostrar')){
-    cambiarConfHandle();
-  }
+  document.getElementById('agregar-cliente-mostrar').addEventListener('click',()=>{
+    let barra = document.querySelector('#barra-de-opciones');
+    barra.classList.remove('visible');
+    barra.classList.remove('para-hamburguesa');
+    open_agregar_cliente();
+  });
   mensaje1 = document.querySelector('#mensaje1-msg');
   buscador = document.querySelector('#buscador');
 

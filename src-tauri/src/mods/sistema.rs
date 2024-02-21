@@ -130,9 +130,6 @@ impl<'a> Sistema {
         ))
     }
 
-    // pub fn user(&self) -> Option<User> {
-    //     self.user.clone()
-    // }
     pub fn caja(&self) -> &Caja {
         &self.caja
     }
@@ -669,29 +666,29 @@ impl<'a> Sistema {
         async_runtime::block_on(Proveedor::new_to_db(proveedor, contacto, self.write_db()))?;
         Ok(())
     }
-    async fn producto(&mut self, id: i64) -> Result<Valuable, AppError> {
-        let model;
+    // async fn producto(&mut self, id: i64) -> Result<Valuable, AppError> {
+    //     let model;
 
-        match entity::producto::Entity::find_by_id(id)
-            .one(self.read_db())
-            .await?
-        {
-            Some(a) => {
-                model = a.to_owned();
+    //     match entity::producto::Entity::find_by_id(id)
+    //         .one(self.read_db())
+    //         .await?
+    //     {
+    //         Some(a) => {
+    //             model = a.to_owned();
 
-                return Ok(V::Prod((
-                    0,
-                    Mapper::map_model_prod(&model, self.read_db()).await?,
-                )));
-            }
-            None => {
-                return Err(AppError::NotFound {
-                    objeto: String::from("Producto"),
-                    instancia: format!("{}", id),
-                });
-            }
-        }
-    }
+    //             return Ok(V::Prod((
+    //                 0,
+    //                 Mapper::map_model_prod(&model, self.read_db()).await?,
+    //             )));
+    //         }
+    //         None => {
+    //             return Err(AppError::NotFound {
+    //                 objeto: String::from("Producto"),
+    //                 instancia: format!("{}", id),
+    //             });
+    //         }
+    //     }
+    // }
     pub async fn agregar_producto_a_venta(&mut self, prod: V, pos: bool) -> Res<Venta> {
         let existe = match &prod {
             Valuable::Prod(a) => entity::producto::Entity::find_by_id(*a.1.id())

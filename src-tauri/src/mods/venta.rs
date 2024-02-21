@@ -15,7 +15,6 @@ use Valuable as V;
 use crate::mods::pago::medio_from_db;
 
 use super::{
-    config::Config,
     error::AppError,
     lib::{redondeo, Save},
     pago::{MedioPago, Pago},
