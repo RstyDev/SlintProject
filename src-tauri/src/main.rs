@@ -1,21 +1,16 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use crate::mods::lib::get_hash;
-use mods::caja::Caja;
-use mods::cliente::Cli;
-use mods::user::User;
 use mods::{
-    config::Config, pesable::Pesable, rubro::Rubro, sistema::Sistema, user::Rango,
-    valuable::Valuable, venta::Venta,
+    caja::Caja, cliente::Cli, config::Config, lib::get_hash, pesable::Pesable, rubro::Rubro,
+    sistema::Sistema, user::Rango, user::User, valuable::Valuable, venta::Venta,
 };
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
-use tauri::Manager;
 type Result<T> = std::result::Result<T, String>;
 use std::sync::Mutex;
 use tauri::{
     async_runtime::{self, block_on},
-    State,
+    CustomMenuItem, Manager, Menu, MenuItem, State, Submenu,
 };
 const DENEGADO: &str = "Permiso denegado";
 #[derive(Clone, Serialize)]
@@ -892,6 +887,12 @@ fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Resu
 }
 
 fn main() {
+    let cerrar_caja_menu = CustomMenuItem::new(String::from("cerrar caja"), "Cerrar caja");
+    let caja = Submenu::new("Caja", Menu::new().add_item(cerrar_caja_menu));
+    let menu = Menu::new()
+        .add_native_item(MenuItem::Copy)
+        .add_item(CustomMenuItem::new("hide", "Hide"))
+        .add_submenu(caja);
     let app = tauri::Builder::default()
         .manage(Mutex::new(Sistema::new().unwrap()))
         .invoke_handler(tauri::generate_handler![
@@ -938,6 +939,12 @@ fn main() {
             stash_n_close,
             unstash_sale,
         ])
+        .menu(menu).on_menu_event(|e|
+            {match e.menu_item_id(){
+                "cerrar caja"=>async_runtime::block_on(open_cerrar_caja()).unwrap(),
+                _=>(),
+            }}
+        )
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
 
