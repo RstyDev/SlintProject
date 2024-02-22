@@ -29,13 +29,14 @@ fn try_disable_windows(menu: MenuHandle) -> Result<()> {
     Ok(())
 }
 async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("add-product"){
-        Some(window)=>{
-            if let Err(e)= window.show(){
-                return Err(e.to_string())
+    match handle.get_window("add-product") {
+        Some(window) => {
+            if let Err(e) = window.show() {
+                return Err(e.to_string());
             }
-            Ok(())},
-        None=>{
+            Ok(())
+        }
+        None => {
             match tauri::WindowBuilder::new(
                 &handle,
                 "add-product", /* the unique window label */
@@ -52,65 +53,63 @@ async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
                 Ok(_) => Ok(()),
                 Err(e) => Err(e.to_string()),
             }
-        }   
+        }
     }
 }
 
 async fn open_add_pesable(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("add-pesable"){
-        Some(window)=>{
-            if let Err(e)=window.show(){
-                return Err(e.to_string())
+    match handle.get_window("add-pesable") {
+        Some(window) => {
+            if let Err(e) = window.show() {
+                return Err(e.to_string());
             }
             Ok(())
-        }   
-        None=>{
-            
-    match tauri::WindowBuilder::new(
-        &handle,
-        "add-pesable", /* the unique window label */
-        tauri::WindowUrl::App("/pages/add-pesable.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(350.0, 260.0)
-    .menu(Menu::new())
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
+        }
+        None => {
+            match tauri::WindowBuilder::new(
+                &handle,
+                "add-pesable", /* the unique window label */
+                tauri::WindowUrl::App("/pages/add-pesable.html".parse().unwrap()),
+            )
+            .always_on_top(true)
+            .center()
+            .resizable(false)
+            .minimizable(false)
+            .inner_size(350.0, 260.0)
+            .menu(Menu::new())
+            .build()
+            {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string()),
+            }
         }
     }
 }
 async fn open_add_rubro(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("add-rubro"){
-        Some(window)=>{
-            if let Err(e)=window.show(){
-                return Err(e.to_string())
+    match handle.get_window("add-rubro") {
+        Some(window) => {
+            if let Err(e) = window.show() {
+                return Err(e.to_string());
             }
             Ok(())
-        }   
-        None=>{
-    match tauri::WindowBuilder::new(
-        &handle,
-        "add-rubro", /* the unique window label */
-        tauri::WindowUrl::App("/pages/add-rubro.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(350.0, 180.0)
-    .menu(Menu::new())
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
-            
+        }
+        None => {
+            match tauri::WindowBuilder::new(
+                &handle,
+                "add-rubro", /* the unique window label */
+                tauri::WindowUrl::App("/pages/add-rubro.html".parse().unwrap()),
+            )
+            .always_on_top(true)
+            .center()
+            .resizable(false)
+            .minimizable(false)
+            .inner_size(350.0, 180.0)
+            .menu(Menu::new())
+            .build()
+            {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string()),
+            }
         }
     }
 }
@@ -508,6 +507,19 @@ fn get_caja(sistema: State<Mutex<Sistema>>) -> Res<Caja> {
     }
 }
 #[tauri::command]
+fn get_clientes(sistema: State<Mutex<Sistema>>) -> Res<Vec<Cli>> {
+    match sistema.lock() {
+        Ok(sis) => match async_runtime::block_on(sis.get_clientes()) {
+            Ok(a) => {
+                println!("{:#?}", a);
+                Ok(a)
+            }
+            Err(e) => Err(e.to_string()),
+        },
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
 fn get_configs(sistema: State<Mutex<Sistema>>) -> Res<Config> {
     match sistema.lock() {
         Ok(sis) => Ok(sis.configs().clone()),
@@ -668,304 +680,295 @@ fn incrementar_producto_a_venta(
 }
 #[tauri::command]
 async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("add-prov"){
-        Some(window)=>{
-            if let Err(e)=window.show(){
-                return Err(e.to_string())
+    match handle.get_window("add-prov") {
+        Some(window) => {
+            if let Err(e) = window.show() {
+                return Err(e.to_string());
             }
             Ok(())
-        },
-        None=>{
-            match tauri::WindowBuilder::new(
-        &handle,
-        "add-prov", /* the unique window label */
-        tauri::WindowUrl::App("/pages/add-prov.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(430.0, 110.0)
-    .menu(Menu::new())
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
         }
-    }   
-    
+        None => {
+            match tauri::WindowBuilder::new(
+                &handle,
+                "add-prov", /* the unique window label */
+                tauri::WindowUrl::App("/pages/add-prov.html".parse().unwrap()),
+            )
+            .always_on_top(true)
+            .center()
+            .resizable(false)
+            .minimizable(false)
+            .inner_size(430.0, 110.0)
+            .menu(Menu::new())
+            .build()
+            {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string()),
+            }
+        }
+    }
 }
 #[tauri::command]
 async fn open_add_select(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("add-select"){
-        Some(window)=>{
-            if let Err(e)=window.show(){
-                return Err(e.to_string())
+    match handle.get_window("add-select") {
+        Some(window) => {
+            if let Err(e) = window.show() {
+                return Err(e.to_string());
             }
             Ok(())
-        }   
-        None=>{
-    match tauri::WindowBuilder::new(
-        &handle,
-        "add-select",
-        tauri::WindowUrl::App("/pages/add-select.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(210.0, 80.0)
-    .menu(Menu::new())
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
-            
+        }
+        None => {
+            match tauri::WindowBuilder::new(
+                &handle,
+                "add-select",
+                tauri::WindowUrl::App("/pages/add-select.html".parse().unwrap()),
+            )
+            .always_on_top(true)
+            .center()
+            .resizable(false)
+            .minimizable(false)
+            .inner_size(210.0, 80.0)
+            .menu(Menu::new())
+            .build()
+            {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string()),
+            }
         }
     }
 }
 
 #[tauri::command]
 async fn open_add_user(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("add-user"){
-        Some(window)=>{
-            if let Err(e)=window.show(){
-                return Err(e.to_string())
+    match handle.get_window("add-user") {
+        Some(window) => {
+            if let Err(e) = window.show() {
+                return Err(e.to_string());
             }
             Ok(())
-        }   
-        None=>{
+        }
+        None => {
             match tauri::WindowBuilder::new(
-        &handle,
-        "add-user", /* the unique window label */
-        tauri::WindowUrl::App("/pages/add-user.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(430.0, 200.0)
-    .menu(Menu::new())
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
-            
+                &handle,
+                "add-user", /* the unique window label */
+                tauri::WindowUrl::App("/pages/add-user.html".parse().unwrap()),
+            )
+            .always_on_top(true)
+            .center()
+            .resizable(false)
+            .minimizable(false)
+            .inner_size(430.0, 200.0)
+            .menu(Menu::new())
+            .build()
+            {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string()),
+            }
         }
     }
-    
 }
 #[tauri::command]
 async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("add-cliente"){
-        Some(window)=>{
-            if let Err(e)=window.show(){
-                return Err(e.to_string())
+    match handle.get_window("add-cliente") {
+        Some(window) => {
+            if let Err(e) = window.show() {
+                return Err(e.to_string());
             }
             Ok(())
-        }  
-        None=>{
-    match tauri::WindowBuilder::new(
-        &handle,
-        "add-cliente",
-        tauri::WindowUrl::App("/pages/add-cliente.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(640.0, 400.0)
-    .menu(Menu::new())
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
-            
-        }   
+        }
+        None => {
+            match tauri::WindowBuilder::new(
+                &handle,
+                "add-cliente",
+                tauri::WindowUrl::App("/pages/add-cliente.html".parse().unwrap()),
+            )
+            .always_on_top(true)
+            .center()
+            .resizable(false)
+            .minimizable(false)
+            .inner_size(640.0, 400.0)
+            .menu(Menu::new())
+            .build()
+            {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string()),
+            }
+        }
     }
 }
 #[tauri::command]
 async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("cerrar-caja"){
-        Some(window)=>{
-            if let Err(e)=window.show(){
-                return Err(e.to_string())
+    match handle.get_window("cerrar-caja") {
+        Some(window) => {
+            if let Err(e) = window.show() {
+                return Err(e.to_string());
             }
             Ok(())
-        }  
-        None=>{
-    match tauri::WindowBuilder::new(
-        &handle,
-        "cerrar-caja",
-        tauri::WindowUrl::App("/pages/cerrar-caja.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(640.0, 620.0)
-    .menu(Menu::new())
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
-            
-        }   
+        }
+        None => {
+            match tauri::WindowBuilder::new(
+                &handle,
+                "cerrar-caja",
+                tauri::WindowUrl::App("/pages/cerrar-caja.html".parse().unwrap()),
+            )
+            .always_on_top(true)
+            .center()
+            .resizable(false)
+            .minimizable(false)
+            .inner_size(640.0, 620.0)
+            .menu(Menu::new())
+            .build()
+            {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string()),
+            }
+        }
     }
 }
 #[tauri::command]
 async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
-    match handle.get_window("confirm-stash"){
-        Some(window)=>{
-            if let Err(e)=window.show(){
-                return Err(e.to_string())
-            }
-            Ok(())
-        }  
-        None=>{
-    match tauri::WindowBuilder::new(
-        &handle,
-        "confirm-stash", /* the unique window label */
-        tauri::WindowUrl::App("/pages/want-to-stash.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(400.0, 150.0)
-    .menu(Menu::new())
-    .build()
-    {
-        Ok(a) => {
-            std::thread::sleep(std::time::Duration::from_millis(500));
-            if let Err(e) = a.emit(
-                "get-venta",
-                Payload {
-                    message: None,
-                    pos: Some(act),
-                },
-            ) {
+    match handle.get_window("confirm-stash") {
+        Some(window) => {
+            if let Err(e) = window.show() {
                 return Err(e.to_string());
-            }
-            for _ in 0..5 {
-                std::thread::sleep(std::time::Duration::from_millis(175));
-                if let Err(e) = a.emit(
-                    "get-venta",
-                    Payload {
-                        message: None,
-                        pos: Some(act),
-                    },
-                ) {
-                    return Err(e.to_string());
-                }
             }
             Ok(())
         }
+        None => {
+            match tauri::WindowBuilder::new(
+                &handle,
+                "confirm-stash", /* the unique window label */
+                tauri::WindowUrl::App("/pages/want-to-stash.html".parse().unwrap()),
+            )
+            .always_on_top(true)
+            .center()
+            .resizable(false)
+            .minimizable(false)
+            .inner_size(400.0, 150.0)
+            .menu(Menu::new())
+            .build()
+            {
+                Ok(a) => {
+                    std::thread::sleep(std::time::Duration::from_millis(500));
+                    if let Err(e) = a.emit(
+                        "get-venta",
+                        Payload {
+                            message: None,
+                            pos: Some(act),
+                        },
+                    ) {
+                        return Err(e.to_string());
+                    }
+                    for _ in 0..5 {
+                        std::thread::sleep(std::time::Duration::from_millis(175));
+                        if let Err(e) = a.emit(
+                            "get-venta",
+                            Payload {
+                                message: None,
+                                pos: Some(act),
+                            },
+                        ) {
+                            return Err(e.to_string());
+                        }
+                    }
+                    Ok(())
+                }
 
-        Err(e) => Err(e.to_string()),
-    }
-            
-        }   
+                Err(e) => Err(e.to_string()),
+            }
+        }
     }
 }
 #[tauri::command]
 async fn open_edit_settings(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("edit-settings"){
-        Some(window)=>{
-            if let Err(e)=window.show(){
-                return Err(e.to_string())
+    match handle.get_window("edit-settings") {
+        Some(window) => {
+            if let Err(e) = window.show() {
+                return Err(e.to_string());
             }
             Ok(())
-        }  
-        None=>{
-    match tauri::WindowBuilder::new(
-        &handle,
-        "edit-settings", /* the unique window label */
-        tauri::WindowUrl::App("/pages/edit-settings.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(500.0, 360.0)
-    .menu(Menu::new())
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
-            
-        }   
+        }
+        None => {
+            match tauri::WindowBuilder::new(
+                &handle,
+                "edit-settings", /* the unique window label */
+                tauri::WindowUrl::App("/pages/edit-settings.html".parse().unwrap()),
+            )
+            .always_on_top(true)
+            .center()
+            .resizable(false)
+            .minimizable(false)
+            .inner_size(500.0, 360.0)
+            .menu(Menu::new())
+            .build()
+            {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string()),
+            }
+        }
     }
 }
 #[tauri::command]
 async fn open_login(handle: tauri::AppHandle) -> Res<()> {
-    if let Err(e)=handle.get_window("main").unwrap().minimize(){
-        return Err(e.to_string())
+    if let Err(e) = handle.get_window("main").unwrap().minimize() {
+        return Err(e.to_string());
     }
-    match handle.get_window("login"){
-        Some(window)=>{
-            if let Err(e)=window.show(){
-                return Err(e.to_string())
+    match handle.get_window("login") {
+        Some(window) => {
+            if let Err(e) = window.show() {
+                return Err(e.to_string());
             }
             Ok(())
-        }  
-        None=>{
-    match tauri::WindowBuilder::new(
-        &handle,
-        "login", /* the unique window label */
-        tauri::WindowUrl::App("/pages/login.html".parse().unwrap()),
-    )
-    .inner_size(400.0, 300.0)
-    .resizable(false)
-    .minimizable(false)
-    .closable(false)
-    .always_on_top(true).decorations(false)
-    .center()
-    .menu(Menu::new())
-    // .minimizable(false)
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
-            
-        }   
+        }
+        None => {
+            match tauri::WindowBuilder::new(
+                &handle,
+                "login", /* the unique window label */
+                tauri::WindowUrl::App("/pages/login.html".parse().unwrap()),
+            )
+            .inner_size(400.0, 300.0)
+            .resizable(false)
+            .minimizable(false)
+            .closable(false)
+            .always_on_top(true)
+            .decorations(false)
+            .center()
+            .menu(Menu::new())
+            // .minimizable(false)
+            .build()
+            {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string()),
+            }
+        }
     }
 }
 #[tauri::command]
 async fn open_stash(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("open-stash"){
-        Some(window)=>{
-            if let Err(e)=window.show(){
-                return Err(e.to_string())
+    match handle.get_window("open-stash") {
+        Some(window) => {
+            if let Err(e) = window.show() {
+                return Err(e.to_string());
             }
             Ok(())
-        }  
-        None=>{
-    match tauri::WindowBuilder::new(
-        &handle,
-        "open-stash", /* the unique window label */
-        tauri::WindowUrl::App("/pages/stash.html".parse().unwrap()),
-    )
-    .always_on_top(true)
-    .center()
-    .resizable(false)
-    .minimizable(false)
-    .inner_size(900.0, 600.0)
-    .menu(Menu::new())
-    .build()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
-            
-        }   
+        }
+        None => {
+            match tauri::WindowBuilder::new(
+                &handle,
+                "open-stash", /* the unique window label */
+                tauri::WindowUrl::App("/pages/stash.html".parse().unwrap()),
+            )
+            .always_on_top(true)
+            .center()
+            .resizable(false)
+            .minimizable(false)
+            .inner_size(900.0, 600.0)
+            .menu(Menu::new())
+            .build()
+            {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string()),
+            }
+        }
     }
 }
 #[tauri::command]
@@ -1151,6 +1154,7 @@ fn main() {
             eliminar_producto_de_venta,
             eliminar_usuario,
             get_caja,
+            get_clientes,
             get_configs,
             get_descripcion_valuable,
             get_filtrado,

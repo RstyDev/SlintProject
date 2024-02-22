@@ -209,6 +209,11 @@ impl<'a> Sistema {
         }
         Ok(())
     }
+    pub async fn get_clientes(&self)->Res<Vec<Cli>>{
+           Ok(entity::cliente::Entity::find().all(self.read_db()).await?.iter().map(|model|{
+                Cli::new(model.id, Arc::from(model.nombre.as_str()), model.dni, model.credito, model.activo, model.created)  
+           }).collect::<Vec<Cli>>())
+    }
     pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<Rango> {
         match entity::user::Entity::find()
             .filter(

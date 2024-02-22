@@ -61,6 +61,23 @@ impl Cli {
             }
         }
     }
+    pub fn new(
+        id: i64,
+        nombre: Arc<str>,
+        dni: i64,
+        credito: bool,
+        activo: bool,
+        created: NaiveDateTime,
+    ) -> Cli {
+        Cli {
+            id,
+            nombre,
+            dni,
+            credito,
+            activo,
+            created,
+        }
+    }
     pub fn id(&self) -> &i64 {
         &self.id
     }
