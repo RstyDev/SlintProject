@@ -87,6 +87,9 @@ async function get_configs() {
 async function get_user() {
   return await invoke("get_user");
 }
+async function get_clientes() {
+  return await invoke("get_clientes");
+}
 async function open_agregar_cliente(){
   return await invoke("open_agregar_cliente");
 }
@@ -156,6 +159,10 @@ async function get_descripcion_valuable(prod, conf) {
 }
 
 function dibujar_venta(venta) {
+  console.log(venta);
+  get_clientes().then(clientes=>{
+    console.log(clientes);
+  })
   let cuadro = document.querySelector('#cuadro-principal');
   productosVentaAct = venta.productos;
   buscador.value = '';
@@ -858,6 +865,11 @@ function dibujar_base(){
                 <form autocomplete="off">
                     <input type="text" id="buscador">
                 </form>
+            </div>
+            <div>
+                <select id="cliente">
+                  
+                </select>
             </div>
         </div>
     </header>
