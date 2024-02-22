@@ -206,7 +206,7 @@ input:disabled {
 
 .container {
   margin: 0;
-  padding-top: 8vh;
+  padding: 1vh;
   display: flex;
   flex-direction: column;
   justify-content: center;

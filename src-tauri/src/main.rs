@@ -11,7 +11,7 @@ use std::sync::Mutex;
 use tauri::{
     async_runtime::{self, block_on},
     window::MenuHandle,
-    CustomMenuItem, Manager, Menu, State, Submenu,
+    CustomMenuItem, Manager, Menu, MenuItem, Result, State, Submenu,
 };
 const DENEGADO: &str = "Permiso denegado";
 #[derive(Clone, Serialize)]
@@ -20,7 +20,7 @@ struct Payload {
     pos: Option<bool>,
 }
 mod mods;
-fn try_disable_windows(menu: MenuHandle) -> Result<(), tauri::Error> {
+fn try_disable_windows(menu: MenuHandle) -> Result<()> {
     menu.get_item("add product").set_enabled(false)?;
     menu.get_item("add prov").set_enabled(false)?;
     menu.get_item("add user").set_enabled(false)?;
@@ -808,7 +808,7 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
     .always_on_top(true)
     .center()
     .menu(Menu::new())
-    .minimizable(false)
+    // .minimizable(false)
     .build()
     {
         Ok(_) => Ok(()),
@@ -1048,7 +1048,6 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
     let window = app.get_window("main").unwrap();
-    let w2 = window.clone();
     let handle = app.handle();
     window.on_menu_event(move |event| {
         match event.menu_item_id() {
@@ -1058,18 +1057,7 @@ fn main() {
             "add cliente" => async_runtime::block_on(open_add_cliente(handle.clone())),
             "edit settings" => async_runtime::block_on(open_edit_settings(handle.clone())),
             "confirm stash" => {
-                loop {
-                    if let Ok(_) = w2.emit(
-                        "confirm-stash",
-                        Payload {
-                            message: Some(String::from("now")),
-                            pos: None,
-                        },
-                    ) {
-                        break;
-                    }
-                }
-
+                //handle.
                 Ok(())
             }
             "open stash" => async_runtime::block_on(open_stash(handle.clone())),
