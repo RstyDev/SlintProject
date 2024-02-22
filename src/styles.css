@@ -268,7 +268,7 @@ input:disabled {
   & section.ayb {
     display: inline;
     position: fixed;
-    bottom: 85svh;
+    bottom: 93svh;
     left: 40%;
 
     & a {
