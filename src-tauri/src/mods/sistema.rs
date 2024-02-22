@@ -209,7 +209,7 @@ impl<'a> Sistema {
         }
         Ok(())
     }
-    pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<()> {
+    pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<Rango> {
         match entity::user::Entity::find()
             .filter(
                 Condition::all()
@@ -230,7 +230,7 @@ impl<'a> Sistema {
                     Venta::new(Some(self.arc_user()), &self.write_db).await?,
                     Venta::new(Some(self.arc_user()), &self.write_db).await?,
                 );
-                Ok(())
+                Ok(self.user().unwrap().rango().clone())
             }
             None => match entity::user::Entity::find()
                 .filter(entity::user::Column::UserId.eq(id))

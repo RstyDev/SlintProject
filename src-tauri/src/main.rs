@@ -6,11 +6,11 @@ use mods::{
 };
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
-type Result<T> = std::result::Result<T, String>;
-use std::{sync::Mutex, borrow::BorrowMut};
+type Res<T> = std::result::Result<T, String>;
+use std::sync::Mutex;
 use tauri::{
-    async_runtime::{self, block_on},
-    CustomMenuItem, Manager, Menu, MenuItem, State, Submenu,
+    async_runtime::{self, block_on},window::MenuHandle,
+    CustomMenuItem, Manager, Menu, State, Submenu,
 };
 const DENEGADO: &str = "Permiso denegado";
 #[derive(Clone, Serialize)]
@@ -19,8 +19,15 @@ struct Payload {
     pos: Option<bool>,
 }
 mod mods;
-
-async fn open_add_product(handle: tauri::AppHandle) -> Result<()> {
+fn try_disable_windows(menu: MenuHandle) -> Result<(), tauri::Error> {
+    menu.get_item("add product").set_enabled(false)?;
+    menu.get_item("add prov").set_enabled(false)?;
+    menu.get_item("add user").set_enabled(false)?;
+    menu.get_item("add cliente").set_enabled(false)?;
+    menu.get_item("edit settings").set_enabled(false)?;
+    Ok(())
+}
+async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-product", /* the unique window label */
@@ -30,7 +37,8 @@ async fn open_add_product(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(800.0, 400.0).menu(Menu::new())
+    .inner_size(800.0, 400.0)
+    .menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -38,7 +46,7 @@ async fn open_add_product(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 
-async fn open_add_pesable(handle: tauri::AppHandle) -> Result<()> {
+async fn open_add_pesable(handle: tauri::AppHandle) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-pesable", /* the unique window label */
@@ -48,14 +56,15 @@ async fn open_add_pesable(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(350.0, 260.0).menu(Menu::new())
+    .inner_size(350.0, 260.0)
+    .menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
         Err(e) => Err(e.to_string()),
     }
 }
-async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
+async fn open_add_rubro(handle: tauri::AppHandle) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-rubro", /* the unique window label */
@@ -65,7 +74,8 @@ async fn open_add_rubro(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(350.0, 180.0).menu(Menu::new())
+    .inner_size(350.0, 180.0)
+    .menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -79,7 +89,7 @@ fn agregar_cliente(
     nombre: &str,
     dni: i64,
     credito: bool,
-) -> Result<Cli> {
+) -> Res<Cli> {
     match sistema.lock() {
         Ok(sis) => match sis.agregar_cliente(nombre, dni, credito, true) {
             Ok(a) => {
@@ -100,7 +110,7 @@ fn agregar_pago(
     medio_pago: &str,
     monto: f64,
     pos: bool,
-) -> Result<f64> {
+) -> Res<f64> {
     match sistema.lock() {
         Ok(mut a) => {
             a.arc_user();
@@ -121,7 +131,7 @@ fn agregar_pesable<'a>(
     costo_kilo: f64,
     porcentaje: f64,
     descripcion: &'a str,
-) -> Result<String> {
+) -> Res<String> {
     match sistema.lock() {
         Ok(sis) => match sis.arc_user().rango() {
             Rango::Admin => {
@@ -162,7 +172,7 @@ fn agregar_producto(
     variedad: &str,
     cantidad: &str,
     presentacion: &str,
-) -> Result<String> {
+) -> Res<String> {
     match sistema.lock() {
         Ok(mut sis) => match sis.arc_user().rango() {
             Rango::Admin => {
@@ -198,7 +208,7 @@ fn agregar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
     prod: Valuable,
     pos: bool,
-) -> Result<Venta> {
+) -> Res<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
             a.arc_user();
@@ -216,7 +226,7 @@ fn agregar_proveedor(
     sistema: State<Mutex<Sistema>>,
     proveedor: &str,
     contacto: Option<i64>,
-) -> Result<()> {
+) -> Res<()> {
     match sistema.lock() {
         Ok(mut sis) => match sis.arc_user().rango() {
             Rango::Admin => {
@@ -240,7 +250,7 @@ fn agregar_rubro(
     sistema: State<Mutex<Sistema>>,
     codigo: i64,
     descripcion: &str,
-) -> Result<String> {
+) -> Res<String> {
     match sistema.lock() {
         Ok(sis) => match sis.arc_user().rango() {
             Rango::Admin => {
@@ -272,7 +282,7 @@ fn agregar_usuario(
     nombre: &str,
     pass: &str,
     rango: &str,
-) -> Result<User> {
+) -> Res<User> {
     match sistema.lock() {
         Ok(sis) => match sis.arc_user().rango() {
             Rango::Admin => match sis.agregar_usuario(id, nombre, pass, rango) {
@@ -299,7 +309,7 @@ fn cerrar_caja(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
     monto_actual: f64,
-) -> Result<()> {
+) -> Res<()> {
     match sistema.lock() {
         Ok(mut sis) => {
             match sis.cerrar_caja(monto_actual) {
@@ -317,7 +327,7 @@ fn cerrar_caja(
     }
 }
 #[tauri::command]
-async fn check_codes(code: i64) -> Result<bool> {
+async fn check_codes(code: i64) -> Res<bool> {
     match Database::connect("sqlite://db.sqlite?mode=ro").await {
         Ok(db) => {
             let mut disp = true;
@@ -363,7 +373,7 @@ async fn check_codes(code: i64) -> Result<bool> {
     }
 }
 #[tauri::command]
-fn close_window(window: tauri::Window) -> Result<()> {
+fn close_window(window: tauri::Window) -> Res<()> {
     let mut res = window.close();
     while let Err(_) = res {
         res = window.close();
@@ -375,7 +385,7 @@ fn descontar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     index: usize,
     pos: bool,
-) -> Result<Venta> {
+) -> Res<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
             a.arc_user();
@@ -391,7 +401,7 @@ fn descontar_producto_de_venta(
     }
 }
 #[tauri::command]
-fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Result<Venta> {
+fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Res<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
             a.arc_user();
@@ -408,7 +418,7 @@ fn eliminar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     index: usize,
     pos: bool,
-) -> Result<Venta> {
+) -> Res<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
             a.arc_user();
@@ -421,7 +431,7 @@ fn eliminar_producto_de_venta(
     }
 }
 #[tauri::command]
-fn eliminar_usuario(sistema: State<Mutex<Sistema>>, user: User) -> Result<()> {
+fn eliminar_usuario(sistema: State<Mutex<Sistema>>, user: User) -> Res<()> {
     match sistema.lock() {
         Ok(sis) => {
             if let Err(e) = sis.eliminar_usuario(user) {
@@ -433,14 +443,14 @@ fn eliminar_usuario(sistema: State<Mutex<Sistema>>, user: User) -> Result<()> {
     Ok(())
 }
 #[tauri::command]
-fn get_caja(sistema: State<Mutex<Sistema>>) -> Result<Caja> {
+fn get_caja(sistema: State<Mutex<Sistema>>) -> Res<Caja> {
     match sistema.lock() {
         Ok(sis) => Ok(sis.caja().clone()),
         Err(e) => Err(e.to_string()),
     }
 }
 #[tauri::command]
-fn get_configs(sistema: State<Mutex<Sistema>>) -> Result<Config> {
+fn get_configs(sistema: State<Mutex<Sistema>>) -> Res<Config> {
     match sistema.lock() {
         Ok(sis) => Ok(sis.configs().clone()),
         Err(e) => Err(e.to_string()),
@@ -457,7 +467,7 @@ fn get_filtrado(
     sistema: State<Mutex<Sistema>>,
     filtro: &str,
     tipo_filtro: &str,
-) -> Result<Vec<String>> {
+) -> Res<Vec<String>> {
     match sistema.lock() {
         Ok(a) => {
             a.arc_user();
@@ -479,7 +489,7 @@ fn get_filtrado(
     }
 }
 #[tauri::command]
-fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
+fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
     match sistema.lock() {
         Ok(sis) => {
             sis.arc_user();
@@ -489,7 +499,7 @@ fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Result<Vec<String>> {
     }
 }
 #[tauri::command]
-fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Result<Vec<Valuable>> {
+fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<Valuable>> {
     let res;
     match sistema.lock() {
         Ok(a) => {
@@ -504,7 +514,7 @@ fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Resul
     res
 }
 #[tauri::command]
-fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Result<Vec<String>> {
+fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Res<Vec<String>> {
     let res;
     match sistema.lock() {
         Ok(a) => {
@@ -519,14 +529,14 @@ fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Result<Vec<String>> {
     res
 }
 #[tauri::command]
-fn get_rango(sistema: State<Mutex<Sistema>>) -> Result<Rango> {
+fn get_rango(sistema: State<Mutex<Sistema>>) -> Res<Rango> {
     match sistema.lock() {
         Ok(sis) => Ok(sis.arc_user().rango().clone()),
         Err(e) => Err(e.to_string()),
     }
 }
 #[tauri::command]
-fn get_stash(sistema: State<Mutex<Sistema>>) -> Result<Vec<Venta>> {
+fn get_stash(sistema: State<Mutex<Sistema>>) -> Res<Vec<Venta>> {
     match sistema.lock() {
         Ok(sis) => {
             sis.arc_user();
@@ -536,14 +546,14 @@ fn get_stash(sistema: State<Mutex<Sistema>>) -> Result<Vec<Venta>> {
     }
 }
 #[tauri::command]
-fn get_user(sistema: State<Mutex<Sistema>>) -> Result<User> {
+fn get_user(sistema: State<Mutex<Sistema>>) -> Res<User> {
     match sistema.lock() {
         Ok(sis) => Ok(sis.arc_user().as_ref().clone()),
         Err(e) => Err(e.to_string()),
     }
 }
 #[tauri::command]
-fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: bool) -> Result<Venta> {
+fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: bool) -> Res<Venta> {
     match sistema.lock() {
         Ok(a) => {
             a.arc_user();
@@ -557,7 +567,7 @@ fn incrementar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
     index: usize,
     pos: bool,
-) -> Result<Venta> {
+) -> Res<Venta> {
     match sistema.lock() {
         Ok(mut a) => {
             a.arc_user();
@@ -573,7 +583,7 @@ fn incrementar_producto_a_venta(
     }
 }
 #[tauri::command]
-async fn open_add_prov(handle: tauri::AppHandle) -> Result<()> {
+async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-product", /* the unique window label */
@@ -583,7 +593,8 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(430.0, 110.0).menu(Menu::new())
+    .inner_size(430.0, 110.0)
+    .menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -591,7 +602,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
-async fn open_add_select(handle: tauri::AppHandle) -> Result<()> {
+async fn open_add_select(handle: tauri::AppHandle) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-select",
@@ -601,7 +612,8 @@ async fn open_add_select(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(210.0, 80.0).menu(Menu::new())
+    .inner_size(210.0, 80.0)
+    .menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -610,7 +622,7 @@ async fn open_add_select(handle: tauri::AppHandle) -> Result<()> {
 }
 
 #[tauri::command]
-async fn open_add_user(handle: tauri::AppHandle) -> Result<()> {
+async fn open_add_user(handle: tauri::AppHandle) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-user", /* the unique window label */
@@ -620,7 +632,8 @@ async fn open_add_user(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(430.0, 200.0).menu(Menu::new())
+    .inner_size(430.0, 200.0)
+    .menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -628,7 +641,7 @@ async fn open_add_user(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
-async fn open_agregar_cliente(handle: tauri::AppHandle) -> Result<()> {
+async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "cerrar-caja",
@@ -638,7 +651,8 @@ async fn open_agregar_cliente(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(640.0, 400.0).menu(Menu::new())
+    .inner_size(640.0, 400.0)
+    .menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -646,7 +660,7 @@ async fn open_agregar_cliente(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
-async fn open_cerrar_caja(handle: tauri::AppHandle) -> Result<()> {
+async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "cerrar-caja",
@@ -656,7 +670,8 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(640.0, 620.0).menu(Menu::new())
+    .inner_size(640.0, 620.0)
+    .menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -664,7 +679,7 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
-async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Result<()> {
+async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "confirm-stash", /* the unique window label */
@@ -674,7 +689,8 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(400.0, 150.0).menu(Menu::new())
+    .inner_size(400.0, 150.0)
+    .menu(Menu::new())
     .build()
     {
         Ok(a) => {
@@ -707,7 +723,7 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Result<()> {
     }
 }
 #[tauri::command]
-async fn open_edit_settings(handle: tauri::AppHandle) -> Result<()> {
+async fn open_edit_settings(handle: tauri::AppHandle) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-product", /* the unique window label */
@@ -717,7 +733,8 @@ async fn open_edit_settings(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(500.0, 360.0).menu(Menu::new())
+    .inner_size(500.0, 360.0)
+    .menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -725,7 +742,7 @@ async fn open_edit_settings(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
-async fn open_login(handle: tauri::AppHandle) -> Result<()> {
+async fn open_login(handle: tauri::AppHandle) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "login", /* the unique window label */
@@ -736,7 +753,8 @@ async fn open_login(handle: tauri::AppHandle) -> Result<()> {
     .minimizable(false)
     .closable(false)
     .always_on_top(true)
-    .center().menu(Menu::new())
+    .center()
+    .menu(Menu::new())
     // .minimizable(false)
     .build()
     {
@@ -745,7 +763,7 @@ async fn open_login(handle: tauri::AppHandle) -> Result<()> {
     }
 }
 #[tauri::command]
-async fn open_stash(handle: tauri::AppHandle) -> Result<()> {
+async fn open_stash(handle: tauri::AppHandle) -> Res<()> {
     match tauri::WindowBuilder::new(
         &handle,
         "add-product", /* the unique window label */
@@ -755,7 +773,8 @@ async fn open_stash(handle: tauri::AppHandle) -> Result<()> {
     .center()
     .resizable(false)
     .minimizable(false)
-    .inner_size(900.0, 600.0).menu(Menu::new())
+    .inner_size(900.0, 600.0)
+    .menu(Menu::new())
     .build()
     {
         Ok(_) => Ok(()),
@@ -769,15 +788,23 @@ fn try_login(
     window: tauri::Window,
     id: &str,
     pass: &str,
-) -> Result<()> {
+) -> Res<()> {
     match sistema.lock() {
         Ok(mut sis) => match async_runtime::block_on(sis.try_login(id, get_hash(pass))) {
-            Ok(_) => {
-                let wind=handle.get_window("main").unwrap();
-                let _=wind.menu_handle().get_item("cerrar caja").set_enabled(false);
-                
-                
-                //let _=wind.menu_handle().get_item("cerrar caja").set_selected(true);
+            Ok(r) => {
+                match r {
+                    Rango::Cajero => {
+                        let menu = handle.get_window("main").unwrap().menu_handle();
+                        loop{
+                            if try_disable_windows(menu.clone()).is_ok(){
+                                break;
+                            }
+
+                        } 
+                    }
+                    _ => (),
+                }
+
                 match window.emit(
                     "inicio-sesion",
                     Payload {
@@ -806,7 +833,7 @@ fn try_login(
     Ok(())
 }
 #[tauri::command]
-async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &str) -> Result<()> {
+async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &str) -> Res<()> {
     let mut res;
     match dato {
         "Producto" => {
@@ -829,11 +856,7 @@ async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &s
     res
 }
 #[tauri::command]
-fn set_configs(
-    window: tauri::Window,
-    sistema: State<Mutex<Sistema>>,
-    configs: Config,
-) -> Result<()> {
+fn set_configs(window: tauri::Window, sistema: State<Mutex<Sistema>>, configs: Config) -> Res<()> {
     match sistema.lock() {
         Ok(mut sis) => match sis.arc_user().rango() {
             Rango::Admin => {
@@ -851,7 +874,7 @@ fn set_configs(
 }
 
 #[tauri::command]
-fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: bool) -> Result<()> {
+fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()> {
     match sistema.lock() {
         Ok(mut sis) => {
             sis.arc_user();
@@ -879,7 +902,7 @@ fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: boo
     }
 }
 #[tauri::command]
-fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Result<()> {
+fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Res<()> {
     match sistema.lock() {
         Ok(mut sis) => {
             sis.arc_user();
@@ -894,10 +917,34 @@ fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Resu
 
 fn main() {
     let cerrar_caja_menu = CustomMenuItem::new(String::from("cerrar caja"), "Cerrar caja");
+    let add_product_menu = CustomMenuItem::new(String::from("add product"), "Agregar producto");
+    let add_prov_menu = CustomMenuItem::new(String::from("add prov"), "Agregar proveedor");
+    let add_user_menu = CustomMenuItem::new(String::from("add user"), "Agregar usuario");
+    let add_cliente_menu = CustomMenuItem::new(String::from("add cliente"), "Agregar cliente");
+    let edit_settings_menu =
+        CustomMenuItem::new(String::from("edit settings"), "Cambiar configuraciones");
+    let confirm_stash_menu = CustomMenuItem::new(String::from("confirm stash"), "Guardar venta");
+    let open_stash_menu = CustomMenuItem::new(String::from("open stash"), "Ver ventas guardadas");
+
+    let administrar = Submenu::new(
+        "Administrar",
+        Menu::new()
+            .add_item(add_product_menu)
+            .add_item(add_prov_menu)
+            .add_item(add_user_menu)
+            .add_item(add_cliente_menu)
+            .add_item(edit_settings_menu),
+    );
+    let venta = Submenu::new(
+        "Venta",
+        Menu::new()
+            .add_item(confirm_stash_menu)
+            .add_item(open_stash_menu),
+    );
     let caja = Submenu::new("Caja", Menu::new().add_item(cerrar_caja_menu));
     let menu = Menu::new()
-        .add_native_item(MenuItem::Copy)
-        .add_item(CustomMenuItem::new("hide", "Hide"))
+        .add_submenu(administrar)
+        .add_submenu(venta)
         .add_submenu(caja);
     let app = tauri::Builder::default()
         .manage(Mutex::new(Sistema::new().unwrap()))
@@ -933,7 +980,7 @@ fn main() {
             open_add_prov,
             open_add_select,
             open_add_user,
-            open_agregar_cliente,
+            open_add_cliente,
             open_cerrar_caja,
             open_confirm_stash,
             open_edit_settings,
@@ -944,16 +991,31 @@ fn main() {
             set_configs,
             stash_n_close,
             unstash_sale,
-        ]).menu(menu)
+        ])
+        .menu(menu)
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
-            let window=app.get_window("main").unwrap();
-            let handle=app.handle();
-            window.on_menu_event(move |event|{
-                match event.menu_item_id(){
-                    "cerrar caja"=>async_runtime::block_on(open_cerrar_caja(handle.clone())),
-                    _=>Ok(())
-                };
-            }); 
+    let window = app.get_window("main").unwrap();
+    let handle = app.handle();
+    window.on_menu_event(move |event| {
+        match event.menu_item_id() {
+            "add product" => async_runtime::block_on(open_add_select(handle.clone())),
+            "add prov"=> async_runtime::block_on(open_add_prov(handle.clone())),
+            "add user"=> async_runtime::block_on(open_add_user(handle.clone())),
+            "add cliente"=>async_runtime::block_on(open_add_cliente(handle.clone())),
+            "edit settings"=>async_runtime::block_on(open_edit_settings(handle.clone())),
+            "confirm stash"=>{
+                //handle.
+                Ok(())
+            },
+            "open stash"=>async_runtime::block_on(open_stash(handle.clone())),            
+            "cerrar caja" => async_runtime::block_on(open_cerrar_caja(handle.clone())),
+
+            //add_product, add_prov, add_user, add_cliente, edit_stetings
+            //confirm_stash, cerrar_caja, open_stash,
+            _ => Ok(()),
+        }
+        .unwrap();
+    });
     app.run(|_, _| {})
 }
