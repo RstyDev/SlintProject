@@ -796,70 +796,17 @@ function escYf10Press() {
 }
 
 
-function optionBarHandle() {
-  document.body.addEventListener('click', function (e) {
-
-    let ids = [];
-    ids.push(e.target);
-    if (e.target.parentNode) {
-      ids.push(e.target.parentNode);
-      if (e.target.parentNode.parentNode)
-        ids.push(e.target.parentNode.parentNode);
-    }
-    let barra = document.querySelector('#barra-de-opciones');
-    let esId = false;
-    for (const id of ids) {
-      if (id.id == 'menu-image' || id.id == 'menu-button') {
-        esId = true;
-      }
-    }
-    if ((!esId && barra.classList.contains('visible'))) {
-      barra.classList.remove('visible');
-      barra.classList.remove('para-hamburguesa');
-    }
-  });
-}
 
 
 
 
 
 
-function menuButtonHandle() {
-  document.getElementById("menu-button").onclick = function () {
-    document.getElementById("barra-de-opciones").classList.toggle('visible');
-  };
-}
 
 
-function agrProdContHandle() {
-  document.getElementById("agregar-producto-mostrar").onclick = function () {
-    open_add_select();
-    let barra = document.querySelector('#barra-de-opciones');
-    barra.classList.remove('visible');
-    barra.classList.remove('para-hamburguesa');
-  }
-
-}
 
 
-function cambiarConfHandle() {
-  document.getElementById("cambiar-configs-mostrar").onclick = function () {
-    open_edit_settings();
-    let barra = document.querySelector('#barra-de-opciones');
-    barra.classList.remove('visible');
-    barra.classList.remove('para-hamburguesa');
 
-  }
-}
-
-
-function mostrarContainerHandle(s2) {
-  open_add_select();
-  let barra = document.querySelector('#barra-de-opciones');
-  barra.classList.remove('visible');
-  barra.classList.remove('para-hamburguesa');
-}
 
 function setFoco(foco, focuseable) {
   let focos = document.querySelectorAll('.focuseable');
@@ -907,17 +854,6 @@ function dibujar_base(){
     }
     document.getElementsByTagName('body')[0].innerHTML =`<header class="container">
         <div id="header">
-            <div id="menu-image">
-                <a id="menu-button"><img src="/assets/menu.svg" class="boton" alt="menu image"></a>
-                <div id="barra-de-opciones">
-                    <a id="cerrar-caja-mostrar" class="a-boton">Cerrar Caja</a>
-                    <a id="agregar-cliente-mostrar" class="a-boton">Agregar Cliente</a>
-                    ${boton_agregar_producto}
-                    ${boton_agregar_prov}
-                    ${boton_add_user}
-                    ${boton_conf}
-                </div>
-            </div>
             <div>
                 <form autocomplete="off">
                     <input type="text" id="buscador">
@@ -932,30 +868,9 @@ function dibujar_base(){
         <section id="cuadro-principal" class="main-screen">
         </section>
     </main>`;
-  boton_add_user=document.getElementById('agregar-usuario-mostrar');
   
-  document.getElementById('cerrar-caja-mostrar').addEventListener('click',()=>{
-    open_cerrar_caja();
-    let barra = document.querySelector('#barra-de-opciones');
-    barra.classList.remove('visible');
-    barra.classList.remove('para-hamburguesa');
-  })
-  if (document.getElementById('agregar-producto-mostrar')){
-    agrProdContHandle();
-    cambiarConfHandle();
-    boton_add_user.addEventListener('click',()=>{
-      let barra = document.querySelector('#barra-de-opciones');
-      barra.classList.remove('visible');
-      barra.classList.remove('para-hamburguesa');
-      open_add_user();
-    })
-  }
-  document.getElementById('agregar-cliente-mostrar').addEventListener('click',()=>{
-    let barra = document.querySelector('#barra-de-opciones');
-    barra.classList.remove('visible');
-    barra.classList.remove('para-hamburguesa');
-    open_agregar_cliente();
-  });
+
+
   mensaje1 = document.querySelector('#mensaje1-msg');
   buscador = document.querySelector('#buscador');
 
@@ -968,17 +883,10 @@ function dibujar_base(){
   borrarBusqueda();
   
   buscadorHandle();
-  optionBarHandle()
-  menuButtonHandle();
   
   escYf10Press();
 
-  document.getElementById("agregar-proveedor-mostrar").onclick = function () {
-    open_add_prov();
-    let barra = document.querySelector('#barra-de-opciones');
-    barra.classList.remove('visible');
-    barra.classList.remove('para-hamburguesa');
-  }
+
   })
 }
 
@@ -996,12 +904,12 @@ function calcFont(height, ps) {
 
 
 
+open_login();
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-open_login();
 const unlisten2 = await listen('inicio-sesion', (pl) => {
     if (pl.payload.message == 'Correcto') {
       dibujar_base();
