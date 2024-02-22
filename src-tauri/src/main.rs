@@ -7,9 +7,9 @@ use mods::{
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
 type Result<T> = std::result::Result<T, String>;
-use std::sync::Mutex;
+use std::{sync::Mutex, borrow::BorrowMut};
 use tauri::{
-    async_runtime::{self, block_on},WindowBuilder,
+    async_runtime::{self, block_on},
     CustomMenuItem, Manager, Menu, MenuItem, State, Submenu,
 };
 const DENEGADO: &str = "Permiso denegado";
@@ -765,6 +765,7 @@ async fn open_stash(handle: tauri::AppHandle) -> Result<()> {
 #[tauri::command]
 fn try_login(
     sistema: State<Mutex<Sistema>>,
+    handle: tauri::AppHandle,
     window: tauri::Window,
     id: &str,
     pass: &str,
@@ -772,6 +773,11 @@ fn try_login(
     match sistema.lock() {
         Ok(mut sis) => match async_runtime::block_on(sis.try_login(id, get_hash(pass))) {
             Ok(_) => {
+                let wind=handle.get_window("main").unwrap();
+                let _=wind.menu_handle().get_item("cerrar caja").set_enabled(false);
+                
+                
+                //let _=wind.menu_handle().get_item("cerrar caja").set_selected(true);
                 match window.emit(
                     "inicio-sesion",
                     Payload {
