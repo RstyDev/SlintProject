@@ -1012,3 +1012,8 @@ const unlisten = await listen('main', (pl) => {
     get_venta_actual().then(venta => dibujar_venta(venta));
   }
 })
+const unlisten3 = await listen('confirm-stash', (pl)=>{
+  if (pl.payload.message=='now'){
+    open_confirm_stash(posA);
+  }
+})
