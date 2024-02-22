@@ -9,7 +9,8 @@ use serde::Serialize;
 type Res<T> = std::result::Result<T, String>;
 use std::sync::Mutex;
 use tauri::{
-    async_runtime::{self, block_on},window::MenuHandle,
+    async_runtime::{self, block_on},
+    window::MenuHandle,
     CustomMenuItem, Manager, Menu, State, Submenu,
 };
 const DENEGADO: &str = "Permiso denegado";
@@ -206,14 +207,26 @@ fn agregar_producto(
 #[tauri::command]
 fn agregar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
+    window: tauri::Window,
     prod: Valuable,
     pos: bool,
 ) -> Res<Venta> {
     match sistema.lock() {
-        Ok(mut a) => {
-            a.arc_user();
-            match async_runtime::block_on(a.agregar_producto_a_venta(prod, pos)) {
-                Ok(a) => Ok(a),
+        Ok(mut sis) => {
+            sis.arc_user();
+            match async_runtime::block_on(sis.agregar_producto_a_venta(prod, pos)) {
+                Ok(a) => {
+                    loop {
+                        if let Ok(_) = window
+                            .menu_handle()
+                            .get_item("confirm stash")
+                            .set_enabled(true)
+                        {
+                            break;
+                        }
+                    }
+                    Ok(a)
+                }
                 Err(e) => Err(e.to_string()),
             }
         }
@@ -416,6 +429,7 @@ fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Res
 #[tauri::command]
 fn eliminar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
+    window: tauri::Window,
     index: usize,
     pos: bool,
 ) -> Res<Venta> {
@@ -423,7 +437,20 @@ fn eliminar_producto_de_venta(
         Ok(mut a) => {
             a.arc_user();
             match a.eliminar_producto_de_venta(index, pos) {
-                Ok(a) => Ok(a),
+                Ok(a) => {
+                    if a.productos().len() == 0 {
+                        loop {
+                            if let Ok(_) = window
+                                .menu_handle()
+                                .get_item("confirm stash")
+                                .set_enabled(false)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    Ok(a)
+                }
                 Err(e) => Err(e.to_string()),
             }
         }
@@ -553,11 +580,37 @@ fn get_user(sistema: State<Mutex<Sistema>>) -> Res<User> {
     }
 }
 #[tauri::command]
-fn get_venta_actual(sistema: State<Mutex<Sistema>>, pos: bool) -> Res<Venta> {
+fn get_venta_actual(
+    sistema: State<Mutex<Sistema>>,
+    window: tauri::Window,
+    pos: bool,
+) -> Res<Venta> {
     match sistema.lock() {
         Ok(a) => {
             a.arc_user();
-            Ok(a.venta(pos))
+            let venta = a.venta(pos);
+            if venta.productos().len() == 0 {
+                loop {
+                    if let Ok(_) = window
+                        .menu_handle()
+                        .get_item("confirm stash")
+                        .set_enabled(false)
+                    {
+                        break;
+                    }
+                }
+            } else {
+                loop {
+                    if let Ok(_) = window
+                        .menu_handle()
+                        .get_item("confirm stash")
+                        .set_enabled(true)
+                    {
+                        break;
+                    }
+                }
+            }
+            Ok(venta)
         }
         Err(e) => Err(e.to_string()),
     }
@@ -755,7 +808,7 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
     .always_on_top(true)
     .center()
     .menu(Menu::new())
-    // .minimizable(false)
+    .minimizable(false)
     .build()
     {
         Ok(_) => Ok(()),
@@ -795,12 +848,11 @@ fn try_login(
                 match r {
                     Rango::Cajero => {
                         let menu = handle.get_window("main").unwrap().menu_handle();
-                        loop{
-                            if try_disable_windows(menu.clone()).is_ok(){
+                        loop {
+                            if try_disable_windows(menu.clone()).is_ok() {
                                 break;
                             }
-
-                        } 
+                        }
                     }
                     _ => (),
                 }
@@ -996,19 +1048,31 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
     let window = app.get_window("main").unwrap();
+    let w2 = window.clone();
     let handle = app.handle();
     window.on_menu_event(move |event| {
         match event.menu_item_id() {
             "add product" => async_runtime::block_on(open_add_select(handle.clone())),
-            "add prov"=> async_runtime::block_on(open_add_prov(handle.clone())),
-            "add user"=> async_runtime::block_on(open_add_user(handle.clone())),
-            "add cliente"=>async_runtime::block_on(open_add_cliente(handle.clone())),
-            "edit settings"=>async_runtime::block_on(open_edit_settings(handle.clone())),
-            "confirm stash"=>{
-                //handle.
+            "add prov" => async_runtime::block_on(open_add_prov(handle.clone())),
+            "add user" => async_runtime::block_on(open_add_user(handle.clone())),
+            "add cliente" => async_runtime::block_on(open_add_cliente(handle.clone())),
+            "edit settings" => async_runtime::block_on(open_edit_settings(handle.clone())),
+            "confirm stash" => {
+                loop {
+                    if let Ok(_) = w2.emit(
+                        "confirm-stash",
+                        Payload {
+                            message: Some(String::from("now")),
+                            pos: None,
+                        },
+                    ) {
+                        break;
+                    }
+                }
+
                 Ok(())
-            },
-            "open stash"=>async_runtime::block_on(open_stash(handle.clone())),            
+            }
+            "open stash" => async_runtime::block_on(open_stash(handle.clone())),
             "cerrar caja" => async_runtime::block_on(open_cerrar_caja(handle.clone())),
 
             //add_product, add_prov, add_user, add_cliente, edit_stetings
