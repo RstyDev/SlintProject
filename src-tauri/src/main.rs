@@ -858,7 +858,7 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
                     ) {
                         return Err(e.to_string());
                     }
-                    for _ in 0..5 {
+                    for _ in 0..7 {
                         std::thread::sleep(std::time::Duration::from_millis(175));
                         if let Err(e) = a.emit(
                             "get-venta",
@@ -1185,6 +1185,7 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
     let window = app.get_window("main").unwrap();
+    let w2=window.clone();
     let handle = app.handle();
     window.on_menu_event(move |event| {
         match event.menu_item_id() {
@@ -1194,7 +1195,18 @@ fn main() {
             "add cliente" => async_runtime::block_on(open_add_cliente(handle.clone())),
             "edit settings" => async_runtime::block_on(open_edit_settings(handle.clone())),
             "confirm stash" => {
-                //handle.
+                loop {
+                    if let Ok(_) = w2.emit(
+                        "confirm-stash",
+                        Payload {
+                            message: Some(String::from("now")),
+                            pos: None,
+                        },
+                    ) {
+                        break;
+                    }
+                }
+
                 Ok(())
             }
             "open stash" => async_runtime::block_on(open_stash(handle.clone())),
