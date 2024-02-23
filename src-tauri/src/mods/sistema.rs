@@ -73,7 +73,7 @@ impl<'a> Sistema {
         let caja = async_runtime::block_on(caja)??;
         println!("{:#?}", caja);
         let w1 = Arc::clone(&write_db);
-        let db = Arc::clone(&read_db);
+        let db = Arc::clone(&write_db);
         let sis = Sistema {
             user: None,
             write_db,

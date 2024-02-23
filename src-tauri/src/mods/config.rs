@@ -1,4 +1,4 @@
-use sea_orm::{DatabaseConnection, EntityTrait};
+use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 
 use super::error::AppError;
@@ -40,7 +40,18 @@ impl Config {
                     medios_pago: medios,
                 })
             }
-            None => Ok(Config::default()),
+            None => {
+                let conf=Config::default();
+                let model=entity::config::ActiveModel{
+                    cantidad_productos: Set(conf.cantidad_productos),
+                    formato_producto: Set(conf.formato_producto.to_string()),
+                    id: Set(0),
+                    modo_mayus: Set(conf.modo_mayus.to_string()),
+                    politica_redondeo: Set(conf.politica_redondeo),
+                };
+                entity::config::Entity::insert(model).exec(db).await?;
+                Ok(conf)
+            },
         }
     }
     pub fn cantidad_productos(&self) -> &u8 {
