@@ -68,6 +68,9 @@ function navigate(e) {
 async function open_confirm_stash(act) {
   return await invoke("open_confirm_stash", { "act": act });
 }
+async function set_cliente(id) {
+  return await invoke("set_cliente", {id:id, pos:posA});
+}
 async function open_stash(act) {
   return await invoke("open_stash");
 }
@@ -158,10 +161,34 @@ async function get_descripcion_valuable(prod, conf) {
   return await invoke("get_descripcion_valuable", { "prod": prod, "conf": conf });
 }
 
+
+function agregar_options(select, clientes, venta){
+  if (venta.cliente=='Final'){
+    select.innerHTML=`<option value='0' selected>Consumidor Final</option>`;
+    for (let cliente of clientes){
+      select.innerHTML+=`<option value='${cliente.id}'> ${cliente.nombre}</option>`
+    }
+  }else{
+    select.innerHTML=`<option value='0'>Consumidor Final</option>`;
+    let selected;
+    for (let cliente of clientes){      
+      if (venta.cliente.Regular.id==cliente.id){
+        selected='selected';
+      }else{
+        selected='';
+      }
+      select.innerHTML+=`<option value='${cliente.id}' ${selected}> ${cliente.nombre}</option>`
+      
+    }
+  }
+}
 function dibujar_venta(venta) {
-  console.log(venta);
-  get_clientes().then(clientes=>{
-    console.log(clientes[0]);
+    get_clientes().then(clientes=>{
+    let select=document.getElementById('cliente');
+    agregar_options(select,clientes,venta);
+    select.addEventListener('change',()=>{
+      set_cliente(select.value)
+    })
   })
   let cuadro = document.querySelector('#cuadro-principal');
   productosVentaAct = venta.productos;

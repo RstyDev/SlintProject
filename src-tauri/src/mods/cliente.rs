@@ -7,7 +7,7 @@ use super::error::AppError;
 type Res<T> = std::result::Result<T, AppError>;
 #[derive(Serialize, Clone, Debug)]
 pub enum Cliente {
-    Final(Arc<str>),
+    Final,
     Regular(Cli),
 }
 
@@ -87,12 +87,12 @@ impl<'a> Cliente {
     pub fn new(cli: Option<Cli>) -> Cliente {
         match cli {
             Some(a) => Cliente::Regular(a),
-            None => Cliente::Final(Arc::from("Consumidor Final")),
+            None => Cliente::Final,
         }
     }
 }
 impl Default for Cliente {
     fn default() -> Self {
-        Cliente::Final(Arc::from("Consumidor Final"))
+        Cliente::Final
     }
 }

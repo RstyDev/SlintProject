@@ -877,6 +877,13 @@ impl<'a> Sistema {
         };
         Ok(())
     }
+    pub fn set_cliente(&mut self,id:i32,pos:bool)->Res<()>{
+        if pos{
+            async_runtime::block_on(self.ventas.0.set_cliente(id,&self.read_db))
+        }else{
+            async_runtime::block_on(self.ventas.1.set_cliente(id,&self.read_db))
+        }
+    }
     pub fn unstash_sale(&mut self, pos: bool, index: usize) -> Res<()> {
         if index < self.stash.len() {
             if pos {

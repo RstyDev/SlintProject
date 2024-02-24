@@ -1,4 +1,4 @@
-use super::cliente::Cliente;
+use super::cliente::{Cliente,Cli};
 use chrono::Utc;
 use entity::pago;
 type Res<T> = std::result::Result<T, AppError>;
@@ -59,7 +59,7 @@ impl<'a> Venta {
             monto_pagado: Set(venta.monto_pagado),
             time: Set(Utc::now().naive_local()),
             cliente: match &venta.cliente {
-                Cliente::Final(_) => NotSet,
+                Cliente::Final => NotSet,
                 Cliente::Regular(a) => Set(Some(*a.id())),
             },
         }
@@ -177,6 +177,20 @@ impl<'a> Venta {
             })
         }
     }
+    pub async fn set_cliente(&mut self,id:i32,db:&DatabaseConnection)->Res<()>{
+        if id==0{
+            self.cliente=Cliente::Final;
+            Ok(())
+        }else{
+            match entity::cliente::Entity::find_by_id(id).one(db).await?{
+                Some(model)=>{
+                    self.cliente=Cliente::Regular(Cli::new(model.id, Arc::from(model.nombre), model.dni, model.credito, model.activo, model.created));
+                    Ok(())
+                }
+                None=>Err(AppError::NotFound { objeto: String::from("Cliente"), instancia: id.to_string() })
+            }        
+        }
+    }
     pub fn eliminar_producto(&mut self, index: usize, politica: &f64) -> Result<Venta, AppError> {
         if self.productos().len() > index {
             self.productos.remove(index);
@@ -202,7 +216,7 @@ impl Save for Venta {
         venta.monto_pagado = Set(self.monto_pagado);
         venta.time = Set(Utc::now().naive_local());
         match &self.cliente {
-            Cliente::Final(_) => (),
+            Cliente::Final => (),
             Cliente::Regular(a) => venta.cliente = Set(Some(*a.id())),
         }
         venta.update(&db).await?;

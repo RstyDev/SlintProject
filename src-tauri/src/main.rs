@@ -1054,6 +1054,22 @@ async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &s
     res
 }
 #[tauri::command]
+fn set_cliente(sistema: State<Mutex<Sistema>>,id:&str,pos:bool)->Res<()>{
+    match sistema.lock(){
+        Ok(mut sis)=>{
+            let id=match id.parse::<i32>(){
+                Ok(a)=>a,
+                Err(e)=>return Err(e.to_string())
+            };
+            match sis.set_cliente(id,pos){
+                Ok(_)=>Ok(()),
+                Err(e)=>Err(e.to_string()),
+            }
+        }
+        Err(e)=>Err(e.to_string())
+    }
+}
+#[tauri::command]
 fn set_configs(window: tauri::Window, sistema: State<Mutex<Sistema>>, configs: Config) -> Res<()> {
     match sistema.lock() {
         Ok(mut sis) => match sis.arc_user().rango() {
@@ -1189,6 +1205,7 @@ fn main() {
             open_stash,
             try_login,
             select_window,
+            set_cliente,
             set_configs,
             stash_n_close,
             unstash_sale,
