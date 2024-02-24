@@ -16,9 +16,15 @@ pub struct Cli {
     id: i64,
     nombre: Arc<str>,
     dni: i64,
-    credito: bool,
+//    credito: bool,
     activo: bool,
     created: NaiveDateTime,
+    limite: Cuenta,
+}
+#[derive(Serialize, Clone, Debug)]
+pub enum Cuenta{
+    Auth(Option<f64>),
+    Unauth,
 }
 impl Cli {
     pub async fn new_to_db(
@@ -28,6 +34,7 @@ impl Cli {
         credito: bool,
         activo: bool,
         created: NaiveDateTime,
+        limite: Option<f64>
     ) -> Res<Cli> {
         match entity::cliente::Entity::find()
             .filter(entity::cliente::Column::Dni.eq(dni))
@@ -47,6 +54,7 @@ impl Cli {
                     credito: Set(credito),
                     activo: Set(activo),
                     created: Set(created),
+                    limite: Set(limite),
                     ..Default::default()
                 };
                 let res = entity::cliente::Entity::insert(model).exec(db).await?;
@@ -54,9 +62,12 @@ impl Cli {
                     id: res.last_insert_id,
                     nombre: Arc::from(nombre),
                     dni,
-                    credito,
                     activo,
                     created,
+                    limite: match credito{
+                        true=> Cuenta::Auth(limite),
+                        false=> Cuenta::Unauth,
+                    },
                 })
             }
         }
@@ -68,12 +79,16 @@ impl Cli {
         credito: bool,
         activo: bool,
         created: NaiveDateTime,
+        limite: Option<f64>
     ) -> Cli {
         Cli {
             id,
             nombre,
             dni,
-            credito,
+            limite: match credito{
+                true=>Cuenta::Auth(limite),
+                false=>Cuenta::Unauth,
+            },
             activo,
             created,
         }

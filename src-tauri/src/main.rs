@@ -24,7 +24,6 @@ fn try_disable_windows(menu: MenuHandle) -> Result<()> {
     menu.get_item("add product").set_enabled(false)?;
     menu.get_item("add prov").set_enabled(false)?;
     menu.get_item("add user").set_enabled(false)?;
-    menu.get_item("add cliente").set_enabled(false)?;
     menu.get_item("edit settings").set_enabled(false)?;
     Ok(())
 }
@@ -120,9 +119,10 @@ fn agregar_cliente(
     nombre: &str,
     dni: i64,
     credito: bool,
+    limite: Option<f64>,
 ) -> Res<Cli> {
     match sistema.lock() {
-        Ok(sis) => match sis.agregar_cliente(nombre, dni, credito, true) {
+        Ok(sis) => match sis.agregar_cliente(nombre, dni, credito, true,limite) {
             Ok(a) => {
                 loop{
                     if window.close().is_ok(){
@@ -1145,10 +1145,10 @@ fn main() {
     let administrar = Submenu::new(
         "Administrar",
         Menu::new()
+            .add_item(add_cliente_menu)
             .add_item(add_product_menu)
             .add_item(add_prov_menu)
             .add_item(add_user_menu)
-            .add_item(add_cliente_menu)
             .add_item(edit_settings_menu),
     );
     let venta = Submenu::new(

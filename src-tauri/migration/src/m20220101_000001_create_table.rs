@@ -435,6 +435,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Cliente::Nombre).string().not_null())
                     .col(ColumnDef::new(Cliente::Dni).big_integer().not_null())
                     .col(ColumnDef::new(Cliente::Credito).boolean().not_null())
+                    .col(ColumnDef::new(Cliente::Limite).double())
                     .col(ColumnDef::new(Cliente::Activo).boolean().not_null())
                     .col(ColumnDef::new(Cliente::Created).string().not_null())
                     .to_owned(),
@@ -620,6 +621,7 @@ enum Cliente {
     Nombre,
     Dni,
     Credito,
+    Limite,
     Activo,
     Created,
 }

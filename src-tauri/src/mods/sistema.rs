@@ -211,7 +211,7 @@ impl<'a> Sistema {
     }
     pub async fn get_clientes(&self)->Res<Vec<Cli>>{
            Ok(entity::cliente::Entity::find().all(self.read_db()).await?.iter().map(|model|{
-                Cli::new(model.id, Arc::from(model.nombre.as_str()), model.dni, model.credito, model.activo, model.created)  
+                Cli::new(model.id, Arc::from(model.nombre.as_str()), model.dni, model.credito, model.activo, model.created, model.limite)  
            }).collect::<Vec<Cli>>())
     }
     pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<Rango> {
@@ -544,7 +544,7 @@ impl<'a> Sistema {
             res.update(self.write_db()).await.unwrap();
         });
     }
-    pub fn agregar_cliente(&self, nombre: &str, dni: i64, credito: bool, activo: bool) -> Res<Cli> {
+    pub fn agregar_cliente(&self, nombre: &str, dni: i64, credito: bool, activo: bool,limite:Option<f64>) -> Res<Cli> {
         async_runtime::block_on(Cli::new_to_db(
             self.write_db(),
             nombre,
@@ -552,6 +552,7 @@ impl<'a> Sistema {
             credito,
             activo,
             Utc::now().naive_local(),
+            limite
         ))
     }
     pub async fn agregar_producto(

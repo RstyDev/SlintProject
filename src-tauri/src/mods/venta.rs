@@ -184,7 +184,7 @@ impl<'a> Venta {
         }else{
             match entity::cliente::Entity::find_by_id(id).one(db).await?{
                 Some(model)=>{
-                    self.cliente=Cliente::Regular(Cli::new(model.id, Arc::from(model.nombre), model.dni, model.credito, model.activo, model.created));
+                    self.cliente=Cliente::Regular(Cli::new(model.id, Arc::from(model.nombre), model.dni, model.credito, model.activo, model.created, model.limite));
                     Ok(())
                 }
                 None=>Err(AppError::NotFound { objeto: String::from("Cliente"), instancia: id.to_string() })
