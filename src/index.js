@@ -187,9 +187,10 @@ function dibujar_venta(venta) {
     let select=document.getElementById('cliente');
     agregar_options(select,clientes,venta);
     select.addEventListener('change',()=>{
-      set_cliente(select.value)
+      set_cliente(select.value).then(venta => dibujar_venta(venta));
+      
+      })
     })
-  })
   let cuadro = document.querySelector('#cuadro-principal');
   productosVentaAct = venta.productos;
   buscador.value = '';
@@ -498,13 +499,12 @@ function dibujar_venta(venta) {
   })
 
 
-  // pagos.firstChild.addEventListener('submit', () => {
-  //   console.log('hacer pago')
-  // })
-
   let opciones = document.getElementsByClassName('opciones-pagos');
   for (let i = 0; i < configs.medios_pago.length; i++) {
-    opciones[opciones.length - 1].innerHTML += `<option>${configs.medios_pago[i]}</option>`
+    opciones[opciones.length - 1].innerHTML += `<option value='${configs.medios_pago[i]}'>${configs.medios_pago[i]}</option>`
+  }
+  if (venta.cliente!='Final'&&venta.cliente.Regular.credito){
+    opciones[opciones.length - 1].innerHTML += `<option value='Cuenta Corriente'>Cuenta Corriente</option>`
   }
   for (let i = 0; i < venta.pagos; i++) {
     pagos.innerHTML += venta.pagos[i];
