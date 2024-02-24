@@ -161,7 +161,7 @@ async function get_descripcion_valuable(prod, conf) {
 function dibujar_venta(venta) {
   console.log(venta);
   get_clientes().then(clientes=>{
-    console.log(clientes);
+    console.log(clientes[0]);
   })
   let cuadro = document.querySelector('#cuadro-principal');
   productosVentaAct = venta.productos;
@@ -829,10 +829,7 @@ function setFoco(foco, focuseable) {
 
 async function buscarProducto(filtrado) {
   clearTimeout(timeoutId);
-  console.log(!buscador.value.length < 1);
   productosDib = await invoke("get_productos_filtrado", { filtro: ''+filtrado });
-  console.log(filtrado);
-  console.log(productosDib);
   dibujarProductos();
 
 }
