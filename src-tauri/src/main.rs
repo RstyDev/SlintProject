@@ -158,15 +158,31 @@ fn agregar_pago(
 fn agregar_pesable<'a>(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-    precio_peso: f64,
-    codigo: i64,
-    costo_kilo: f64,
-    porcentaje: f64,
+    precio_peso: &str,
+    codigo: &str,
+    costo_kilo: &str,
+    porcentaje: &str,
     descripcion: &'a str,
 ) -> Res<String> {
     match sistema.lock() {
         Ok(sis) => match sis.arc_user().rango() {
             Rango::Admin => {
+                let precio_peso=match precio_peso.parse::<f64>(){
+                    Ok(a)=>a,
+                    Err(e)=>return Err(e.to_string())
+                };
+                let codigo=match codigo.parse::<i64>(){
+                    Ok(a)=>a,
+                    Err(e)=>return Err(e.to_string())
+                };
+                let costo_kilo=match costo_kilo.parse::<f64>(){
+                    Ok(a)=>a,
+                    Err(e)=>return Err(e.to_string())
+                };
+                let porcentaje=match porcentaje.parse::<f64>(){
+                    Ok(a)=>a,
+                    Err(e)=>return Err(e.to_string())
+                };
                 let pesable = match async_runtime::block_on(Pesable::new_to_db(
                     sis.write_db(),
                     codigo,
@@ -295,17 +311,21 @@ fn agregar_proveedor(
 fn agregar_rubro(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
-    codigo: i64,
+    codigo: &str,
     descripcion: &str,
 ) -> Res<String> {
     match sistema.lock() {
         Ok(sis) => match sis.arc_user().rango() {
             Rango::Admin => {
+                let codigo =match codigo.parse::<i64>(){
+                       Ok(a)=>a,
+                       Err(e)=>return Err(e.to_string())
+                };
                 let rubro = match async_runtime::block_on(Rubro::new_to_db(
                     codigo,
                     None,
                     descripcion,
-                    sis.read_db(),
+                    sis.write_db(),
                 )) {
                     Ok(a) => a,
                     Err(e) => return Err(e.to_string()),
