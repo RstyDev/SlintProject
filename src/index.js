@@ -163,12 +163,14 @@ async function get_descripcion_valuable(prod, conf) {
 
 
 function agregar_options(select, clientes, venta){
+  
   if (venta.cliente=='Final'){
     select.innerHTML=`<option value='0' selected>Consumidor Final</option>`;
     for (let cliente of clientes){
       select.innerHTML+=`<option value='${cliente.id}'> ${cliente.nombre}</option>`
     }
   }else{
+    console.log(clientes[0])
     select.innerHTML=`<option value='0'>Consumidor Final</option>`;
     let selected;
     for (let cliente of clientes){      
@@ -503,7 +505,7 @@ function dibujar_venta(venta) {
   for (let i = 0; i < configs.medios_pago.length; i++) {
     opciones[opciones.length - 1].innerHTML += `<option value='${configs.medios_pago[i]}'>${configs.medios_pago[i]}</option>`
   }
-  if (venta.cliente!='Final'&&venta.cliente.Regular.credito){
+  if (venta.cliente!='Final'&&venta.cliente.Regular.limite!='Unauth'){
     opciones[opciones.length - 1].innerHTML += `<option value='Cuenta Corriente'>Cuenta Corriente</option>`
   }
   for (let i = 0; i < venta.pagos; i++) {

@@ -1,7 +1,7 @@
 const { invoke } = window.__TAURI__.tauri;
 let rango;
-let nombre=document.getElementById('nombre');
-let dni=document.getElementById('dni');
+let nombre;
+let dni;
 let cred;
 let limite;
 document.addEventListener('keydown',(e)=>{
@@ -14,10 +14,14 @@ get_rango().then(r=>{
     let form=document.getElementsByClassName('add-form')[0];
     if (rango!='Admin'){
         form.innerHTML+='<input type="submit" value="Guardar">'
+        nombre=document.getElementById('nombre');
+        dni=document.getElementById('dni');
     }else{
         form.innerHTML+=`<input type="checkbox" name="credito" id="cred" placeholder="Venta a crédito">
         <input type="text" name="limite" id="limite" placeholder="Limite de rédito">
         <input type="submit" value="Guardar">`
+        nombre=document.getElementById('nombre');
+        dni=document.getElementById('dni');
         limite=document.getElementById('limite');
         cred=document.getElementById('cred');
         cred.addEventListener('change',()=>{
@@ -37,6 +41,7 @@ async function close_window() {
 }
 document.getElementsByClassName('add-form')[0].addEventListener('submit',(e)=>{
     e.preventDefault();
+    console.log(document.getElementById('dni').value);
     let credito;
     let limit;
     if (rango=='Admin'){
@@ -53,6 +58,6 @@ document.getElementsByClassName('add-form')[0].addEventListener('submit',(e)=>{
         console.error(error);
     }
 })
-async function agregar_cliente(nombre,dni,credito){
-    return await invoke("agregar_cliente", { nombre:nombre, dni:parseInt(dni), credito:credito})
+async function agregar_cliente(nombre,dni,credito,limite){
+    return await invoke("agregar_cliente", { nombre:nombre, dni:parseInt(dni), credito:credito, limite:limite})
 }
