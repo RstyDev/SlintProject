@@ -1,4 +1,4 @@
-use super::cliente::{Cliente,Cli};
+use super::cliente::{Cli, Cliente};
 use chrono::Utc;
 use entity::pago;
 type Res<T> = std::result::Result<T, AppError>;
@@ -177,18 +177,29 @@ impl<'a> Venta {
             })
         }
     }
-    pub async fn set_cliente(&mut self,id:i32,db:&DatabaseConnection)->Res<()>{
-        if id==0{
-            self.cliente=Cliente::Final;
+    pub async fn set_cliente(&mut self, id: i32, db: &DatabaseConnection) -> Res<()> {
+        if id == 0 {
+            self.cliente = Cliente::Final;
             Ok(())
-        }else{
-            match entity::cliente::Entity::find_by_id(id).one(db).await?{
-                Some(model)=>{
-                    self.cliente=Cliente::Regular(Cli::new(model.id, Arc::from(model.nombre), model.dni, model.credito, model.activo, model.created, model.limite));
+        } else {
+            match entity::cliente::Entity::find_by_id(id).one(db).await? {
+                Some(model) => {
+                    self.cliente = Cliente::Regular(Cli::new(
+                        model.id,
+                        Arc::from(model.nombre),
+                        model.dni,
+                        model.credito,
+                        model.activo,
+                        model.created,
+                        model.limite,
+                    ));
                     Ok(())
                 }
-                None=>Err(AppError::NotFound { objeto: String::from("Cliente"), instancia: id.to_string() })
-            }        
+                None => Err(AppError::NotFound {
+                    objeto: String::from("Cliente"),
+                    instancia: id.to_string(),
+                }),
+            }
         }
     }
     pub fn eliminar_producto(&mut self, index: usize, politica: &f64) -> Result<Venta, AppError> {

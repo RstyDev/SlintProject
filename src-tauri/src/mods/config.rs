@@ -41,8 +41,8 @@ impl Config {
                 })
             }
             None => {
-                let conf=Config::default();
-                let model=entity::config::ActiveModel{
+                let conf = Config::default();
+                let model = entity::config::ActiveModel {
                     cantidad_productos: Set(conf.cantidad_productos),
                     formato_producto: Set(conf.formato_producto.to_string()),
                     id: Set(0),
@@ -51,7 +51,7 @@ impl Config {
                 };
                 entity::config::Entity::insert(model).exec(db).await?;
                 Ok(conf)
-            },
+            }
         }
     }
     pub fn cantidad_productos(&self) -> &u8 {

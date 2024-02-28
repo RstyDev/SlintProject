@@ -209,10 +209,23 @@ impl<'a> Sistema {
         }
         Ok(())
     }
-    pub async fn get_clientes(&self)->Res<Vec<Cli>>{
-           Ok(entity::cliente::Entity::find().all(self.read_db()).await?.iter().map(|model|{
-                Cli::new(model.id, Arc::from(model.nombre.as_str()), model.dni, model.credito, model.activo, model.created, model.limite)  
-           }).collect::<Vec<Cli>>())
+    pub async fn get_clientes(&self) -> Res<Vec<Cli>> {
+        Ok(entity::cliente::Entity::find()
+            .all(self.read_db())
+            .await?
+            .iter()
+            .map(|model| {
+                Cli::new(
+                    model.id,
+                    Arc::from(model.nombre.as_str()),
+                    model.dni,
+                    model.credito,
+                    model.activo,
+                    model.created,
+                    model.limite,
+                )
+            })
+            .collect::<Vec<Cli>>())
     }
     pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<Rango> {
         match entity::user::Entity::find()
@@ -544,7 +557,14 @@ impl<'a> Sistema {
             res.update(self.write_db()).await.unwrap();
         });
     }
-    pub fn agregar_cliente(&self, nombre: &str, dni: i64, credito: bool, activo: bool,limite:Option<f64>) -> Res<Cli> {
+    pub fn agregar_cliente(
+        &self,
+        nombre: &str,
+        dni: i64,
+        credito: bool,
+        activo: bool,
+        limite: Option<f64>,
+    ) -> Res<Cli> {
         async_runtime::block_on(Cli::new_to_db(
             self.write_db(),
             nombre,
@@ -552,7 +572,7 @@ impl<'a> Sistema {
             credito,
             activo,
             Utc::now().naive_local(),
-            limite
+            limite,
         ))
     }
     pub async fn agregar_producto(
@@ -878,11 +898,11 @@ impl<'a> Sistema {
         };
         Ok(())
     }
-    pub fn set_cliente(&mut self,id:i32,pos:bool)->Res<()>{
-        if pos{
-            async_runtime::block_on(self.ventas.0.set_cliente(id,&self.read_db))
-        }else{
-            async_runtime::block_on(self.ventas.1.set_cliente(id,&self.read_db))
+    pub fn set_cliente(&mut self, id: i32, pos: bool) -> Res<()> {
+        if pos {
+            async_runtime::block_on(self.ventas.0.set_cliente(id, &self.read_db))
+        } else {
+            async_runtime::block_on(self.ventas.1.set_cliente(id, &self.read_db))
         }
     }
     pub fn unstash_sale(&mut self, pos: bool, index: usize) -> Res<()> {

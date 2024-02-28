@@ -16,13 +16,13 @@ pub struct Cli {
     id: i64,
     nombre: Arc<str>,
     dni: i64,
-//    credito: bool,
+    //    credito: bool,
     activo: bool,
     created: NaiveDateTime,
     limite: Cuenta,
 }
 #[derive(Serialize, Clone, Debug)]
-pub enum Cuenta{
+pub enum Cuenta {
     Auth(Option<f64>),
     Unauth,
 }
@@ -34,7 +34,7 @@ impl Cli {
         credito: bool,
         activo: bool,
         created: NaiveDateTime,
-        limite: Option<f64>
+        limite: Option<f64>,
     ) -> Res<Cli> {
         match entity::cliente::Entity::find()
             .filter(entity::cliente::Column::Dni.eq(dni))
@@ -64,9 +64,9 @@ impl Cli {
                     dni,
                     activo,
                     created,
-                    limite: match credito{
-                        true=> Cuenta::Auth(limite),
-                        false=> Cuenta::Unauth,
+                    limite: match credito {
+                        true => Cuenta::Auth(limite),
+                        false => Cuenta::Unauth,
                     },
                 })
             }
@@ -79,15 +79,15 @@ impl Cli {
         credito: bool,
         activo: bool,
         created: NaiveDateTime,
-        limite: Option<f64>
+        limite: Option<f64>,
     ) -> Cli {
         Cli {
             id,
             nombre,
             dni,
-            limite: match credito{
-                true=>Cuenta::Auth(limite),
-                false=>Cuenta::Unauth,
+            limite: match credito {
+                true => Cuenta::Auth(limite),
+                false => Cuenta::Unauth,
             },
             activo,
             created,
