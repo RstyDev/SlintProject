@@ -357,7 +357,7 @@ impl<'a> Sistema {
                     .one(db)
                     .await?
                 {
-                    prods.push((cant as u8, Mapper::map_model_rub(&model, cant as f64)))
+                    prods.push((cant as u8, Mapper::map_model_rub(&model, 0.0)))
                 }
             }
             Err(_) => {
@@ -386,7 +386,7 @@ impl<'a> Sistema {
                     }
                 }
                 for model in &res {
-                    prods.push((cant as u8, Mapper::map_model_rub(model, cant as f64)));
+                    prods.push((cant as u8, Mapper::map_model_rub(model, 0.0)));
                 }
             }
         }

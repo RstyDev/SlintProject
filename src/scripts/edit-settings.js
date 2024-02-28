@@ -53,8 +53,8 @@ function changeConfigsHandle() {
       try{
         set_configs(configs2);
         close_window();
-      }catch{
-        console.log("No se hizo")
+      }catch(error){
+        console.error(error);
       }
     })
 }

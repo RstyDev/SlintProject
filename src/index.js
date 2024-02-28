@@ -952,6 +952,7 @@ const unlisten2 = await listen('inicio-sesion', (pl) => {
     if (pl.payload.message == 'Correcto') {
       dibujar_base();
     }
+    console.log(pl)
   })
 const unlisten = await listen('main', (pl) => {
   if (pl.payload.message == 'dibujar venta') {

@@ -1023,7 +1023,7 @@ async fn open_select_amount(handle: tauri::AppHandle, val: Valuable) -> Res<()> 
             .center()
             .resizable(false)
             .minimizable(false)
-            .inner_size(900.0, 600.0)
+            .inner_size(200.0, 100.0)
             .menu(Menu::new())
             .build()
             {
