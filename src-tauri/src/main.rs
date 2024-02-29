@@ -267,18 +267,15 @@ fn agregar_producto_a_venta(
             match &prod {
                 Valuable::Prod(_) => {
                     match async_runtime::block_on(sis.agregar_producto_a_venta(prod, pos)) {
-                        Ok(_) => {
-                            loop {
-                                if let Ok(_) = window
-                                    .menu_handle()
-                                    .get_item("confirm stash")
-                                    .set_enabled(true)
-                                {
-                                    break;
-                                }
+                        Ok(_) => loop {
+                            if let Ok(_) = window
+                                .menu_handle()
+                                .get_item("confirm stash")
+                                .set_enabled(true)
+                            {
+                                break;
                             }
-                           
-                        }
+                        },
                         Err(e) => return Err(e.to_string()),
                     }
                 }
@@ -288,7 +285,6 @@ fn agregar_producto_a_venta(
                         Valuable::Pes(a.clone()),
                         pos,
                     ));
-                
                 }
                 Valuable::Rub(a) => {
                     async_runtime::spawn(open_select_amount(
@@ -296,16 +292,19 @@ fn agregar_producto_a_venta(
                         Valuable::Rub(a.clone()),
                         pos,
                     ));
-                
                 }
             }
-            if let Err(e)=window.emit(
-                "main",
-                Payload{ message: Some("dibujar venta".to_string()), pos: None, val: None }
-                    
-            ){
-                return Err(e.to_string())
+            let pl = Payload {
+                message: Some("dibujar venta".to_string()),
+                pos: None,
+                val: None,
+            };
+            loop {
+                if window.emit("main", pl.clone()).is_ok() {
+                    break;
+                }
             }
+
             Ok(sis.venta(pos))
         }
         Err(e) => Err(e.to_string()),
@@ -369,6 +368,39 @@ fn agregar_rubro(
             Rango::Cajero => Err(DENEGADO.to_string()),
         },
         Err(a) => Err(a.to_string()),
+    }
+}
+#[tauri::command]
+fn agregar_rub_o_pes_a_venta(
+    sistema: State<Mutex<Sistema>>,
+    window: tauri::Window,
+    val: Valuable,
+    pos: bool,
+) -> Res<()> {
+    match sistema.lock() {
+        Ok(mut sis) => match async_runtime::block_on(sis.agregar_producto_a_venta(val, pos)) {
+            Ok(_) => {
+                let pl = Payload {
+                    message: Some(String::from("dibujar venta")),
+                    pos: None,
+                    val: None,
+                };
+                loop {
+                    if window.emit("main", pl.clone()).is_ok() {
+                        break;
+                    }
+                }
+                loop {
+                    if window.close().is_ok(){
+                        break;
+                    }
+                }
+
+                Ok(())
+            }
+            Err(e) => Err(e.to_string()),
+        },
+        Err(e) => Err(e.to_string()),
     }
 }
 #[tauri::command]
@@ -490,14 +522,17 @@ fn descontar_producto_de_venta(
             a.arc_user();
             match a.descontar_producto_de_venta(index, pos) {
                 Ok(a) => {
-                    if let Err(e)=window.emit(
-                        "main",
-                        Payload{
-                            message: Some("dibujar venta".to_string()),
-                            pos: None,
-                            val: None,
-                        }
-                    ){return Err(e.to_string())};
+                    let pl = Payload {
+                        message: Some("dibujar venta".to_string()),
+                        pos: None,
+                        val: None,
+                    };
+                    loop {
+                        if window.emit("main", pl.clone()).is_ok() {
+                            break;
+                        };
+                    }
+
                     println!("{:?}", a);
                     Ok(a)
                 }
@@ -717,6 +752,7 @@ fn get_venta_actual(
                     }
                 }
             }
+            println!("{:#?}",venta);
             Ok(venta)
         }
         Err(e) => Err(e.to_string()),
@@ -734,12 +770,16 @@ fn incrementar_producto_a_venta(
             a.arc_user();
             match a.incrementar_producto_a_venta(index, pos) {
                 Ok(a) => {
-                    if let Err(e)=window.emit(
-                        "main",
-                        Payload{ message: Some("dibujar venta".to_string()), pos: None, val: None }
-                    ){
-                        return Err(e.to_string())
-                    };
+                    let pl=Payload {
+                            message: Some("dibujar venta".to_string()),
+                            pos: None,
+                            val: None,
+                        };
+                    loop{
+                        if window.emit("main",pl.clone()).is_ok(){
+                            break;
+                        }
+                    }
                     println!("{:?}", a);
                     Ok(a)
                 }
@@ -1016,7 +1056,7 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
     }
 }
 #[tauri::command]
-async fn open_select_amount(handle: tauri::AppHandle, val: Valuable, pos:bool) -> Res<()> {
+async fn open_select_amount(handle: tauri::AppHandle, val: Valuable, pos: bool) -> Res<()> {
     match handle.get_window("select-amount") {
         Some(window) => match window.show() {
             Ok(_) => {
@@ -1226,15 +1266,15 @@ fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: boo
             if let Err(e) = sis.stash_sale(pos) {
                 return Err(e.to_string());
             }
-            if let Err(e) = window.emit(
-                "main",
-                Payload {
+            let pl=Payload {
                     message: Some("dibujar venta".into()),
                     pos: None,
                     val: None,
-                },
-            ) {
-                return Err(e.to_string());
+                };
+            loop{
+                if window.emit("main",pl.clone()).is_ok(){
+                    break;
+                }
             }
             loop {
                 if window.close().is_ok() {
@@ -1303,6 +1343,7 @@ fn main() {
             agregar_producto_a_venta,
             agregar_proveedor,
             agregar_rubro,
+            agregar_rub_o_pes_a_venta,
             agregar_usuario,
             buscador,
             cerrar_caja,

@@ -715,7 +715,7 @@ impl<'a> Sistema {
     //         }
     //     }
     // }
-    pub async fn agregar_producto_a_venta(&mut self, prod: V, pos: bool) -> Res<Venta> {
+    pub async fn agregar_producto_a_venta(&mut self, prod: V, pos: bool) -> Res<()> {
         let existe = match &prod {
             Valuable::Prod(a) => entity::producto::Entity::find_by_id(*a.1.id())
                 .one(self.read_db())

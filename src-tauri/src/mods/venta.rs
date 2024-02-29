@@ -86,7 +86,7 @@ impl<'a> Venta {
         self.monto_pagado += monto;
         self.monto_total - self.monto_pagado
     }
-    pub fn agregar_producto(&mut self, producto: Valuable, politica: &f64) -> Venta {
+    pub fn agregar_producto(&mut self, producto: Valuable, politica: &f64) {
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -109,7 +109,6 @@ impl<'a> Venta {
             self.productos.push(prod);
         }
         self.update_monto_total(politica);
-        self.clone()
     }
     fn update_monto_total(&mut self, politica: &f64) {
         self.monto_total = 0.0;
