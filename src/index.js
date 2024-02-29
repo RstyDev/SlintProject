@@ -49,9 +49,10 @@ function navigate(e) {
         agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
           e.preventDefault();
           buscador.value = '';
-          dibujar_venta(venta)
-
-          beep.play();
+          if (Object.keys(productosDib[focuseado.id])=='Prod'){
+            beep.play();
+          }
+          //dibujar_venta(venta)
         });
       } else {
         error.play();
@@ -111,7 +112,7 @@ async function open_edit_settings() {
 
 function incrementarProducto(e) {
   incrementarProdVentaAct(e.target.parentNode.parentNode.id).then(venta => {
-    dibujar_venta(venta);
+    //dibujar_venta(venta);
     setFoco(buscador, document.getElementById('productos'));
   });
 }
@@ -120,14 +121,14 @@ function incrementarProducto(e) {
 
 function sumarProducto(e) {
   agregarProdVentaAct(e.target.parentNode.parentNode.id).then(venta => {
-    dibujar_venta(venta);
+    //dibujar_venta(venta);
     setFoco(buscador, document.getElementById('productos'));
   });
 }
 function restarProducto(e) {
   let cantidad = e.target.nextElementSibling;
   descontarProdVentaAct(e.target.parentNode.parentNode.id).then(venta => {
-    dibujar_venta(venta);
+
     setFoco(buscador, document.getElementById('productos'));
   });
 }
@@ -648,6 +649,7 @@ function agregarRub(tabla, objeto, i) {
   tr2.addEventListener('dblclick', () => {
 
     agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
+      
       dibujar_venta(venta);
       setFoco(buscador, document.getElementById('productos'));
     });
@@ -686,6 +688,7 @@ function agregarPes(tabla, objeto, i) {
   tr2.addEventListener('dblclick', () => {
 
     agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
+     
       dibujar_venta(venta);
       setFoco(buscador, document.getElementById('productos'));
     });
@@ -752,6 +755,7 @@ function agregarProd(tabla, objeto, i) {
   tr2.addEventListener('dblclick', () => {
     console.log(productosDib[focuseado.id]);
     agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
+      beep.play();
       dibujar_venta(venta);
       setFoco(buscador, document.getElementById('productos'));
     });

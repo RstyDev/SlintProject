@@ -267,7 +267,7 @@ fn agregar_producto_a_venta(
             match &prod {
                 Valuable::Prod(_) => {
                     match async_runtime::block_on(sis.agregar_producto_a_venta(prod, pos)) {
-                        Ok(a) => {
+                        Ok(_) => {
                             loop {
                                 if let Ok(_) = window
                                     .menu_handle()
@@ -277,26 +277,36 @@ fn agregar_producto_a_venta(
                                     break;
                                 }
                             }
-                            Ok(a)
+                           
                         }
-                        Err(e) => Err(e.to_string()),
+                        Err(e) => return Err(e.to_string()),
                     }
                 }
                 Valuable::Pes(a) => {
                     async_runtime::spawn(open_select_amount(
                         window.app_handle(),
                         Valuable::Pes(a.clone()),
+                        pos,
                     ));
-                    Ok(sis.venta(pos))
+                
                 }
                 Valuable::Rub(a) => {
                     async_runtime::spawn(open_select_amount(
                         window.app_handle(),
                         Valuable::Rub(a.clone()),
+                        pos,
                     ));
-                    Ok(sis.venta(pos))
+                
                 }
             }
+            if let Err(e)=window.emit(
+                "main",
+                Payload{ message: Some("dibujar venta".to_string()), pos: None, val: None }
+                    
+            ){
+                return Err(e.to_string())
+            }
+            Ok(sis.venta(pos))
         }
         Err(e) => Err(e.to_string()),
     }
@@ -471,6 +481,7 @@ fn close_window(window: tauri::Window) -> Res<()> {
 #[tauri::command]
 fn descontar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
+    window: tauri::Window,
     index: usize,
     pos: bool,
 ) -> Res<Venta> {
@@ -479,6 +490,14 @@ fn descontar_producto_de_venta(
             a.arc_user();
             match a.descontar_producto_de_venta(index, pos) {
                 Ok(a) => {
+                    if let Err(e)=window.emit(
+                        "main",
+                        Payload{
+                            message: Some("dibujar venta".to_string()),
+                            pos: None,
+                            val: None,
+                        }
+                    ){return Err(e.to_string())};
                     println!("{:?}", a);
                     Ok(a)
                 }
@@ -706,6 +725,7 @@ fn get_venta_actual(
 #[tauri::command]
 fn incrementar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
+    window: tauri::Window,
     index: usize,
     pos: bool,
 ) -> Res<Venta> {
@@ -714,6 +734,12 @@ fn incrementar_producto_a_venta(
             a.arc_user();
             match a.incrementar_producto_a_venta(index, pos) {
                 Ok(a) => {
+                    if let Err(e)=window.emit(
+                        "main",
+                        Payload{ message: Some("dibujar venta".to_string()), pos: None, val: None }
+                    ){
+                        return Err(e.to_string())
+                    };
                     println!("{:?}", a);
                     Ok(a)
                 }
@@ -990,7 +1016,7 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
     }
 }
 #[tauri::command]
-async fn open_select_amount(handle: tauri::AppHandle, val: Valuable) -> Res<()> {
+async fn open_select_amount(handle: tauri::AppHandle, val: Valuable, pos:bool) -> Res<()> {
     match handle.get_window("select-amount") {
         Some(window) => match window.show() {
             Ok(_) => {
@@ -1002,7 +1028,7 @@ async fn open_select_amount(handle: tauri::AppHandle, val: Valuable) -> Res<()> 
                         "select-amount",
                         Payload {
                             message: None,
-                            pos: None,
+                            pos: Some(pos),
                             val: Some(val.clone()),
                         },
                     ) {
@@ -1036,7 +1062,7 @@ async fn open_select_amount(handle: tauri::AppHandle, val: Valuable) -> Res<()> 
                             "select-amount",
                             Payload {
                                 message: None,
-                                pos: None,
+                                pos: Some(pos),
                                 val: Some(val.clone()),
                             },
                         ) {

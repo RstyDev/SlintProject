@@ -1,11 +1,16 @@
 const { invoke } = window.__TAURI__.tauri;
 const { emit, listen } = window.__TAURI__.event;
 let ya = false;
+let pos;
 document.addEventListener('keydown', (e) => {
     if (e.keyCode == 27) {
         close_window();
     }
 })
+
+async function agregarProdVentaAct(prod) {
+    return await invoke("agregar_producto_a_venta", { prod: prod, pos: pos });
+}
 async function close_window() {
     return await invoke("close_window");
 }
@@ -21,7 +26,7 @@ function dibujar(val) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             val.Pes[0] = parseFloat(document.getElementById('cantidad').value);
-            console.log(val.Pes)
+            agregarProdVentaAct(val)
         })
     } else if (Object.keys(val) == 'Rub') {
         form.innerHTML = `
@@ -31,7 +36,7 @@ function dibujar(val) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             val.Rub[1].monto = parseFloat(document.getElementById('monto').value);
-            console.log(val.Rub[1])
+            agregarProdVentaAct(val)
         })
     }
 
@@ -39,6 +44,7 @@ function dibujar(val) {
 const unlisten3 = await listen('select-amount', (pl) => {
     if (!ya) {
         dibujar(pl.payload.val)
+        pos=pl.payload.pos;
         ya = true;
     }
 })
