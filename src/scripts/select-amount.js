@@ -9,7 +9,7 @@ document.addEventListener('keydown', (e) => {
 })
 
 async function agregarProdVentaAct(prod) {
-    return await invoke("agregar_producto_a_venta", { prod: prod, pos: pos });
+    return await invoke("agregar_rub_o_pes_a_venta", { val: prod, pos: pos });
 }
 async function close_window() {
     return await invoke("close_window");
@@ -30,7 +30,7 @@ function dibujar(val) {
         })
     } else if (Object.keys(val) == 'Rub') {
         form.innerHTML = `
-        <input type="number" name="monto" id="monto" placeholder="Monto" required>
+        <input type="number" step="0.01" name="monto" id="monto" placeholder="Monto" required>
         <button type="submit">Seleccionar</button>
         `
         form.addEventListener('submit', (e) => {

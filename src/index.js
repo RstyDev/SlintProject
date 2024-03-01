@@ -237,6 +237,7 @@ function dibujar_venta(venta) {
     let disabled;
     let art;
     if (Object.keys(venta.productos[i]) == 'Pes') {
+      console.log(venta.productos[i].Pes)
       if (venta.productos[i].Pes[0] <= 1) {
         disabled = 'disabled';
       } else {
@@ -260,7 +261,7 @@ function dibujar_venta(venta) {
          <p>${venta.productos[i].Pes[1].precio_peso}</p>
       </section>
       <section>
-       <p> ${venta.productos[i].Pes[1].precio_peso * venta.productos[i].Pes[0]}</p>
+       <p> ${(parseFloat(venta.productos[i].Pes[1].precio_peso) * venta.productos[i].Pes[0]).toFixed(2)}</p>
       </section>
       <section id="borrar">
        <button class="button eliminar">Borrar</button>
@@ -316,7 +317,7 @@ function dibujar_venta(venta) {
          <p>${venta.productos[i].Rub[1].monto}</p>
       </section>
       <section>
-       <p> ${venta.productos[i].Rub[1].monto * venta.productos[i].Rub[0]}</p>
+       <p> ${(parseFloat(venta.productos[i].Rub[1].monto * venta.productos[i].Rub[0])).toFixed(2)}</p>
       </section>
       <section id="borrar">
        <button class="button eliminar">Borrar</button>
@@ -373,7 +374,7 @@ function dibujar_venta(venta) {
          <p>${venta.productos[i].Prod[1].precio_de_venta}</p>
       </section>
       <section>
-       <p> ${venta.productos[i].Prod[1].precio_de_venta * venta.productos[i].Prod[0]}</p>
+       <p> ${(parseFloat(venta.productos[i].Prod[1].precio_de_venta * venta.productos[i].Prod[0])).toFixed(2)}</p>
       </section>
       <section id="borrar">
        <button class="button eliminar">Borrar</button>
