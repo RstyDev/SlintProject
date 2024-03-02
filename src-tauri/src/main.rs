@@ -1225,18 +1225,22 @@ async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &s
 }
 #[tauri::command]
 fn set_cliente(sistema: State<Mutex<Sistema>>, id: &str, pos: bool) -> Res<Venta> {
+    match {
     match sistema.lock() {
         Ok(mut sis) => {
             let id = match id.parse::<i32>() {
                 Ok(a) => a,
-                Err(e) => return Err(e.to_string()),
+                Err(e) => return Err(e.into()),
             };
             match sis.set_cliente(id, pos) {
                 Ok(_) => Ok(sis.venta(pos)),
-                Err(e) => Err(e.to_string()),
+                Err(e) => Err(e),
             }
         }
-        Err(e) => Err(e.to_string()),
+        Err(e) => Err(e.into()),
+    }}{
+        Ok(a)=>Ok(a),
+        Err(e)=>Err(e.to_string())
     }
 }
 #[tauri::command]

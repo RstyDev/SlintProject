@@ -1,11 +1,14 @@
 use chrono::ParseError;
 use sea_orm::DbErr;
+use core::num::ParseIntError;
 use std::{
     io,
-    num::{ParseFloatError, ParseIntError},
-    time::SystemTimeError,
+    num::{ParseFloatError},
+    time::SystemTimeError, sync::{PoisonError,MutexGuard},
 };
 use thiserror::Error;
+
+use super::sistema::Sistema;
 
 #[derive(Debug, Error)]
 pub enum AppError {
@@ -39,4 +42,6 @@ pub enum AppError {
     ChronoParseError(#[from] ParseError),
     #[error("Error de inicialización {0}")]
     InicialationError(String),
+    #[error("Poiseonerror")]
+    PoisonError(#[from] PoisonError<MutexGuard<'static,Sistema>>)
 }
