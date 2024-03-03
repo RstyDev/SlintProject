@@ -21,11 +21,11 @@ struct Payload {
     val: Option<Valuable>,
 }
 mod mods;
-fn try_disable_windows(menu: MenuHandle) -> Result<()> {
-    menu.get_item("add product").set_enabled(false)?;
-    menu.get_item("add prov").set_enabled(false)?;
-    menu.get_item("add user").set_enabled(false)?;
-    menu.get_item("edit settings").set_enabled(false)?;
+fn set_menus(menu: MenuHandle, state: bool) -> Result<()> {
+    menu.get_item("add product").set_enabled(state)?;
+    menu.get_item("add prov").set_enabled(state)?;
+    menu.get_item("add user").set_enabled(state)?;
+    menu.get_item("edit settings").set_enabled(state)?;
     Ok(())
 }
 async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
@@ -391,7 +391,7 @@ fn agregar_rub_o_pes_a_venta(
                     }
                 }
                 loop {
-                    if window.close().is_ok(){
+                    if window.close().is_ok() {
                         break;
                     }
                 }
@@ -433,6 +433,50 @@ fn agregar_usuario(
 #[tauri::command]
 fn buscador(name: &str) -> String {
     format!("Hello, {}! You've been mensajed from Rust!", name)
+}
+#[tauri::command]
+async fn cerrar_sesion<'ab>(
+    sistema: State<'ab, Mutex<Sistema>>,
+    handle: tauri::AppHandle,
+) -> Res<()> {
+    match sistema.lock() {
+        Ok(mut sis) => {
+            match handle.get_window("login") {
+                Some(window) => {
+                    if let Err(e) = window.show() {
+                        return Err(e.to_string());
+                    }
+                    sis.cerrar_sesion();
+                    Ok(())
+                }
+                None => {
+                    match tauri::WindowBuilder::new(
+                        &handle,
+                        "login", /* the unique window label */
+                        tauri::WindowUrl::App("/pages/login.html".parse().unwrap()),
+                    )
+                    .inner_size(400.0, 300.0)
+                    .resizable(false)
+                    .minimizable(false)
+                    .closable(false)
+                    .always_on_top(true)
+                    .decorations(false)
+                    .center()
+                    .menu(Menu::new())
+                    // .minimizable(false)
+                    .build()
+                    {
+                        Ok(_) => {
+                            sis.cerrar_sesion();
+                            Ok(())
+                        }
+                        Err(e) => Err(e.to_string()),
+                    }
+                }
+            }
+        }
+        Err(e) => Err(e.to_string()),
+    }
 }
 #[tauri::command]
 fn cerrar_caja(
@@ -752,7 +796,7 @@ fn get_venta_actual(
                     }
                 }
             }
-            println!("{:#?}",venta);
+            println!("{:#?}", venta);
             Ok(venta)
         }
         Err(e) => Err(e.to_string()),
@@ -770,13 +814,13 @@ fn incrementar_producto_a_venta(
             a.arc_user();
             match a.incrementar_producto_a_venta(index, pos) {
                 Ok(a) => {
-                    let pl=Payload {
-                            message: Some("dibujar venta".to_string()),
-                            pos: None,
-                            val: None,
-                        };
-                    loop{
-                        if window.emit("main",pl.clone()).is_ok(){
+                    let pl = Payload {
+                        message: Some("dibujar venta".to_string()),
+                        pos: None,
+                        val: None,
+                    };
+                    loop {
+                        if window.emit("main", pl.clone()).is_ok() {
                             break;
                         }
                     }
@@ -1155,25 +1199,27 @@ fn try_login(
     match sistema.lock() {
         Ok(mut sis) => match async_runtime::block_on(sis.try_login(id, get_hash(pass))) {
             Ok(r) => {
+                let menu = window
+                    .app_handle()
+                    .get_window("main")
+                    .unwrap()
+                    .menu_handle();
                 match r {
-                    Rango::Cajero => {
-                        let menu = window
-                            .app_handle()
-                            .get_window("main")
-                            .unwrap()
-                            .menu_handle();
-                        loop {
-                            if try_disable_windows(menu.clone()).is_ok() {
-                                break;
-                            }
+                    Rango::Cajero => loop {
+                        if set_menus(menu.clone(), false).is_ok() {
+                            break;
                         }
-                    }
-                    _ => (),
+                    },
+                    Rango::Admin => loop {
+                        if set_menus(menu.clone(), true).is_ok() {
+                            break;
+                        }
+                    },
                 }
                 match window.emit(
-                    "inicio-sesion",
+                    "main",
                     Payload {
-                        message: Some("Correcto".to_string()),
+                        message: Some("inicio sesion".to_string()),
                         pos: None,
                         val: None,
                     },
@@ -1225,22 +1271,18 @@ async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &s
 }
 #[tauri::command]
 fn set_cliente(sistema: State<Mutex<Sistema>>, id: &str, pos: bool) -> Res<Venta> {
-    match {
     match sistema.lock() {
         Ok(mut sis) => {
             let id = match id.parse::<i32>() {
                 Ok(a) => a,
-                Err(e) => return Err(e.into()),
+                Err(e) => return Err(e.to_string()),
             };
             match sis.set_cliente(id, pos) {
                 Ok(_) => Ok(sis.venta(pos)),
-                Err(e) => Err(e),
+                Err(e) => Err(e.to_string()),
             }
         }
-        Err(e) => Err(e.into()),
-    }}{
-        Ok(a)=>Ok(a),
-        Err(e)=>Err(e.to_string())
+        Err(e) => Err(e.to_string()),
     }
 }
 #[tauri::command]
@@ -1270,13 +1312,13 @@ fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: boo
             if let Err(e) = sis.stash_sale(pos) {
                 return Err(e.to_string());
             }
-            let pl=Payload {
-                    message: Some("dibujar venta".into()),
-                    pos: None,
-                    val: None,
-                };
-            loop{
-                if window.emit("main",pl.clone()).is_ok(){
+            let pl = Payload {
+                message: Some("dibujar venta".into()),
+                pos: None,
+                val: None,
+            };
+            loop {
+                if window.emit("main", pl.clone()).is_ok() {
                     break;
                 }
             }
@@ -1312,19 +1354,21 @@ fn main() {
     let add_prov_menu = CustomMenuItem::new(String::from("add prov"), "Agregar proveedor");
     let add_user_menu = CustomMenuItem::new(String::from("add user"), "Agregar usuario");
     let add_cliente_menu = CustomMenuItem::new(String::from("add cliente"), "Agregar cliente");
+    let cerrar_sesion_menu = CustomMenuItem::new(String::from("cerrar sesion"), "Cerrar sesión");
     let edit_settings_menu =
         CustomMenuItem::new(String::from("edit settings"), "Cambiar configuraciones");
     let confirm_stash_menu = CustomMenuItem::new(String::from("confirm stash"), "Guardar venta");
     let open_stash_menu = CustomMenuItem::new(String::from("open stash"), "Ver ventas guardadas");
 
-    let administrar = Submenu::new(
-        "Administrar",
+    let opciones = Submenu::new(
+        "Opciones",
         Menu::new()
             .add_item(add_cliente_menu)
             .add_item(add_product_menu)
             .add_item(add_prov_menu)
             .add_item(add_user_menu)
-            .add_item(edit_settings_menu),
+            .add_item(edit_settings_menu)
+            .add_item(cerrar_sesion_menu),
     );
     let venta = Submenu::new(
         "Venta",
@@ -1334,7 +1378,7 @@ fn main() {
     );
     let caja = Submenu::new("Caja", Menu::new().add_item(cerrar_caja_menu));
     let menu = Menu::new()
-        .add_submenu(administrar)
+        .add_submenu(opciones)
         .add_submenu(venta)
         .add_submenu(caja);
     let app = tauri::Builder::default()
@@ -1351,6 +1395,7 @@ fn main() {
             agregar_usuario,
             buscador,
             cerrar_caja,
+            cerrar_sesion,
             check_codes,
             close_window,
             descontar_producto_de_venta,
@@ -1402,25 +1447,46 @@ fn main() {
             "edit settings" => async_runtime::block_on(open_edit_settings(handle.clone())),
             "confirm stash" => {
                 loop {
-                    if let Ok(_) = w2.emit(
-                        "confirm-stash",
-                        Payload {
-                            message: Some(String::from("now")),
-                            pos: None,
-                            val: None,
-                        },
-                    ) {
+                    if w2
+                        .emit(
+                            "main",
+                            Payload {
+                                message: Some(String::from("confirm stash")),
+                                pos: None,
+                                val: None,
+                            },
+                        )
+                        .is_ok()
+                    {
                         break;
                     }
                 }
 
                 Ok(())
             }
+            "cerrar sesion" => {
+                loop {
+                    if w2
+                        .emit(
+                            "main",
+                            Payload {
+                                message: Some(String::from("cerrar sesion")),
+                                pos: None,
+                                val: None,
+                            },
+                        )
+                        .is_ok()
+                    {
+                        break;
+                    }
+                }
+
+                Ok(())
+            }
+
             "open stash" => async_runtime::block_on(open_stash(handle.clone())),
             "cerrar caja" => async_runtime::block_on(open_cerrar_caja(handle.clone())),
 
-            //add_product, add_prov, add_user, add_cliente, edit_stetings
-            //confirm_stash, cerrar_caja, open_stash,
             _ => Ok(()),
         }
         .unwrap();

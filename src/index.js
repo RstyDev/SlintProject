@@ -91,6 +91,9 @@ async function get_configs() {
 async function get_user() {
   return await invoke("get_user");
 }
+async function call_cerrar_sesion(){
+  return await invoke("cerrar_sesion");
+}
 async function get_clientes() {
   return await invoke("get_clientes");
 }
@@ -874,22 +877,15 @@ function PlaySound(soundObj) {
 }
 
 
-
+function cerrar_sesion(){
+  user='';
+  document.getElementsByTagName('body')[0].innerHTML ='';
+  call_cerrar_sesion()
+}
 function dibujar_base(){
   get_user().then(usuario=>{
     user=usuario;
-    let boton_add_user='';
-    let boton_conf='';
-    let boton_agregar_producto='';
-    let boton_agregar_prov='';
-    console.log(usuario);
     
-    if (usuario.rango=='Admin'){
-      boton_agregar_producto='<a id="agregar-producto-mostrar" class="a-boton">Agregar Producto</a>'
-      boton_add_user='<a id="agregar-usuario-mostrar" class="a-boton">Agregar Usuario</a>'
-      boton_conf='<a id="cambiar-configs-mostrar" class="a-boton">Configuraciones</a>'
-      boton_agregar_prov='<a id="agregar-proveedor-mostrar" class="a-boton">Agregar Proveedor</a>'
-    }
     document.getElementsByTagName('body')[0].innerHTML =`<header class="container">
         <div id="header">
             <div>
@@ -953,19 +949,15 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const unlisten2 = await listen('inicio-sesion', (pl) => {
-    if (pl.payload.message == 'Correcto') {
-      dibujar_base();
-    }
-    console.log(pl)
-  })
+
 const unlisten = await listen('main', (pl) => {
   if (pl.payload.message == 'dibujar venta') {
     get_venta_actual().then(venta => dibujar_venta(venta));
-  }
-})
-const unlisten3 = await listen('confirm-stash', (pl)=>{
-  if (pl.payload.message=='now'){
-    open_confirm_stash(posA);
+  }else if(pl.payload.message == "confirm stash"){
+    open_confirm_stash(posA)
+  }else if (pl.payload.message=="inicio sesion"){
+    dibujar_base();
+  }else if (pl.payload.message=="cerrar sesion"){
+    cerrar_sesion()
   }
 })

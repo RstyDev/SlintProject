@@ -293,6 +293,9 @@ impl<'a> Sistema {
         );
         Ok(res)
     }
+    pub fn cerrar_sesion(&mut self) {
+        self.user = None;
+    }
     pub async fn pes_filtrado(
         &self,
         filtro: &str,
