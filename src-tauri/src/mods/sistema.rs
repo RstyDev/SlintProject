@@ -847,7 +847,9 @@ impl<'a> Sistema {
             Ok(hash.into_iter().collect::<Vec<String>>())
         })
     }
+    // pub fn get_deuda_cliente(&self, cliente: Cli)->Res<f64>{
 
+    // }
     pub fn filtrar_tipo_producto(&self, filtro: &str) -> Res<Vec<String>> {
         let mut hash = HashSet::new();
         async_runtime::block_on(async {

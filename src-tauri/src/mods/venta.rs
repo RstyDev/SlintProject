@@ -31,6 +31,7 @@ pub struct Venta {
     monto_pagado: f64,
     vendedor: Option<Arc<User>>,
     cliente: Cliente,
+    cerrada: bool,
 }
 
 impl<'a> Venta {
@@ -52,6 +53,7 @@ impl<'a> Venta {
             vendedor,
             id,
             cliente,
+            cerrada: false,
         };
         entity::venta::ActiveModel {
             id: Set(venta.id),
@@ -62,10 +64,20 @@ impl<'a> Venta {
                 Cliente::Final => NotSet,
                 Cliente::Regular(a) => Set(Some(*a.id())),
             },
+            cerrada: Set(false)
         }
         .insert(db)
         .await?;
         Ok(venta)
+    }
+    pub fn build(id: i64,
+    monto_total: f64,
+    productos: Vec<Valuable>,
+    pagos: Vec<Pago>,
+    monto_pagado: f64,
+    vendedor: Option<Arc<User>>,
+    cliente: Cliente,cerrada: bool)->Venta{
+        Venta { id, monto_total, productos, pagos, monto_pagado, vendedor, cliente, cerrada }
     }
     pub fn monto_total(&self) -> f64 {
         self.monto_total

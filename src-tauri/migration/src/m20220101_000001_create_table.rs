@@ -42,12 +42,13 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Venta::Cliente).big_integer())
                     .foreign_key(
                         ForeignKeyCreateStatement::new()
-                            .name("cliente_fk")
-                            .from(Venta::Table, Venta::Cliente)
-                            .to(Cliente::Table, Cliente::Id)
-                            .on_delete(ForeignKeyAction::Cascade)
-                            .on_update(ForeignKeyAction::Cascade),
+                        .name("cliente_fk")
+                        .from(Venta::Table, Venta::Cliente)
+                        .to(Cliente::Table, Cliente::Id)
+                        .on_delete(ForeignKeyAction::Cascade)
+                        .on_update(ForeignKeyAction::Cascade),
                     )
+                    .col(ColumnDef::new(Venta::Cerrada).boolean().not_null())
                     .to_owned(),
             )
             .await?;
@@ -397,7 +398,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Caja::MontoInicio).double().not_null())
                     .col(ColumnDef::new(Caja::MontoCierre).double())
                     .col(ColumnDef::new(Caja::VentasTotales).double().not_null())
-                    .col(ColumnDef::new(Caja::Cajero).double())
+                    .col(ColumnDef::new(Caja::Cajero).string())
                     .to_owned(),
             )
             .await?;
@@ -492,6 +493,7 @@ enum Venta {
     MontoTotal,
     MontoPagado,
     Cliente,
+    Cerrada,
 }
 #[derive(DeriveIden)]
 enum Producto {
