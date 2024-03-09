@@ -669,7 +669,6 @@ fn get_clientes(sistema: State<Mutex<Sistema>>) -> Res<Vec<Cli>> {
     match sistema.lock() {
         Ok(sis) => match async_runtime::block_on(sis.get_clientes()) {
             Ok(a) => {
-                println!("{:#?}", a);
                 Ok(a)
             }
             Err(e) => Err(e.to_string()),

@@ -875,17 +875,17 @@ impl<'a> Sistema {
         if pos {
             async_runtime::spawn(save(self.ventas.0.clone()));
             self.registro.push(self.ventas.0.clone());
+            println!("{:#?}",self.venta(pos));
             async_runtime::block_on(self.update_total(self.ventas.0.monto_total()))?;
             self.ventas.0 =
                 async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
-            println!("{:#?}",self.venta(pos));
         } else {
             async_runtime::spawn(save(self.ventas.1.clone()));
             self.registro.push(self.ventas.1.clone());
+            println!("{:#?}",self.venta(pos));
             async_runtime::block_on(self.update_total(self.ventas.1.monto_total()))?;
             self.ventas.1 =
                 async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
-            println!("{:#?}",self.venta(pos));
         };
 
         Ok(())

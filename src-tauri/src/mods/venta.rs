@@ -1,10 +1,9 @@
-use super::cliente::{Cli, Cliente};
+use super::{cliente::{Cli, Cliente}, lib::Mapper};
 use chrono::Utc;
 use entity::pago;
 type Res<T> = std::result::Result<T, AppError>;
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::NotSet, Database, DatabaseConnection, DbErr, EntityTrait,
-    IntoActiveModel, QueryOrder, Set,
+    ActiveModelTrait, ActiveValue::NotSet, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Related, Set
 };
 use serde::Serialize;
 use std::sync::Arc;
@@ -31,7 +30,8 @@ pub struct Venta {
     monto_pagado: f64,
     vendedor: Option<Arc<User>>,
     cliente: Cliente,
-    cerrada: bool,
+    paga: bool,
+    cerrada:bool,
 }
 
 impl<'a> Venta {
@@ -52,6 +52,7 @@ impl<'a> Venta {
             monto_pagado: 0.0,
             vendedor,
             id,
+            paga: false,
             cliente,
             cerrada: false,
         };
@@ -65,10 +66,37 @@ impl<'a> Venta {
                 Cliente::Regular(a) => Set(Some(*a.id())),
             },
             cerrada: Set(false),
+            paga: Set(false)
         }
         .insert(db)
         .await?;
         Ok(venta)
+    }
+    pub async fn get_or_new(vendedor: Option<Arc<User>>, db: &DatabaseConnection)->Res<Venta>{
+        match entity::venta::Entity::find().one(db).await?{
+            Some(model) => match model.cerrada{
+                true => Venta::new(vendedor, db).await,
+                false => Ok({
+                    let prod_rels=entity::relacion_venta_prod::Entity::find().filter(entity::relacion_venta_prod::Column::Venta.into_simple_expr().eq(model.id)).all(db).await?;
+                    let prods=Vec::new();
+                    entity::producto::Entity::find_related().inner_join(entity::producto::Relation::RelacionProdProv).filter(filter)
+                    Venta{
+                        id: model.id,
+                        monto_total: model.monto_total,
+                        
+                        pagos: todo!(),
+                        monto_pagado: todo!(),
+                        vendedor,
+                        cliente: todo!(),
+                        paga: todo!(),
+                        cerrada: todo!(),
+                        productos: todo!(),
+                    }
+                }),
+            },
+            None => Venta::new(vendedor,db).await,
+        }
+
     }
     pub fn build(
         id: i64,
@@ -78,6 +106,7 @@ impl<'a> Venta {
         monto_pagado: f64,
         vendedor: Option<Arc<User>>,
         cliente: Cliente,
+        paga:bool,
         cerrada: bool,
     ) -> Venta {
         Venta {
@@ -87,6 +116,7 @@ impl<'a> Venta {
             pagos,
             monto_pagado,
             vendedor,
+            paga,
             cliente,
             cerrada,
         }
@@ -128,6 +158,9 @@ impl<'a> Venta {
         self.monto_pagado += monto;
         let res = self.monto_total - self.monto_pagado;
         if !es_cred && res <= 0.0 {
+            self.paga = true;
+        }
+        if res<=0.0{
             self.cerrada = true;
         }
         Ok(res)

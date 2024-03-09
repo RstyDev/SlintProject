@@ -49,6 +49,7 @@ impl MigrationTrait for Migration {
                             .on_update(ForeignKeyAction::Cascade),
                     )
                     .col(ColumnDef::new(Venta::Cerrada).boolean().not_null())
+                    .col(ColumnDef::new(Venta::Paga).boolean().not_null())
                     .to_owned(),
             )
             .await?;
@@ -494,6 +495,7 @@ enum Venta {
     MontoPagado,
     Cliente,
     Cerrada,
+    Paga,
 }
 #[derive(DeriveIden)]
 enum Producto {
