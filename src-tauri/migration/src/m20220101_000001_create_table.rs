@@ -42,11 +42,11 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Venta::Cliente).big_integer())
                     .foreign_key(
                         ForeignKeyCreateStatement::new()
-                        .name("cliente_fk")
-                        .from(Venta::Table, Venta::Cliente)
-                        .to(Cliente::Table, Cliente::Id)
-                        .on_delete(ForeignKeyAction::Cascade)
-                        .on_update(ForeignKeyAction::Cascade),
+                            .name("cliente_fk")
+                            .from(Venta::Table, Venta::Cliente)
+                            .to(Cliente::Table, Cliente::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
                     )
                     .col(ColumnDef::new(Venta::Cerrada).boolean().not_null())
                     .to_owned(),

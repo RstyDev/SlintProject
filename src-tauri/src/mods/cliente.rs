@@ -16,7 +16,7 @@ pub struct Cli {
     id: i64,
     nombre: Arc<str>,
     dni: i64,
-    //    credito: bool,
+    credito: bool,
     activo: bool,
     created: NaiveDateTime,
     limite: Cuenta,
@@ -63,6 +63,7 @@ impl Cli {
                     nombre: Arc::from(nombre),
                     dni,
                     activo,
+                    credito,
                     created,
                     limite: match credito {
                         true => Cuenta::Auth(limite),
@@ -85,6 +86,7 @@ impl Cli {
             id,
             nombre,
             dni,
+            credito,
             limite: match credito {
                 true => Cuenta::Auth(limite),
                 false => Cuenta::Unauth,
@@ -96,16 +98,27 @@ impl Cli {
     pub fn id(&self) -> &i64 {
         &self.id
     }
-    pub async fn get_deuda(&self, db: &DatabaseConnection)->Res<f64>{
-        let res=entity::venta::Entity::find()
-        .filter(
-            Condition::all()
-            .add(entity::venta::Column::Cliente.eq(Some(self.id)))
-            .add(entity::venta::Column::Cerrada.eq(false))
-        ).all(db).await?.iter().map(|x|{x.id}).collect::<Vec<i64>>();
-        
-        let pagos = entity::pago::Entity::find().filter(entity::pago::Column::Venta.is_in(res)).all(db).await?;
-        let medio=entity::medio_pago::Entity::find().filter(entity::medio_pago::Column::Medio.eq(v))
+    pub fn credito(&self) -> &bool {
+        &self.credito
+    }
+    pub async fn get_deuda(&self, db: &DatabaseConnection) -> Res<f64> {
+        let res = entity::venta::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(entity::venta::Column::Cliente.eq(Some(self.id)))
+                    .add(entity::venta::Column::Cerrada.eq(false)),
+            )
+            .all(db)
+            .await?
+            .iter()
+            .map(|x| x.id)
+            .collect::<Vec<i64>>();
+
+        let pagos = entity::pago::Entity::find()
+            .filter(entity::pago::Column::Venta.is_in(res))
+            .all(db)
+            .await?;
+        // let medio=entity::medio_pago::Entity::find().filter(entity::medio_pago::Column::Medio.eq(v))
 
         Ok(0.0)
     }

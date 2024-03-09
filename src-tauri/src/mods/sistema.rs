@@ -510,7 +510,7 @@ impl<'a> Sistema {
                     pagado: monto,
                 });
             } else {
-                res = Ok(self.ventas.0.agregar_pago(medio_pago, monto));
+                res = self.ventas.0.agregar_pago(medio_pago, monto);
             }
         } else {
             if !medio_pago.eq("Efectivo")
@@ -521,7 +521,7 @@ impl<'a> Sistema {
                     pagado: monto,
                 });
             } else {
-                res = Ok(self.ventas.1.agregar_pago(medio_pago, monto));
+                res = self.ventas.1.agregar_pago(medio_pago, monto);
             }
         }
 
@@ -878,12 +878,14 @@ impl<'a> Sistema {
             async_runtime::block_on(self.update_total(self.ventas.0.monto_total()))?;
             self.ventas.0 =
                 async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
+            println!("{:#?}",self.venta(pos));
         } else {
             async_runtime::spawn(save(self.ventas.1.clone()));
             self.registro.push(self.ventas.1.clone());
             async_runtime::block_on(self.update_total(self.ventas.1.monto_total()))?;
             self.ventas.1 =
                 async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
+            println!("{:#?}",self.venta(pos));
         };
 
         Ok(())

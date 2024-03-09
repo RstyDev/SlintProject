@@ -126,6 +126,21 @@ fn agregar_cliente(
         Ok(sis) => match sis.agregar_cliente(nombre, dni, credito, true, limite) {
             Ok(a) => {
                 loop {
+                    if window
+                        .emit(
+                            "main",
+                            Payload {
+                                message: Some(String::from("dibujar venta")),
+                                pos: None,
+                                val: None,
+                            },
+                        )
+                        .is_ok()
+                    {
+                        break;
+                    }
+                }
+                loop {
                     if window.close().is_ok() {
                         break;
                     }

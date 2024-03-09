@@ -64,20 +64,32 @@ impl<'a> Venta {
                 Cliente::Final => NotSet,
                 Cliente::Regular(a) => Set(Some(*a.id())),
             },
-            cerrada: Set(false)
+            cerrada: Set(false),
         }
         .insert(db)
         .await?;
         Ok(venta)
     }
-    pub fn build(id: i64,
-    monto_total: f64,
-    productos: Vec<Valuable>,
-    pagos: Vec<Pago>,
-    monto_pagado: f64,
-    vendedor: Option<Arc<User>>,
-    cliente: Cliente,cerrada: bool)->Venta{
-        Venta { id, monto_total, productos, pagos, monto_pagado, vendedor, cliente, cerrada }
+    pub fn build(
+        id: i64,
+        monto_total: f64,
+        productos: Vec<Valuable>,
+        pagos: Vec<Pago>,
+        monto_pagado: f64,
+        vendedor: Option<Arc<User>>,
+        cliente: Cliente,
+        cerrada: bool,
+    ) -> Venta {
+        Venta {
+            id,
+            monto_total,
+            productos,
+            pagos,
+            monto_pagado,
+            vendedor,
+            cliente,
+            cerrada,
+        }
     }
     pub fn monto_total(&self) -> f64 {
         self.monto_total
@@ -91,12 +103,34 @@ impl<'a> Venta {
     pub fn monto_pagado(&self) -> f64 {
         self.monto_pagado
     }
-    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> f64 {
+    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> Res<f64> {
         let model = async_runtime::block_on(medio_from_db(medio_pago));
         let medio_pago = MedioPago::new(&model.medio, model.id);
+        let es_cred: bool;
+        match &self.cliente {
+            Cliente::Regular(a) => match a.credito() {
+                true => match model.medio.as_str() {
+                    "Cuenta Corriente" => es_cred = true,
+                    _ => es_cred = false,
+                },
+                false => match model.medio.as_str() {
+                    "Cuenta Corriente" => {
+                        return Err(AppError::IncorrectError(String::from(
+                            "No esta permitido cuenta corriente en este cliente",
+                        )))
+                    }
+                    _ => es_cred = false,
+                },
+            },
+            _ => es_cred = false,
+        }
         self.pagos.push(Pago::new(medio_pago, monto));
         self.monto_pagado += monto;
-        self.monto_total - self.monto_pagado
+        let res = self.monto_total - self.monto_pagado;
+        if !es_cred && res <= 0.0 {
+            self.cerrada = true;
+        }
+        Ok(res)
     }
     pub fn agregar_producto(&mut self, producto: Valuable, politica: &f64) {
         let mut esta = false;
@@ -236,6 +270,7 @@ impl Save for Venta {
             .into_active_model();
         venta.monto_total = Set(self.monto_total);
         venta.monto_pagado = Set(self.monto_pagado);
+        venta.cerrada = Set(self.cerrada);
         venta.time = Set(Utc::now().naive_local());
         match &self.cliente {
             Cliente::Final => (),
@@ -252,22 +287,16 @@ impl Save for Venta {
                 ..Default::default()
             });
         }
-        println!("pay models: {pay_models:#?}");
-        let aux;
         if pay_models.len() > 1 {
-            aux = entity::pago::Entity::insert_many(pay_models)
+            entity::pago::Entity::insert_many(pay_models)
                 .exec(&db)
-                .await;
-            println!("{aux:#?}");
-            aux?;
+                .await?;
         } else {
-            aux = entity::pago::Entity::insert(pay_models[0].clone())
+            entity::pago::Entity::insert(pay_models[0].clone())
                 .exec(&db)
-                .await;
-            println!("{aux:#?}");
-            aux?;
+                .await?;
         }
-        println!("control");
+        
 
         let prod_models: Vec<entity::relacion_venta_prod::ActiveModel> = self
             .productos
@@ -301,19 +330,14 @@ impl Save for Venta {
                 _ => None,
             })
             .collect();
-        let aux;
         if rub_models.len() > 1 {
-            aux = entity::relacion_venta_rub::Entity::insert_many(rub_models)
+            entity::relacion_venta_rub::Entity::insert_many(rub_models)
                 .exec(&db)
-                .await;
-            println!("{aux:#?}");
-            aux?;
+                .await?;
         } else if rub_models.len() == 1 {
-            aux = entity::relacion_venta_rub::Entity::insert(rub_models[0].clone())
+            entity::relacion_venta_rub::Entity::insert(rub_models[0].clone())
                 .exec(&db)
-                .await;
-            println!("{aux:#?}");
-            aux?;
+                .await?;
         }
         let pes_models: Vec<entity::relacion_venta_pes::ActiveModel> = self
             .productos
