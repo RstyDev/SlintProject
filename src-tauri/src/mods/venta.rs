@@ -145,27 +145,30 @@ impl<'a> Venta {
         self.monto_pagado
     }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> Res<f64> {
-        let model = async_runtime::block_on(medio_from_db(medio_pago));
-        let medio_pago = MedioPago::new(&model.medio, model.id);
-        let es_cred: bool;
-        match &self.cliente {
-            Cliente::Regular(a) => match a.credito() {
-                true => match model.medio.as_str() {
-                    "Cuenta Corriente" => es_cred = true,
-                    _ => es_cred = false,
-                },
-                false => match model.medio.as_str() {
-                    "Cuenta Corriente" => {
-                        return Err(AppError::IncorrectError(String::from(
-                            "No esta permitido cuenta corriente en este cliente",
-                        )))
-                    }
-                    _ => es_cred = false,
+        let es_cred:bool;
+        match medio_pago{
+            "Cuenta Corriente"=>match &self.cliente{
+                Cliente::Final => return Err(AppError::IncorrectError(String::from(
+                    "No esta permitido cuenta corriente en este cliente",
+                ))),
+                Cliente::Regular(cli) => match cli.credito(){
+                    true => {
+                        es_cred=true
+                    },
+                    false => return Err(AppError::IncorrectError(String::from(
+                        "No esta permitido cuenta corriente en este cliente",
+                    ))),
                 },
             },
-            _ => es_cred = false,
+            _=>{
+                let model = async_runtime::block_on(medio_from_db(medio_pago));
+                let medio_pago = MedioPago::new(&model.medio, model.id);
+                self.pagos.push(Pago::new(medio_pago, monto));
+                es_cred=false
+            },
         }
-        self.pagos.push(Pago::new(medio_pago, monto));
+
+        
         self.monto_pagado += monto;
         let res = self.monto_total - self.monto_pagado;
         if !es_cred && res <= 0.0 {
@@ -174,7 +177,6 @@ impl<'a> Venta {
         if res<=0.0{
             self.cerrada = true;
         }
-        println!("{:#?}.-.-.-.-",self);
         Ok(res)
     }
     pub fn agregar_producto(&mut self, producto: Valuable, politica: &f64) {
@@ -316,6 +318,7 @@ impl Save for Venta {
         venta.monto_total = Set(self.monto_total);
         venta.monto_pagado = Set(self.monto_pagado);
         venta.cerrada = Set(self.cerrada);
+        venta.paga= Set(self.paga);
         venta.time = Set(Utc::now().naive_local());
         match &self.cliente {
             Cliente::Final => (),
@@ -324,13 +327,22 @@ impl Save for Venta {
         venta.update(&db).await?;
         let mut pay_models = vec![];
         for pago in &self.pagos {
-            let model = medio_from_db(&pago.medio().to_string().as_str()).await;
-            pay_models.push(pago::ActiveModel {
+            if pago.medio().as_ref().eq("Cuenta Corriente"){
+                pay_models.push(pago::ActiveModel{                    
+                    medio_pago: Set(0),
+                    monto: Set(pago.monto()),
+                    venta: Set(self.id),
+                    ..Default::default()
+                })
+            }else{
+                let model = medio_from_db(&pago.medio().to_string().as_str()).await;
+                pay_models.push(pago::ActiveModel {
                 medio_pago: Set(model.id),
                 monto: Set(pago.monto()),
                 venta: Set(self.id),
                 ..Default::default()
             });
+            }
         }
         if pay_models.len() > 1 {
             entity::pago::Entity::insert_many(pay_models)
