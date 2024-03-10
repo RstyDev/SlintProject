@@ -3,7 +3,7 @@ use sea_orm::{ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilt
 use serde::Serialize;
 use std::sync::Arc;
 
-use super::{error::AppError, venta::Venta};
+use super::error::AppError;
 type Res<T> = std::result::Result<T, AppError>;
 #[derive(Serialize, Clone, Debug)]
 pub enum Cliente {

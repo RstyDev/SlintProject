@@ -37,3 +37,5 @@ pub enum AppError {
     #[error("Error de inicialización {0}")]
     InicialationError(String),
 }
+
+

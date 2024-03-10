@@ -50,6 +50,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Venta::Cerrada).boolean().not_null())
                     .col(ColumnDef::new(Venta::Paga).boolean().not_null())
+                    .col(ColumnDef::new(Venta::Pos).boolean().not_null())
                     .to_owned(),
             )
             .await?;
@@ -277,7 +278,7 @@ impl MigrationTrait for Migration {
                     )
                     .foreign_key(
                         ForeignKeyCreateStatement::new()
-                            .name("venta_fk")
+                            .name("producto_fk")
                             .from(RelacionVentaProd::Table, RelacionVentaProd::Producto)
                             .to(Producto::Table, Producto::Id)
                             .on_delete(ForeignKeyAction::Cascade)
@@ -504,6 +505,7 @@ enum Venta {
     Cliente,
     Cerrada,
     Paga,
+    Pos,
 }
 #[derive(DeriveIden)]
 enum Producto {

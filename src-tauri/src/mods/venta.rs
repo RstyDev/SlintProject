@@ -1,10 +1,10 @@
-use super::{cliente::{Cli, Cliente}, lib::Mapper, producto::Producto};
+use super::{cliente::{Cli, Cliente}, lib::Mapper};
 use chrono::Utc;
-use entity::{pago, producto::Model};
+use entity::pago;
 type Res<T> = std::result::Result<T, AppError>;
-use migration::Alias;
+
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::NotSet, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, QuerySelect, Related, RelationTrait, Set
+    ActiveModelTrait, ActiveValue::NotSet, Condition, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Set
 };
 use serde::Serialize;
 use std::sync::Arc;
@@ -36,7 +36,7 @@ pub struct Venta {
 }
 
 impl<'a> Venta {
-    pub async fn new(vendedor: Option<Arc<User>>, db: &DatabaseConnection) -> Res<Venta> {
+    pub async fn new(vendedor: Option<Arc<User>>, db: &DatabaseConnection,pos:bool) -> Res<Venta> {
         let venta = entity::venta::Entity::find()
             .order_by_desc(entity::venta::Column::Id)
             .one(db)
@@ -67,16 +67,18 @@ impl<'a> Venta {
                 Cliente::Regular(a) => Set(Some(*a.id())),
             },
             cerrada: Set(false),
-            paga: Set(false)
+            paga: Set(false),
+            pos: Set(pos),
         }
         .insert(db)
         .await?;
         Ok(venta)
     }
-    pub async fn get_or_new(vendedor: Option<Arc<User>>, db: &DatabaseConnection)->Res<Venta>{
-        match entity::venta::Entity::find().one(db).await?{
+    pub async fn get_or_new(vendedor: Option<Arc<User>>, db: &DatabaseConnection,pos:bool)->Res<Venta>{
+        match entity::venta::Entity::find().filter(Condition::all().add(entity::venta::Column::Pos.into_simple_expr().eq(pos)).add(entity::venta::Column::Cerrada.into_simple_expr().eq(false
+        ))).one(db).await?{
             Some(model) => match model.cerrada{
-                true => Venta::new(vendedor, db).await,
+                true => Venta::new(vendedor, db, pos).await,
                 false => Ok({
                     let prods=entity::relacion_venta_prod::Entity::find()
                     .filter(entity::relacion_venta_prod::Column::Venta.into_simple_expr().eq(model.id))
@@ -86,18 +88,24 @@ impl<'a> Venta {
                         productos.push(Valuable::Prod((x.cantidad,Mapper::map_model_prod(&p_mod.unwrap(), db).await?)));
                     }
                     let pagos=entity::pago::Entity::find().filter(entity::pago::Column::Venta.into_simple_expr().eq(model.id)).find_also_related(entity::medio_pago::Entity).all(db).await?.iter().map(|(x,y)|{
-                        Pago::new(MedioPago::new(&y.unwrap().medio, y.unwrap().id), x.monto)
+                        Pago::new(MedioPago::new(y.as_ref().unwrap().medio.as_str(), y.as_ref().unwrap().id), x.monto)
                     }).collect::<Vec<Pago>>();
+
+                    let cliente= match model.cliente{
+                        Some(cli) => {
+                            let cli=entity::cliente::Entity::find_by_id(cli).one(db).await?.unwrap();
+                            Cliente::new(Some(Cli::new(cli.id, Arc::from(cli.nombre), cli.dni, cli.credito, cli.activo, cli.created, cli.limite)))},
+                        None => Cliente::new(None),
+                    };
                     
                     
-                    
-                    Venta::build(model.id, model.monto_total, productos, pagos, model.monto_pagado, vendedor, model.cliente, model.paga, model.cerrada)
+                    Venta::build(model.id, model.monto_total, productos, pagos, model.monto_pagado, vendedor, cliente, model.paga, model.cerrada)
                     
                     
                     
                 }),
             },
-            None => Venta::new(vendedor,db).await,
+            None => Venta::new(vendedor,db,pos).await,
         }
 
     }
@@ -166,6 +174,7 @@ impl<'a> Venta {
         if res<=0.0{
             self.cerrada = true;
         }
+        println!("{:#?}.-.-.-.-",self);
         Ok(res)
     }
     pub fn agregar_producto(&mut self, producto: Valuable, politica: &f64) {

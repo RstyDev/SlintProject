@@ -81,8 +81,8 @@ impl<'a> Sistema {
             caja,
             configs: async_runtime::block_on(Config::get_or_def(db.as_ref()))?,
             ventas: (
-                async_runtime::block_on(Venta::new(None, w1.as_ref()))?,
-                async_runtime::block_on(Venta::new(None, w1.as_ref()))?,
+                async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(),true))?,
+                async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(),false))?,
             ),
             proveedores: proveedores.clone(),
             relaciones,
@@ -245,8 +245,8 @@ impl<'a> Sistema {
                     user.rango.as_str(),
                 )));
                 self.ventas = (
-                    Venta::new(Some(self.arc_user()), &self.write_db).await?,
-                    Venta::new(Some(self.arc_user()), &self.write_db).await?,
+                    Venta::get_or_new(Some(self.arc_user()), &self.write_db,true).await?,
+                    Venta::get_or_new(Some(self.arc_user()), &self.write_db,false).await?,
                 );
                 Ok(self.user().unwrap().rango().clone())
             }
@@ -805,7 +805,7 @@ impl<'a> Sistema {
                     .eliminar_producto(index, &self.configs().politica());
             } else {
                 self.ventas.0 =
-                    async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
+                    async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(),pos))?;
                 result = Ok(self.ventas.0.clone());
             }
         } else {
@@ -816,7 +816,7 @@ impl<'a> Sistema {
                     .eliminar_producto(index, &self.configs().politica());
             } else {
                 self.ventas.1 =
-                    async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
+                    async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(),pos))?;
                 result = Ok(self.ventas.1.clone());
             }
         }
@@ -878,14 +878,14 @@ impl<'a> Sistema {
             println!("{:#?}",self.venta(pos));
             async_runtime::block_on(self.update_total(self.ventas.0.monto_total()))?;
             self.ventas.0 =
-                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
+                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(),pos))?;
         } else {
             async_runtime::spawn(save(self.ventas.1.clone()));
             self.registro.push(self.ventas.1.clone());
             println!("{:#?}",self.venta(pos));
             async_runtime::block_on(self.update_total(self.ventas.1.monto_total()))?;
             self.ventas.1 =
-                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
+                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(),pos))?;
         };
 
         Ok(())
@@ -897,11 +897,11 @@ impl<'a> Sistema {
         if pos {
             self.stash.push(self.ventas.0.clone());
             self.ventas.0 =
-                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
+                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(),pos))?;
         } else {
             self.stash.push(self.ventas.1.clone());
             self.ventas.1 =
-                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db()))?;
+                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(),pos))?;
         };
         Ok(())
     }

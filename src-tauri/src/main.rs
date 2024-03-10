@@ -122,6 +122,7 @@ fn agregar_cliente(
     credito: bool,
     limite: Option<f64>,
 ) -> Res<Cli> {
+    
     match sistema.lock() {
         Ok(sis) => match sis.agregar_cliente(nombre, dni, credito, true, limite) {
             Ok(a) => {
@@ -238,35 +239,20 @@ fn agregar_producto(
     cantidad: &str,
     presentacion: &str,
 ) -> Res<String> {
-    match sistema.lock() {
-        Ok(mut sis) => match sis.arc_user().rango() {
-            Rango::Admin => {
-                let producto = match block_on(sis.agregar_producto(
-                    proveedores,
-                    codigos_prov,
-                    codigos_de_barras,
-                    precio_de_venta,
-                    porcentaje,
-                    precio_de_costo,
-                    tipo_producto,
-                    marca,
-                    variedad,
-                    cantidad,
-                    presentacion,
-                )) {
-                    Ok(a) => a,
-                    Err(e) => return Err(e.to_string()),
-                };
-                loop {
-                    if window.close().is_ok() {
-                        break;
-                    }
+    let mut sis = sistema.lock().map_err(|e|e.to_string())?;
+    match sis.arc_user().rango(){
+        Rango::Admin => {
+            let prod=block_on(
+                sis.agregar_producto(proveedores, codigos_prov, codigos_de_barras, precio_de_venta, porcentaje, precio_de_costo, tipo_producto, marca, variedad, cantidad, presentacion)
+            ).map_err(|e|e.to_string())?;
+            loop {
+                if window.close().is_ok() {
+                    break;
                 }
-                Ok(producto.nombre_completo())
             }
-            Rango::Cajero => Err(DENEGADO.to_string()),
+            Ok(format!("Agregado {:#?}",prod))
         },
-        Err(e) => Err(e.to_string()),
+        Rango::Cajero => Err(DENEGADO.to_string()),        
     }
 }
 #[tauri::command]
