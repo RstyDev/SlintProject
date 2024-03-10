@@ -1,9 +1,10 @@
-use super::{cliente::{Cli, Cliente}, lib::Mapper};
+use super::{cliente::{Cli, Cliente}, lib::Mapper, producto::Producto};
 use chrono::Utc;
-use entity::pago;
+use entity::{pago, producto::Model};
 type Res<T> = std::result::Result<T, AppError>;
+use migration::Alias;
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::NotSet, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Related, Set
+    ActiveModelTrait, ActiveValue::NotSet, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, QuerySelect, Related, RelationTrait, Set
 };
 use serde::Serialize;
 use std::sync::Arc;
@@ -77,21 +78,23 @@ impl<'a> Venta {
             Some(model) => match model.cerrada{
                 true => Venta::new(vendedor, db).await,
                 false => Ok({
-                    let prod_rels=entity::relacion_venta_prod::Entity::find().filter(entity::relacion_venta_prod::Column::Venta.into_simple_expr().eq(model.id)).all(db).await?;
-                    let prods=Vec::new();
-                    entity::producto::Entity::find_related().inner_join(entity::producto::Relation::RelacionProdProv).filter(filter)
-                    Venta{
-                        id: model.id,
-                        monto_total: model.monto_total,
-                        
-                        pagos: todo!(),
-                        monto_pagado: todo!(),
-                        vendedor,
-                        cliente: todo!(),
-                        paga: todo!(),
-                        cerrada: todo!(),
-                        productos: todo!(),
+                    let prods=entity::relacion_venta_prod::Entity::find()
+                    .filter(entity::relacion_venta_prod::Column::Venta.into_simple_expr().eq(model.id))
+                    .find_also_related(entity::producto::Entity).all(db).await?;
+                    let mut productos=Vec::new();
+                    for (x,p_mod) in prods{
+                        productos.push(Valuable::Prod((x.cantidad,Mapper::map_model_prod(&p_mod.unwrap(), db).await?)));
                     }
+                    let pagos=entity::pago::Entity::find().filter(entity::pago::Column::Venta.into_simple_expr().eq(model.id)).find_also_related(entity::medio_pago::Entity).all(db).await?.iter().map(|(x,y)|{
+                        Pago::new(MedioPago::new(&y.unwrap().medio, y.unwrap().id), x.monto)
+                    }).collect::<Vec<Pago>>();
+                    
+                    
+                    
+                    Venta::build(model.id, model.monto_total, productos, pagos, model.monto_pagado, vendedor, model.cliente, model.paga, model.cerrada)
+                    
+                    
+                    
                 }),
             },
             None => Venta::new(vendedor,db).await,

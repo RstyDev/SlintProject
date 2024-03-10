@@ -275,6 +275,14 @@ impl MigrationTrait for Migration {
                             .string()
                             .not_null(),
                     )
+                    .foreign_key(
+                        ForeignKeyCreateStatement::new()
+                            .name("venta_fk")
+                            .from(RelacionVentaProd::Table, RelacionVentaProd::Producto)
+                            .to(Producto::Table, Producto::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
                     .col(
                         ColumnDef::new(RelacionVentaProd::Cantidad)
                             .small_integer()
