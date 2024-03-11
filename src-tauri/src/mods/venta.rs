@@ -1,10 +1,14 @@
-use super::{cliente::{Cli, Cliente}, lib::Mapper};
+use super::{
+    cliente::{Cli, Cliente},
+    lib::Mapper,
+};
 use chrono::Utc;
 use entity::pago;
 type Res<T> = std::result::Result<T, AppError>;
 
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::NotSet, Condition, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Set
+    ActiveModelTrait, ActiveValue::NotSet, Condition, Database, DatabaseConnection, DbErr,
+    EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Set,
 };
 use serde::Serialize;
 use std::sync::Arc;
@@ -32,11 +36,15 @@ pub struct Venta {
     vendedor: Option<Arc<User>>,
     cliente: Cliente,
     paga: bool,
-    cerrada:bool,
+    cerrada: bool,
 }
 
 impl<'a> Venta {
-    pub async fn new(vendedor: Option<Arc<User>>, db: &DatabaseConnection,pos:bool) -> Res<Venta> {
+    pub async fn new(
+        vendedor: Option<Arc<User>>,
+        db: &DatabaseConnection,
+        pos: bool,
+    ) -> Res<Venta> {
         let venta = entity::venta::Entity::find()
             .order_by_desc(entity::venta::Column::Id)
             .one(db)
@@ -74,40 +82,90 @@ impl<'a> Venta {
         .await?;
         Ok(venta)
     }
-    pub async fn get_or_new(vendedor: Option<Arc<User>>, db: &DatabaseConnection,pos:bool)->Res<Venta>{
-        match entity::venta::Entity::find().filter(Condition::all().add(entity::venta::Column::Pos.into_simple_expr().eq(pos)).add(entity::venta::Column::Cerrada.into_simple_expr().eq(false
-        ))).one(db).await?{
-            Some(model) => match model.cerrada{
+    pub async fn get_or_new(
+        vendedor: Option<Arc<User>>,
+        db: &DatabaseConnection,
+        pos: bool,
+    ) -> Res<Venta> {
+        match entity::venta::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(entity::venta::Column::Pos.into_simple_expr().eq(pos))
+                    .add(entity::venta::Column::Cerrada.into_simple_expr().eq(false)),
+            )
+            .one(db)
+            .await?
+        {
+            Some(model) => match model.cerrada {
                 true => Venta::new(vendedor, db, pos).await,
                 false => Ok({
-                    let prods=entity::relacion_venta_prod::Entity::find()
-                    .filter(entity::relacion_venta_prod::Column::Venta.into_simple_expr().eq(model.id))
-                    .find_also_related(entity::producto::Entity).all(db).await?;
-                    let mut productos=Vec::new();
-                    for (x,p_mod) in prods{
-                        productos.push(Valuable::Prod((x.cantidad,Mapper::map_model_prod(&p_mod.unwrap(), db).await?)));
+                    let prods = entity::relacion_venta_prod::Entity::find()
+                        .filter(
+                            entity::relacion_venta_prod::Column::Venta
+                                .into_simple_expr()
+                                .eq(model.id),
+                        )
+                        .find_also_related(entity::producto::Entity)
+                        .all(db)
+                        .await?;
+                    let mut productos = Vec::new();
+                    for (x, p_mod) in prods {
+                        productos.push(Valuable::Prod((
+                            x.cantidad,
+                            Mapper::map_model_prod(&p_mod.unwrap(), db).await?,
+                        )));
                     }
-                    let pagos=entity::pago::Entity::find().filter(entity::pago::Column::Venta.into_simple_expr().eq(model.id)).find_also_related(entity::medio_pago::Entity).all(db).await?.iter().map(|(x,y)|{
-                        Pago::new(MedioPago::new(y.as_ref().unwrap().medio.as_str(), y.as_ref().unwrap().id), x.monto)
-                    }).collect::<Vec<Pago>>();
+                    let pagos = entity::pago::Entity::find()
+                        .filter(entity::pago::Column::Venta.into_simple_expr().eq(model.id))
+                        .find_also_related(entity::medio_pago::Entity)
+                        .all(db)
+                        .await?
+                        .iter()
+                        .map(|(x, y)| {
+                            Pago::new(
+                                MedioPago::new(
+                                    y.as_ref().unwrap().medio.as_str(),
+                                    y.as_ref().unwrap().id,
+                                ),
+                                x.monto,
+                            )
+                        })
+                        .collect::<Vec<Pago>>();
 
-                    let cliente= match model.cliente{
+                    let cliente = match model.cliente {
                         Some(cli) => {
-                            let cli=entity::cliente::Entity::find_by_id(cli).one(db).await?.unwrap();
-                            Cliente::new(Some(Cli::new(cli.id, Arc::from(cli.nombre), cli.dni, cli.credito, cli.activo, cli.created, cli.limite)))},
+                            let cli = entity::cliente::Entity::find_by_id(cli)
+                                .one(db)
+                                .await?
+                                .unwrap();
+                            Cliente::new(Some(Cli::new(
+                                cli.id,
+                                Arc::from(cli.nombre),
+                                cli.dni,
+                                cli.credito,
+                                cli.activo,
+                                cli.created,
+                                cli.limite,
+                            )))
+                        }
                         None => Cliente::new(None),
                     };
-                    
-                    
-                    Venta::build(model.id, model.monto_total, productos, pagos, model.monto_pagado, vendedor, cliente, model.paga, model.cerrada)
-                    
-                    
-                    
+
+                    Venta::build(
+                        model.id,
+                        model.monto_total,
+                        productos,
+                        pagos,
+                        model.monto_pagado,
+                        vendedor,
+                        cliente,
+                        model.paga,
+                        model.cerrada,
+                    )
                 }),
             },
-            None => Venta::new(vendedor,db,pos).await,
+            None => Venta::new(vendedor, db, pos).await,
         }
-
     }
     pub fn build(
         id: i64,
@@ -117,7 +175,7 @@ impl<'a> Venta {
         monto_pagado: f64,
         vendedor: Option<Arc<User>>,
         cliente: Cliente,
-        paga:bool,
+        paga: bool,
         cerrada: bool,
     ) -> Venta {
         Venta {
@@ -145,36 +203,37 @@ impl<'a> Venta {
         self.monto_pagado
     }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> Res<f64> {
-        let es_cred:bool;
-        match medio_pago{
-            "Cuenta Corriente"=>match &self.cliente{
-                Cliente::Final => return Err(AppError::IncorrectError(String::from(
-                    "No esta permitido cuenta corriente en este cliente",
-                ))),
-                Cliente::Regular(cli) => match cli.credito(){
-                    true => {
-                        es_cred=true
-                    },
-                    false => return Err(AppError::IncorrectError(String::from(
+        let es_cred: bool;
+        match medio_pago {
+            "Cuenta Corriente" => match &self.cliente {
+                Cliente::Final => {
+                    return Err(AppError::IncorrectError(String::from(
                         "No esta permitido cuenta corriente en este cliente",
-                    ))),
+                    )))
+                }
+                Cliente::Regular(cli) => match cli.credito() {
+                    true => es_cred = true,
+                    false => {
+                        return Err(AppError::IncorrectError(String::from(
+                            "No esta permitido cuenta corriente en este cliente",
+                        )))
+                    }
                 },
             },
-            _=>{
+            _ => {
                 let model = async_runtime::block_on(medio_from_db(medio_pago));
                 let medio_pago = MedioPago::new(&model.medio, model.id);
                 self.pagos.push(Pago::new(medio_pago, monto));
-                es_cred=false
-            },
+                es_cred = false
+            }
         }
 
-        
         self.monto_pagado += monto;
         let res = self.monto_total - self.monto_pagado;
         if !es_cred && res <= 0.0 {
             self.paga = true;
         }
-        if res<=0.0{
+        if res <= 0.0 {
             self.cerrada = true;
         }
         Ok(res)
@@ -318,7 +377,7 @@ impl Save for Venta {
         venta.monto_total = Set(self.monto_total);
         venta.monto_pagado = Set(self.monto_pagado);
         venta.cerrada = Set(self.cerrada);
-        venta.paga= Set(self.paga);
+        venta.paga = Set(self.paga);
         venta.time = Set(Utc::now().naive_local());
         match &self.cliente {
             Cliente::Final => (),
@@ -327,21 +386,21 @@ impl Save for Venta {
         venta.update(&db).await?;
         let mut pay_models = vec![];
         for pago in &self.pagos {
-            if pago.medio().as_ref().eq("Cuenta Corriente"){
-                pay_models.push(pago::ActiveModel{                    
+            if pago.medio().as_ref().eq("Cuenta Corriente") {
+                pay_models.push(pago::ActiveModel {
                     medio_pago: Set(0),
                     monto: Set(pago.monto()),
                     venta: Set(self.id),
                     ..Default::default()
                 })
-            }else{
+            } else {
                 let model = medio_from_db(&pago.medio().to_string().as_str()).await;
                 pay_models.push(pago::ActiveModel {
-                medio_pago: Set(model.id),
-                monto: Set(pago.monto()),
-                venta: Set(self.id),
-                ..Default::default()
-            });
+                    medio_pago: Set(model.id),
+                    monto: Set(pago.monto()),
+                    venta: Set(self.id),
+                    ..Default::default()
+                });
             }
         }
         if pay_models.len() > 1 {
@@ -353,7 +412,6 @@ impl Save for Venta {
                 .exec(&db)
                 .await?;
         }
-        
 
         let prod_models: Vec<entity::relacion_venta_prod::ActiveModel> = self
             .productos

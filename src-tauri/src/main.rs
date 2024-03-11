@@ -122,36 +122,30 @@ fn agregar_cliente(
     credito: bool,
     limite: Option<f64>,
 ) -> Res<Cli> {
-    
-    match sistema.lock() {
-        Ok(sis) => match sis.agregar_cliente(nombre, dni, credito, true, limite) {
-            Ok(a) => {
-                loop {
-                    if window
-                        .emit(
-                            "main",
-                            Payload {
-                                message: Some(String::from("dibujar venta")),
-                                pos: None,
-                                val: None,
-                            },
-                        )
-                        .is_ok()
-                    {
-                        break;
-                    }
-                }
-                loop {
-                    if window.close().is_ok() {
-                        break;
-                    }
-                }
-                Ok(a)
-            }
-            Err(e) => Err(e.to_string()),
-        },
-        Err(e) => Err(e.to_string()),
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.arc_user();
+    let cli = sis.agregar_cliente(nombre, dni, credito, true, limite)?;
+    loop {
+        if window
+            .emit(
+                "main",
+                Payload {
+                    message: Some(String::from("dibujar venta")),
+                    pos: None,
+                    val: None,
+                },
+            )
+            .is_ok()
+        {
+            break;
+        }
     }
+    loop {
+        if window.close().is_ok() {
+            break;
+        }
+    }
+    Ok(cli)
 }
 #[tauri::command]
 fn agregar_pago(
@@ -160,16 +154,9 @@ fn agregar_pago(
     monto: f64,
     pos: bool,
 ) -> Res<f64> {
-    match sistema.lock() {
-        Ok(mut a) => {
-            a.arc_user();
-            match a.agregar_pago(medio_pago, monto, pos) {
-                Ok(a) => Ok(a),
-                Err(e) => Err(e.to_string()),
-            }
-        }
-        Err(e) => Err(e.to_string()),
-    }
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.arc_user();
+    Ok(sis.agregar_pago(medio_pago, monto, pos)?)
 }
 #[tauri::command]
 fn agregar_pesable<'a>(
@@ -181,46 +168,29 @@ fn agregar_pesable<'a>(
     porcentaje: &str,
     descripcion: &'a str,
 ) -> Res<String> {
-    match sistema.lock() {
-        Ok(sis) => match sis.arc_user().rango() {
-            Rango::Admin => {
-                let precio_peso = match precio_peso.parse::<f64>() {
-                    Ok(a) => a,
-                    Err(e) => return Err(e.to_string()),
-                };
-                let codigo = match codigo.parse::<i64>() {
-                    Ok(a) => a,
-                    Err(e) => return Err(e.to_string()),
-                };
-                let costo_kilo = match costo_kilo.parse::<f64>() {
-                    Ok(a) => a,
-                    Err(e) => return Err(e.to_string()),
-                };
-                let porcentaje = match porcentaje.parse::<f64>() {
-                    Ok(a) => a,
-                    Err(e) => return Err(e.to_string()),
-                };
-                let pesable = match async_runtime::block_on(Pesable::new_to_db(
-                    sis.write_db(),
-                    codigo,
-                    precio_peso,
-                    porcentaje,
-                    costo_kilo,
-                    descripcion,
-                )) {
-                    Ok(a) => a,
-                    Err(e) => return Err(e.to_string()),
-                };
-                loop {
-                    if window.close().is_ok() {
-                        break;
-                    }
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    match sis.arc_user().rango() {
+        Rango::Admin => {
+            let precio_peso = precio_peso.parse::<f64>().map_err(|e| e.to_string())?;
+            let codigo = codigo.parse::<i64>().map_err(|e| e.to_string())?;
+            let costo_kilo = costo_kilo.parse::<f64>().map_err(|e| e.to_string())?;
+            let porcentaje = porcentaje.parse::<f64>().map_err(|e| e.to_string())?;
+            let pesable = async_runtime::block_on(Pesable::new_to_db(
+                sis.write_db(),
+                codigo,
+                precio_peso,
+                porcentaje,
+                costo_kilo,
+                descripcion,
+            ))?;
+            loop {
+                if window.close().is_ok() {
+                    break;
                 }
-                Ok(pesable.descripcion().to_string())
             }
-            Rango::Cajero => Err(DENEGADO.to_string()),
-        },
-        Err(a) => Err(a.to_string()),
+            Ok(pesable.descripcion().to_string())
+        }
+        Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
 #[tauri::command]
@@ -239,20 +209,30 @@ fn agregar_producto(
     cantidad: &str,
     presentacion: &str,
 ) -> Res<String> {
-    let mut sis = sistema.lock().map_err(|e|e.to_string())?;
-    match sis.arc_user().rango(){
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    match sis.arc_user().rango() {
         Rango::Admin => {
-            let prod=block_on(
-                sis.agregar_producto(proveedores, codigos_prov, codigos_de_barras, precio_de_venta, porcentaje, precio_de_costo, tipo_producto, marca, variedad, cantidad, presentacion)
-            ).map_err(|e|e.to_string())?;
+            let prod = block_on(sis.agregar_producto(
+                proveedores,
+                codigos_prov,
+                codigos_de_barras,
+                precio_de_venta,
+                porcentaje,
+                precio_de_costo,
+                tipo_producto,
+                marca,
+                variedad,
+                cantidad,
+                presentacion,
+            ))?;
             loop {
                 if window.close().is_ok() {
                     break;
                 }
             }
-            Ok(format!("Agregado {:#?}",prod))
-        },
-        Rango::Cajero => Err(DENEGADO.to_string()),        
+            Ok(format!("Agregado {:#?}", prod))
+        }
+        Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
 #[tauri::command]
@@ -262,54 +242,37 @@ fn agregar_producto_a_venta(
     prod: Valuable,
     pos: bool,
 ) -> Res<Venta> {
-    match sistema.lock() {
-        Ok(mut sis) => {
-            sis.arc_user();
-            match &prod {
-                Valuable::Prod(_) => {
-                    match async_runtime::block_on(sis.agregar_producto_a_venta(prod, pos)) {
-                        Ok(_) => loop {
-                            if let Ok(_) = window
-                                .menu_handle()
-                                .get_item("confirm stash")
-                                .set_enabled(true)
-                            {
-                                break;
-                            }
-                        },
-                        Err(e) => return Err(e.to_string()),
-                    }
-                }
-                Valuable::Pes(a) => {
-                    async_runtime::spawn(open_select_amount(
-                        window.app_handle(),
-                        Valuable::Pes(a.clone()),
-                        pos,
-                    ));
-                }
-                Valuable::Rub(a) => {
-                    async_runtime::spawn(open_select_amount(
-                        window.app_handle(),
-                        Valuable::Rub(a.clone()),
-                        pos,
-                    ));
-                }
-            }
-            let pl = Payload {
-                message: Some("dibujar venta".to_string()),
-                pos: None,
-                val: None,
-            };
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.arc_user();
+    match &prod {
+        Valuable::Prod(_) => {
+            async_runtime::block_on(sis.agregar_producto_a_venta(prod, pos))?;
             loop {
-                if window.emit("main", pl.clone()).is_ok() {
+                if let Ok(_) = window
+                    .menu_handle()
+                    .get_item("confirm stash")
+                    .set_enabled(true)
+                {
                     break;
                 }
             }
-
-            Ok(sis.venta(pos))
         }
-        Err(e) => Err(e.to_string()),
+        Valuable::Pes(a) => {
+            async_runtime::spawn(open_select_amount(
+                window.app_handle(),
+                Valuable::Pes(a.clone()),
+                pos,
+            ));
+        }
+        Valuable::Rub(a) => {
+            async_runtime::spawn(open_select_amount(
+                window.app_handle(),
+                Valuable::Rub(a.clone()),
+                pos,
+            ));
+        }
     }
+    Ok(sis.venta(pos))
 }
 #[tauri::command]
 fn agregar_proveedor(
@@ -318,22 +281,18 @@ fn agregar_proveedor(
     proveedor: &str,
     contacto: Option<i64>,
 ) -> Res<()> {
-    match sistema.lock() {
-        Ok(mut sis) => match sis.arc_user().rango() {
-            Rango::Admin => {
-                if let Err(e) = sis.agregar_proveedor(proveedor, contacto) {
-                    return Err(e.to_string());
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    match sis.arc_user().rango() {
+        Rango::Admin => {
+            sis.agregar_proveedor(proveedor, contacto)?;
+            loop {
+                if window.close().is_ok() {
+                    break;
                 }
-                loop {
-                    if window.close().is_ok() {
-                        break;
-                    }
-                }
-                Ok(())
             }
-            Rango::Cajero => Err(DENEGADO.to_string()),
-        },
-        Err(e) => Err(e.to_string()),
+            Ok(())
+        }
+        Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
 #[tauri::command]
@@ -343,32 +302,24 @@ fn agregar_rubro(
     codigo: &str,
     descripcion: &str,
 ) -> Res<String> {
-    match sistema.lock() {
-        Ok(sis) => match sis.arc_user().rango() {
-            Rango::Admin => {
-                let codigo = match codigo.parse::<i64>() {
-                    Ok(a) => a,
-                    Err(e) => return Err(e.to_string()),
-                };
-                let rubro = match async_runtime::block_on(Rubro::new_to_db(
-                    codigo,
-                    None,
-                    descripcion,
-                    sis.write_db(),
-                )) {
-                    Ok(a) => a,
-                    Err(e) => return Err(e.to_string()),
-                };
-                loop {
-                    if window.close().is_ok() {
-                        break;
-                    }
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    match sis.arc_user().rango() {
+        Rango::Admin => {
+            let codigo = codigo.parse::<i64>().map_err(|e| e.to_string())?;
+            let rubro = async_runtime::block_on(Rubro::new_to_db(
+                codigo,
+                None,
+                descripcion,
+                sis.write_db(),
+            ))?;
+            loop {
+                if window.close().is_ok() {
+                    break;
                 }
-                Ok(rubro.descripcion().to_string())
             }
-            Rango::Cajero => Err(DENEGADO.to_string()),
-        },
-        Err(a) => Err(a.to_string()),
+            Ok(rubro.descripcion().to_string())
+        }
+        Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
 #[tauri::command]
@@ -378,31 +329,29 @@ fn agregar_rub_o_pes_a_venta(
     val: Valuable,
     pos: bool,
 ) -> Res<()> {
-    match sistema.lock() {
-        Ok(mut sis) => match async_runtime::block_on(sis.agregar_producto_a_venta(val, pos)) {
-            Ok(_) => {
-                let pl = Payload {
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    async_runtime::block_on(sis.agregar_producto_a_venta(val, pos))?;
+    loop {
+        if window
+            .emit(
+                "main",
+                Payload {
                     message: Some(String::from("dibujar venta")),
                     pos: None,
                     val: None,
-                };
-                loop {
-                    if window.emit("main", pl.clone()).is_ok() {
-                        break;
-                    }
-                }
-                loop {
-                    if window.close().is_ok() {
-                        break;
-                    }
-                }
-
-                Ok(())
-            }
-            Err(e) => Err(e.to_string()),
-        },
-        Err(e) => Err(e.to_string()),
+                },
+            )
+            .is_ok()
+        {
+            break;
+        }
     }
+    loop {
+        if window.close().is_ok() {
+            break;
+        }
+    }
+    Ok(())
 }
 #[tauri::command]
 fn agregar_usuario(
@@ -413,22 +362,18 @@ fn agregar_usuario(
     pass: &str,
     rango: &str,
 ) -> Res<User> {
-    match sistema.lock() {
-        Ok(sis) => match sis.arc_user().rango() {
-            Rango::Admin => match sis.agregar_usuario(id, nombre, pass, rango) {
-                Ok(user) => {
-                    loop {
-                        if window.close().is_ok() {
-                            break;
-                        }
-                    }
-                    Ok(user)
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    match sis.arc_user().rango() {
+        Rango::Admin => {
+            let res = sis.agregar_usuario(id, nombre, pass, rango)?;
+            loop {
+                if window.close().is_ok() {
+                    break;
                 }
-                Err(e) => Err(e.to_string()),
-            },
-            Rango::Cajero => Err(DENEGADO.to_string()),
-        },
-        Err(e) => Err(e.to_string()),
+            }
+            Ok(res)
+        }
+        Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
 #[tauri::command]
@@ -440,43 +385,36 @@ async fn cerrar_sesion<'ab>(
     sistema: State<'ab, Mutex<Sistema>>,
     handle: tauri::AppHandle,
 ) -> Res<()> {
-    match sistema.lock() {
-        Ok(mut sis) => {
-            match handle.get_window("login") {
-                Some(window) => {
-                    if let Err(e) = window.show() {
-                        return Err(e.to_string());
-                    }
-                    sis.cerrar_sesion();
-                    Ok(())
-                }
-                None => {
-                    match tauri::WindowBuilder::new(
-                        &handle,
-                        "login", /* the unique window label */
-                        tauri::WindowUrl::App("/pages/login.html".parse().unwrap()),
-                    )
-                    .inner_size(400.0, 300.0)
-                    .resizable(false)
-                    .minimizable(false)
-                    .closable(false)
-                    .always_on_top(true)
-                    .decorations(false)
-                    .center()
-                    .menu(Menu::new())
-                    // .minimizable(false)
-                    .build()
-                    {
-                        Ok(_) => {
-                            sis.cerrar_sesion();
-                            Ok(())
-                        }
-                        Err(e) => Err(e.to_string()),
-                    }
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    match handle.get_window("login") {
+        Some(window) => {
+            loop {
+                if window.show().is_ok() {
+                    break;
                 }
             }
+            sis.cerrar_sesion();
+            Ok(())
         }
-        Err(e) => Err(e.to_string()),
+        None => {
+            tauri::WindowBuilder::new(
+                &handle,
+                "login", /* the unique window label */
+                tauri::WindowUrl::App("/pages/login.html".parse().unwrap()),
+            )
+            .inner_size(400.0, 300.0)
+            .resizable(false)
+            .minimizable(false)
+            .closable(false)
+            .always_on_top(true)
+            .decorations(false)
+            .center()
+            .menu(Menu::new())
+            .build()
+            .map_err(|e| e.to_string())?;
+            sis.cerrar_sesion();
+            Ok(())
+        }
     }
 }
 #[tauri::command]
@@ -485,66 +423,54 @@ fn cerrar_caja(
     window: tauri::Window,
     monto_actual: f64,
 ) -> Res<()> {
-    match sistema.lock() {
-        Ok(mut sis) => {
-            match sis.cerrar_caja(monto_actual) {
-                Ok(_) => loop {
-                    if window.close().is_ok() {
-                        break;
-                    }
-                },
-                Err(e) => return Err(e.to_string()),
-            }
-            Ok(())
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.arc_user();
+    sis.cerrar_caja(monto_actual)?;
+    loop {
+        if window.close().is_ok() {
+            break;
         }
-        Err(e) => Err(e.to_string()),
     }
+    Ok(())
 }
 #[tauri::command]
 async fn check_codes(code: i64) -> Res<bool> {
-    match Database::connect("sqlite://db.sqlite?mode=ro").await {
-        Ok(db) => {
-            let mut disp = true;
-            if disp {
-                disp = match entity::codigo_barras::Entity::find()
-                    .filter(entity::codigo_barras::Column::Codigo.eq(code))
-                    .one(&db)
-                    .await
-                {
-                    Ok(a) => {
-                        if a.is_none() {
-                            match entity::pesable::Entity::find()
-                                .filter(entity::pesable::Column::Codigo.eq(code))
-                                .one(&db)
-                                .await
-                            {
-                                Ok(a) => {
-                                    if a.is_none() {
-                                        match entity::rubro::Entity::find()
-                                            .filter(entity::rubro::Column::Codigo.eq(code))
-                                            .one(&db)
-                                            .await
-                                        {
-                                            Ok(a) => a.is_none(),
-                                            Err(e) => return Err(e.to_string()),
-                                        }
-                                    } else {
-                                        false
-                                    }
-                                }
-                                Err(e) => return Err(e.to_string()),
-                            }
-                        } else {
-                            false
+    let db = Database::connect("sqlite://db.sqlite?mode=ro")
+        .await
+        .map_err(|e| e.to_string())?;
+    let disp;
+    let mod_opt = entity::codigo_barras::Entity::find()
+        .filter(entity::codigo_barras::Column::Codigo.eq(code))
+        .one(&db)
+        .await
+        .map_err(|e| e.to_string())?;
+    disp = match mod_opt {
+        Some(_) => false,
+        None => {
+            match entity::pesable::Entity::find()
+                .filter(entity::pesable::Column::Codigo.eq(code))
+                .one(&db)
+                .await
+            {
+                Ok(a) => {
+                    if a.is_none() {
+                        match entity::rubro::Entity::find()
+                            .filter(entity::rubro::Column::Codigo.eq(code))
+                            .one(&db)
+                            .await
+                        {
+                            Ok(a) => a.is_none(),
+                            Err(e) => return Err(e.to_string()),
                         }
+                    } else {
+                        false
                     }
-                    Err(e) => return Err(e.to_string()),
                 }
+                Err(e) => return Err(e.to_string()),
             }
-            Ok(disp)
         }
-        Err(e) => Err(e.to_string()),
-    }
+    };
+    Ok(disp)
 }
 #[tauri::command]
 fn close_window(window: tauri::Window) -> Res<()> {
@@ -654,9 +580,7 @@ fn get_caja(sistema: State<Mutex<Sistema>>) -> Res<Caja> {
 fn get_clientes(sistema: State<Mutex<Sistema>>) -> Res<Vec<Cli>> {
     match sistema.lock() {
         Ok(sis) => match async_runtime::block_on(sis.get_clientes()) {
-            Ok(a) => {
-                Ok(a)
-            }
+            Ok(a) => Ok(a),
             Err(e) => Err(e.to_string()),
         },
         Err(e) => Err(e.to_string()),

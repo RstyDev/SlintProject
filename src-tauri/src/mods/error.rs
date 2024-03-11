@@ -38,4 +38,8 @@ pub enum AppError {
     InicialationError(String),
 }
 
-
+impl From<AppError> for String {
+    fn from(value: AppError) -> Self {
+        value.to_string()
+    }
+}
