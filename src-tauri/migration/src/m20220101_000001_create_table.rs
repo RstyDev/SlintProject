@@ -452,6 +452,40 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(Deuda::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Deuda::Id)
+                            .big_integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Deuda::Cliente).big_integer().not_null())
+                    .foreign_key(
+                        ForeignKeyCreateStatement::new()
+                            .name("cliente_fk")
+                            .from(Deuda::Table, Deuda::Cliente)
+                            .to(Cliente::Table, Cliente::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
+                    .col(ColumnDef::new(Deuda::Monto).double().not_null())
+                    .col(ColumnDef::new(Deuda::Pago).big_integer().not_null())
+                    .foreign_key(
+                        ForeignKeyCreateStatement::new()
+                            .name("pago_fk")
+                            .from(Deuda::Table, Deuda::Pago)
+                            .to(Pago::Table, Pago::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await?;
         Ok(())
     }
 
@@ -638,4 +672,13 @@ enum Cliente {
     Limite,
     Activo,
     Created,
+}
+
+#[derive(DeriveIden)]
+enum Deuda {
+    Table,
+    Id,
+    Cliente,
+    Pago,
+    Monto,
 }

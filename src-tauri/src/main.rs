@@ -630,9 +630,7 @@ fn incrementar_producto_a_venta(
 #[tauri::command]
 async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("add-prov") {
-        Some(window) => {
-            Ok(window.show().map_err(|e| e.to_string())?)
-        }
+        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
             tauri::WindowBuilder::new(
                 &handle,
@@ -654,9 +652,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
 #[tauri::command]
 async fn open_add_select(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("add-select") {
-        Some(window) => {
-            Ok(window.show().map_err(|e| e.to_string())?)
-        }
+        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
             tauri::WindowBuilder::new(
                 &handle,
@@ -679,9 +675,7 @@ async fn open_add_select(handle: tauri::AppHandle) -> Res<()> {
 #[tauri::command]
 async fn open_add_user(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("add-user") {
-        Some(window) => {
-            Ok(window.show().map_err(|e| e.to_string())?)
-        }
+        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
             tauri::WindowBuilder::new(
                 &handle,
@@ -703,9 +697,7 @@ async fn open_add_user(handle: tauri::AppHandle) -> Res<()> {
 #[tauri::command]
 async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("add-cliente") {
-        Some(window) => {
-            Ok(window.show().map_err(|e| e.to_string())?)
-        }
+        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
             tauri::WindowBuilder::new(
                 &handle,
@@ -727,9 +719,7 @@ async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
 #[tauri::command]
 async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("cerrar-caja") {
-        Some(window) => {
-            Ok(window.show().map_err(|e| e.to_string())?)
-        }
+        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
             tauri::WindowBuilder::new(
                 &handle,
@@ -751,9 +741,7 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
 #[tauri::command]
 async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
     match handle.get_window("confirm-stash") {
-        Some(window) => {
-            Ok(window.show().map_err(|e| e.to_string())?)
-        }
+        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
             let win = tauri::WindowBuilder::new(
                 &handle,
@@ -797,9 +785,7 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
 #[tauri::command]
 async fn open_edit_settings(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("edit-settings") {
-        Some(window) => {
-            Ok(window.show().map_err(|e| e.to_string())?)
-        }
+        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
             tauri::WindowBuilder::new(
                 &handle,
@@ -826,9 +812,7 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
         .minimize()
         .map_err(|e| e.to_string())?;
     match handle.get_window("login") {
-        Some(window) => {
-            Ok(window.show().map_err(|e| e.to_string())?)
-        }
+        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
             tauri::WindowBuilder::new(
                 &handle,
@@ -914,9 +898,7 @@ async fn open_select_amount(handle: tauri::AppHandle, val: Valuable, pos: bool) 
 #[tauri::command]
 async fn open_stash(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("open-stash") {
-        Some(window) => {
-            Ok(window.show().map_err(|e| e.to_string())?)
-        }
+        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
             tauri::WindowBuilder::new(
                 &handle,
