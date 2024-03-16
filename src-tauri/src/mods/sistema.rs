@@ -107,6 +107,11 @@ impl<'a> Sistema {
             None => None,
         }
     }
+    pub fn access(&self) {
+        if self.user.is_none() {
+            panic!("Sesión no iniciada");
+        }
+    }
     pub fn cerrar_caja(&mut self, monto_actual: f64) -> Res<()> {
         self.caja.set_cajero(self.user().unwrap().nombre());
         let db = Arc::clone(&self.write_db);

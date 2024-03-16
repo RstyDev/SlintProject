@@ -45,6 +45,7 @@ function navigate(e) {
 
     } else if (e.keyCode == 13) {
       e.preventDefault();
+      
       if (document.getElementById('tabla-productos').children.length > 1) {
         agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
           e.preventDefault();
@@ -52,7 +53,7 @@ function navigate(e) {
           if (Object.keys(productosDib[focuseado.id])=='Prod'){
             beep.play();
           }
-          //dibujar_venta(venta)
+          dibujar_venta(venta)
         });
       } else {
         error.play();
