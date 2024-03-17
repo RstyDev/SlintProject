@@ -1,5 +1,5 @@
 use chrono::NaiveDateTime;
-use sea_orm::{ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter, Set};
+use sea_orm::{ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect, Set};
 use serde::Serialize;
 use std::sync::Arc;
 
@@ -102,25 +102,7 @@ impl Cli {
         &self.credito
     }
     pub async fn get_deuda(&self, db: &DatabaseConnection) -> Res<f64> {
-        let res = entity::venta::Entity::find()
-            .filter(
-                Condition::all()
-                    .add(entity::venta::Column::Cliente.eq(Some(self.id)))
-                    .add(entity::venta::Column::Cerrada.eq(false)),
-            )
-            .all(db)
-            .await?
-            .iter()
-            .map(|x| x.id)
-            .collect::<Vec<i64>>();
-
-        let pagos = entity::pago::Entity::find()
-            .filter(entity::pago::Column::Venta.is_in(res))
-            .all(db)
-            .await?;
-        // let medio=entity::medio_pago::Entity::find().filter(entity::medio_pago::Column::Medio.eq(v))
-
-        Ok(0.0)
+        Ok(entity::deuda::Entity::find().select_only().column(entity::deuda::Column::Monto).filter(Condition::all().add(entity::deuda::Column::Cliente.eq(self.id))).all(db).await?.iter().map(|m|m.monto).sum::<f64>())        
     }
 }
 

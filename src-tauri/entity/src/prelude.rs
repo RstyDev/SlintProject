@@ -16,3 +16,4 @@ pub use super::relacion_venta_rub::Entity as RelacionVentaRub;
 pub use super::rubro::Entity as Rubro;
 pub use super::user::Entity as User;
 pub use super::venta::Entity as Venta;
+pub use super::deuda::Entity as Deuda;

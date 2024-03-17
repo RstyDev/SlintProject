@@ -3,7 +3,7 @@ use super::{
     lib::Mapper,
 };
 use chrono::Utc;
-use entity::pago;
+use entity:: pago;
 type Res<T> = std::result::Result<T, AppError>;
 
 use sea_orm::{
@@ -11,7 +11,7 @@ use sea_orm::{
     EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Set,
 };
 use serde::Serialize;
-use std::sync::Arc;
+use std:: sync::Arc;
 use tauri::async_runtime;
 
 use Valuable as V;
@@ -233,6 +233,7 @@ impl<'a> Venta {
         if !es_cred && res <= 0.0 {
             self.paga = true;
         }
+        
         if res <= 0.0 {
             self.cerrada = true;
         }
@@ -379,11 +380,6 @@ impl Save for Venta {
         venta.cerrada = Set(self.cerrada);
         venta.paga = Set(self.paga);
         venta.time = Set(Utc::now().naive_local());
-        match &self.cliente {
-            Cliente::Final => (),
-            Cliente::Regular(a) => venta.cliente = Set(Some(*a.id())),
-        }
-        venta.update(&db).await?;
         let mut pay_models = vec![];
         for pago in &self.pagos {
             if pago.medio().as_ref().eq("Cuenta Corriente") {
@@ -403,6 +399,27 @@ impl Save for Venta {
                 });
             }
         }
+        match &self.cliente {
+            Cliente::Final => (),
+            Cliente::Regular(a) => {
+                let deudas=pay_models.iter().filter_map(|p|{
+                    match p.medio_pago{
+                        NotSet => None,
+                        _=>Some(entity::deuda::ActiveModel{
+                            cliente: Set(*a.id()),
+                            monto: p.monto.clone(),
+                            pago: p.id.clone(),
+                            ..Default::default()
+                        })
+                    }
+                }).collect::<Vec<entity::deuda::ActiveModel>>();
+                entity::deuda::Entity::insert_many(deudas).exec(&db).await?;
+                venta.cliente = Set(Some(*a.id()))
+            },
+        }
+        venta.update(&db).await?;
+        
+        
         if pay_models.len() > 1 {
             entity::pago::Entity::insert_many(pay_models)
                 .exec(&db)

@@ -17,4 +17,5 @@ pub mod relacion_venta_prod;
 pub mod relacion_venta_rub;
 pub mod rubro;
 pub mod user;
+pub mod deuda;
 pub mod venta;
