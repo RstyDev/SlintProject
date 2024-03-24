@@ -46,7 +46,7 @@ document.getElementsByClassName('add-form')[0].addEventListener('submit',(e)=>{
     let limit;
     if (rango=='Admin'){
         credito=cred.checked;
-        limit=parseFloat(limite.value);
+        limit=limite.value;
     }else{
         credito=false;
     }
@@ -59,5 +59,5 @@ document.getElementsByClassName('add-form')[0].addEventListener('submit',(e)=>{
     }
 })
 async function agregar_cliente(nombre,dni,credito,limite){
-    return await invoke("agregar_cliente", { nombre:nombre, dni:parseInt(dni), credito:credito, limite:limite})
+    return await invoke("agregar_cliente", { nombre:nombre, dni:dni, credito:credito, limite:limite})
 }

@@ -79,8 +79,8 @@ async function open_stash() {
 async function open_login() {
     return await invoke("open_login");
 }
-async function agregar_pago(medio_pago, m) {
-  let monto = parseFloat(m);
+async function agregar_pago(medio_pago, monto) {
+  
   return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos": posA });
 }
 async function eliminar_pago(index) {
@@ -529,17 +529,17 @@ async function get_venta_actual() {
   return res;
 }
 async function incrementarProdVentaAct(index) {
-  return await invoke("incrementar_producto_a_venta", { index: parseInt(index), pos: posA });
+  return await invoke("incrementar_producto_a_venta", { index: index, pos: posA });
 }
 async function agregarProdVentaAct(prod) {
   return await invoke("agregar_producto_a_venta", { prod: prod, pos: posA });
 }
 async function descontarProdVentaAct(i) {
-  return await invoke("descontar_producto_de_venta", { index: parseInt(i), pos: posA });
+  return await invoke("descontar_producto_de_venta", { index: i, pos: posA });
 }
 
 async function eliminarProdVentaAct(index) {
-  return await invoke("eliminar_producto_de_venta", { index:  parseInt(index), pos: posA })
+  return await invoke("eliminar_producto_de_venta", { index:  index, pos: posA })
 }
 async function open_cerrar_caja(){
   return await invoke("open_cerrar_caja")

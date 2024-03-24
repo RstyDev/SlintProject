@@ -96,10 +96,15 @@ fn agregar_cliente(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
     nombre: &str,
-    dni: i64,
+    dni: &str,
     credito: bool,
-    limite: Option<f64>,
+    limite: Option<&str>,
 ) -> Res<Cli> {
+    let dni=dni.parse::<i64>().map_err(|e|e.to_string())?;
+    let limite = match limite{
+        Some(l) => Some(l.parse::<f64>().map_err(|e|e.to_string())?),
+        None => None,
+    };
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let cli = sis.agregar_cliente(nombre, dni, credito, true, limite)?;
@@ -125,9 +130,10 @@ fn agregar_cliente(
 fn agregar_pago(
     sistema: State<Mutex<Sistema>>,
     medio_pago: &str,
-    monto: f64,
+    monto: &str,
     pos: bool,
 ) -> Res<f64> {
+    let monto = monto.parse::<f64>().map_err(|e|e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.agregar_pago(medio_pago, monto, pos)?)
@@ -426,9 +432,10 @@ fn close_window(window: tauri::Window) -> Res<()> {
 fn descontar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: usize,
+    index: &str,
     pos: bool,
 ) -> Res<Venta> {
+    let index = index.parse::<usize>().map_err(|e|e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let res = sis.descontar_producto_de_venta(index, pos)?;
@@ -460,9 +467,10 @@ fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Res
 fn eliminar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: usize,
+    index: &str,
     pos: bool,
 ) -> Res<Venta> {
+    let index = index.parse::<usize>().map_err(|e|e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let res = sis.eliminar_producto_de_venta(index, pos)?;
@@ -612,9 +620,10 @@ fn get_venta_actual(
 fn incrementar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: usize,
+    index: &str,
     pos: bool,
 ) -> Res<Venta> {
+    let index = index.parse::<usize>().map_err(|e|e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let venta = sis.incrementar_producto_a_venta(index, pos)?;
