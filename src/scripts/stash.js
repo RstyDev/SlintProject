@@ -5,6 +5,7 @@ const details = document.getElementById('details');
 let configs;
 let focused;
 let stash;
+let pos;
 
 
 async function get_configs() {
@@ -176,15 +177,17 @@ document.addEventListener('keydown',(e)=>{
         focused = focused.previousElementSibling;
         focus(focused);
         dibujarVenta(stash[focused.firstChild.innerText])
+    }else if (e.keyCode==13||e.keyCode==121){
+        unstashSale(focused.childNodes[0].innerText);
     }
 })
 async function close_window() {
     return await invoke("close_window");
 }
-async function unstashSale(pos,index){
+async function unstashSale(index){
     return await invoke("unstash_sale",{pos:pos, index:index})
 }
 
-const unlisten = await listen('get-venta', (pl) => {
-
+const unlisten = await listen('stash', (pl) => {
+    pos = pl.payload.pos;
 })

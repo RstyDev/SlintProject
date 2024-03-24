@@ -904,14 +904,33 @@ async fn open_select_amount(handle: tauri::AppHandle, val: Valuable, pos: bool) 
     }
 }
 #[tauri::command]
-async fn open_stash<'a>(handle: tauri::AppHandle, sistema: State<'a, Mutex<Sistema>>) -> Res<()> {
+async fn open_stash<'a>(
+    handle: tauri::AppHandle,
+    sistema: State<'a, Mutex<Sistema>>,
+    pos: bool,
+) -> Res<()> {
     if sistema.lock().map_err(|e| e.to_string())?.stash().len() == 0 {
         Err("Stash vacío".to_string())
     } else {
         match handle.get_window("open-stash") {
-            Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
+            Some(window) => {
+                window.show().map_err(|e| e.to_string())?;
+                for _ in 0..7 {
+                    std::thread::sleep(std::time::Duration::from_millis(250));
+                    window
+                        .emit(
+                            "stash",
+                            Payload {
+                                message: None,
+                                pos: Some(pos),
+                                val: None,
+                            },
+                        )
+                        .map_err(|e| e.to_string())?;
+                }
+            }
             None => {
-                tauri::WindowBuilder::new(
+                let win = tauri::WindowBuilder::new(
                     &handle,
                     "open-stash", /* the unique window label */
                     tauri::WindowUrl::App("/pages/stash.html".parse().unwrap()),
@@ -924,9 +943,21 @@ async fn open_stash<'a>(handle: tauri::AppHandle, sistema: State<'a, Mutex<Siste
                 .menu(Menu::new())
                 .build()
                 .map_err(|e| e.to_string())?;
-                Ok(())
+                for _ in 0..7 {
+                    std::thread::sleep(std::time::Duration::from_millis(250));
+                    win.emit(
+                        "stash",
+                        Payload {
+                            message: None,
+                            pos: Some(pos),
+                            val: None,
+                        },
+                    )
+                    .map_err(|e| e.to_string())?;
+                }
             }
         }
+        Ok(())
     }
 }
 #[tauri::command]
@@ -1033,7 +1064,8 @@ fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: boo
     Ok(close_window(window)?)
 }
 #[tauri::command]
-fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Res<()> {
+fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: bool, index: &str) -> Res<()> {
+    let index = index.parse::<usize>().map_err(|e|e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.unstash_sale(pos, index)?)

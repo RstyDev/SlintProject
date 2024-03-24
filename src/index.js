@@ -74,7 +74,7 @@ async function set_cliente(id) {
   return await invoke("set_cliente", {id:id, pos:posA});
 }
 async function open_stash() {
-  return await invoke("open_stash");
+  return await invoke("open_stash",{pos:posA});
 }
 async function open_login() {
     return await invoke("open_login");
