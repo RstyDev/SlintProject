@@ -4,6 +4,7 @@ const resume = document.getElementById('resume');
 const details = document.getElementById('details');
 let configs;
 let focused;
+let stash;
 
 
 async function get_configs() {
@@ -74,7 +75,8 @@ get_configs().then(conf => {
     configs = conf;
 });
 
-get_stash().then(stash => {
+get_stash().then(st => {
+    stash = st;
     let tab = document.createElement('table');
     resume.appendChild(tab);
     let tr = document.createElement('tr');
@@ -120,7 +122,9 @@ get_stash().then(stash => {
         id2.classList.add('id');
         tr2.appendChild(id2);
         tr2.addEventListener('click', (e) => {
+            
             focused = e.target.parentElement;
+            console.log(focused);
             dibujarVenta(stash[focused.firstChild.innerText])
             let els = document.getElementsByClassName('focused');
             for (let j = 0; j < els.length; j++) {
@@ -150,13 +154,35 @@ get_stash().then(stash => {
 
 })
 
+function unfocus(item){
+    item.style.border = 'none'
+    item.classList.remove('focused');
+}
+function focus(item){
+    item.style.border = 'solid 2px white';
+    item.classList.add('focused');
+}
+
 document.addEventListener('keydown',(e)=>{
     if (e.keyCode==27){
         close_window();
+    }else if (e.keyCode==40 && focused.nextElementSibling){ //abajo
+        unfocus(focused);
+        focused = focused.nextElementSibling;
+        focus(focused);
+        dibujarVenta(stash[focused.firstChild.innerText])
+    }else if (e.keyCode==38 && focused.previousElementSibling.previousElementSibling){
+        unfocus(focused);
+        focused = focused.previousElementSibling;
+        focus(focused);
+        dibujarVenta(stash[focused.firstChild.innerText])
     }
 })
 async function close_window() {
     return await invoke("close_window");
+}
+async function unstashSale(pos,index){
+    return await invoke("unstash_sale",{pos:pos, index:index})
 }
 
 const unlisten = await listen('get-venta', (pl) => {

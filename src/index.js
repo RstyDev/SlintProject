@@ -73,7 +73,7 @@ async function open_confirm_stash(act) {
 async function set_cliente(id) {
   return await invoke("set_cliente", {id:id, pos:posA});
 }
-async function open_stash(act) {
+async function open_stash() {
   return await invoke("open_stash");
 }
 async function open_login() {
@@ -960,5 +960,7 @@ const unlisten = await listen('main', (pl) => {
     dibujar_base();
   }else if (pl.payload.message=="cerrar sesion"){
     cerrar_sesion()
+  }else if(pl.payload.message == "open stash"){
+    open_stash()
   }
 })

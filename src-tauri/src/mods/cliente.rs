@@ -1,6 +1,8 @@
 use chrono::NaiveDateTime;
-use sea_orm::{ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect, Set};
-use serde::Serialize;
+use sea_orm::{
+    ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect, Set,
+};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use super::error::AppError;
@@ -11,7 +13,7 @@ pub enum Cliente {
     Regular(Cli),
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Cli {
     id: i64,
     nombre: Arc<str>,
@@ -21,7 +23,7 @@ pub struct Cli {
     created: NaiveDateTime,
     limite: Cuenta,
 }
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Cuenta {
     Auth(Option<f64>),
     Unauth,
@@ -102,7 +104,15 @@ impl Cli {
         &self.credito
     }
     pub async fn get_deuda(&self, db: &DatabaseConnection) -> Res<f64> {
-        Ok(entity::deuda::Entity::find().select_only().column(entity::deuda::Column::Monto).filter(Condition::all().add(entity::deuda::Column::Cliente.eq(self.id))).all(db).await?.iter().map(|m|m.monto).sum::<f64>())        
+        Ok(entity::deuda::Entity::find()
+            .select_only()
+            .column(entity::deuda::Column::Monto)
+            .filter(Condition::all().add(entity::deuda::Column::Cliente.eq(self.id)))
+            .all(db)
+            .await?
+            .iter()
+            .map(|m| m.monto)
+            .sum::<f64>())
     }
 }
 

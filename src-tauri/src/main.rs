@@ -505,6 +505,14 @@ fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
     prod.descripcion(&conf)
 }
 #[tauri::command]
+fn get_deuda(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<f64> {
+    sistema
+        .lock()
+        .map_err(|e| e.to_string())?
+        .get_deuda(cliente)
+        .map_err(|e| e.to_string())
+}
+#[tauri::command]
 fn get_filtrado(
     sistema: State<Mutex<Sistema>>,
     filtro: &str,
@@ -896,24 +904,28 @@ async fn open_select_amount(handle: tauri::AppHandle, val: Valuable, pos: bool) 
     }
 }
 #[tauri::command]
-async fn open_stash(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("open-stash") {
-        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
-        None => {
-            tauri::WindowBuilder::new(
-                &handle,
-                "open-stash", /* the unique window label */
-                tauri::WindowUrl::App("/pages/stash.html".parse().unwrap()),
-            )
-            .always_on_top(true)
-            .center()
-            .resizable(false)
-            .minimizable(false)
-            .inner_size(900.0, 600.0)
-            .menu(Menu::new())
-            .build()
-            .map_err(|e| e.to_string())?;
-            Ok(())
+async fn open_stash<'a>(handle: tauri::AppHandle, sistema: State<'a, Mutex<Sistema>>) -> Res<()> {
+    if sistema.lock().map_err(|e| e.to_string())?.stash().len() == 0 {
+        Err("Stash vacío".to_string())
+    } else {
+        match handle.get_window("open-stash") {
+            Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
+            None => {
+                tauri::WindowBuilder::new(
+                    &handle,
+                    "open-stash", /* the unique window label */
+                    tauri::WindowUrl::App("/pages/stash.html".parse().unwrap()),
+                )
+                .always_on_top(true)
+                .center()
+                .resizable(false)
+                .minimizable(false)
+                .inner_size(900.0, 600.0)
+                .menu(Menu::new())
+                .build()
+                .map_err(|e| e.to_string())?;
+                Ok(())
+            }
         }
     }
 }
@@ -1085,6 +1097,7 @@ fn main() {
             get_clientes,
             get_configs,
             get_descripcion_valuable,
+            get_deuda,
             get_filtrado,
             get_medios_pago,
             get_productos_filtrado,
@@ -1161,7 +1174,24 @@ fn main() {
                 Ok(())
             }
 
-            "open stash" => async_runtime::block_on(open_stash(handle.clone())),
+            "open stash" => {
+                loop {
+                    if w2
+                        .emit(
+                            "main",
+                            Payload {
+                                message: Some(String::from("open stash")),
+                                pos: None,
+                                val: None,
+                            },
+                        )
+                        .is_ok()
+                    {
+                        break;
+                    }
+                }
+                Ok(())
+            }
             "cerrar caja" => async_runtime::block_on(open_cerrar_caja(handle.clone())),
 
             _ => Ok(()),

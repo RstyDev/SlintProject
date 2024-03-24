@@ -901,6 +901,9 @@ impl<'a> Sistema {
 
         Ok(())
     }
+    pub fn get_deuda(&self, cliente: Cli) -> Res<f64> {
+        async_runtime::block_on(cliente.get_deuda(&self.read_db))
+    }
     pub fn arc_user(&self) -> Arc<User> {
         Arc::clone(&self.user.as_ref().unwrap())
     }
