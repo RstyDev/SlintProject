@@ -100,9 +100,9 @@ fn agregar_cliente(
     credito: bool,
     limite: Option<&str>,
 ) -> Res<Cli> {
-    let dni=dni.parse::<i64>().map_err(|e|e.to_string())?;
-    let limite = match limite{
-        Some(l) => Some(l.parse::<f64>().map_err(|e|e.to_string())?),
+    let dni = dni.parse::<i64>().map_err(|e| e.to_string())?;
+    let limite = match limite {
+        Some(l) => Some(l.parse::<f64>().map_err(|e| e.to_string())?),
         None => None,
     };
     let sis = sistema.lock().map_err(|e| e.to_string())?;
@@ -133,7 +133,7 @@ fn agregar_pago(
     monto: &str,
     pos: bool,
 ) -> Res<f64> {
-    let monto = monto.parse::<f64>().map_err(|e|e.to_string())?;
+    let monto = monto.parse::<f64>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.agregar_pago(medio_pago, monto, pos)?)
@@ -435,7 +435,7 @@ fn descontar_producto_de_venta(
     index: &str,
     pos: bool,
 ) -> Res<Venta> {
-    let index = index.parse::<usize>().map_err(|e|e.to_string())?;
+    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let res = sis.descontar_producto_de_venta(index, pos)?;
@@ -470,7 +470,7 @@ fn eliminar_producto_de_venta(
     index: &str,
     pos: bool,
 ) -> Res<Venta> {
-    let index = index.parse::<usize>().map_err(|e|e.to_string())?;
+    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let res = sis.eliminar_producto_de_venta(index, pos)?;
@@ -623,7 +623,7 @@ fn incrementar_producto_a_venta(
     index: &str,
     pos: bool,
 ) -> Res<Venta> {
-    let index = index.parse::<usize>().map_err(|e|e.to_string())?;
+    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let venta = sis.incrementar_producto_a_venta(index, pos)?;
@@ -660,6 +660,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
             .minimizable(false)
             .inner_size(430.0, 110.0)
             .menu(Menu::new())
+            .title("Agregar Proveedor")
             .build()
             .map_err(|e| e.to_string())?;
             Ok(())
@@ -680,6 +681,7 @@ async fn open_add_select(handle: tauri::AppHandle) -> Res<()> {
             .center()
             .resizable(false)
             .minimizable(false)
+            .title("Seleccione una opción")
             .inner_size(210.0, 80.0)
             .menu(Menu::new())
             .build()
@@ -703,6 +705,7 @@ async fn open_add_user(handle: tauri::AppHandle) -> Res<()> {
             .center()
             .resizable(false)
             .minimizable(false)
+            .title("Agregar Usuario")
             .inner_size(430.0, 200.0)
             .menu(Menu::new())
             .build()
@@ -725,6 +728,7 @@ async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
             .center()
             .resizable(false)
             .minimizable(false)
+            .title("Agregar Cliente")
             .inner_size(640.0, 400.0)
             .menu(Menu::new())
             .build()
@@ -747,6 +751,7 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
             .center()
             .resizable(false)
             .minimizable(false)
+            .title("Cerrar Caja")
             .inner_size(640.0, 620.0)
             .menu(Menu::new())
             .build()
@@ -771,6 +776,7 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
             .minimizable(false)
             .inner_size(400.0, 150.0)
             .menu(Menu::new())
+            .title("Confirmar Stash")
             .build()
             .map_err(|e| e.to_string())?;
             std::thread::sleep(std::time::Duration::from_millis(500));
@@ -815,6 +821,7 @@ async fn open_edit_settings(handle: tauri::AppHandle) -> Res<()> {
             .minimizable(false)
             .inner_size(500.0, 360.0)
             .menu(Menu::new())
+            .title("Configuraciones")
             .build()
             .map_err(|e| e.to_string())?;
             Ok(())
@@ -829,9 +836,12 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
         .minimize()
         .map_err(|e| e.to_string())?;
     match handle.get_window("login") {
-        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
+        Some(window) => {
+            window.show().map_err(|e| e.to_string())?;
+            Ok(window.set_focus().map_err(|e| e.to_string())?)
+        }
         None => {
-            tauri::WindowBuilder::new(
+            let window = tauri::WindowBuilder::new(
                 &handle,
                 "login", /* the unique window label */
                 tauri::WindowUrl::App("/pages/login.html".parse().unwrap()),
@@ -843,10 +853,11 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
             .always_on_top(true)
             .decorations(false)
             .center()
+            .title("Iniciar Sesión")
             .menu(Menu::new())
-            // .minimizable(false)
             .build()
             .map_err(|e| e.to_string())?;
+            window.set_focus().map_err(|e| e.to_string())?;
             Ok(())
         }
     }
@@ -888,6 +899,7 @@ async fn open_select_amount(handle: tauri::AppHandle, val: Valuable, pos: bool) 
             .minimizable(false)
             .inner_size(200.0, 100.0)
             .menu(Menu::new())
+            .title("Seleccione Monto")
             .build()
             .map_err(|e| e.to_string())?;
             std::thread::sleep(std::time::Duration::from_millis(400));
@@ -950,6 +962,7 @@ async fn open_stash<'a>(
                 .minimizable(false)
                 .inner_size(900.0, 600.0)
                 .menu(Menu::new())
+                .title("Ventas en Stash")
                 .build()
                 .map_err(|e| e.to_string())?;
                 for _ in 0..7 {
@@ -1073,10 +1086,35 @@ fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: boo
     Ok(close_window(window)?)
 }
 #[tauri::command]
-fn unstash_sale(sistema: State<Mutex<Sistema>>, pos: bool, index: &str) -> Res<()> {
-    let index = index.parse::<usize>().map_err(|e|e.to_string())?;
+fn unstash_sale(
+    sistema: State<Mutex<Sistema>>,
+    window: tauri::Window,
+    pos: bool,
+    index: &str,
+) -> Res<()> {
+    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
+    loop {
+        if window.close().is_ok() {
+            break;
+        }
+    }
+    loop {
+        if window
+            .emit(
+                "main",
+                Payload {
+                    message: Some(String::from("dibujar venta")),
+                    pos: None,
+                    val: None,
+                },
+            )
+            .is_ok()
+        {
+            break;
+        }
+    }
     Ok(sis.unstash_sale(pos, index)?)
 }
 

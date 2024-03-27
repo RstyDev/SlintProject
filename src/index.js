@@ -195,7 +195,6 @@ function dibujar_venta(venta) {
     agregar_options(select,clientes,venta);
     select.addEventListener('change',()=>{
       set_cliente(select.value).then(venta => dibujar_venta(venta));
-      
       })
     })
   let cuadro = document.querySelector('#cuadro-principal');
@@ -274,7 +273,7 @@ function dibujar_venta(venta) {
         ///----
         console.log(art.children[0])
 
-
+        
         art.children[1].children[2].addEventListener('click', (e) => {
           e.preventDefault();
           incrementarProducto(e);
@@ -913,6 +912,10 @@ function dibujar_base(){
 
   mensaje1 = document.querySelector('#mensaje1-msg');
   buscador = document.querySelector('#buscador');
+  // document.addEventListener("click",(e)=>{
+    
+  //   buscador.focus();
+  // });
 
   buscador.addEventListener('focus', () => {
     let prod = document.getElementById('productos');

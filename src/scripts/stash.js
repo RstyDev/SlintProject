@@ -122,6 +122,12 @@ get_stash().then(st => {
         id2.innerHTML = `${i}`
         id2.classList.add('id');
         tr2.appendChild(id2);
+        if (i == 0){
+            focused = tr2;
+            dibujarVenta(stash[focused.firstChild.innerText]);
+            focused.style.border = 'solid 2px white';
+            focused.classList.add('focused');
+        }
         tr2.addEventListener('click', (e) => {
             
             focused = e.target.parentElement;
