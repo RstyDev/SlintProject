@@ -245,8 +245,8 @@ impl<'a> Venta {
             if producto == self.productos[i] {
                 let mut prod = self.productos.remove(i);
                 match &prod {
-                    V::Pes(a) => prod = V::Pes((a.0, a.1.clone())),
-                    V::Prod(a) => prod = V::Prod((a.0, a.1.clone())),
+                    V::Pes(a) => prod = V::Pes((a.0 + 1.0, a.1.clone())),
+                    V::Prod(a) => prod = V::Prod((a.0 + 1, a.1.clone())),
                     V::Rub(a) => self.productos.push(V::Rub(a.clone())),
                 }
                 self.productos.insert(i, prod);

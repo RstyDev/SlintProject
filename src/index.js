@@ -113,6 +113,9 @@ async function open_add_prov() {
 async function open_edit_settings() {
   return await invoke("open_edit_settings");
 }
+async function open_cancelar_venta(){
+  return await invoke("open_cancelar_venta",{act: posA})
+}
 
 function incrementarProducto(e) {
   incrementarProdVentaAct(e.target.parentNode.parentNode.id).then(venta => {
@@ -912,10 +915,13 @@ function dibujar_base(){
 
   mensaje1 = document.querySelector('#mensaje1-msg');
   buscador = document.querySelector('#buscador');
-  // document.addEventListener("click",(e)=>{
+  document.addEventListener("keydown",(e)=>{
     
-  //   buscador.focus();
-  // });
+      if (e.keyCode == 115){
+        open_cancelar_venta();
+      }
+  
+   });
 
   buscador.addEventListener('focus', () => {
     let prod = document.getElementById('productos');

@@ -738,6 +738,63 @@ async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
     }
 }
 #[tauri::command]
+async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()> {
+    println!("Abriendo cancelar venta");
+    match handle.get_window("confirm-cancel") {
+        Some(window) => {
+            window.show().map_err(|e| e.to_string())?;
+            window.emit(
+                "get-venta",
+                Payload {
+                    message: Some(String::from("cancelar venta")),
+                    pos: Some(act),
+                    val: None,
+                },
+            )
+            .map_err(|e| e.to_string())?;
+            Ok(())
+            },
+        None => {
+            let win=tauri::WindowBuilder::new(
+                &handle,
+                "confirm-cancel",
+                tauri::WindowUrl::App("/pages/confirm.html".parse().unwrap()),
+            ).always_on_top(true)
+            .center()
+            .resizable(false)
+            .minimizable(false)
+            .inner_size(400.0, 150.0)
+            .menu(Menu::new())
+            .title("Confirmar")
+            .build()
+            .map_err(|e| e.to_string())?;
+            std::thread::sleep(std::time::Duration::from_millis(500));
+            win.emit(
+                "get-venta",
+                Payload {
+                    message: Some(String::from("cancelar")),
+                    pos: Some(act),
+                    val: None,
+                },
+            )
+            .map_err(|e| e.to_string())?;
+            for _ in 0..7 {
+                std::thread::sleep(std::time::Duration::from_millis(175));
+                win.emit(
+                    "get-venta",
+                    Payload {
+                        message: Some(String::from("cancelar")),
+                        pos: Some(act),
+                        val: None,
+                    },
+                )
+                .map_err(|e| e.to_string())?;
+            }
+            Ok(())
+        }
+    }
+}
+#[tauri::command]
 async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("cerrar-caja") {
         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
@@ -762,13 +819,13 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
 }
 #[tauri::command]
 async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
-    match handle.get_window("confirm-stash") {
+    match handle.get_window("confirm") {
         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
             let win = tauri::WindowBuilder::new(
                 &handle,
-                "confirm-stash", /* the unique window label */
-                tauri::WindowUrl::App("/pages/want-to-stash.html".parse().unwrap()),
+                "confirm", /* the unique window label */
+                tauri::WindowUrl::App("/pages/confirm.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -783,7 +840,7 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
             win.emit(
                 "get-venta",
                 Payload {
-                    message: None,
+                    message: Some(String::from("stash")),
                     pos: Some(act),
                     val: None,
                 },
@@ -794,7 +851,7 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
                 win.emit(
                     "get-venta",
                     Payload {
-                        message: None,
+                        message: Some(String::from("stash")),
                         pos: Some(act),
                         val: None,
                     },
@@ -1190,6 +1247,7 @@ fn main() {
             open_add_select,
             open_add_user,
             open_add_cliente,
+            open_cancelar_venta,
             open_cerrar_caja,
             open_confirm_stash,
             open_edit_settings,
