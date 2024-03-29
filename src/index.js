@@ -45,12 +45,12 @@ function navigate(e) {
 
     } else if (e.keyCode == 13) {
       e.preventDefault();
-      
+
       if (document.getElementById('tabla-productos').children.length > 1) {
         agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
           e.preventDefault();
           buscador.value = '';
-          if (Object.keys(productosDib[focuseado.id])=='Prod'){
+          if (Object.keys(productosDib[focuseado.id]) == 'Prod') {
             beep.play();
           }
           dibujar_venta(venta)
@@ -71,16 +71,16 @@ async function open_confirm_stash(act) {
   return await invoke("open_confirm_stash", { "act": act });
 }
 async function set_cliente(id) {
-  return await invoke("set_cliente", {id:id, pos:posA});
+  return await invoke("set_cliente", { id: id, pos: posA });
 }
 async function open_stash() {
-  return await invoke("open_stash",{pos:posA});
+  return await invoke("open_stash", { pos: posA });
 }
 async function open_login() {
-    return await invoke("open_login");
+  return await invoke("open_login");
 }
 async function agregar_pago(medio_pago, monto) {
-  
+
   return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos": posA });
 }
 async function eliminar_pago(index) {
@@ -92,13 +92,13 @@ async function get_configs() {
 async function get_user() {
   return await invoke("get_user");
 }
-async function call_cerrar_sesion(){
+async function call_cerrar_sesion() {
   return await invoke("cerrar_sesion");
 }
 async function get_clientes() {
   return await invoke("get_clientes");
 }
-async function open_agregar_cliente(){
+async function open_agregar_cliente() {
   return await invoke("open_agregar_cliente");
 }
 async function open_add_user() {
@@ -113,8 +113,8 @@ async function open_add_prov() {
 async function open_edit_settings() {
   return await invoke("open_edit_settings");
 }
-async function open_cancelar_venta(){
-  return await invoke("open_cancelar_venta",{act: posA})
+async function open_cancelar_venta() {
+  return await invoke("open_cancelar_venta", { act: posA })
 }
 
 function incrementarProducto(e) {
@@ -170,36 +170,36 @@ async function get_descripcion_valuable(prod, conf) {
 }
 
 
-function agregar_options(select, clientes, venta){
-  
-  if (venta.cliente=='Final'){
-    select.innerHTML=`<option value='0' selected>Consumidor Final</option>`;
-    for (let cliente of clientes){
-      select.innerHTML+=`<option value='${cliente.id}'> ${cliente.nombre}</option>`
+function agregar_options(select, clientes, venta) {
+
+  if (venta.cliente == 'Final') {
+    select.innerHTML = `<option value='0' selected>Consumidor Final</option>`;
+    for (let cliente of clientes) {
+      select.innerHTML += `<option value='${cliente.id}'> ${cliente.nombre}</option>`
     }
-  }else{
+  } else {
     console.log(clientes[0])
-    select.innerHTML=`<option value='0'>Consumidor Final</option>`;
+    select.innerHTML = `<option value='0'>Consumidor Final</option>`;
     let selected;
-    for (let cliente of clientes){      
-      if (venta.cliente.Regular.id==cliente.id){
-        selected='selected';
-      }else{
-        selected='';
+    for (let cliente of clientes) {
+      if (venta.cliente.Regular.id == cliente.id) {
+        selected = 'selected';
+      } else {
+        selected = '';
       }
-      select.innerHTML+=`<option value='${cliente.id}' ${selected}> ${cliente.nombre}</option>`
-      
+      select.innerHTML += `<option value='${cliente.id}' ${selected}> ${cliente.nombre}</option>`
+
     }
   }
 }
 function dibujar_venta(venta) {
-    get_clientes().then(clientes=>{
-    let select=document.getElementById('cliente');
-    agregar_options(select,clientes,venta);
-    select.addEventListener('change',()=>{
+  get_clientes().then(clientes => {
+    let select = document.getElementById('cliente');
+    agregar_options(select, clientes, venta);
+    select.addEventListener('change', () => {
       set_cliente(select.value).then(venta => dibujar_venta(venta));
-      })
     })
+  })
   let cuadro = document.querySelector('#cuadro-principal');
   productosVentaAct = venta.productos;
   buscador.value = '';
@@ -239,7 +239,7 @@ function dibujar_venta(venta) {
       
     </section>
      </article>`;
-  for (let i=0;i<venta.productos.length;i++){
+  for (let i = 0; i < venta.productos.length; i++) {
     let disabled;
     let art;
     if (Object.keys(venta.productos[i]) == 'Pes') {
@@ -276,7 +276,7 @@ function dibujar_venta(venta) {
         ///----
         console.log(art.children[0])
 
-        
+
         art.children[1].children[2].addEventListener('click', (e) => {
           e.preventDefault();
           incrementarProducto(e);
@@ -513,7 +513,7 @@ function dibujar_venta(venta) {
   for (let i = 0; i < configs.medios_pago.length; i++) {
     opciones[opciones.length - 1].innerHTML += `<option value='${configs.medios_pago[i]}'>${configs.medios_pago[i]}</option>`
   }
-  if (venta.cliente!='Final'&&venta.cliente.Regular.limite!='Unauth'){
+  if (venta.cliente != 'Final' && venta.cliente.Regular.limite != 'Unauth') {
     opciones[opciones.length - 1].innerHTML += `<option value='Cuenta Corriente'>Cuenta Corriente</option>`
   }
   for (let i = 0; i < venta.pagos; i++) {
@@ -541,9 +541,9 @@ async function descontarProdVentaAct(i) {
 }
 
 async function eliminarProdVentaAct(index) {
-  return await invoke("eliminar_producto_de_venta", { index:  index, pos: posA })
+  return await invoke("eliminar_producto_de_venta", { index: index, pos: posA })
 }
-async function open_cerrar_caja(){
+async function open_cerrar_caja() {
   return await invoke("open_cerrar_caja")
 }
 function borrarBusqueda() {
@@ -656,7 +656,7 @@ function agregarRub(tabla, objeto, i) {
   tr2.addEventListener('dblclick', () => {
 
     agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
-      
+
       dibujar_venta(venta);
       setFoco(buscador, document.getElementById('productos'));
     });
@@ -695,7 +695,7 @@ function agregarPes(tabla, objeto, i) {
   tr2.addEventListener('dblclick', () => {
 
     agregarProdVentaAct(productosDib[focuseado.id]).then(venta => {
-     
+
       dibujar_venta(venta);
       setFoco(buscador, document.getElementById('productos'));
     });
@@ -869,7 +869,7 @@ function setFoco(foco, focuseable) {
 
 async function buscarProducto(filtrado) {
   clearTimeout(timeoutId);
-  productosDib = await invoke("get_productos_filtrado", { filtro: ''+filtrado });
+  productosDib = await invoke("get_productos_filtrado", { filtro: '' + filtrado });
   dibujarProductos();
 
 }
@@ -880,16 +880,16 @@ function PlaySound(soundObj) {
 }
 
 
-function cerrar_sesion(){
-  user='';
-  document.getElementsByTagName('body')[0].innerHTML ='';
+function cerrar_sesion() {
+  user = '';
+  document.getElementsByTagName('body')[0].innerHTML = '';
   call_cerrar_sesion()
 }
-function dibujar_base(){
-  get_user().then(usuario=>{
-    user=usuario;
-    
-    document.getElementsByTagName('body')[0].innerHTML =`<header class="container">
+function dibujar_base() {
+  get_user().then(usuario => {
+    user = usuario;
+
+    document.getElementsByTagName('body')[0].innerHTML = `<header class="container">
         <div id="header">
             <div>
                 <form autocomplete="off">
@@ -910,30 +910,29 @@ function dibujar_base(){
         <section id="cuadro-principal" class="main-screen">
         </section>
     </main>`;
-  
 
 
-  mensaje1 = document.querySelector('#mensaje1-msg');
-  buscador = document.querySelector('#buscador');
-  document.addEventListener("keydown",(e)=>{
-    
-      if (e.keyCode == 115){
+
+    mensaje1 = document.querySelector('#mensaje1-msg');
+    buscador = document.querySelector('#buscador');
+    document.addEventListener("keydown", (e) => {
+      if (e.keyCode == 115) {
         open_cancelar_venta();
       }
-  
-   });
 
-  buscador.addEventListener('focus', () => {
-    let prod = document.getElementById('productos');
-    if (prod) {
-      setFoco(buscador, prod)
-    }
-  });
-  borrarBusqueda();
-  
-  buscadorHandle();
-  
-  escYf10Press();
+    });
+
+    buscador.addEventListener('focus', () => {
+      let prod = document.getElementById('productos');
+      if (prod) {
+        setFoco(buscador, prod)
+      }
+    });
+    borrarBusqueda();
+
+    buscadorHandle();
+
+    escYf10Press();
 
 
   })
@@ -963,13 +962,13 @@ function sleep(ms) {
 const unlisten = await listen('main', (pl) => {
   if (pl.payload.message == 'dibujar venta') {
     get_venta_actual().then(venta => dibujar_venta(venta));
-  }else if(pl.payload.message == "confirm stash"){
+  } else if (pl.payload.message == "confirm stash") {
     open_confirm_stash(posA)
-  }else if (pl.payload.message=="inicio sesion"){
+  } else if (pl.payload.message == "inicio sesion") {
     dibujar_base();
-  }else if (pl.payload.message=="cerrar sesion"){
+  } else if (pl.payload.message == "cerrar sesion") {
     cerrar_sesion()
-  }else if(pl.payload.message == "open stash"){
+  } else if (pl.payload.message == "open stash") {
     open_stash()
   }
 })

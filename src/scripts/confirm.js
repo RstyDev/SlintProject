@@ -26,32 +26,35 @@ const unlisten = await listen('get-venta', (pl) => {
     venta = pl.payload.pos;
     document.getElementById('botones').innerHTML = `<button class="boton" id="si">Si</button>
     <button class="boton" id="no">No</button>`;
-    if (pl.payload.message = 'stash'){
-      document.getElementById('si').addEventListener('click',()=>{
-        stash_n_close(venta);
-      })  
-    }else if  (pl.payload.message = 'cancelar venta'){
-      document.getElementById('si').addEventListener('click',()=>{
+    let msg = document.getElementById('msg');
+    if (pl.payload.message == 'stash') {
+      msg.innerHTML ='Quieres guardar la venta para mas adelante?';
+        document.getElementById('si').addEventListener('click', () => {
+          stash_n_close(venta);
+        })
+    } else if (pl.payload.message == 'cancelar venta') {
+      msg.innerHTML = 'Quieres cancelar la venta?';
+      document.getElementById('si').addEventListener('click', () => {
         console.log('algo');
       })
     }
-    
+
     document.getElementById('no').addEventListener('click', () => {
       close_window();
     });
     document.addEventListener('keydown', (e) => {
-    e.preventDefault();
-    if (e.keyCode == 13) {
-      if (pl.payload.message == 'stash'){
-        stash_n_close(venta);  
-      }else if (pl.payload.message == 'cancelar venta'){
-        console.log('cancela')
+      e.preventDefault();
+      if (e.keyCode == 13) {
+        if (pl.payload.message == 'stash') {
+          stash_n_close(venta);
+        } else if (pl.payload.message == 'cancelar venta') {
+          console.log('cancela')
+        }
+
       }
-      
-    }
-    else if (e.keyCode == 27) {
-      close_window();
-    }
-})
+      else if (e.keyCode == 27) {
+        close_window();
+      }
+    })
   }
 })
