@@ -9,7 +9,7 @@ const { emit, listen } = window.__TAURI__.event;
 
 
 let mensaje1;
-
+let vacia;
 let user;
 let posA = true;
 let posicionVenta = 0;
@@ -193,6 +193,12 @@ function agregar_options(select, clientes, venta) {
   }
 }
 function dibujar_venta(venta) {
+  if (venta.productos.length == 0) {
+    vacia = true;
+  } else {
+    vacia = false;
+  };
+  console.log(vacia)
   get_clientes().then(clientes => {
     let select = document.getElementById('cliente');
     agregar_options(select, clientes, venta);
@@ -527,7 +533,7 @@ function dibujar_venta(venta) {
 
 async function get_venta_actual() {
   let res = await invoke("get_venta_actual", { pos: posA });
-  // console.log(ret)
+
   return res;
 }
 async function incrementarProdVentaAct(index) {
@@ -831,10 +837,10 @@ function escYf10Press() {
         } else {
           cambiar_venta(boton.previousElementSibling)
         }
-      } else if (e.keyCode == 71) {
+      } else if (e.keyCode == 71 && !vacia) {
         e.preventDefault();
         open_confirm_stash(posA);
-      } else if (e.keyCode == 83) {
+      } else if (e.keyCode == 83 && vacia) {
         e.preventDefault();
         open_stash();
       }
@@ -916,7 +922,8 @@ function dibujar_base() {
     mensaje1 = document.querySelector('#mensaje1-msg');
     buscador = document.querySelector('#buscador');
     document.addEventListener("keydown", (e) => {
-      if (e.keyCode == 115) {
+
+      if (e.keyCode == 115 && !vacia) {
         open_cancelar_venta();
       }
 
