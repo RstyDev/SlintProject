@@ -112,6 +112,12 @@ impl<'a> Sistema {
             panic!("Sesión no iniciada");
         }
     }
+    pub fn cancelar_venta(&mut self, pos: bool)->Res<()>{
+        if pos{
+            todo!();
+        }
+        Ok(())
+    }
     pub fn cerrar_caja(&mut self, monto_actual: f64) -> Res<()> {
         self.caja.set_cajero(self.user().unwrap().nombre());
         let db = Arc::clone(&self.write_db);

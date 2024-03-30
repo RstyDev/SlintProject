@@ -370,6 +370,16 @@ async fn cerrar_sesion<'ab>(
     }
 }
 #[tauri::command]
+fn cancelar_venta(
+    sistema: State<Mutex<Sistema>>,
+    pos:bool
+) -> Res<()>{
+    let mut sis = sistema.lock().map_err(|e|e.to_string())?;
+    sis.access();
+    
+    Ok(())
+}
+#[tauri::command]
 fn cerrar_caja(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
@@ -1231,6 +1241,7 @@ fn main() {
             agregar_rub_o_pes_a_venta,
             agregar_usuario,
             buscador,
+            cancelar_venta,
             cerrar_caja,
             cerrar_sesion,
             check_codes,

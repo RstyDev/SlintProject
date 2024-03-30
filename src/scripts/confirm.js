@@ -7,6 +7,10 @@ async function stash_n_close(venta) {
   return await invoke("stash_n_close", { "pos": venta });
 }
 
+async function cancelar_venta(venta) {
+  console.log(venta);
+  return await invoke("cancelar_venta", { "pos": venta });
+}
 async function close_window() {
   return await invoke("close_window");
 }
@@ -35,7 +39,7 @@ const unlisten = await listen('get-venta', (pl) => {
     } else if (pl.payload.message == 'cancelar venta') {
       msg.innerHTML = 'Quieres cancelar la venta?';
       document.getElementById('si').addEventListener('click', () => {
-        console.log('algo');
+        cancelar_venta(venta)
       })
     }
 
@@ -48,7 +52,7 @@ const unlisten = await listen('get-venta', (pl) => {
         if (pl.payload.message == 'stash') {
           stash_n_close(venta);
         } else if (pl.payload.message == 'cancelar venta') {
-          console.log('cancela')
+          cancelar_venta(venta)
         }
 
       }

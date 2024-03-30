@@ -3,11 +3,6 @@ const { emit, listen } = window.__TAURI__.event;
 
 
 
-
-
-
-
-
 let mensaje1;
 let vacia;
 let user;
