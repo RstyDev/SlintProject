@@ -376,7 +376,7 @@ fn cancelar_venta(
 ) -> Res<()>{
     let mut sis = sistema.lock().map_err(|e|e.to_string())?;
     sis.access();
-    
+    //todo!()
     Ok(())
 }
 #[tauri::command]

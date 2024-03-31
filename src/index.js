@@ -3,18 +3,12 @@ const { emit, listen } = window.__TAURI__.event;
 
 
 
-let mensaje1;
-let vacia;
-let user;
+
+let mensaje1,vacia,user,focuseado,timeoutId,configs,idUlt,buscador;
 let posA = true;
 let posicionVenta = 0;
-let focuseado;
-let timeoutId;
 let codigosProv = [];
 let codigosProd = [];
-let configs;
-let idUlt;
-let buscador;
 let beep = new Audio('assets/beep.mp3');
 let error = new Audio('assets/error.mp3');
 let productosDib = [];
@@ -25,6 +19,7 @@ error.volume = 0.2;
 get_configs().then(conf => {
   configs = conf;
 });
+
 
 
 
@@ -888,6 +883,7 @@ function cerrar_sesion() {
 }
 function dibujar_base() {
   get_user().then(usuario => {
+    
     user = usuario;
 
     document.getElementsByTagName('body')[0].innerHTML = `<header class="container">
@@ -907,6 +903,7 @@ function dibujar_base() {
     <main>
         <div id="msg-container">
             <p id="mensaje1-msg"></p>
+            <div id="test"></div>
         </div>
         <section id="cuadro-principal" class="main-screen">
         </section>
@@ -935,7 +932,6 @@ function dibujar_base() {
     buscadorHandle();
 
     escYf10Press();
-
 
   })
 }

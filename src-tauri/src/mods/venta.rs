@@ -45,7 +45,7 @@ impl<'a> Venta {
         db: &DatabaseConnection,
         pos: bool,
     ) -> Res<Venta> {
-        todo!("Buscar venta para evitar repeticion de ventas")
+        //todo!("Buscar venta para evitar repeticion de ventas")
         let venta = entity::venta::Entity::find()
             .order_by_desc(entity::venta::Column::Id)
             .one(db)
