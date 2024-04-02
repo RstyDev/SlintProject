@@ -455,7 +455,7 @@ impl Save for Venta {
             .filter_map(|x| match x {
                 V::Rub(a) => Some(entity::relacion_venta_rub::ActiveModel {
                     cantidad: Set(a.0),
-                    rubro: Set(a.1.descripcion().to_string()),
+                    rubro: Set(a.1.id()),
                     venta: Set(self.id),
                     precio: Set(*a.1.monto().unwrap()),
                     ..Default::default()

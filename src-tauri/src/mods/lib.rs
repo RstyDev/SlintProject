@@ -18,6 +18,7 @@ type Res<T> = std::result::Result<T, AppError>;
 use crate::mods::valuable::Valuable;
 
 use super::error::AppError;
+use super::pago::{MedioPago, Pago};
 use super::pesable::Pesable;
 use super::producto::Producto;
 use super::proveedor::Proveedor;
@@ -25,6 +26,7 @@ use super::relacion_prod_prov::RelacionProdProv;
 use super::rubro::Rubro;
 use super::user::User;
 use super::valuable::Presentacion;
+use super::venta::Venta;
 pub struct Db;
 pub struct Mapper;
 pub trait Save {
@@ -164,6 +166,101 @@ impl Mapper {
     }
     pub fn map_model_prov(prov: &entity::proveedor::Model) -> Proveedor {
         Proveedor::new(prov.id, prov.nombre.as_str(), prov.contacto)
+    }
+    pub async fn map_model_sale(
+        venta: &entity::venta::Model,
+        db: &DatabaseConnection,
+    ) -> Res<Venta> {
+        let pagos_mod = entity::pago::Entity::find()
+            .filter(entity::pago::Column::Venta.eq(venta.id))
+            .all(db)
+            .await?;
+        let pagos = Vec::new();
+        for pago_mod in pagos_mod {
+            let medio = entity::medio_pago::Entity::find_by_id(pago_mod.medio_pago)
+                .one(db)
+                .await?
+                .unwrap();
+            pagos.push(Pago::new(MedioPago::new(&medio.medio, medio.id), pago_mod.monto));
+        }
+        let prods = Vec::new();
+        for model in entity::relacion_venta_pes::Entity::find()
+            .filter(entity::relacion_venta_pes::Column::Venta.eq(venta.id))
+            .all(db)
+            .await?
+        {
+            let pes_mod = entity::pesable::Entity::find_by_id(model.pesable)
+                .one(db)
+                .await?
+                .unwrap();
+            prods.push(Valuable::Pes((
+                model.cantidad,
+                Pesable::new(
+                    pes_mod.id,
+                    pes_mod.codigo,
+                    pes_mod.precio_peso,
+                    pes_mod.porcentaje,
+                    pes_mod.costo_kilo,
+                    &pes_mod.descripcion,
+                ),
+            )))
+        }
+        for model in entity::relacion_venta_prod::Entity::find()
+            .filter(entity::relacion_venta_prod::Column::Venta.eq(venta.id))
+            .all(db)
+            .await?
+        {
+            let prod = entity::producto::Entity::find_by_id(model.producto)
+                .one(db)
+                .await?
+                .unwrap();
+            let codes = entity::codigo_barras::Entity::find()
+                .filter(entity::codigo_barras::Column::Producto.eq(prod.id))
+                .all(db)
+                .await?
+                .iter()
+                .map(|c| c.codigo)
+                .collect();
+            let prod = Producto::new(
+                prod.id,
+                codes,
+                prod.precio_de_venta,
+                prod.porcentaje,
+                prod.precio_de_costo,
+                prod.tipo_producto.as_str(),
+                prod.marca.as_str(),
+                prod.variedad.as_str(),
+                match prod.presentacion.as_str(){
+                    "CC"=>Presentacion::CC(prod.)
+                },
+            );
+            prods.push(Valuable::Prod((model.cantidad, prod)));
+        }
+        for model in entity::relacion_venta_rub::Entity::find()
+            .filter(entity::relacion_venta_rub::Column::Venta.eq(venta.id))
+            .all(db)
+            .await?
+        {
+            let rub = entity::rubro::Entity::find_by_id(model.id)
+                .one(db)
+                .await?
+                .unwrap();
+            let rub = Rubro::new(rub.id, rub.codigo, rub.monto, rub.descripcion);
+            prods.push(Valuable::Rub((model.cantidad, rub)));
+        }
+
+        let venta = Venta::build(
+            venta.id,
+            venta.monto_total,
+            prods,
+            pagos,
+            venta.monto_pagado,
+            venta.vendedor,
+            venta.cliente,
+            venta.paga,
+            venta.cerrada,
+        );
+        Ok(venta)
     }
 }
 

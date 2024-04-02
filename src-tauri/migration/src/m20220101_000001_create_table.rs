@@ -205,8 +205,16 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(RelacionVentaPes::Precio).double().not_null())
                     .col(
                         ColumnDef::new(RelacionVentaPes::Pesable)
-                            .string()
+                            .big_integer()
                             .not_null(),
+                    )
+                    .foreign_key(
+                        ForeignKeyCreateStatement::new()
+                            .name("pesable_fk")
+                            .from(RelacionVentaPes::Table, RelacionVentaPes::Venta)
+                            .to(Pesable::Table, Pesable::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
                     )
                     .col(
                         ColumnDef::new(RelacionVentaPes::Venta)
@@ -242,7 +250,19 @@ impl MigrationTrait for Migration {
                             .not_null(),
                     )
                     .col(ColumnDef::new(RelacionVentaRub::Precio).double().not_null())
-                    .col(ColumnDef::new(RelacionVentaRub::Rubro).string().not_null())
+                    .col(
+                        ColumnDef::new(RelacionVentaRub::Rubro)
+                            .big_integer()
+                            .not_null(),
+                    )
+                    .foreign_key(
+                        ForeignKeyCreateStatement::new()
+                            .name("rubro_fk")
+                            .from(RelacionVentaRub::Table, RelacionVentaRub::Rubro)
+                            .to(Rubro::Table, Rubro::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
                     .col(
                         ColumnDef::new(RelacionVentaRub::Venta)
                             .big_integer()
@@ -273,7 +293,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(
                         ColumnDef::new(RelacionVentaProd::Producto)
-                            .string()
+                            .big_integer()
                             .not_null(),
                     )
                     .foreign_key(

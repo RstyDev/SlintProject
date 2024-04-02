@@ -157,19 +157,3 @@ impl ValuableTrait for Producto {
         }
     }
 }
-
-// impl Default for Producto{
-//     fn default() -> Self {
-//         Producto{
-//             id: todo!(),
-//             codigos_de_barras: todo!(),
-//             precio_de_venta: todo!(),
-//             porcentaje: todo!(),
-//             precio_de_costo: todo!(),
-//             tipo_producto: todo!(),
-//             marca: todo!(),
-//             variedad: todo!(),
-//             presentacion: todo!(),
-//         }
-//     }
-// }

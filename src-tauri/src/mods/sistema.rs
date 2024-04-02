@@ -112,8 +112,8 @@ impl<'a> Sistema {
             panic!("Sesión no iniciada");
         }
     }
-    pub fn cancelar_venta(&mut self, pos: bool)->Res<()>{
-        if pos{
+    pub fn cancelar_venta(&mut self, pos: bool) -> Res<()> {
+        if pos {
             todo!();
         }
         Ok(())
@@ -829,7 +829,7 @@ impl<'a> Sistema {
                     .1
                     .eliminar_producto(index, &self.configs().politica());
             } else {
-                self.ventas.1 = async_runtime::block_on(Venta::new(
+                self.ventas.1 = async_runtime::block_on(Venta::get_or_new(
                     Some(self.arc_user()),
                     self.write_db(),
                     pos,

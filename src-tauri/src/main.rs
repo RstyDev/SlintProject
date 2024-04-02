@@ -347,6 +347,7 @@ async fn cerrar_sesion<'ab>(
                     break;
                 }
             }
+
             Ok(sis.cerrar_sesion())
         }
         None => {
@@ -370,11 +371,8 @@ async fn cerrar_sesion<'ab>(
     }
 }
 #[tauri::command]
-fn cancelar_venta(
-    sistema: State<Mutex<Sistema>>,
-    pos:bool
-) -> Res<()>{
-    let mut sis = sistema.lock().map_err(|e|e.to_string())?;
+fn cancelar_venta(sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()> {
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     //todo!()
     Ok(())
@@ -752,23 +750,25 @@ async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()> {
     match handle.get_window("confirm-cancel") {
         Some(window) => {
             window.show().map_err(|e| e.to_string())?;
-            window.emit(
-                "get-venta",
-                Payload {
-                    message: Some(String::from("cancelar venta")),
-                    pos: Some(act),
-                    val: None,
-                },
-            )
-            .map_err(|e| e.to_string())?;
+            window
+                .emit(
+                    "get-venta",
+                    Payload {
+                        message: Some(String::from("cancelar venta")),
+                        pos: Some(act),
+                        val: None,
+                    },
+                )
+                .map_err(|e| e.to_string())?;
             Ok(())
-            },
+        }
         None => {
-            let win=tauri::WindowBuilder::new(
+            let win = tauri::WindowBuilder::new(
                 &handle,
                 "confirm-cancel",
                 tauri::WindowUrl::App("/pages/confirm.html".parse().unwrap()),
-            ).always_on_top(true)
+            )
+            .always_on_top(true)
             .center()
             .resizable(false)
             .minimizable(false)
@@ -831,16 +831,18 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
     match handle.get_window("confirm") {
         Some(window) => {
             window.show().map_err(|e| e.to_string())?;
-            window.emit(
-                "get-venta",
-                Payload {
-                    message: Some(String::from("stash")),
-                    pos: Some(act),
-                    val: None,
-                },
-            ).map_err(|e|e.to_string())?;
+            window
+                .emit(
+                    "get-venta",
+                    Payload {
+                        message: Some(String::from("stash")),
+                        pos: Some(act),
+                        val: None,
+                    },
+                )
+                .map_err(|e| e.to_string())?;
             Ok(())
-        },
+        }
         None => {
             let win = tauri::WindowBuilder::new(
                 &handle,
