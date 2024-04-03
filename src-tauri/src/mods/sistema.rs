@@ -914,7 +914,7 @@ impl<'a> Sistema {
         self.stash.push(self.venta(pos));
         self.set_venta(
             pos,
-            async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(), pos))?,
+            async_runtime::block_on(Venta::get_or_new(Some(self.arc_user()), self.write_db(), pos))?,
         );
         Ok(())
     }
