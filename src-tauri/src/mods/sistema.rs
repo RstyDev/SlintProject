@@ -4,7 +4,7 @@ use super::{
     cliente::Cli,
     config::Config,
     error::AppError,
-    lib::{crear_file, get_hash, leer_file, save, Db, Mapper},
+    lib::{crear_file, get_hash, leer_file, Db, Mapper},
     pesable::Pesable,
     producto::Producto,
     proveedor::Proveedor,
@@ -112,9 +112,12 @@ impl<'a> Sistema {
             panic!("Sesión no iniciada");
         }
     }
+
     pub fn cancelar_venta(&mut self, pos: bool) -> Res<()> {
         if pos {
-            todo!();
+            self.ventas.0.empty();
+        } else {
+            self.ventas.1.empty();
         }
         Ok(())
     }
@@ -630,7 +633,7 @@ impl<'a> Sistema {
             tipo_producto: Set(tipo_producto.to_string()),
             marca: Set(marca.to_owned()),
             variedad: Set(variedad.to_owned()),
-            presentacion: Set(presentacion.to_string()),
+            presentacion: Set(presentacion.get_string()),
             updated_at: Set(Utc::now().naive_local()),
             cantidad: Set(presentacion.get_cantidad()),
             ..Default::default()
@@ -816,11 +819,7 @@ impl<'a> Sistema {
                     .0
                     .eliminar_producto(index, &self.configs().politica());
             } else {
-                self.ventas.0 = async_runtime::block_on(Venta::new(
-                    Some(self.arc_user()),
-                    self.write_db(),
-                    pos,
-                ))?;
+                self.ventas.0.empty();
                 result = Ok(self.ventas.0.clone());
             }
         } else {
@@ -830,11 +829,7 @@ impl<'a> Sistema {
                     .1
                     .eliminar_producto(index, &self.configs().politica());
             } else {
-                self.ventas.1 = async_runtime::block_on(Venta::get_or_new(
-                    Some(self.arc_user()),
-                    self.write_db(),
-                    pos,
-                ))?;
+                self.ventas.1.empty();
                 result = Ok(self.ventas.1.clone());
             }
         }
@@ -842,13 +837,11 @@ impl<'a> Sistema {
         result
     }
     pub fn venta(&self, pos: bool) -> Venta {
-        let res;
         if pos {
-            res = self.ventas.0.clone();
+            self.ventas.0.clone()
         } else {
-            res = self.ventas.1.clone();
+            self.ventas.1.clone()
         }
-        res
     }
     pub fn filtrar_marca(&self, filtro: &str) -> Res<Vec<String>> {
         let mut hash = HashSet::new();
@@ -889,23 +882,26 @@ impl<'a> Sistema {
     pub fn read_db(&self) -> &DatabaseConnection {
         &self.read_db
     }
-    fn cerrar_venta(&mut self, pos: bool) -> Res<()> {
+    fn set_venta(&mut self, pos: bool, venta: Venta) {
         if pos {
-            async_runtime::spawn(save(self.ventas.0.clone()));
-            self.registro.push(self.ventas.0.clone());
-            println!("{:#?}", self.venta(pos));
-            async_runtime::block_on(self.update_total(self.ventas.0.monto_total()))?;
-            self.ventas.0 =
-                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(), pos))?;
+            self.ventas.0 = venta;
         } else {
-            async_runtime::spawn(save(self.ventas.1.clone()));
-            self.registro.push(self.ventas.1.clone());
-            println!("{:#?}", self.venta(pos));
-            async_runtime::block_on(self.update_total(self.ventas.1.monto_total()))?;
-            self.ventas.1 =
-                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(), pos))?;
-        };
-
+            self.ventas.1 = venta;
+        }
+    }
+    fn cerrar_venta(&mut self, pos: bool) -> Res<()> {
+        async_runtime::block_on(self.venta(pos).guardar(pos, self.write_db()))?;
+        self.registro.push(self.venta(pos).clone());
+        println!("{:#?}", self.venta(pos));
+        async_runtime::block_on(self.update_total(self.venta(pos).monto_total()))?;
+        self.set_venta(
+            pos,
+            async_runtime::block_on(Venta::get_or_new(
+                Some(self.arc_user()),
+                self.write_db(),
+                pos,
+            ))?,
+        );
         Ok(())
     }
     pub fn get_deuda(&self, cliente: Cli) -> Res<f64> {
@@ -915,15 +911,11 @@ impl<'a> Sistema {
         Arc::clone(&self.user.as_ref().unwrap())
     }
     pub fn stash_sale(&mut self, pos: bool) -> Res<()> {
-        if pos {
-            self.stash.push(self.ventas.0.clone());
-            self.ventas.0 =
-                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(), pos))?;
-        } else {
-            self.stash.push(self.ventas.1.clone());
-            self.ventas.1 =
-                async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(), pos))?;
-        };
+        self.stash.push(self.venta(pos));
+        self.set_venta(
+            pos,
+            async_runtime::block_on(Venta::new(Some(self.arc_user()), self.write_db(), pos))?,
+        );
         Ok(())
     }
     pub fn set_cliente(&mut self, id: i32, pos: bool) -> Res<()> {
@@ -935,19 +927,12 @@ impl<'a> Sistema {
     }
     pub fn unstash_sale(&mut self, pos: bool, index: usize) -> Res<()> {
         if index < self.stash.len() {
-            if pos {
-                if self.ventas.0.productos().len() > 0 {
-                    self.stash.push(self.ventas.0.to_owned());
-                }
-                self.ventas.0 = self.stash.remove(index);
-                Ok(())
-            } else {
-                if self.ventas.1.productos().len() > 0 {
-                    self.stash.push(self.ventas.1.to_owned());
-                }
-                self.ventas.1 = self.stash.remove(index);
-                Ok(())
+            if self.venta(pos).productos().len() > 0 {
+                self.stash.push(self.venta(pos).to_owned())
             }
+            let venta = self.stash.remove(index);
+            self.set_venta(pos, venta);
+            Ok(())
         } else {
             Err(AppError::SaleSelection.into())
         }

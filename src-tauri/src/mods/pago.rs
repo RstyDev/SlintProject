@@ -17,6 +17,9 @@ impl MedioPago {
             id,
         }
     }
+    pub fn id(&self) -> &i64 {
+        &self.id
+    }
 }
 #[derive(Debug, Clone, Serialize)]
 pub struct Pago {
@@ -27,6 +30,9 @@ pub struct Pago {
 impl Pago {
     pub fn new(medio_pago: MedioPago, monto: f64) -> Pago {
         Pago { medio_pago, monto }
+    }
+    pub fn medio_pago(&self) -> &MedioPago {
+        &self.medio_pago
     }
     pub fn medio(&self) -> Arc<str> {
         Arc::clone(&self.medio_pago.medio)

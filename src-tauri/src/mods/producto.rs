@@ -75,12 +75,12 @@ impl Producto {
         &self.presentacion
     }
 
-    pub fn nombre_completo(&self) -> String {
-        format!(
-            "{} {} {} {}",
-            self.marca, self.tipo_producto, self.variedad, self.presentacion
-        )
-    }
+    // pub fn nombre_completo(&self) -> String {
+    //     format!(
+    //         "{} {} {} {}",
+    //         self.marca, self.tipo_producto, self.variedad, self.presentacion
+    //     )
+    // }
     // pub fn rm_code(&mut self, i: usize) {
     //     self.codigos_de_barras.remove(i);
     // }
@@ -112,7 +112,7 @@ impl Save for Producto {
             tipo_producto: Set(self.tipo_producto.to_string()),
             marca: Set(self.marca.to_string()),
             variedad: Set(self.variedad.to_string()),
-            presentacion: Set(format!("{}", self.presentacion)),
+            presentacion: Set(format!("{}", self.presentacion.get_string())),
             updated_at: Set(Utc::now().naive_local()),
             cantidad: Set(self.presentacion().get_cantidad()),
             ..Default::default()

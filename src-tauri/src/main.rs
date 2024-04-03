@@ -374,8 +374,7 @@ async fn cerrar_sesion<'ab>(
 fn cancelar_venta(sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    //todo!()
-    Ok(())
+    sis.cancelar_venta(pos).map_err(|e| e.to_string())
 }
 #[tauri::command]
 fn cerrar_caja(

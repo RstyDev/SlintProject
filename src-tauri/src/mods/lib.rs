@@ -38,9 +38,7 @@ pub fn get_hash(pass: &str) -> i64 {
     pass.hash(&mut h);
     h.finish() as i64
 }
-pub async fn save<T: Save>(dato: T) -> Result<(), DbErr> {
-    dato.save().await
-}
+
 // pub async fn save_many<T: Save>(datos: Vec<T>) -> Result<(), DbErr> {
 //     for dato in datos {
 //         dato.save().await?;
@@ -115,7 +113,6 @@ impl Mapper {
         prod: &entity::producto::Model,
         db: &DatabaseConnection,
     ) -> Res<Producto> {
-        let mut parts = prod.presentacion.split(' ');
         let cods = entity::codigo_barras::Entity::find()
             .filter(entity::codigo_barras::Column::Producto.eq(prod.id))
             .all(db)
@@ -123,15 +120,14 @@ impl Mapper {
             .iter()
             .map(|c| c.codigo)
             .collect();
-        let p1 = parts.next().unwrap();
-        let p2 = parts.next().unwrap();
-        let presentacion = match p2 {
-            "Gr" => Presentacion::Gr(p1.parse()?),
-            "Un" => Presentacion::Un(p1.parse()?),
-            "Lt" => Presentacion::Lt(p1.parse()?),
-            "Ml" => Presentacion::Ml(p1.parse()?),
-            "CC" => Presentacion::CC(p1.parse()?),
-            "Kg" => Presentacion::Kg(p1.parse()?),
+
+        let presentacion = match prod.presentacion.as_str() {
+            "Gr" => Presentacion::Gr(prod.cantidad),
+            "Un" => Presentacion::Un(prod.cantidad as i16),
+            "Lt" => Presentacion::Lt(prod.cantidad),
+            "Ml" => Presentacion::Ml(prod.cantidad as i16),
+            "CC" => Presentacion::CC(prod.cantidad as i16),
+            "Kg" => Presentacion::Kg(prod.cantidad),
             a => return Err(AppError::SizeSelection(a.to_string())),
         };
         Ok(Producto::new(
@@ -237,7 +233,16 @@ impl Mapper {
                 prod.variedad.as_str(),
                 match prod.presentacion.as_str() {
                     "CC" => Presentacion::CC(prod.cantidad as i16),
-                    _ => todo!(),
+                    "Gr" => Presentacion::Gr(prod.cantidad),
+                    "Kg" => Presentacion::Kg(prod.cantidad),
+                    "Lt" => Presentacion::Lt(prod.cantidad),
+                    "Ml" => Presentacion::Ml(prod.cantidad as i16),
+                    "Un" => Presentacion::Un(prod.cantidad as i16),
+                    _ => {
+                        return Err(AppError::IncorrectError(
+                            "Error de consistencia en DB".to_string(),
+                        ))
+                    }
                 },
             );
             prods.push(Valuable::Prod((model.cantidad, prod)));
@@ -368,7 +373,7 @@ impl Db {
                         tipo_producto: Set(producto.tipo_producto().to_string()),
                         marca: Set(producto.marca().to_string()),
                         variedad: Set(producto.variedad().to_string()),
-                        presentacion: Set(producto.presentacion().to_string()),
+                        presentacion: Set(producto.presentacion().get_string()),
                         updated_at: Set(Utc::now().naive_local()),
                         cantidad: Set(producto.presentacion().get_cantidad()),
                         ..Default::default()

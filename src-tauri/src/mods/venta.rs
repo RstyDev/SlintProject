@@ -45,7 +45,6 @@ impl<'a> Venta {
         db: &DatabaseConnection,
         pos: bool,
     ) -> Res<Venta> {
-        //todo!("Buscar venta para evitar repeticion de ventas")
         let venta = entity::venta::Entity::find()
             .order_by_desc(entity::venta::Column::Id)
             .one(db)
@@ -99,71 +98,7 @@ impl<'a> Venta {
         {
             Some(model) => match model.cerrada {
                 true => Venta::new(vendedor, db, pos).await,
-                false => Ok({
-                    let prods = entity::relacion_venta_prod::Entity::find()
-                        .filter(
-                            entity::relacion_venta_prod::Column::Venta
-                                .into_simple_expr()
-                                .eq(model.id),
-                        )
-                        .find_also_related(entity::producto::Entity)
-                        .all(db)
-                        .await?;
-                    let mut productos = Vec::new();
-                    for (x, p_mod) in prods {
-                        productos.push(Valuable::Prod((
-                            x.cantidad,
-                            Mapper::map_model_prod(&p_mod.unwrap(), db).await?,
-                        )));
-                    }
-                    let pagos = entity::pago::Entity::find()
-                        .filter(entity::pago::Column::Venta.into_simple_expr().eq(model.id))
-                        .find_also_related(entity::medio_pago::Entity)
-                        .all(db)
-                        .await?
-                        .iter()
-                        .map(|(x, y)| {
-                            Pago::new(
-                                MedioPago::new(
-                                    y.as_ref().unwrap().medio.as_str(),
-                                    y.as_ref().unwrap().id,
-                                ),
-                                x.monto,
-                            )
-                        })
-                        .collect::<Vec<Pago>>();
-
-                    let cliente = match model.cliente {
-                        Some(cli) => {
-                            let cli = entity::cliente::Entity::find_by_id(cli)
-                                .one(db)
-                                .await?
-                                .unwrap();
-                            Cliente::new(Some(Cli::new(
-                                cli.id,
-                                Arc::from(cli.nombre),
-                                cli.dni,
-                                cli.credito,
-                                cli.activo,
-                                cli.created,
-                                cli.limite,
-                            )))
-                        }
-                        None => Cliente::new(None),
-                    };
-
-                    Venta::build(
-                        model.id,
-                        model.monto_total,
-                        productos,
-                        pagos,
-                        model.monto_pagado,
-                        vendedor,
-                        cliente,
-                        model.paga,
-                        model.cerrada,
-                    )
-                }),
+                false => Mapper::map_model_sale(&model, db, vendedor).await,
             },
             None => Venta::new(vendedor, db, pos).await,
         }
@@ -190,6 +125,12 @@ impl<'a> Venta {
             cliente,
             cerrada,
         }
+    }
+    pub fn empty(&mut self) {
+        self.monto_pagado = 0.0;
+        self.productos.clear();
+        self.monto_total = 0.0;
+        self.pagos.clear();
     }
     pub fn monto_total(&self) -> f64 {
         self.monto_total
@@ -366,6 +307,93 @@ impl<'a> Venta {
                 instancia: index.to_string(),
             })
         }
+    }
+    pub async fn guardar(&self, pos: bool, db: &DatabaseConnection) -> Res<()> {
+        let venta_model = entity::venta::ActiveModel {
+            id: Set(self.id),
+            monto_total: Set(self.monto_total),
+            monto_pagado: Set(self.monto_pagado),
+            time: Set(Utc::now().naive_local()),
+            cliente: Set(match &self.cliente {
+                Cliente::Final => None,
+                Cliente::Regular(c) => Some(*c.id()),
+            }),
+            cerrada: Set(self.cerrada),
+            paga: Set(self.paga),
+            pos: Set(pos),
+        };
+        venta_model.insert(db).await?;
+        let pagos_model = self
+            .pagos
+            .iter()
+            .map(|pago| entity::pago::ActiveModel {
+                medio_pago: Set(*pago.medio_pago().id()),
+                monto: Set(pago.monto()),
+                venta: Set(self.id),
+                ..Default::default()
+            })
+            .collect::<Vec<entity::pago::ActiveModel>>();
+        entity::pago::Entity::insert_many(pagos_model)
+            .exec(db)
+            .await?;
+        let relaciones_prod_model = self
+            .productos
+            .iter()
+            .filter_map(|prod| match prod {
+                Valuable::Prod(p) => Some(entity::relacion_venta_prod::ActiveModel {
+                    producto: Set(*p.1.id()),
+                    cantidad: Set(p.0),
+                    precio: Set(*p.1.precio_de_venta()),
+                    venta: Set(self.id),
+                    ..Default::default()
+                }),
+                _ => None,
+            })
+            .collect::<Vec<entity::relacion_venta_prod::ActiveModel>>();
+        entity::relacion_venta_prod::Entity::insert_many(relaciones_prod_model)
+            .exec(db)
+            .await?;
+        let relaciones_rub_model = self
+            .productos
+            .iter()
+            .filter_map(|prod| match prod {
+                Valuable::Rub(rub) => {
+                    let precio = match rub.1.monto() {
+                        Some(a) => Set(*a),
+                        None => NotSet,
+                    };
+                    Some(entity::relacion_venta_rub::ActiveModel {
+                        cantidad: Set(rub.0),
+                        precio: precio,
+                        rubro: Set(*rub.1.id()),
+                        venta: Set(self.id),
+                        ..Default::default()
+                    })
+                }
+                _ => None,
+            })
+            .collect::<Vec<entity::relacion_venta_rub::ActiveModel>>();
+        entity::relacion_venta_rub::Entity::insert_many(relaciones_rub_model)
+            .exec(db)
+            .await?;
+        let relaciones_pes_model = self
+            .productos
+            .iter()
+            .filter_map(|prod| match prod {
+                Valuable::Pes(pes) => Some(entity::relacion_venta_pes::ActiveModel {
+                    cantidad: Set(pes.0),
+                    precio: Set(*pes.1.precio_peso()),
+                    pesable: Set(*pes.1.id()),
+                    venta: Set(self.id),
+                    ..Default::default()
+                }),
+                _ => None,
+            })
+            .collect::<Vec<entity::relacion_venta_pes::ActiveModel>>();
+        entity::relacion_venta_pes::Entity::insert_many(relaciones_pes_model)
+            .exec(db)
+            .await?;
+        Ok(())
     }
 }
 impl Save for Venta {

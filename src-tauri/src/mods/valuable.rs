@@ -140,6 +140,7 @@ impl Display for Presentacion {
         }
     }
 }
+
 impl Default for Presentacion {
     fn default() -> Self {
         Presentacion::Un(i16::default())
@@ -157,14 +158,24 @@ pub enum Presentacion {
 }
 
 impl Presentacion {
-    pub fn get_cantidad(&self) -> f64 {
+    pub fn get_cantidad(&self) -> f32 {
         match self {
-            Presentacion::Gr(c) => *c as f64,
-            Presentacion::Un(c) => *c as f64,
-            Presentacion::Lt(c) => *c as f64,
-            Presentacion::Ml(c) => *c as f64,
-            Presentacion::CC(c) => *c as f64,
-            Presentacion::Kg(c) => *c as f64,
+            Presentacion::Gr(c) => *c,
+            Presentacion::Un(c) => *c as f32,
+            Presentacion::Lt(c) => *c,
+            Presentacion::Ml(c) => *c as f32,
+            Presentacion::CC(c) => *c as f32,
+            Presentacion::Kg(c) => *c,
+        }
+    }
+    pub fn get_string(&self) -> String {
+        match self {
+            Presentacion::Gr(_) => String::from("Gr"),
+            Presentacion::Un(_) => String::from("Un"),
+            Presentacion::Lt(_) => String::from("Lt"),
+            Presentacion::Ml(_) => String::from("Ml"),
+            Presentacion::CC(_) => String::from("CC"),
+            Presentacion::Kg(_) => String::from("Kg"),
         }
     }
 }
