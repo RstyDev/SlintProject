@@ -114,6 +114,7 @@ impl Save for Producto {
             variedad: Set(self.variedad.to_string()),
             presentacion: Set(format!("{}", self.presentacion)),
             updated_at: Set(Utc::now().naive_local()),
+            cantidad: Set(self.presentacion().get_cantidad()),
             ..Default::default()
         };
         let res = entity::producto::Entity::insert(model).exec(&db).await?;

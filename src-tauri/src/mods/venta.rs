@@ -436,7 +436,7 @@ impl Save for Venta {
             .iter()
             .filter_map(|x| match x {
                 V::Prod(a) => Some(entity::relacion_venta_prod::ActiveModel {
-                    producto: Set(a.1.nombre_completo()),
+                    producto: Set(*a.1.id()),
                     venta: Set(self.id),
                     cantidad: Set(a.0),
                     precio: Set(*a.1.precio_de_venta()),
@@ -455,7 +455,7 @@ impl Save for Venta {
             .filter_map(|x| match x {
                 V::Rub(a) => Some(entity::relacion_venta_rub::ActiveModel {
                     cantidad: Set(a.0),
-                    rubro: Set(a.1.id()),
+                    rubro: Set(*a.1.id()),
                     venta: Set(self.id),
                     precio: Set(*a.1.monto().unwrap()),
                     ..Default::default()
@@ -478,8 +478,9 @@ impl Save for Venta {
             .filter_map(|x| match x {
                 V::Pes(a) => Some(entity::relacion_venta_pes::ActiveModel {
                     cantidad: Set(a.0),
-                    pesable: Set(a.1.descripcion().to_string()),
+                    pesable: Set(*a.1.id()),
                     venta: Set(self.id),
+                    precio: Set(*a.1.precio_peso()),
                     ..Default::default()
                 }),
                 _ => None,

@@ -632,6 +632,7 @@ impl<'a> Sistema {
             variedad: Set(variedad.to_owned()),
             presentacion: Set(presentacion.to_string()),
             updated_at: Set(Utc::now().naive_local()),
+            cantidad: Set(presentacion.get_cantidad()),
             ..Default::default()
         };
         let res_prod = entity::producto::Entity::insert(prod_model)

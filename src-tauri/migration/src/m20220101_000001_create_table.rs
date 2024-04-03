@@ -73,6 +73,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Producto::Marca).string().not_null())
                     .col(ColumnDef::new(Producto::Variedad).string().not_null())
                     .col(ColumnDef::new(Producto::Presentacion).string().not_null())
+                    .col(ColumnDef::new(Producto::Cantidad).double().not_null())
                     .col(ColumnDef::new(Producto::UpdatedAt).date_time().not_null())
                     .to_owned(),
             )
@@ -572,6 +573,7 @@ enum Producto {
     Marca,
     Variedad,
     Presentacion,
+    Cantidad,
     UpdatedAt,
 }
 #[derive(DeriveIden)]

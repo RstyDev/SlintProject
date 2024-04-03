@@ -17,6 +17,7 @@ type Res<T> = std::result::Result<T, AppError>;
 
 use crate::mods::valuable::Valuable;
 
+use super::cliente::{Cli, Cliente};
 use super::error::AppError;
 use super::pago::{MedioPago, Pago};
 use super::pesable::Pesable;
@@ -170,20 +171,24 @@ impl Mapper {
     pub async fn map_model_sale(
         venta: &entity::venta::Model,
         db: &DatabaseConnection,
+        user: Option<Arc<User>>,
     ) -> Res<Venta> {
         let pagos_mod = entity::pago::Entity::find()
             .filter(entity::pago::Column::Venta.eq(venta.id))
             .all(db)
             .await?;
-        let pagos = Vec::new();
+        let mut pagos = Vec::new();
         for pago_mod in pagos_mod {
             let medio = entity::medio_pago::Entity::find_by_id(pago_mod.medio_pago)
                 .one(db)
                 .await?
                 .unwrap();
-            pagos.push(Pago::new(MedioPago::new(&medio.medio, medio.id), pago_mod.monto));
+            pagos.push(Pago::new(
+                MedioPago::new(&medio.medio, medio.id),
+                pago_mod.monto,
+            ));
         }
-        let prods = Vec::new();
+        let mut prods = Vec::new();
         for model in entity::relacion_venta_pes::Entity::find()
             .filter(entity::relacion_venta_pes::Column::Venta.eq(venta.id))
             .all(db)
@@ -230,8 +235,9 @@ impl Mapper {
                 prod.tipo_producto.as_str(),
                 prod.marca.as_str(),
                 prod.variedad.as_str(),
-                match prod.presentacion.as_str(){
-                    "CC"=>Presentacion::CC(prod.)
+                match prod.presentacion.as_str() {
+                    "CC" => Presentacion::CC(prod.cantidad as i16),
+                    _ => todo!(),
                 },
             );
             prods.push(Valuable::Prod((model.cantidad, prod)));
@@ -245,9 +251,32 @@ impl Mapper {
                 .one(db)
                 .await?
                 .unwrap();
-            let rub = Rubro::new(rub.id, rub.codigo, rub.monto, rub.descripcion);
+            let rub = Rubro::new(
+                rub.id,
+                rub.codigo,
+                rub.monto,
+                Arc::from(rub.descripcion.as_str()),
+            );
             prods.push(Valuable::Rub((model.cantidad, rub)));
         }
+        let cliente = match venta.cliente {
+            None => Cliente::Final,
+            Some(c) => {
+                let model = entity::cliente::Entity::find_by_id(c)
+                    .one(db)
+                    .await?
+                    .unwrap();
+                Cliente::Regular(Cli::new(
+                    model.id,
+                    Arc::from(model.nombre.as_str()),
+                    model.dni,
+                    model.credito,
+                    model.activo,
+                    model.created,
+                    model.limite,
+                ))
+            }
+        };
 
         let venta = Venta::build(
             venta.id,
@@ -255,8 +284,8 @@ impl Mapper {
             prods,
             pagos,
             venta.monto_pagado,
-            venta.vendedor,
-            venta.cliente,
+            user,
+            cliente,
             venta.paga,
             venta.cerrada,
         );
@@ -341,6 +370,7 @@ impl Db {
                         variedad: Set(producto.variedad().to_string()),
                         presentacion: Set(producto.presentacion().to_string()),
                         updated_at: Set(Utc::now().naive_local()),
+                        cantidad: Set(producto.presentacion().get_cantidad()),
                         ..Default::default()
                     };
 

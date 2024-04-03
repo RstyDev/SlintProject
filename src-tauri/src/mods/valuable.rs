@@ -155,3 +155,16 @@ pub enum Presentacion {
     CC(i16),
     Kg(f32),
 }
+
+impl Presentacion {
+    pub fn get_cantidad(&self) -> f64 {
+        match self {
+            Presentacion::Gr(c) => *c as f64,
+            Presentacion::Un(c) => *c as f64,
+            Presentacion::Lt(c) => *c as f64,
+            Presentacion::Ml(c) => *c as f64,
+            Presentacion::CC(c) => *c as f64,
+            Presentacion::Kg(c) => *c as f64,
+        }
+    }
+}
