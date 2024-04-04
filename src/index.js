@@ -4,7 +4,7 @@ const { emit, listen } = window.__TAURI__.event;
 
 
 
-let mensaje1,vacia,user,focuseado,timeoutId,configs,idUlt,buscador;
+let mensaje1, vacia, user, focuseado, timeoutId, configs, idUlt, buscador;
 let posA = true;
 let posicionVenta = 0;
 let codigosProv = [];
@@ -427,6 +427,7 @@ function dibujar_venta(venta) {
 
   let pagos = document.getElementById('pagos');
   for (let i = 0; i < venta.pagos.length; i++) {
+    console.log(venta.pagos)
     console.log(venta.pagos[i].medio_pago.medio);
     pagos.innerHTML += `
   <form class="pago">
@@ -883,7 +884,7 @@ function cerrar_sesion() {
 }
 function dibujar_base() {
   get_user().then(usuario => {
-    
+
     user = usuario;
 
     document.getElementsByTagName('body')[0].innerHTML = `<header class="container">
