@@ -215,9 +215,13 @@ impl<'a> Venta {
             }
         }
     }
-    pub fn eliminar_pago(&mut self, index: usize) {
+    pub fn eliminar_pago(&mut self, index: usize)->Res<()> {
+        if index >= self.pagos.len(){
+            return Err(AppError::IncorrectError(String::from("Error de index del pago")))
+        }
         let pago = self.pagos.remove(index);
         self.monto_pagado -= pago.monto();
+        Ok(())
     }
     pub fn restar_producto(&mut self, index: usize, politica: &f64) -> Result<Venta, AppError> {
         if self.productos().len() > index {

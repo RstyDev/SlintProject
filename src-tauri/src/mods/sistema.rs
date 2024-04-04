@@ -549,10 +549,10 @@ impl<'a> Sistema {
     pub fn eliminar_pago(&mut self, pos: bool, index: usize) -> Res<Venta> {
         let res;
         if pos {
-            self.ventas.0.eliminar_pago(index);
+            self.ventas.0.eliminar_pago(index)?;
             res = self.ventas.0.clone()
         } else {
-            self.ventas.1.eliminar_pago(index);
+            self.ventas.1.eliminar_pago(index)?;
             res = self.ventas.1.clone()
         }
 
