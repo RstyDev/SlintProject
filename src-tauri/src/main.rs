@@ -464,10 +464,11 @@ fn descontar_producto_de_venta(
     Ok(res)
 }
 #[tauri::command]
-fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, index: usize) -> Res<Venta> {
+fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Venta> {
+    let id = id.parse::<u32>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    let res = sis.eliminar_pago(pos, index)?;
+    let res = sis.eliminar_pago(pos, id)?;
     Ok(res)
 }
 #[tauri::command]

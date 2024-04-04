@@ -1,10 +1,10 @@
+use super::lib::Save;
 use entity::{medio_pago::Model, pago};
+use rand::random;
 use sea_orm::{ActiveModelTrait, ColumnTrait, Database, DbErr, EntityTrait, QueryFilter, Set};
 use serde::Serialize;
 use std::sync::Arc;
 use tauri::async_runtime;
-
-use super::lib::Save;
 #[derive(Debug, Clone, Serialize)]
 pub struct MedioPago {
     medio: Arc<str>,
@@ -23,13 +23,19 @@ impl MedioPago {
 }
 #[derive(Debug, Clone, Serialize)]
 pub struct Pago {
+    int_id: u32,
     medio_pago: MedioPago,
     monto: f64,
 }
 
 impl Pago {
     pub fn new(medio_pago: MedioPago, monto: f64) -> Pago {
-        Pago { medio_pago, monto }
+        let int_id = random();
+        Pago {
+            medio_pago,
+            monto,
+            int_id,
+        }
     }
     pub fn medio_pago(&self) -> &MedioPago {
         &self.medio_pago
@@ -39,6 +45,9 @@ impl Pago {
     }
     pub fn monto(&self) -> f64 {
         self.monto
+    }
+    pub fn id(&self)->u32{
+        self.int_id
     }
 }
 impl Save for Pago {
@@ -77,9 +86,11 @@ impl Default for Pago {
             medio: Arc::from(res.medio),
             id: res.id,
         };
+        let int_id = random();
         Pago {
             medio_pago,
             monto: 0.0,
+            int_id,
         }
     }
 }

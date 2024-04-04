@@ -215,11 +215,21 @@ impl<'a> Venta {
             }
         }
     }
-    pub fn eliminar_pago(&mut self, index: usize)->Res<()> {
-        if index >= self.pagos.len(){
-            return Err(AppError::IncorrectError(String::from("Error de index del pago")))
+    pub fn eliminar_pago(&mut self, id: u32) -> Res<()> {
+        let mut pago = Pago::default();
+        let mut esta = false;
+        for i in 0..self.pagos.len() {
+            if self.pagos[i].id() == id {
+                pago = self.pagos.remove(i);
+                esta = true;
+                break;
+            }
         }
-        let pago = self.pagos.remove(index);
+        if !esta {
+            return Err(AppError::IncorrectError(String::from(
+                "Error de id de pago",
+            )));
+        }
         self.monto_pagado -= pago.monto();
         Ok(())
     }

@@ -546,13 +546,13 @@ impl<'a> Sistema {
         }
         res
     }
-    pub fn eliminar_pago(&mut self, pos: bool, index: usize) -> Res<Venta> {
+    pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Venta> {
         let res;
         if pos {
-            self.ventas.0.eliminar_pago(index)?;
+            self.ventas.0.eliminar_pago(id)?;
             res = self.ventas.0.clone()
         } else {
-            self.ventas.1.eliminar_pago(index)?;
+            self.ventas.1.eliminar_pago(id)?;
             res = self.ventas.1.clone()
         }
 
