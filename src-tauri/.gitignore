@@ -4,3 +4,4 @@
 
 .history/*
 migration/target/*
+db.sqlite
