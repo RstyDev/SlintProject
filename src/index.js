@@ -73,8 +73,8 @@ async function agregar_pago(medio_pago, monto) {
 
   return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos": posA });
 }
-async function eliminar_pago(index) {
-  return await invoke("eliminar_pago", { "pos_izq": posA, "index": index });
+async function eliminar_pago(id) {
+  return await invoke("eliminar_pago", { "pos": posA, "id": id });
 }
 async function get_configs() {
   return await invoke("get_configs");
@@ -430,7 +430,7 @@ function dibujar_venta(venta) {
     console.log(venta.pagos)
     console.log(venta.pagos[i].medio_pago.medio);
     pagos.innerHTML += `
-  <form class="pago">
+  <form class="pago" id="${venta.pagos[i].int_id}">
   <input class="input-monto" type="number" step="0.01" disabled value="${venta.pagos[i].monto}" required></input>
   <input class="opciones-pagos" value="${venta.pagos[i].medio_pago.medio}" disabled>
   </input>
@@ -456,7 +456,8 @@ function dibujar_venta(venta) {
     let btns = document.getElementsByClassName('boton-eliminar-pago');
     btns[i].addEventListener('click', (e) => {
       e.preventDefault();
-      eliminar_pago(i).then(venta => dibujar_venta(venta));
+      console.log(e.target.parentNode)
+      eliminar_pago(e.target.parentNode.id).then(venta => dibujar_venta(venta));
       setFoco(buscador, document.getElementById('productos'));
     })
   }
