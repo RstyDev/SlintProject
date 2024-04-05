@@ -18,6 +18,17 @@ pub struct Caja {
     monto_cierre: Option<f64>,
     cajero: Option<Arc<str>>,
 }
+#[derive(Debug, Clone, Serialize)]
+pub struct Movimiento {
+    id: i64,
+    caja: i64,
+    tipo: TipoMovimiento,
+}
+#[derive(Debug, Clone, Serialize)]
+pub enum TipoMovimiento {
+    Ingreso(f64),
+    Egreso(f64),
+}
 impl fmt::Debug for Caja {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Caja")

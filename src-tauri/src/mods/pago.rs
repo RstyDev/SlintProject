@@ -10,6 +10,7 @@ pub struct MedioPago {
     medio: Arc<str>,
     id: i64,
 }
+
 impl MedioPago {
     pub fn new(medio: &str, id: i64) -> MedioPago {
         MedioPago {
@@ -46,7 +47,7 @@ impl Pago {
     pub fn monto(&self) -> f64 {
         self.monto
     }
-    pub fn id(&self)->u32{
+    pub fn id(&self) -> u32 {
         self.int_id
     }
 }
