@@ -31,6 +31,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Movimiento::Tipo).boolean().not_null())
                     .col(ColumnDef::new(Movimiento::Monto).double().not_null())
+                    .col(ColumnDef::new(Movimiento::Time).date_time().not_null())
                     .to_owned(),
             )
             .await
@@ -48,4 +49,5 @@ enum Movimiento {
     Caja,
     Tipo,
     Monto,
+    Time,
 }

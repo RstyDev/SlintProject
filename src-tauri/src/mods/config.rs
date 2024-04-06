@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +11,7 @@ pub struct Config {
     formato_producto: Formato,
     modo_mayus: Mayusculas,
     cantidad_productos: u8,
-    medios_pago: Vec<String>,
+    medios_pago: Vec<Arc<str>>,
 }
 
 impl Config {
@@ -21,8 +22,8 @@ impl Config {
                     .all(db)
                     .await?
                     .iter()
-                    .map(|x| x.medio.clone())
-                    .collect::<Vec<String>>();
+                    .map(|x| Arc::from(x.medio.as_str()))
+                    .collect::<Vec<Arc<str>>>();
                 Ok(Config {
                     politica_redondeo: a.politica_redondeo,
                     formato_producto: match a.formato_producto.as_str() {
@@ -57,7 +58,7 @@ impl Config {
     pub fn cantidad_productos(&self) -> &u8 {
         &self.cantidad_productos
     }
-    pub fn medios_pago(&self) -> &Vec<String> {
+    pub fn medios_pago(&self)->&Vec<Arc<str>>{
         &self.medios_pago
     }
     pub fn politica(&self) -> f64 {
@@ -78,9 +79,9 @@ impl Default for Config {
             modo_mayus: Mayusculas::default(),
             cantidad_productos: 10,
             medios_pago: vec![
-                "Efectivo".to_owned(),
-                "Crédito".to_owned(),
-                "Débito".to_owned(),
+                Arc::from("Efectivo"),
+                Arc::from("Crédito"),
+                Arc::from("Débito"),
             ],
         }
     }

@@ -4,10 +4,13 @@ use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, DatabaseConnection, EntityTrait, IntoActiveModel,
     QueryOrder, Set,
 };
+
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 type Res<T> = std::result::Result<T, AppError>;
-use super::error::AppError;
+use super::{config::Config, error::AppError};
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Totales(HashMap<String, f64>);
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Caja {
     id: i64,
@@ -17,6 +20,7 @@ pub struct Caja {
     monto_inicio: f64,
     monto_cierre: Option<f64>,
     cajero: Option<Arc<str>>,
+    totales: HashMap<Arc<str>,f64>,
 }
 #[derive(Debug, Clone, Serialize)]
 pub struct Movimiento {
@@ -47,8 +51,14 @@ impl Caja {
     pub async fn new(
         db: Arc<DatabaseConnection>,
         monto_inicio: Option<f64>,
+        config: &Config,
     ) -> Result<Caja, AppError> {
         let caja;
+        let mut totales = HashMap::new();
+        for medio in config.medios_pago(){
+            totales.insert(Arc::clone(medio), 0.0);
+        }
+        
         caja = match entity::caja::Entity::find()
             .order_by_desc(entity::caja::Column::Id)
             .one(db.as_ref())
@@ -64,6 +74,7 @@ impl Caja {
                         monto_inicio,
                         monto_cierre: None,
                         cajero: None,
+                        totales,
                     }),
                     None => Err(AppError::InicialationError(
                         "Nueva caja requiere un monto de inicio".to_string(),
@@ -77,6 +88,7 @@ impl Caja {
                     monto_inicio: res.monto_inicio,
                     monto_cierre: None,
                     cajero: None,
+                    totales,
                 }),
             },
             None => match monto_inicio {
@@ -88,6 +100,7 @@ impl Caja {
                     monto_inicio,
                     monto_cierre: None,
                     cajero: None,
+                    totales,
                 }),
                 None => Err(AppError::InicialationError(
                     "Nueva caja requiere monto de inicio".to_string(),
@@ -145,11 +158,16 @@ impl Caja {
             }
         }
     }
+
     pub async fn update_total(
         &mut self,
         db: &DatabaseConnection,
         monto: f64,
+        medio: Arc<str>,
     ) -> Result<(), AppError> {
+        let act=self.totales.remove(&medio).unwrap();
+        self.totales.insert(medio,act+monto);
+
         self.ventas_totales += monto;
         let model = entity::caja::Entity::find_by_id(self.id)
             .one(db)

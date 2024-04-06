@@ -55,19 +55,20 @@ impl<'a> Sistema {
         leer_file(&mut proveedores, path_proveedores)?;
 
         let aux = Arc::clone(&write_db);
-        let caja = async_runtime::spawn(Caja::new(aux, Some(0.0)));
+        let db = Arc::clone(&write_db);
+        let configs=async_runtime::block_on(Config::get_or_def(db.as_ref()))?;
+        let caja = async_runtime::block_on(Caja::new(aux, Some(0.0),&configs))?;
         let stash = Vec::new();
         let registro = Vec::new();
-        let caja = async_runtime::block_on(caja)??;
+        
         println!("{:#?}", caja);
         let w1 = Arc::clone(&write_db);
-        let db = Arc::clone(&write_db);
         let sis = Sistema {
             user: None,
             write_db,
             read_db,
             caja,
-            configs: async_runtime::block_on(Config::get_or_def(db.as_ref()))?,
+            configs,
             ventas: (
                 async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), true))?,
                 async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), false))?,
@@ -115,7 +116,7 @@ impl<'a> Sistema {
         async_runtime::block_on(self.caja.set_n_save(db.as_ref(), monto_actual))?;
         self.generar_reporte_caja();
         self.caja =
-            async_runtime::block_on(Caja::new(Arc::clone(&self.write_db), Some(monto_actual)))?;
+            async_runtime::block_on(Caja::new(Arc::clone(&self.write_db), Some(monto_actual),&self.configs))?;
         Ok(())
     }
     pub fn eliminar_usuario(&self, user: User) -> Res<()> {
