@@ -35,7 +35,7 @@ impl MigrationTrait for Migration {
     }
 }
 #[derive(DeriveIden)]
-enum Caja {
+pub enum Caja {
     Table,
     Id,
     Inicio,

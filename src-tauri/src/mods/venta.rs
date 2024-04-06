@@ -138,9 +138,9 @@ impl<'a> Venta {
     pub fn productos(&self) -> Vec<Valuable> {
         self.productos.clone()
     }
-    // pub fn get_pagos(&self)->Vec<Pago>{
-    //     self.pagos.clone()
-    // }
+    pub fn pagos(&self)->Vec<Pago>{
+        self.pagos.clone()
+    }
     pub fn monto_pagado(&self) -> f64 {
         self.monto_pagado
     }

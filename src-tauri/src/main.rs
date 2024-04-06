@@ -1,8 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use mods::{
-    caja::Caja, cliente::Cli, config::Config, lib::get_hash, pesable::Pesable, rubro::Rubro,
-    sistema::Sistema, user::Rango, user::User, valuable::Valuable, venta::Venta,
+    caja::Caja, cliente::Cli, config::Config, lib::get_hash, pago::Pago, pesable::Pesable, rubro::Rubro, sistema::Sistema, user::{Rango, User}, valuable::Valuable, venta::Venta
 };
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
@@ -132,11 +131,12 @@ fn agregar_pago(
     medio_pago: &str,
     monto: &str,
     pos: bool,
-) -> Res<f64> {
+) -> Res<Vec<Pago>> {
     let monto = monto.parse::<f64>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(sis.agregar_pago(medio_pago, monto, pos)?)
+    sis.agregar_pago(medio_pago, monto, pos)?;
+    Ok(sis.venta(pos).pagos())
 }
 #[tauri::command]
 fn agregar_pesable<'a>(
@@ -464,12 +464,11 @@ fn descontar_producto_de_venta(
     Ok(res)
 }
 #[tauri::command]
-fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Venta> {
+fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>> {
     let id = id.parse::<u32>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    let res = sis.eliminar_pago(pos, id)?;
-    Ok(res)
+    sis.eliminar_pago(pos, id).map_err(|e|e.to_string())
 }
 #[tauri::command]
 fn eliminar_producto_de_venta(
@@ -541,12 +540,6 @@ fn get_filtrado(
         "tipo_producto" => Ok(sis.filtrar_tipo_producto(filtro)?),
         _ => Err(format!("Parámetro incorrecto {tipo_filtro}")),
     }
-}
-#[tauri::command]
-fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
-    let sis = sistema.lock().map_err(|e| e.to_string())?;
-    sis.access();
-    Ok(sis.configs().medios_pago().clone())
 }
 #[tauri::command]
 fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<Valuable>> {
@@ -1258,7 +1251,6 @@ fn main() {
             get_descripcion_valuable,
             get_deuda,
             get_filtrado,
-            get_medios_pago,
             get_productos_filtrado,
             get_proveedores,
             get_rango,

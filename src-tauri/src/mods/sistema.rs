@@ -1,18 +1,6 @@
 type Res<T> = std::result::Result<T, AppError>;
 use super::{
-    caja::Caja,
-    cliente::Cli,
-    config::Config,
-    error::AppError,
-    lib::{crear_file, get_hash, leer_file, Db, Mapper},
-    pesable::Pesable,
-    producto::Producto,
-    proveedor::Proveedor,
-    relacion_prod_prov::RelacionProdProv,
-    rubro::Rubro,
-    user::{Rango, User},
-    valuable::{Presentacion, Valuable, ValuableTrait},
-    venta::Venta,
+    caja::Caja, cliente::Cli, config::Config, error::AppError, lib::{crear_file, get_hash, leer_file, Db, Mapper}, pago::Pago, pesable::Pesable, producto::Producto, proveedor::Proveedor, relacion_prod_prov::RelacionProdProv, rubro::Rubro, user::{Rango, User}, valuable::{Presentacion, Valuable, ValuableTrait}, venta::Venta
 };
 use chrono::Utc;
 use entity::*;
@@ -546,14 +534,14 @@ impl<'a> Sistema {
         }
         res
     }
-    pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Venta> {
+    pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Vec<Pago>> {
         let res;
         if pos {
             self.ventas.0.eliminar_pago(id)?;
-            res = self.ventas.0.clone()
+            res = self.venta(pos).pagos()
         } else {
             self.ventas.1.eliminar_pago(id)?;
-            res = self.ventas.1.clone()
+            res = self.venta(pos).pagos()
         }
 
         Ok(res)
