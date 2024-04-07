@@ -21,6 +21,9 @@ impl MedioPago {
     pub fn id(&self) -> &i64 {
         &self.id
     }
+    pub fn desc(&self)->Arc<str>{
+        Arc::clone(&self.medio)
+    }
 }
 #[derive(Debug, Clone, Serialize)]
 pub struct Pago {

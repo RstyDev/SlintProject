@@ -1,6 +1,6 @@
 type Res<T> = std::result::Result<T, AppError>;
 use super::{
-    caja::Caja, cliente::Cli, config::Config, error::AppError, lib::{crear_file, get_hash, leer_file, Db, Mapper}, pago::Pago, pesable::Pesable, producto::Producto, proveedor::Proveedor, relacion_prod_prov::RelacionProdProv, rubro::Rubro, user::{Rango, User}, valuable::{Presentacion, Valuable, ValuableTrait}, venta::Venta
+    caja::{Caja, Movimiento}, cliente::Cli, config::Config, error::AppError, lib::{crear_file, get_hash, leer_file, Db, Mapper}, pago::Pago, pesable::Pesable, producto::Producto, proveedor::Proveedor, relacion_prod_prov::RelacionProdProv, rubro::Rubro, user::{Rango, User}, valuable::{Presentacion, Valuable, ValuableTrait}, venta::Venta
 };
 use chrono::Utc;
 use entity::*;
@@ -882,7 +882,7 @@ impl<'a> Sistema {
         async_runtime::block_on(self.venta(pos).guardar(pos, self.write_db()))?;
         self.registro.push(self.venta(pos).clone());
         println!("{:#?}", self.venta(pos));
-        async_runtime::block_on(self.update_total(self.venta(pos).monto_total()))?;
+        async_runtime::block_on(self.update_total(self.venta(pos).monto_total(),&self.venta(pos).pagos()))?;
         self.set_venta(
             pos,
             async_runtime::block_on(Venta::get_or_new(
@@ -892,6 +892,10 @@ impl<'a> Sistema {
             ))?,
         );
         Ok(())
+    }
+    pub fn hacer_ingreso(&self,monto:f64,descripcion:Option<Arc<str>>)->Res<()>{
+        let mov=Movimiento::Ingreso { descripcion, monto };
+        async_runtime::block_on(self.caja.hacer_ingreso(mov, &self.write_db))
     }
     pub fn get_deuda(&self, cliente: Cli) -> Res<f64> {
         async_runtime::block_on(cliente.get_deuda(&self.read_db))
@@ -929,7 +933,7 @@ impl<'a> Sistema {
     pub fn stash(&self) -> &Vec<Venta> {
         &self.stash
     }
-    pub async fn update_total(&mut self, monto: f64) -> Result<(), AppError> {
-        self.caja.update_total(&self.write_db, monto).await
+    pub async fn update_total(&mut self, monto: f64,pagos:&Vec<Pago>) -> Result<(), AppError> {
+        self.caja.update_total(&self.write_db, monto,pagos).await
     }
 }

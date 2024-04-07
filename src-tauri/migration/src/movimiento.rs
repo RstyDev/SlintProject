@@ -2,6 +2,7 @@ use sea_orm_migration::prelude::*;
 
 use crate::caja::Caja;
 
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -31,6 +32,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Movimiento::Tipo).boolean().not_null())
                     .col(ColumnDef::new(Movimiento::Monto).double().not_null())
+                    .col(ColumnDef::new(Movimiento::Descripcion).string())
                     .col(ColumnDef::new(Movimiento::Time).date_time().not_null())
                     .to_owned(),
             )
@@ -49,5 +51,6 @@ enum Movimiento {
     Caja,
     Tipo,
     Monto,
+    Descripcion,
     Time,
 }

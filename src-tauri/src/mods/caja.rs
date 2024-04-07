@@ -8,7 +8,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 type Res<T> = std::result::Result<T, AppError>;
-use super::{config::Config, error::AppError};
+use super::{config::Config, error::AppError, pago::Pago};
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Totales(HashMap<String, f64>);
 #[derive(Clone, Serialize, Deserialize)]
@@ -22,16 +22,11 @@ pub struct Caja {
     cajero: Option<Arc<str>>,
     totales: HashMap<Arc<str>,f64>,
 }
+
 #[derive(Debug, Clone, Serialize)]
-pub struct Movimiento {
-    id: i64,
-    caja: i64,
-    tipo: TipoMovimiento,
-}
-#[derive(Debug, Clone, Serialize)]
-pub enum TipoMovimiento {
-    Ingreso(f64),
-    Egreso(f64),
+pub enum Movimiento {
+    Ingreso{descripcion:Option<Arc<str>>,monto:f64},
+    Egreso{descripcion:Option<Arc<str>>,monto:f64},
 }
 impl fmt::Debug for Caja {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -135,7 +130,32 @@ impl Caja {
         }
         Ok(aux)
     }
-
+    pub async fn hacer_ingreso(&self, mov:Movimiento, db:&DatabaseConnection)->Res<()>{
+        let monto_model;
+        let tipo ;
+        let desc;
+        match mov{
+            Movimiento::Ingreso { descripcion, monto } => {
+                monto_model=Set(monto);
+                tipo = Set(true);
+                desc = match descripcion{
+                    Some(d) => Set(Some(d.to_string())),
+                    None => NotSet,
+                }
+            },
+            Movimiento::Egreso { descripcion, monto } => {
+                monto_model=Set(monto);
+                tipo= Set(false);
+                desc=match descripcion{
+                    Some(d) => Set(Some(d.to_string())),
+                    None => NotSet,
+                }
+            },
+        }
+        entity::movimiento::ActiveModel{  caja: Set(self.id), tipo, monto:monto_model, time: Set(Utc::now().naive_local()), descripcion: desc, ..Default::default() }.insert(db).await?;
+    
+        Ok(())
+    }
     pub fn set_cajero(&mut self, cajero: Arc<str>) {
         self.cajero = Some(cajero);
     }
@@ -163,11 +183,14 @@ impl Caja {
         &mut self,
         db: &DatabaseConnection,
         monto: f64,
-        medio: Arc<str>,
+        pagos: &Vec<Pago>,
     ) -> Result<(), AppError> {
-        let act=self.totales.remove(&medio).unwrap();
-        self.totales.insert(medio,act+monto);
-
+        // let act=self.totales.remove(&medio).unwrap();
+        // self.totales.insert(medio,act+monto);
+        for pago in pagos{
+            let act=self.totales.remove(&pago.medio_pago().desc()).unwrap();
+            self.totales.insert(pago.medio_pago().desc(), pago.monto()+act);
+        }
         self.ventas_totales += monto;
         let model = entity::caja::Entity::find_by_id(self.id)
             .one(db)

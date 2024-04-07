@@ -8,6 +8,7 @@ pub mod codigo_barras;
 pub mod config;
 pub mod deuda;
 pub mod medio_pago;
+pub mod movimiento;
 pub mod pago;
 pub mod pesable;
 pub mod producto;

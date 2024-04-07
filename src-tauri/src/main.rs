@@ -1,5 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use std::sync::Arc;
 use mods::{
     caja::Caja, cliente::Cli, config::Config, lib::get_hash, pago::Pago, pesable::Pesable, rubro::Rubro, sistema::Sistema, user::{Rango, User}, valuable::Valuable, venta::Venta
 };
@@ -616,6 +617,13 @@ fn get_venta_actual(
     }
     println!("{:#?}", venta);
     Ok(venta)
+}
+#[tauri::command]
+fn hacer_ingreso(sistema:State<Mutex<Sistema>>,
+    monto:f64,descripcion:Option<&str>
+)->Res<()>{
+    let sis=sistema.lock().map_err(|e|e.to_string())?;
+    Ok(sis.hacer_ingreso(monto, descripcion.map(|d|Arc::from(d)))?)
 }
 #[tauri::command]
 fn incrementar_producto_a_venta(
@@ -1257,6 +1265,7 @@ fn main() {
             get_stash,
             get_user,
             get_venta_actual,
+            hacer_ingreso,
             incrementar_producto_a_venta,
             open_add_prov,
             open_add_select,

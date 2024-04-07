@@ -11,6 +11,7 @@ pub struct Model {
     pub tipo: bool,
     #[sea_orm(column_type = "Double")]
     pub monto: f64,
+    pub descripcion: Option<String>,
     pub time: NaiveDateTime,
 }
 
