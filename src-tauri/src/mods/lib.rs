@@ -167,7 +167,7 @@ impl Mapper {
     pub async fn map_model_sale(
         venta: &entity::venta::Model,
         db: &DatabaseConnection,
-        user: Option<Arc<User>>,
+        user: &Option<Arc<User>>,
     ) -> Res<Venta> {
         let pagos_mod = entity::pago::Entity::find()
             .filter(entity::pago::Column::Venta.eq(venta.id))
@@ -289,7 +289,7 @@ impl Mapper {
             prods,
             pagos,
             venta.monto_pagado,
-            user,
+            user.clone(),
             cliente,
             venta.paga,
             venta.cerrada,

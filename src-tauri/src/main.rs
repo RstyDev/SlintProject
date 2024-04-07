@@ -532,11 +532,18 @@ fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
 }
 #[tauri::command]
 fn get_deuda(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<f64> {
-    sistema
+    let sis=sistema
         .lock()
-        .map_err(|e| e.to_string())?
-        .get_deuda(cliente)
+        .map_err(|e| e.to_string())?;
+    sis.access();
+    sis.get_deuda(cliente)
         .map_err(|e| e.to_string())
+}
+#[tauri::command]
+fn get_deuda_detalle(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<Vec<Venta>>{
+    let sis=sistema.lock().map_err(|e|e.to_string())?;
+    sis.access();
+    sis.get_deuda_detalle(cliente).map_err(|e|e.to_string())
 }
 #[tauri::command]
 fn get_filtrado(
@@ -1271,6 +1278,7 @@ fn main() {
             get_configs,
             get_descripcion_valuable,
             get_deuda,
+            get_deuda_detalle,
             get_filtrado,
             get_productos_filtrado,
             get_proveedores,

@@ -1,11 +1,12 @@
 use chrono::NaiveDateTime;
 use sea_orm::{
-    ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect, Set,
+    ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect,
+    Set,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::error::AppError;
+use super::{error::AppError, lib::Mapper, user::User, venta::Venta};
 type Res<T> = std::result::Result<T, AppError>;
 #[derive(Serialize, Clone, Debug)]
 pub enum Cliente {
@@ -113,6 +114,25 @@ impl Cli {
             .iter()
             .map(|m| m.monto)
             .sum::<f64>())
+    }
+    pub async fn get_deuda_detalle(
+        &self,
+        db: &DatabaseConnection,
+        user: Option<Arc<User>>,
+    ) -> Res<Vec<Venta>> {
+        let mut ventas = Vec::new();
+        let models = entity::venta::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(entity::venta::Column::Cliente.eq(self.id))
+                    .add(entity::venta::Column::Paga.eq(false)),
+            )
+            .all(db)
+            .await?;
+        for model in models {
+            ventas.push(Mapper::map_model_sale(&model, db, &user).await?);
+        }
+        Ok(ventas)
     }
 }
 

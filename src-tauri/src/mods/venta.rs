@@ -98,7 +98,7 @@ impl<'a> Venta {
         {
             Some(model) => match model.cerrada {
                 true => Venta::new(vendedor, db, pos).await,
-                false => Mapper::map_model_sale(&model, db, vendedor).await,
+                false => Mapper::map_model_sale(&model, db, &vendedor).await,
             },
             None => Venta::new(vendedor, db, pos).await,
         }
