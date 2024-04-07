@@ -42,6 +42,6 @@ impl MigratorTrait for Migrator {
             Box::new(rubro::Migration),
             Box::new(user::Migration),
             Box::new(venta::Migration),
-            ]
+        ]
     }
 }

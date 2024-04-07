@@ -1,6 +1,6 @@
-use std::sync::Arc;
 use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 use super::error::AppError;
 type Res<T> = std::result::Result<T, AppError>;
@@ -58,7 +58,7 @@ impl Config {
     pub fn cantidad_productos(&self) -> &u8 {
         &self.cantidad_productos
     }
-    pub fn medios_pago(&self)->&Vec<Arc<str>>{
+    pub fn medios_pago(&self) -> &Vec<Arc<str>> {
         &self.medios_pago
     }
     pub fn politica(&self) -> f64 {

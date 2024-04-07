@@ -1,11 +1,21 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use std::sync::Arc;
 use mods::{
-    caja::Caja, cliente::Cli, config::Config, lib::get_hash, pago::Pago, pesable::Pesable, rubro::Rubro, sistema::Sistema, user::{Rango, User}, valuable::Valuable, venta::Venta
+    caja::Caja,
+    cliente::Cli,
+    config::Config,
+    lib::get_hash,
+    pago::Pago,
+    pesable::Pesable,
+    rubro::Rubro,
+    sistema::Sistema,
+    user::{Rango, User},
+    valuable::Valuable,
+    venta::Venta,
 };
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
+use std::sync::Arc;
 type Res<T> = std::result::Result<T, String>;
 use std::sync::Mutex;
 use tauri::{
@@ -469,7 +479,7 @@ fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec
     let id = id.parse::<u32>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    sis.eliminar_pago(pos, id).map_err(|e|e.to_string())
+    sis.eliminar_pago(pos, id).map_err(|e| e.to_string())
 }
 #[tauri::command]
 fn eliminar_producto_de_venta(
@@ -619,11 +629,14 @@ fn get_venta_actual(
     Ok(venta)
 }
 #[tauri::command]
-fn hacer_ingreso(sistema:State<Mutex<Sistema>>,
-    monto:f64,descripcion:Option<&str>
-)->Res<()>{
-    let sis=sistema.lock().map_err(|e|e.to_string())?;
-    Ok(sis.hacer_ingreso(monto, descripcion.map(|d|Arc::from(d)))?)
+fn hacer_egreso(sistema: State<Mutex<Sistema>>, monto: f64, descripcion: Option<&str>) -> Res<()> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    Ok(sis.hacer_egreso(monto, descripcion.map(|d| Arc::from(d)))?)
+}
+#[tauri::command]
+fn hacer_ingreso(sistema: State<Mutex<Sistema>>, monto: f64, descripcion: Option<&str>) -> Res<()> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    Ok(sis.hacer_ingreso(monto, descripcion.map(|d| Arc::from(d)))?)
 }
 #[tauri::command]
 fn incrementar_producto_a_venta(
@@ -1265,6 +1278,7 @@ fn main() {
             get_stash,
             get_user,
             get_venta_actual,
+            hacer_egreso,
             hacer_ingreso,
             incrementar_producto_a_venta,
             open_add_prov,

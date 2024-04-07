@@ -138,7 +138,7 @@ impl<'a> Venta {
     pub fn productos(&self) -> Vec<Valuable> {
         self.productos.clone()
     }
-    pub fn pagos(&self)->Vec<Pago>{
+    pub fn pagos(&self) -> Vec<Pago> {
         self.pagos.clone()
     }
     pub fn monto_pagado(&self) -> f64 {
@@ -323,20 +323,45 @@ impl<'a> Venta {
         }
     }
     pub async fn guardar(&self, pos: bool, db: &DatabaseConnection) -> Res<()> {
-        let venta_model = entity::venta::ActiveModel {
-            id: Set(self.id),
-            monto_total: Set(self.monto_total),
-            monto_pagado: Set(self.monto_pagado),
-            time: Set(Utc::now().naive_local()),
-            cliente: Set(match &self.cliente {
-                Cliente::Final => None,
-                Cliente::Regular(c) => Some(*c.id()),
-            }),
-            cerrada: Set(self.cerrada),
-            paga: Set(self.paga),
-            pos: Set(pos),
+        match entity::venta::Entity::find_by_id(self.id).one(db).await? {
+            Some(model) => {
+                let mut model = model.into_active_model();
+                model.monto_pagado = Set(self.monto_pagado);
+                model.monto_total = Set(self.monto_total);
+                model.time = Set(Utc::now().naive_local());
+                model.cliente = Set(match &self.cliente {
+                    Cliente::Final => None,
+                    Cliente::Regular(cli) => Some(*cli.id()),
+                });
+                model.cerrada = Set(self.cerrada);
+                model.paga = Set(self.paga);
+                model.pos = Set(pos);
+                if let Err(e) = model.update(db).await {
+                    println!("Error update venta {:#?}", e);
+                    return Err(e.into());
+                }
+            }
+            None => {
+                let venta_model = entity::venta::ActiveModel {
+                    id: Set(self.id),
+                    monto_total: Set(self.monto_total),
+                    monto_pagado: Set(self.monto_pagado),
+                    time: Set(Utc::now().naive_local()),
+                    cliente: Set(match &self.cliente {
+                        Cliente::Final => None,
+                        Cliente::Regular(c) => Some(*c.id()),
+                    }),
+                    cerrada: Set(self.cerrada),
+                    paga: Set(self.paga),
+                    pos: Set(pos),
+                };
+                if let Err(e) = venta_model.insert(db).await {
+                    println!("Error de insert venta: {:#?}", e);
+                    return Err(e.into());
+                }
+            }
         };
-        venta_model.insert(db).await?;
+
         let pagos_model = self
             .pagos
             .iter()
@@ -347,9 +372,13 @@ impl<'a> Venta {
                 ..Default::default()
             })
             .collect::<Vec<entity::pago::ActiveModel>>();
-        entity::pago::Entity::insert_many(pagos_model)
+        if let Err(e) = entity::pago::Entity::insert_many(pagos_model)
             .exec(db)
-            .await?;
+            .await
+        {
+            println!("Error insert pagos: {:#?}", e);
+            return Err(e.into());
+        }
         let relaciones_prod_model = self
             .productos
             .iter()
@@ -364,9 +393,12 @@ impl<'a> Venta {
                 _ => None,
             })
             .collect::<Vec<entity::relacion_venta_prod::ActiveModel>>();
-        entity::relacion_venta_prod::Entity::insert_many(relaciones_prod_model)
+        if let Err(e) = entity::relacion_venta_prod::Entity::insert_many(relaciones_prod_model)
             .exec(db)
-            .await?;
+            .await
+        {
+            println!("Error insert relacionVentaProd {:#?}", e);
+        }
         let relaciones_rub_model = self
             .productos
             .iter()
@@ -387,9 +419,12 @@ impl<'a> Venta {
                 _ => None,
             })
             .collect::<Vec<entity::relacion_venta_rub::ActiveModel>>();
-        entity::relacion_venta_rub::Entity::insert_many(relaciones_rub_model)
+        if let Err(e) = entity::relacion_venta_rub::Entity::insert_many(relaciones_rub_model)
             .exec(db)
-            .await?;
+            .await
+        {
+            println!("Error insert relacionVentaRub {:#?}", e);
+        }
         let relaciones_pes_model = self
             .productos
             .iter()
@@ -404,9 +439,12 @@ impl<'a> Venta {
                 _ => None,
             })
             .collect::<Vec<entity::relacion_venta_pes::ActiveModel>>();
-        entity::relacion_venta_pes::Entity::insert_many(relaciones_pes_model)
+        if let Err(e) = entity::relacion_venta_pes::Entity::insert_many(relaciones_pes_model)
             .exec(db)
-            .await?;
+            .await
+        {
+            println!("Error insert relacionVentaPes {:#?}", e);
+        }
         Ok(())
     }
 }

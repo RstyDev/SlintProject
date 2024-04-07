@@ -1,6 +1,19 @@
 type Res<T> = std::result::Result<T, AppError>;
 use super::{
-    caja::{Caja, Movimiento}, cliente::Cli, config::Config, error::AppError, lib::{crear_file, get_hash, leer_file, Db, Mapper}, pago::Pago, pesable::Pesable, producto::Producto, proveedor::Proveedor, relacion_prod_prov::RelacionProdProv, rubro::Rubro, user::{Rango, User}, valuable::{Presentacion, Valuable, ValuableTrait}, venta::Venta
+    caja::{Caja, Movimiento},
+    cliente::Cli,
+    config::Config,
+    error::AppError,
+    lib::{crear_file, get_hash, leer_file, Db, Mapper},
+    pago::Pago,
+    pesable::Pesable,
+    producto::Producto,
+    proveedor::Proveedor,
+    relacion_prod_prov::RelacionProdProv,
+    rubro::Rubro,
+    user::{Rango, User},
+    valuable::{Presentacion, Valuable, ValuableTrait},
+    venta::Venta,
 };
 use chrono::Utc;
 use entity::*;
@@ -56,11 +69,11 @@ impl<'a> Sistema {
 
         let aux = Arc::clone(&write_db);
         let db = Arc::clone(&write_db);
-        let configs=async_runtime::block_on(Config::get_or_def(db.as_ref()))?;
-        let caja = async_runtime::block_on(Caja::new(aux, Some(0.0),&configs))?;
+        let configs = async_runtime::block_on(Config::get_or_def(db.as_ref()))?;
+        let caja = async_runtime::block_on(Caja::new(aux, Some(0.0), &configs))?;
         let stash = Vec::new();
         let registro = Vec::new();
-        
+
         println!("{:#?}", caja);
         let w1 = Arc::clone(&write_db);
         let sis = Sistema {
@@ -115,8 +128,11 @@ impl<'a> Sistema {
         let db = Arc::clone(&self.write_db);
         async_runtime::block_on(self.caja.set_n_save(db.as_ref(), monto_actual))?;
         self.generar_reporte_caja();
-        self.caja =
-            async_runtime::block_on(Caja::new(Arc::clone(&self.write_db), Some(monto_actual),&self.configs))?;
+        self.caja = async_runtime::block_on(Caja::new(
+            Arc::clone(&self.write_db),
+            Some(monto_actual),
+            &self.configs,
+        ))?;
         Ok(())
     }
     pub fn eliminar_usuario(&self, user: User) -> Res<()> {
@@ -533,6 +549,7 @@ impl<'a> Sistema {
                 self.cerrar_venta(pos)?
             }
         }
+        println!("Aca esta la caja {:#?} -----****", self.caja);
         res
     }
     pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Vec<Pago>> {
@@ -882,7 +899,9 @@ impl<'a> Sistema {
         async_runtime::block_on(self.venta(pos).guardar(pos, self.write_db()))?;
         self.registro.push(self.venta(pos).clone());
         println!("{:#?}", self.venta(pos));
-        async_runtime::block_on(self.update_total(self.venta(pos).monto_total(),&self.venta(pos).pagos()))?;
+        async_runtime::block_on(
+            self.update_total(self.venta(pos).monto_total(), &self.venta(pos).pagos()),
+        )?;
         self.set_venta(
             pos,
             async_runtime::block_on(Venta::get_or_new(
@@ -893,9 +912,13 @@ impl<'a> Sistema {
         );
         Ok(())
     }
-    pub fn hacer_ingreso(&self,monto:f64,descripcion:Option<Arc<str>>)->Res<()>{
-        let mov=Movimiento::Ingreso { descripcion, monto };
-        async_runtime::block_on(self.caja.hacer_ingreso(mov, &self.write_db))
+    pub fn hacer_ingreso(&self, monto: f64, descripcion: Option<Arc<str>>) -> Res<()> {
+        let mov = Movimiento::Ingreso { descripcion, monto };
+        async_runtime::block_on(self.caja.hacer_movimiento(mov, &self.write_db))
+    }
+    pub fn hacer_egreso(&self, monto: f64, descripcion: Option<Arc<str>>) -> Res<()> {
+        let mov = Movimiento::Egreso { descripcion, monto };
+        async_runtime::block_on(self.caja.hacer_movimiento(mov, &self.write_db))
     }
     pub fn get_deuda(&self, cliente: Cli) -> Res<f64> {
         async_runtime::block_on(cliente.get_deuda(&self.read_db))
@@ -907,7 +930,11 @@ impl<'a> Sistema {
         self.stash.push(self.venta(pos));
         self.set_venta(
             pos,
-            async_runtime::block_on(Venta::get_or_new(Some(self.arc_user()), self.write_db(), pos))?,
+            async_runtime::block_on(Venta::get_or_new(
+                Some(self.arc_user()),
+                self.write_db(),
+                pos,
+            ))?,
         );
         Ok(())
     }
@@ -933,7 +960,7 @@ impl<'a> Sistema {
     pub fn stash(&self) -> &Vec<Venta> {
         &self.stash
     }
-    pub async fn update_total(&mut self, monto: f64,pagos:&Vec<Pago>) -> Result<(), AppError> {
-        self.caja.update_total(&self.write_db, monto,pagos).await
+    pub async fn update_total(&mut self, monto: f64, pagos: &Vec<Pago>) -> Result<(), AppError> {
+        self.caja.update_total(&self.write_db, monto, pagos).await
     }
 }

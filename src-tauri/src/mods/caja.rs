@@ -20,13 +20,19 @@ pub struct Caja {
     monto_inicio: f64,
     monto_cierre: Option<f64>,
     cajero: Option<Arc<str>>,
-    totales: HashMap<Arc<str>,f64>,
+    totales: HashMap<Arc<str>, f64>,
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub enum Movimiento {
-    Ingreso{descripcion:Option<Arc<str>>,monto:f64},
-    Egreso{descripcion:Option<Arc<str>>,monto:f64},
+    Ingreso {
+        descripcion: Option<Arc<str>>,
+        monto: f64,
+    },
+    Egreso {
+        descripcion: Option<Arc<str>>,
+        monto: f64,
+    },
 }
 impl fmt::Debug for Caja {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -50,10 +56,10 @@ impl Caja {
     ) -> Result<Caja, AppError> {
         let caja;
         let mut totales = HashMap::new();
-        for medio in config.medios_pago(){
+        for medio in config.medios_pago() {
             totales.insert(Arc::clone(medio), 0.0);
         }
-        
+
         caja = match entity::caja::Entity::find()
             .order_by_desc(entity::caja::Column::Id)
             .one(db.as_ref())
@@ -130,30 +136,39 @@ impl Caja {
         }
         Ok(aux)
     }
-    pub async fn hacer_ingreso(&self, mov:Movimiento, db:&DatabaseConnection)->Res<()>{
+    pub async fn hacer_movimiento(&self, mov: Movimiento, db: &DatabaseConnection) -> Res<()> {
         let monto_model;
-        let tipo ;
+        let tipo;
         let desc;
-        match mov{
+        match mov {
             Movimiento::Ingreso { descripcion, monto } => {
-                monto_model=Set(monto);
+                monto_model = Set(monto);
                 tipo = Set(true);
-                desc = match descripcion{
+                desc = match descripcion {
                     Some(d) => Set(Some(d.to_string())),
-                    None => NotSet,
+                    None => Set(None),
                 }
-            },
+            }
             Movimiento::Egreso { descripcion, monto } => {
-                monto_model=Set(monto);
-                tipo= Set(false);
-                desc=match descripcion{
+                monto_model = Set(monto);
+                tipo = Set(false);
+                desc = match descripcion {
                     Some(d) => Set(Some(d.to_string())),
-                    None => NotSet,
+                    None => Set(None),
                 }
-            },
+            }
         }
-        entity::movimiento::ActiveModel{  caja: Set(self.id), tipo, monto:monto_model, time: Set(Utc::now().naive_local()), descripcion: desc, ..Default::default() }.insert(db).await?;
-    
+        entity::movimiento::ActiveModel {
+            caja: Set(self.id),
+            tipo,
+            monto: monto_model,
+            time: Set(Utc::now().naive_local()),
+            descripcion: desc,
+            ..Default::default()
+        }
+        .insert(db)
+        .await?;
+
         Ok(())
     }
     pub fn set_cajero(&mut self, cajero: Arc<str>) {
@@ -187,9 +202,10 @@ impl Caja {
     ) -> Result<(), AppError> {
         // let act=self.totales.remove(&medio).unwrap();
         // self.totales.insert(medio,act+monto);
-        for pago in pagos{
-            let act=self.totales.remove(&pago.medio_pago().desc()).unwrap();
-            self.totales.insert(pago.medio_pago().desc(), pago.monto()+act);
+        for pago in pagos {
+            let act = self.totales.remove(&pago.medio_pago().desc()).unwrap();
+            self.totales
+                .insert(pago.medio_pago().desc(), pago.monto() + act);
         }
         self.ventas_totales += monto;
         let model = entity::caja::Entity::find_by_id(self.id)
