@@ -15,6 +15,7 @@ use std::sync::Arc;
 use tauri::async_runtime;
 
 use Valuable as V;
+const CUENTA: &str= "Cuenta Corriente";
 
 use crate::mods::pago::medio_from_db;
 
@@ -126,6 +127,9 @@ impl<'a> Venta {
             cerrada,
         }
     }
+    pub fn id(&self)->&i64{
+        &self.id
+    }
     pub fn empty(&mut self) {
         self.monto_pagado = 0.0;
         self.productos.clear();
@@ -147,14 +151,17 @@ impl<'a> Venta {
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> Res<f64> {
         let es_cred: bool;
         match medio_pago {
-            "Cuenta Corriente" => match &self.cliente {
+            CUENTA => match &self.cliente {
                 Cliente::Final => {
                     return Err(AppError::IncorrectError(String::from(
                         "No esta permitido cuenta corriente en este cliente",
                     )))
                 }
                 Cliente::Regular(cli) => match cli.credito() {
-                    true => es_cred = true,
+                    true => {
+                        let medio_pago=MedioPago::new(CUENTA,0);
+                        self.pagos.push(Pago::new(medio_pago, monto));
+                        es_cred = true},
                     false => {
                         return Err(AppError::IncorrectError(String::from(
                             "No esta permitido cuenta corriente en este cliente",
@@ -175,7 +182,7 @@ impl<'a> Venta {
         if !es_cred && res <= 0.0 {
             self.paga = true;
         }
-
+        println!("Venta despues del pago {:#?}",self);
         if res <= 0.0 {
             self.cerrada = true;
         }
@@ -463,7 +470,7 @@ impl Save for Venta {
         venta.time = Set(Utc::now().naive_local());
         let mut pay_models = vec![];
         for pago in &self.pagos {
-            if pago.medio().as_ref().eq("Cuenta Corriente") {
+            if pago.medio().as_ref().eq(CUENTA) {
                 pay_models.push(pago::ActiveModel {
                     medio_pago: Set(0),
                     monto: Set(pago.monto()),

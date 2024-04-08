@@ -1,9 +1,9 @@
 use chrono::NaiveDateTime;
 use sea_orm::{
-    ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect,
-    Set,
+    ColumnTrait, Condition, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect, Set
 };
 use serde::{Deserialize, Serialize};
+use tauri::App;
 use std::sync::Arc;
 
 use super::{error::AppError, lib::Mapper, user::User, venta::Venta};
@@ -134,6 +134,26 @@ impl Cli {
         }
         Ok(ventas)
     }
+    //todo!();
+    // pub async fn pagar_deuda_especifica(
+    //     &self,db: &DatabaseConnection,venta:Venta
+    // )->Res<Venta>{
+    //     let model=match entity::venta::Entity::find_by_id(*venta.id()).one(db).await?{
+    //         Some(model) => model,
+    //         None => return Err(AppError::IncorrectError(String::from("Id inexistente"))),
+    //     };
+    //     match model.cliente{
+    //         Some(cli) => if cli==self.id{
+    //             let model=model.into_active_model();
+    //             model.paga=true;
+
+    //         }else{
+    //             return Err(AppError::IncorrectError("Cliente Incorrecto".to_string()))
+    //         },
+    //         None => return Err(AppError::IncorrectError(String::from("Cliente Incorrecto"))),
+    //     }
+
+    // }
 }
 
 impl<'a> Cliente {
