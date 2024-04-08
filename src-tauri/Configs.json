@@ -5,6 +5,7 @@
     "modo_mayus": "Camel",
     "cantidad_productos": 20,
     "medios_pago": [
+      "Cuenta Corriente",
       "Efectivo",
       "Crédito",
       "Débito"

@@ -506,17 +506,15 @@ function dibujar_venta(venta) {
     cambiar_venta(vb);
   })
 
-
+  let start = venta.cliente != 'Final' && venta.cliente.Regular.limite != 'Unauth'
   let opciones = document.getElementsByClassName('opciones-pagos');
-  for (let i = 0; i < configs.medios_pago.length; i++) {
+  for (let i = 1; i < configs.medios_pago.length; i++) {
     opciones[opciones.length - 1].innerHTML += `<option value='${configs.medios_pago[i]}'>${configs.medios_pago[i]}</option>`
   }
-  if (venta.cliente != 'Final' && venta.cliente.Regular.limite != 'Unauth') {
-    opciones[opciones.length - 1].innerHTML += `<option value='Cuenta Corriente'>Cuenta Corriente</option>`
-  }
+  if (start) { opciones[opciones.length - 1].innerHTML += `<option value='${configs.medios_pago[0]}'>${configs.medios_pago[0]}</option>` }
   for (let i = 0; i < venta.pagos; i++) {
-    pagos.innerHTML += venta.pagos[i];
-  }
+      pagos.innerHTML += venta.pagos[i];
+    }
 
 
 

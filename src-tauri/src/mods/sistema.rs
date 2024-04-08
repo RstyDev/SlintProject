@@ -25,7 +25,7 @@ use sea_orm::{
 use std::{collections::HashSet, sync::Arc};
 use tauri::{async_runtime, async_runtime::JoinHandle};
 use Valuable as V;
-
+const CUENTA: &str = "Cuenta Corriente";
 pub struct Sistema {
     user: Option<Arc<User>>,
     write_db: Arc<DatabaseConnection>,
@@ -208,6 +208,18 @@ impl<'a> Sistema {
                     model.insert(write_db2.as_ref()).await?;
                 }
             }
+            if entity::medio_pago::Entity::find()
+                    .filter(entity::medio_pago::Column::Medio.eq(CUENTA))
+                    .one(read_db2.as_ref())
+                    .await?
+                    .is_none()
+                {
+                    let model = entity::medio_pago::ActiveModel {
+                        medio: Set(CUENTA.to_string()),
+                        id: Set(0),
+                    };
+                    model.insert(write_db2.as_ref()).await?;
+                }
             return Ok(());
         });
         if async_runtime::block_on(entity::user::Entity::find().count(read_db.as_ref()))? == 0 {
@@ -543,7 +555,7 @@ impl<'a> Sistema {
                 res = self.ventas.1.agregar_pago(medio_pago, monto);
             }
         }
-
+        println!("{:#?}",res);
         if let Ok(a) = res {
             if a <= 0.0 {
                 self.cerrar_venta(pos)?
