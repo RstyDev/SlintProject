@@ -149,7 +149,7 @@ impl<'a> Venta {
         self.monto_pagado
     }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> Res<f64> {
-        let es_cred: bool;
+        let mut es_cred: bool=false;
         match medio_pago {
             CUENTA => match &self.cliente {
                 Cliente::Final => {
@@ -161,7 +161,8 @@ impl<'a> Venta {
                     true => {
                         let medio_pago=MedioPago::new(CUENTA,0);
                         self.pagos.push(Pago::new(medio_pago, monto));
-                        es_cred = true},
+                        
+                    },
                     false => {
                         return Err(AppError::IncorrectError(String::from(
                             "No esta permitido cuenta corriente en este cliente",
@@ -173,18 +174,26 @@ impl<'a> Venta {
                 let model = async_runtime::block_on(medio_from_db(medio_pago));
                 let medio_pago = MedioPago::new(&model.medio, model.id);
                 self.pagos.push(Pago::new(medio_pago, monto));
-                es_cred = false
+                
             }
         }
 
         self.monto_pagado += monto;
         let res = self.monto_total - self.monto_pagado;
-        if !es_cred && res <= 0.0 {
-            self.paga = true;
-        }
+        
         println!("Venta despues del pago {:#?}",self);
         if res <= 0.0 {
             self.cerrada = true;
+        }
+        
+        for pago in &self.pagos{
+            if pago.medio().eq_ignore_ascii_case(CUENTA){
+                es_cred = true;
+                break;
+            }
+        }
+        if self.cerrada && !es_cred{
+            self.paga= true;
         }
         Ok(res)
     }
