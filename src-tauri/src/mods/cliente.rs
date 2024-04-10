@@ -1,6 +1,6 @@
 use chrono::NaiveDateTime;
 use sea_orm::{
-    ColumnTrait, Condition, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect, Set
+    ColumnTrait, Condition, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect, Set, ActiveModelTrait
 };
 use serde::{Deserialize, Serialize};
 use tauri::App;
@@ -134,26 +134,42 @@ impl Cli {
         }
         Ok(ventas)
     }
-    //todo!();
-    // pub async fn pagar_deuda_especifica(
-    //     &self,db: &DatabaseConnection,venta:Venta
-    // )->Res<Venta>{
-    //     let model=match entity::venta::Entity::find_by_id(*venta.id()).one(db).await?{
-    //         Some(model) => model,
-    //         None => return Err(AppError::IncorrectError(String::from("Id inexistente"))),
-    //     };
-    //     match model.cliente{
-    //         Some(cli) => if cli==self.id{
-    //             let model=model.into_active_model();
-    //             model.paga=true;
+    
+     pub async fn pagar_deuda_especifica(
+         &self,db: &DatabaseConnection,venta:Venta,user:Option<Arc<User>>
+     )->Res<Venta>{
+         let model=match entity::venta::Entity::find_by_id(*venta.id()).one(db).await?{
+             Some(model) => model,
+             None => return Err(AppError::IncorrectError(String::from("Id inexistente"))),
+         };
+         let venta=Mapper::map_model_sale(&model, db, &user).await?;
+         match model.cliente{
+             Some(cli) => if cli==self.id{
+                 let mut model=model.into_active_model();
+                 model.paga=Set(true);
+                 model.update(db).await?;
 
-    //         }else{
-    //             return Err(AppError::IncorrectError("Cliente Incorrecto".to_string()))
-    //         },
-    //         None => return Err(AppError::IncorrectError(String::from("Cliente Incorrecto"))),
-    //     }
+             }else{
+                 return Err(AppError::IncorrectError("Cliente Incorrecto".to_string()))
+             },
+            None => return Err(AppError::IncorrectError(String::from("Cliente Incorrecto"))),
+         }
+         Ok(venta)
 
-    // }
+     }
+     pub async fn pagar_deuda_general(&self,db: &DatabaseConnection,mut monto:f64)->Res<f64>{
+         let models=entity::venta::Entity::find().filter(Condition::all()
+             .add(entity::venta::Column::Cliente.eq(self.id))
+             .add(entity::venta::Column::Paga.eq(false))).all(db).await?;
+        for model in models{
+            let mut model = model.into_active_model();
+            let deuda=entity::pago::Entity::find().filter(Condition::all()
+                .add(entity::pago::Column::Venta.eq(model.id.unwrap()))
+                .add(entity::pago::Column::MedioPago.eq(1))).all(db).await?.iter();
+                
+        }
+        Ok(0.0)
+     }
 }
 
 impl<'a> Cliente {

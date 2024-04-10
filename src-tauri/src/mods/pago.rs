@@ -30,15 +30,21 @@ pub struct Pago {
     int_id: u32,
     medio_pago: MedioPago,
     monto: f64,
+    pagado: f64,
 }
 
 impl Pago {
-    pub fn new(medio_pago: MedioPago, monto: f64) -> Pago {
+    pub fn new(medio_pago: MedioPago, monto: f64,pagado:Option<f64>) -> Pago {
         let int_id = random();
+        
         Pago {
             medio_pago,
             monto,
             int_id,
+            pagado: match pagado{
+                Some(a)=>a,
+                None=>monto,
+            }
         }
     }
     pub fn medio_pago(&self) -> &MedioPago {
@@ -95,6 +101,7 @@ impl Default for Pago {
             medio_pago,
             monto: 0.0,
             int_id,
+            pagado:0.0,
         }
     }
 }

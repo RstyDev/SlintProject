@@ -160,7 +160,7 @@ impl<'a> Venta {
                 Cliente::Regular(cli) => match cli.credito() {
                     true => {
                         let medio_pago=MedioPago::new(CUENTA,0);
-                        self.pagos.push(Pago::new(medio_pago, monto));
+                        self.pagos.push(Pago::new(medio_pago, monto,0.0));
                         
                     },
                     false => {
