@@ -1,10 +1,11 @@
 use chrono::NaiveDateTime;
 use sea_orm::{
-    ColumnTrait, Condition, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter, QuerySelect, Set, ActiveModelTrait
+    ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait, IntoActiveModel,
+    QueryFilter, QuerySelect, Set,
 };
 use serde::{Deserialize, Serialize};
-use tauri::App;
 use std::sync::Arc;
+use tauri::App;
 
 use super::{error::AppError, lib::Mapper, user::User, venta::Venta};
 type Res<T> = std::result::Result<T, AppError>;
@@ -134,42 +135,87 @@ impl Cli {
         }
         Ok(ventas)
     }
-    
-     pub async fn pagar_deuda_especifica(
-         &self,db: &DatabaseConnection,venta:Venta,user:Option<Arc<User>>
-     )->Res<Venta>{
-         let model=match entity::venta::Entity::find_by_id(*venta.id()).one(db).await?{
-             Some(model) => model,
-             None => return Err(AppError::IncorrectError(String::from("Id inexistente"))),
-         };
-         let venta=Mapper::map_model_sale(&model, db, &user).await?;
-         match model.cliente{
-             Some(cli) => if cli==self.id{
-                 let mut model=model.into_active_model();
-                 model.paga=Set(true);
-                 model.update(db).await?;
 
-             }else{
-                 return Err(AppError::IncorrectError("Cliente Incorrecto".to_string()))
-             },
+    pub async fn pagar_deuda_especifica(
+        &self,
+        db: &DatabaseConnection,
+        venta: Venta,
+        user: &Option<Arc<User>>,
+    ) -> Res<Venta> {
+        let model = match entity::venta::Entity::find_by_id(*venta.id())
+        .one(db)
+        .await?
+        {
+            Some(model) => model,
+            None => return Err(AppError::IncorrectError(String::from("Id inexistente"))),
+        };
+        match model.cliente {
+            Some(cli) => {
+                if cli == self.id {
+                    let mut model = model.clone().into_active_model();
+                    model.paga = Set(true);
+                    model.update(db).await?;
+                } else {
+                    return Err(AppError::IncorrectError("Cliente Incorrecto".to_string()));
+                }
+            }
             None => return Err(AppError::IncorrectError(String::from("Cliente Incorrecto"))),
-         }
-         Ok(venta)
-
-     }
-     pub async fn pagar_deuda_general(&self,db: &DatabaseConnection,mut monto:f64)->Res<f64>{
-         let models=entity::venta::Entity::find().filter(Condition::all()
-             .add(entity::venta::Column::Cliente.eq(self.id))
-             .add(entity::venta::Column::Paga.eq(false))).all(db).await?;
-        for model in models{
-            let mut model = model.into_active_model();
-            let deuda=entity::pago::Entity::find().filter(Condition::all()
-                .add(entity::pago::Column::Venta.eq(model.id.unwrap()))
-                .add(entity::pago::Column::MedioPago.eq(1))).all(db).await?.iter();
-                
         }
-        Ok(0.0)
-     }
+        let venta = Mapper::map_model_sale(&model, db, &user).await?;
+        Ok(venta)
+    }
+    pub async fn pagar_deuda_general(&self, db: &DatabaseConnection, mut monto: f64) -> Res<f64> {
+        let models = entity::venta::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(entity::venta::Column::Cliente.eq(self.id))
+                    .add(entity::venta::Column::Paga.eq(false)),
+            )
+            .all(db)
+            .await?;
+        let resto = monto - models.iter().map(|model|model.monto_total - model.monto_pagado).sum::<f64>();
+        for model in models {
+            if monto <= 0.0 {
+                break;
+            }
+            let mut model = model.into_active_model();
+            let mut pagos = entity::pago::Entity::find()
+                .filter(
+                    Condition::all()
+                        .add(entity::pago::Column::Venta.eq(model.id.clone().unwrap()))
+                        .add(entity::pago::Column::MedioPago.eq(1)),
+                )
+                .all(db)
+                .await?
+                .iter()
+                .cloned()
+                .map(|pago| pago.into_active_model())
+                .collect::<Vec<entity::pago::ActiveModel>>();
+            let mut completados: u8 = 0;
+            for i in 0..pagos.len() {
+                if monto <= 0.0 {
+                    break;
+                }
+                if pagos[i].pagado.as_ref().unwrap() < *pagos[i].monto.as_ref() {
+                    if monto >= pagos[i].monto.as_ref() - pagos[i].pagado.as_ref().unwrap() {
+                        monto -= pagos[i].monto.as_ref() - pagos[i].pagado.as_ref().unwrap();
+                        pagos[i].pagado = Set(Some(*pagos[i].monto.as_ref()));
+                        completados += 1;
+                        pagos[i].clone().update(db).await?;
+                    } else {
+                        pagos[i].pagado = Set(Some(pagos[i].pagado.as_ref().unwrap() + monto));
+                        monto = 0.0;
+                        pagos[i].clone().update(db).await?;
+                    }
+                }
+            }
+            if completados == pagos.len() as u8 {
+                model.paga = Set(true);
+                model.update(db).await?;
+            }
+        }
+        Ok(resto)
+    }
 }
 
 impl<'a> Cliente {

@@ -1,7 +1,7 @@
 type Res<T> = std::result::Result<T, AppError>;
 use super::{
     caja::{Caja, Movimiento},
-    cliente::Cli,
+    cliente::{Cli, Cliente},
     config::Config,
     error::AppError,
     lib::{crear_file, get_hash, leer_file, Db, Mapper},
@@ -44,6 +44,72 @@ async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
 }
 
 impl<'a> Sistema {
+    pub fn access(&self) {
+        if self.user.is_none() {
+            panic!("Sesión no iniciada");
+        }
+    }
+    pub fn agregar_cliente(
+        &self,
+        nombre: &str,
+        dni: i64,
+        credito: bool,
+        activo: bool,
+        limite: Option<f64>,
+    ) -> Res<Cli> {
+        async_runtime::block_on(Cli::new_to_db(
+            self.write_db(),
+            nombre,
+            dni,
+            credito,
+            activo,
+            Utc::now().naive_local(),
+            limite,
+        ))
+    }
+    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64, pos: bool) -> Res<f64> {
+        let res;
+        if pos {
+            if !medio_pago.eq("Efectivo")
+                && self.ventas.0.monto_pagado() + monto > self.ventas.0.monto_total()
+            {
+                return Err(AppError::AmountError {
+                    a_pagar: self.ventas.0.monto_total() - self.ventas.0.monto_pagado(),
+                    pagado: monto,
+                });
+            } else {
+                res = self.ventas.0.agregar_pago(medio_pago, monto);
+            }
+        } else {
+            if !medio_pago.eq("Efectivo")
+                && self.ventas.1.monto_pagado() + monto > self.ventas.1.monto_total()
+            {
+                return Err(AppError::AmountError {
+                    a_pagar: self.ventas.1.monto_total() - self.ventas.1.monto_pagado(),
+                    pagado: monto,
+                });
+            } else {
+                res = self.ventas.1.agregar_pago(medio_pago, monto);
+            }
+        }
+        println!("{:#?}", res);
+        if let Ok(a) = res {
+            if a <= 0.0 {
+                self.cerrar_venta(pos)?
+            }
+        }
+        println!("Aca esta la caja {:#?} -----****", self.caja);
+        res
+    }
+    pub fn agregar_usuario(&self, id: &str, nombre: &str, pass: &str, rango: &str) -> Res<User> {
+        async_runtime::block_on(User::new_to_db(
+            Arc::from(id),
+            Arc::from(nombre),
+            get_hash(pass),
+            rango,
+            self.write_db(),
+        ))
+    }
     pub fn new() -> Res<Sistema> {
         let write_db = Arc::from(async_runtime::block_on(get_db(
             "sqlite://db.sqlite?mode=rwc",
@@ -109,11 +175,7 @@ impl<'a> Sistema {
             None => None,
         }
     }
-    pub fn access(&self) {
-        if self.user.is_none() {
-            panic!("Sesión no iniciada");
-        }
-    }
+    
 
     pub fn cancelar_venta(&mut self, pos: bool) -> Res<()> {
         if pos {
@@ -139,15 +201,7 @@ impl<'a> Sistema {
         async_runtime::spawn(Db::eliminar_usuario(user, Arc::clone(&self.read_db)));
         Ok(())
     }
-    pub fn agregar_usuario(&self, id: &str, nombre: &str, pass: &str, rango: &str) -> Res<User> {
-        async_runtime::block_on(User::new_to_db(
-            Arc::from(id),
-            Arc::from(nombre),
-            get_hash(pass),
-            rango,
-            self.write_db(),
-        ))
-    }
+    
 
     pub fn caja(&self) -> &Caja {
         &self.caja
@@ -209,17 +263,17 @@ impl<'a> Sistema {
                 }
             }
             if entity::medio_pago::Entity::find()
-                    .filter(entity::medio_pago::Column::Medio.eq(CUENTA))
-                    .one(read_db2.as_ref())
-                    .await?
-                    .is_none()
-                {
-                    let model = entity::medio_pago::ActiveModel {
-                        medio: Set(CUENTA.to_string()),
-                        id: Set(0),
-                    };
-                    model.insert(write_db2.as_ref()).await?;
-                }
+                .filter(entity::medio_pago::Column::Medio.eq(CUENTA))
+                .one(read_db2.as_ref())
+                .await?
+                .is_none()
+            {
+                let model = entity::medio_pago::ActiveModel {
+                    medio: Set(CUENTA.to_string()),
+                    id: Set(0),
+                };
+                model.insert(write_db2.as_ref()).await?;
+            }
             return Ok(());
         });
         if async_runtime::block_on(entity::user::Entity::find().count(read_db.as_ref()))? == 0 {
@@ -240,6 +294,7 @@ impl<'a> Sistema {
         }
         Ok(())
     }
+    
     pub async fn get_clientes(&self) -> Res<Vec<Cli>> {
         Ok(entity::cliente::Entity::find()
             .all(self.read_db())
@@ -530,40 +585,7 @@ impl<'a> Sistema {
         &self.configs
     }
 
-    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64, pos: bool) -> Res<f64> {
-        let res;
-        if pos {
-            if !medio_pago.eq("Efectivo")
-                && self.ventas.0.monto_pagado() + monto > self.ventas.0.monto_total()
-            {
-                return Err(AppError::AmountError {
-                    a_pagar: self.ventas.0.monto_total() - self.ventas.0.monto_pagado(),
-                    pagado: monto,
-                });
-            } else {
-                res = self.ventas.0.agregar_pago(medio_pago, monto);
-            }
-        } else {
-            if !medio_pago.eq("Efectivo")
-                && self.ventas.1.monto_pagado() + monto > self.ventas.1.monto_total()
-            {
-                return Err(AppError::AmountError {
-                    a_pagar: self.ventas.1.monto_total() - self.ventas.1.monto_pagado(),
-                    pagado: monto,
-                });
-            } else {
-                res = self.ventas.1.agregar_pago(medio_pago, monto);
-            }
-        }
-        println!("{:#?}",res);
-        if let Ok(a) = res {
-            if a <= 0.0 {
-                self.cerrar_venta(pos)?
-            }
-        }
-        println!("Aca esta la caja {:#?} -----****", self.caja);
-        res
-    }
+    
     pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Vec<Pago>> {
         let res;
         if pos {
@@ -592,23 +614,23 @@ impl<'a> Sistema {
             res.update(self.write_db()).await.unwrap();
         });
     }
-    pub fn agregar_cliente(
-        &self,
-        nombre: &str,
-        dni: i64,
-        credito: bool,
-        activo: bool,
-        limite: Option<f64>,
-    ) -> Res<Cli> {
-        async_runtime::block_on(Cli::new_to_db(
-            self.write_db(),
-            nombre,
-            dni,
-            credito,
-            activo,
-            Utc::now().naive_local(),
-            limite,
-        ))
+    pub fn pagar_deuda_especifica(&self,cliente:i64,venta: Venta)->Res<Venta>{
+        let cli=async_runtime::block_on(self.get_cliente(cliente))?;
+        match cli{
+            Cliente::Final => return Err(AppError::IncorrectError(String::from("Se esperaba cliente"))),
+            Cliente::Regular(cliente) => async_runtime::block_on(cliente.pagar_deuda_especifica(&self.write_db, venta, &self.user)),
+        }
+    }
+    pub fn pagar_deuda_general(&self,cliente:i64,monto:f64)->Res<f64>{
+        let cli=async_runtime::block_on(self.get_cliente(cliente))?;
+        match cli{
+            Cliente::Final => return Err(AppError::IncorrectError(String::from("Se esperaba cliente"))),
+            Cliente::Regular(cliente) => async_runtime::block_on(cliente.pagar_deuda_general(&self.write_db, monto)),
+        }
+    }
+    async fn get_cliente(&self,id:i64)->Res<Cliente>{
+        let model=entity::cliente::Entity::find_by_id(id).one(self.read_db.as_ref()).await?.unwrap();
+        Ok(Mapper::map_model_cli(model).await)
     }
     pub async fn agregar_producto(
         &mut self,
@@ -935,7 +957,7 @@ impl<'a> Sistema {
     pub fn get_deuda(&self, cliente: Cli) -> Res<f64> {
         async_runtime::block_on(cliente.get_deuda(&self.read_db))
     }
-    pub fn get_deuda_detalle(&self, cliente: Cli)->Res<Vec<Venta>>{
+    pub fn get_deuda_detalle(&self, cliente: Cli) -> Res<Vec<Venta>> {
         async_runtime::block_on(cliente.get_deuda_detalle(&self.read_db, self.user()))
     }
     pub fn arc_user(&self) -> Arc<User> {

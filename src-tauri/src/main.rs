@@ -532,18 +532,15 @@ fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
 }
 #[tauri::command]
 fn get_deuda(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<f64> {
-    let sis=sistema
-        .lock()
-        .map_err(|e| e.to_string())?;
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    sis.get_deuda(cliente)
-        .map_err(|e| e.to_string())
+    sis.get_deuda(cliente).map_err(|e| e.to_string())
 }
 #[tauri::command]
-fn get_deuda_detalle(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<Vec<Venta>>{
-    let sis=sistema.lock().map_err(|e|e.to_string())?;
+fn get_deuda_detalle(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<Vec<Venta>> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    sis.get_deuda_detalle(cliente).map_err(|e|e.to_string())
+    sis.get_deuda_detalle(cliente).map_err(|e| e.to_string())
 }
 #[tauri::command]
 fn get_filtrado(
@@ -1081,6 +1078,18 @@ async fn open_stash<'a>(
         }
         Ok(())
     }
+}
+#[tauri::command]
+fn pagar_deuda_especifica(sistema: State<Mutex<Sistema>>,cliente:i64, venta:Venta)->Res<Venta>{
+    let sis= sistema.lock().map_err(|e|e.to_string())?;
+    sis.access();
+    Ok(sis.pagar_deuda_especifica(cliente,venta)?)
+}
+#[tauri::command]
+fn pagar_deuda_general(sistema: State<Mutex<Sistema>>,cliente:i64, monto:f64)->Res<f64>{
+    let sis= sistema.lock().map_err(|e|e.to_string())?;
+    sis.access();
+    Ok(sis.pagar_deuda_general(cliente, monto)?)
 }
 #[tauri::command]
 fn try_login(

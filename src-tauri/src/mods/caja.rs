@@ -202,9 +202,9 @@ impl Caja {
     ) -> Result<(), AppError> {
         // let act=self.totales.remove(&medio).unwrap();
         // self.totales.insert(medio,act+monto);
-        
+
         for pago in pagos {
-       //     println!("{:#?}",pago.medio_pago());
+            //     println!("{:#?}",pago.medio_pago());
             let act = self.totales.remove(&pago.medio_pago().desc()).unwrap();
             self.totales
                 .insert(pago.medio_pago().desc(), pago.monto() + act);

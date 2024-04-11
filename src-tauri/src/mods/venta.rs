@@ -15,7 +15,7 @@ use std::sync::Arc;
 use tauri::async_runtime;
 
 use Valuable as V;
-const CUENTA: &str= "Cuenta Corriente";
+const CUENTA: &str = "Cuenta Corriente";
 
 use crate::mods::pago::medio_from_db;
 
@@ -127,7 +127,7 @@ impl<'a> Venta {
             cerrada,
         }
     }
-    pub fn id(&self)->&i64{
+    pub fn id(&self) -> &i64 {
         &self.id
     }
     pub fn empty(&mut self) {
@@ -149,7 +149,7 @@ impl<'a> Venta {
         self.monto_pagado
     }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> Res<f64> {
-        let mut es_cred: bool=false;
+        let mut es_cred: bool = false;
         match medio_pago {
             CUENTA => match &self.cliente {
                 Cliente::Final => {
@@ -159,10 +159,9 @@ impl<'a> Venta {
                 }
                 Cliente::Regular(cli) => match cli.credito() {
                     true => {
-                        let medio_pago=MedioPago::new(CUENTA,0);
-                        self.pagos.push(Pago::new(medio_pago, monto,0.0));
-                        
-                    },
+                        let medio_pago = MedioPago::new(CUENTA, 0);
+                        self.pagos.push(Pago::new(medio_pago, monto, Some(0.0)));
+                    }
                     false => {
                         return Err(AppError::IncorrectError(String::from(
                             "No esta permitido cuenta corriente en este cliente",
@@ -173,27 +172,26 @@ impl<'a> Venta {
             _ => {
                 let model = async_runtime::block_on(medio_from_db(medio_pago));
                 let medio_pago = MedioPago::new(&model.medio, model.id);
-                self.pagos.push(Pago::new(medio_pago, monto));
-                
+                self.pagos.push(Pago::new(medio_pago, monto, None));
             }
         }
 
         self.monto_pagado += monto;
         let res = self.monto_total - self.monto_pagado;
-        
-        println!("Venta despues del pago {:#?}",self);
+
+        println!("Venta despues del pago {:#?}", self);
         if res <= 0.0 {
             self.cerrada = true;
         }
-        
-        for pago in &self.pagos{
-            if pago.medio().eq_ignore_ascii_case(CUENTA){
+
+        for pago in &self.pagos {
+            if pago.medio().eq_ignore_ascii_case(CUENTA) {
                 es_cred = true;
                 break;
             }
         }
-        if self.cerrada && !es_cred{
-            self.paga= true;
+        if self.cerrada && !es_cred {
+            self.paga = true;
         }
         Ok(res)
     }
