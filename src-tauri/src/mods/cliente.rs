@@ -1,7 +1,7 @@
 use chrono::NaiveDateTime;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait, IntoActiveModel,
-    QueryFilter, QuerySelect, Set,
+    QueryFilter, QueryOrder, QuerySelect, Set,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -137,21 +137,21 @@ impl Cli {
     }
 
     pub async fn pagar_deuda_especifica(
-        &self,
+        id: i64,
         db: &DatabaseConnection,
         venta: Venta,
         user: &Option<Arc<User>>,
     ) -> Res<Venta> {
         let model = match entity::venta::Entity::find_by_id(*venta.id())
-        .one(db)
-        .await?
+            .one(db)
+            .await?
         {
             Some(model) => model,
             None => return Err(AppError::IncorrectError(String::from("Id inexistente"))),
         };
         match model.cliente {
             Some(cli) => {
-                if cli == self.id {
+                if cli == id {
                     let mut model = model.clone().into_active_model();
                     model.paga = Set(true);
                     model.update(db).await?;
@@ -164,16 +164,22 @@ impl Cli {
         let venta = Mapper::map_model_sale(&model, db, &user).await?;
         Ok(venta)
     }
-    pub async fn pagar_deuda_general(&self, db: &DatabaseConnection, mut monto: f64) -> Res<f64> {
+    pub async fn pagar_deuda_general(id: i64, db: &DatabaseConnection, mut monto: f64) -> Res<f64> {
         let models = entity::venta::Entity::find()
             .filter(
                 Condition::all()
-                    .add(entity::venta::Column::Cliente.eq(self.id))
+                    .add(entity::venta::Column::Cliente.eq(id))
                     .add(entity::venta::Column::Paga.eq(false)),
             )
+            .order_by_asc(entity::venta::Column::Time)
             .all(db)
             .await?;
-        let resto = monto - models.iter().map(|model|model.monto_total - model.monto_pagado).sum::<f64>();
+        println!("{:#?} encontrados {}", models, models.len());
+        let resto = monto
+            - models
+                .iter()
+                .map(|model| model.monto_total - model.monto_pagado)
+                .sum::<f64>();
         for model in models {
             if monto <= 0.0 {
                 break;
@@ -183,7 +189,7 @@ impl Cli {
                 .filter(
                     Condition::all()
                         .add(entity::pago::Column::Venta.eq(model.id.clone().unwrap()))
-                        .add(entity::pago::Column::MedioPago.eq(1)),
+                        .add(entity::pago::Column::MedioPago.eq(0)),
                 )
                 .all(db)
                 .await?
@@ -196,14 +202,14 @@ impl Cli {
                 if monto <= 0.0 {
                     break;
                 }
-                if pagos[i].pagado.as_ref().unwrap() < *pagos[i].monto.as_ref() {
-                    if monto >= pagos[i].monto.as_ref() - pagos[i].pagado.as_ref().unwrap() {
-                        monto -= pagos[i].monto.as_ref() - pagos[i].pagado.as_ref().unwrap();
-                        pagos[i].pagado = Set(Some(*pagos[i].monto.as_ref()));
+                if pagos[i].pagado.as_ref() < pagos[i].monto.as_ref() {
+                    if monto >= pagos[i].monto.as_ref() - pagos[i].pagado.as_ref() {
+                        monto -= pagos[i].monto.as_ref() - pagos[i].pagado.as_ref();
+                        pagos[i].pagado = Set(*pagos[i].monto.as_ref());
                         completados += 1;
                         pagos[i].clone().update(db).await?;
                     } else {
-                        pagos[i].pagado = Set(Some(pagos[i].pagado.as_ref().unwrap() + monto));
+                        pagos[i].pagado = Set(pagos[i].pagado.as_ref() + monto);
                         monto = 0.0;
                         pagos[i].clone().update(db).await?;
                     }

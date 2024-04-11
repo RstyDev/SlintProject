@@ -39,7 +39,7 @@ impl MigrationTrait for Migration {
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
                     )
-                    .col(ColumnDef::new(Pago::Pagado).double())
+                    .col(ColumnDef::new(Pago::Pagado).double().not_null())
                     .to_owned(),
             )
             .await

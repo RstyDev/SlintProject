@@ -175,7 +175,6 @@ impl<'a> Sistema {
             None => None,
         }
     }
-    
 
     pub fn cancelar_venta(&mut self, pos: bool) -> Res<()> {
         if pos {
@@ -201,7 +200,6 @@ impl<'a> Sistema {
         async_runtime::spawn(Db::eliminar_usuario(user, Arc::clone(&self.read_db)));
         Ok(())
     }
-    
 
     pub fn caja(&self) -> &Caja {
         &self.caja
@@ -294,7 +292,7 @@ impl<'a> Sistema {
         }
         Ok(())
     }
-    
+
     pub async fn get_clientes(&self) -> Res<Vec<Cli>> {
         Ok(entity::cliente::Entity::find()
             .all(self.read_db())
@@ -585,7 +583,6 @@ impl<'a> Sistema {
         &self.configs
     }
 
-    
     pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Vec<Pago>> {
         let res;
         if pos {
@@ -614,22 +611,22 @@ impl<'a> Sistema {
             res.update(self.write_db()).await.unwrap();
         });
     }
-    pub fn pagar_deuda_especifica(&self,cliente:i64,venta: Venta)->Res<Venta>{
-        let cli=async_runtime::block_on(self.get_cliente(cliente))?;
-        match cli{
-            Cliente::Final => return Err(AppError::IncorrectError(String::from("Se esperaba cliente"))),
-            Cliente::Regular(cliente) => async_runtime::block_on(cliente.pagar_deuda_especifica(&self.write_db, venta, &self.user)),
-        }
+    pub fn pagar_deuda_especifica(&self, cliente: i64, venta: Venta) -> Res<Venta> {
+        async_runtime::block_on(Cli::pagar_deuda_especifica(
+            cliente,
+            &self.write_db,
+            venta,
+            &self.user,
+        ))
     }
-    pub fn pagar_deuda_general(&self,cliente:i64,monto:f64)->Res<f64>{
-        let cli=async_runtime::block_on(self.get_cliente(cliente))?;
-        match cli{
-            Cliente::Final => return Err(AppError::IncorrectError(String::from("Se esperaba cliente"))),
-            Cliente::Regular(cliente) => async_runtime::block_on(cliente.pagar_deuda_general(&self.write_db, monto)),
-        }
+    pub fn pagar_deuda_general(&self, cliente: i64, monto: f64) -> Res<f64> {
+        async_runtime::block_on(Cli::pagar_deuda_general(cliente, &self.write_db, monto))
     }
-    async fn get_cliente(&self,id:i64)->Res<Cliente>{
-        let model=entity::cliente::Entity::find_by_id(id).one(self.read_db.as_ref()).await?.unwrap();
+    async fn get_cliente(&self, id: i64) -> Res<Cliente> {
+        let model = entity::cliente::Entity::find_by_id(id)
+            .one(self.read_db.as_ref())
+            .await?
+            .unwrap();
         Ok(Mapper::map_model_cli(model).await)
     }
     pub async fn agregar_producto(

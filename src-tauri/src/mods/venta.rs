@@ -343,12 +343,17 @@ impl<'a> Venta {
                 model.monto_pagado = Set(self.monto_pagado);
                 model.monto_total = Set(self.monto_total);
                 model.time = Set(Utc::now().naive_local());
-                model.cliente = Set(match &self.cliente {
-                    Cliente::Final => None,
-                    Cliente::Regular(cli) => Some(*cli.id()),
-                });
+                match &self.cliente {
+                    Cliente::Final => {
+                        model.paga = Set(true);
+                        model.cliente = Set(None)
+                    }
+                    Cliente::Regular(cli) => {
+                        model.paga = Set(self.paga);
+                        model.cliente = Set(Some(*cli.id()));
+                    }
+                }
                 model.cerrada = Set(self.cerrada);
-                model.paga = Set(self.paga);
                 model.pos = Set(pos);
                 if let Err(e) = model.update(db).await {
                     println!("Error update venta {:#?}", e);
@@ -356,17 +361,26 @@ impl<'a> Venta {
                 }
             }
             None => {
+                let paga;
+                let cliente;
+                match &self.cliente {
+                    Cliente::Final => {
+                        paga = Set(true);
+                        cliente = Set(None)
+                    }
+                    Cliente::Regular(cli) => {
+                        paga = Set(self.paga);
+                        cliente = Set(Some(*cli.id()));
+                    }
+                }
                 let venta_model = entity::venta::ActiveModel {
                     id: Set(self.id),
                     monto_total: Set(self.monto_total),
                     monto_pagado: Set(self.monto_pagado),
                     time: Set(Utc::now().naive_local()),
-                    cliente: Set(match &self.cliente {
-                        Cliente::Final => None,
-                        Cliente::Regular(c) => Some(*c.id()),
-                    }),
+                    cliente,
                     cerrada: Set(self.cerrada),
-                    paga: Set(self.paga),
+                    paga,
                     pos: Set(pos),
                 };
                 if let Err(e) = venta_model.insert(db).await {
@@ -383,6 +397,7 @@ impl<'a> Venta {
                 medio_pago: Set(*pago.medio_pago().id()),
                 monto: Set(pago.monto()),
                 venta: Set(self.id),
+                pagado: Set(*pago.pagado()),
                 ..Default::default()
             })
             .collect::<Vec<entity::pago::ActiveModel>>();

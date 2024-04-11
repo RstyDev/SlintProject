@@ -12,7 +12,7 @@ pub struct Model {
     pub monto: f64,
     pub venta: i64,
     #[sea_orm(column_type = "Double", nullable)]
-    pub pagado: Option<f64>,
+    pub pagado: f64,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

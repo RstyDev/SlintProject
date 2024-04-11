@@ -524,6 +524,7 @@ fn get_clientes(sistema: State<Mutex<Sistema>>) -> Res<Vec<Cli>> {
 }
 #[tauri::command]
 fn get_configs(sistema: State<Mutex<Sistema>>) -> Res<Config> {
+    println!("{:#?}", pagar_deuda_general(sistema.clone(), 1, 900.6));
     Ok(sistema.lock().map_err(|e| e.to_string())?.configs().clone())
 }
 #[tauri::command]
@@ -1080,15 +1081,19 @@ async fn open_stash<'a>(
     }
 }
 #[tauri::command]
-fn pagar_deuda_especifica(sistema: State<Mutex<Sistema>>,cliente:i64, venta:Venta)->Res<Venta>{
-    let sis= sistema.lock().map_err(|e|e.to_string())?;
+fn pagar_deuda_especifica(
+    sistema: State<Mutex<Sistema>>,
+    cliente: i64,
+    venta: Venta,
+) -> Res<Venta> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(sis.pagar_deuda_especifica(cliente,venta)?)
+    Ok(sis.pagar_deuda_especifica(cliente, venta)?)
 }
 #[tauri::command]
-fn pagar_deuda_general(sistema: State<Mutex<Sistema>>,cliente:i64, monto:f64)->Res<f64>{
-    let sis= sistema.lock().map_err(|e|e.to_string())?;
-    sis.access();
+fn pagar_deuda_general(sistema: State<Mutex<Sistema>>, cliente: i64, monto: f64) -> Res<f64> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    //sis.access();
     Ok(sis.pagar_deuda_general(cliente, monto)?)
 }
 #[tauri::command]

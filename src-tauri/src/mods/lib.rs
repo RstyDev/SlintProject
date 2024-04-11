@@ -183,7 +183,7 @@ impl Mapper {
             pagos.push(Pago::new(
                 MedioPago::new(&medio.medio, medio.id),
                 pago_mod.monto,
-                pago_mod.pagado,
+                Some(pago_mod.pagado),
             ));
         }
         let mut prods = Vec::new();
@@ -298,8 +298,16 @@ impl Mapper {
         );
         Ok(venta)
     }
-    pub async fn map_model_cli(cliente: entity::cliente::Model)->Cliente{
-        let cli=Cli::new(cliente.id, cliente.nombre.into(), cliente.dni, cliente.credito, cliente.activo, cliente.created,  cliente.limite);
+    pub async fn map_model_cli(cliente: entity::cliente::Model) -> Cliente {
+        let cli = Cli::new(
+            cliente.id,
+            cliente.nombre.into(),
+            cliente.dni,
+            cliente.credito,
+            cliente.activo,
+            cliente.created,
+            cliente.limite,
+        );
         Cliente::new(Some(cli))
     }
 }

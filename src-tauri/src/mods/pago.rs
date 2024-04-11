@@ -59,6 +59,9 @@ impl Pago {
     pub fn id(&self) -> u32 {
         self.int_id
     }
+    pub fn pagado(&self) -> &f64 {
+        &self.pagado
+    }
 }
 impl Save for Pago {
     async fn save(&self) -> Result<(), DbErr> {
