@@ -1,6 +1,7 @@
 use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use entity::prelude::{Config as ConfigEntity,MedioPago as MedioEntity};
 
 use super::error::AppError;
 type Res<T> = std::result::Result<T, AppError>;
@@ -16,9 +17,9 @@ pub struct Config {
 
 impl Config {
     pub async fn get_or_def(db: &DatabaseConnection) -> Res<Config> {
-        match entity::config::Entity::find().one(db).await? {
+        match ConfigEntity::find().one(db).await? {
             Some(a) => {
-                let medios = entity::medio_pago::Entity::find()
+                let medios = MedioEntity::find()
                     .all(db)
                     .await?
                     .iter()
@@ -50,7 +51,7 @@ impl Config {
                     modo_mayus: Set(conf.modo_mayus.to_string()),
                     politica_redondeo: Set(conf.politica_redondeo),
                 };
-                entity::config::Entity::insert(model).exec(db).await?;
+                ConfigEntity::insert(model).exec(db).await?;
                 Ok(conf)
             }
         }

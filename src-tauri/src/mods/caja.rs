@@ -1,5 +1,6 @@
 use chrono::{NaiveDateTime, Utc};
 use core::fmt;
+use entity::prelude::Caja as CajaEntity;
 use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, DatabaseConnection, EntityTrait, IntoActiveModel,
     QueryOrder, Set,
@@ -60,7 +61,7 @@ impl Caja {
             totales.insert(Arc::clone(medio), 0.0);
         }
 
-        caja = match entity::caja::Entity::find()
+        caja = match CajaEntity::find()
             .order_by_desc(entity::caja::Column::Id)
             .one(db.as_ref())
             .await?
@@ -112,7 +113,7 @@ impl Caja {
             Ok(a) => a,
             Err(e) => return Err(e),
         };
-        if entity::caja::Entity::find_by_id(aux.id)
+        if CajaEntity::find_by_id(aux.id)
             .one(db.as_ref())
             .await?
             .is_none()
@@ -177,7 +178,7 @@ impl Caja {
     pub async fn set_n_save(&mut self, db: &DatabaseConnection, monto: f64) -> Res<()> {
         self.monto_cierre = Some(monto);
         self.cierre = Some(Utc::now().naive_local());
-        match entity::caja::Entity::find_by_id(self.id).one(db).await? {
+        match CajaEntity::find_by_id(self.id).one(db).await? {
             Some(model) => {
                 let mut model = model.into_active_model();
                 model.cierre = Set(self.cierre);
@@ -210,7 +211,7 @@ impl Caja {
                 .insert(pago.medio_pago().desc(), pago.monto() + act);
         }
         self.ventas_totales += monto;
-        let model = entity::caja::Entity::find_by_id(self.id)
+        let model = CajaEntity::find_by_id(self.id)
             .one(db)
             .await?
             .unwrap();

@@ -13,6 +13,7 @@ use mods::{
     valuable::Valuable,
     venta::Venta,
 };
+use entity::prelude::{CodigoBarras as CodeEntity,Pesable as PesableEntity,Rubro as RubroEntity,Config as ConfigEntity};
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
 use std::sync::Arc;
@@ -404,7 +405,7 @@ async fn check_codes(code: i64) -> Res<bool> {
         .await
         .map_err(|e| e.to_string())?;
     let disp;
-    let mod_opt = entity::codigo_barras::Entity::find()
+    let mod_opt = CodeEntity::find()
         .filter(entity::codigo_barras::Column::Codigo.eq(code))
         .one(&db)
         .await
@@ -412,14 +413,14 @@ async fn check_codes(code: i64) -> Res<bool> {
     disp = match mod_opt {
         Some(_) => false,
         None => {
-            match entity::pesable::Entity::find()
+            match PesableEntity::find()
                 .filter(entity::pesable::Column::Codigo.eq(code))
                 .one(&db)
                 .await
             {
                 Ok(a) => {
                     if a.is_none() {
-                        match entity::rubro::Entity::find()
+                        match RubroEntity::find()
                             .filter(entity::rubro::Column::Codigo.eq(code))
                             .one(&db)
                             .await
@@ -1314,6 +1315,8 @@ fn main() {
             open_login,
             open_select_amount,
             open_stash,
+            pagar_deuda_especifica,
+            pagar_deuda_general,
             try_login,
             select_window,
             set_cliente,

@@ -1,4 +1,5 @@
 use chrono::NaiveDateTime;
+use entity::prelude::{Cliente as CliEntity,Deuda as DeudaEntity,Venta as VentaEntity,Pago as PagoEntity};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait, IntoActiveModel,
     QueryFilter, QueryOrder, QuerySelect, Set,
@@ -9,7 +10,7 @@ use tauri::App;
 
 use super::{error::AppError, lib::Mapper, user::User, venta::Venta};
 type Res<T> = std::result::Result<T, AppError>;
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Clone, Debug,Deserialize)]
 pub enum Cliente {
     Final,
     Regular(Cli),
@@ -40,7 +41,7 @@ impl Cli {
         created: NaiveDateTime,
         limite: Option<f64>,
     ) -> Res<Cli> {
-        match entity::cliente::Entity::find()
+        match CliEntity::find()
             .filter(entity::cliente::Column::Dni.eq(dni))
             .one(db)
             .await?
@@ -61,7 +62,7 @@ impl Cli {
                     limite: Set(limite),
                     ..Default::default()
                 };
-                let res = entity::cliente::Entity::insert(model).exec(db).await?;
+                let res = CliEntity::insert(model).exec(db).await?;
                 Ok(Cli {
                     id: res.last_insert_id,
                     nombre: Arc::from(nombre),
@@ -106,7 +107,7 @@ impl Cli {
         &self.credito
     }
     pub async fn get_deuda(&self, db: &DatabaseConnection) -> Res<f64> {
-        Ok(entity::deuda::Entity::find()
+        Ok(DeudaEntity::find()
             .select_only()
             .column(entity::deuda::Column::Monto)
             .filter(Condition::all().add(entity::deuda::Column::Cliente.eq(self.id)))
@@ -122,7 +123,7 @@ impl Cli {
         user: Option<Arc<User>>,
     ) -> Res<Vec<Venta>> {
         let mut ventas = Vec::new();
-        let models = entity::venta::Entity::find()
+        let models = VentaEntity::find()
             .filter(
                 Condition::all()
                     .add(entity::venta::Column::Cliente.eq(self.id))
@@ -142,7 +143,7 @@ impl Cli {
         venta: Venta,
         user: &Option<Arc<User>>,
     ) -> Res<Venta> {
-        let model = match entity::venta::Entity::find_by_id(*venta.id())
+        let model = match VentaEntity::find_by_id(*venta.id())
             .one(db)
             .await?
         {
@@ -165,7 +166,7 @@ impl Cli {
         Ok(venta)
     }
     pub async fn pagar_deuda_general(id: i64, db: &DatabaseConnection, mut monto: f64) -> Res<f64> {
-        let models = entity::venta::Entity::find()
+        let models = VentaEntity::find()
             .filter(
                 Condition::all()
                     .add(entity::venta::Column::Cliente.eq(id))
@@ -185,7 +186,7 @@ impl Cli {
                 break;
             }
             let mut model = model.into_active_model();
-            let mut pagos = entity::pago::Entity::find()
+            let mut pagos = PagoEntity::find()
                 .filter(
                     Condition::all()
                         .add(entity::pago::Column::Venta.eq(model.id.clone().unwrap()))

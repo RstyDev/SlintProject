@@ -2,10 +2,10 @@ use super::lib::Save;
 use entity::{medio_pago::Model, pago};
 use rand::random;
 use sea_orm::{ActiveModelTrait, ColumnTrait, Database, DbErr, EntityTrait, QueryFilter, Set};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::async_runtime;
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize,Deserialize)]
 pub struct MedioPago {
     medio: Arc<str>,
     id: i64,
@@ -25,7 +25,7 @@ impl MedioPago {
         Arc::clone(&self.medio)
     }
 }
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize,Deserialize)]
 pub struct Pago {
     int_id: u32,
     medio_pago: MedioPago,

@@ -10,7 +10,7 @@ use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, Condition, Database, DatabaseConnection, DbErr,
     EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Set,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::async_runtime;
 
@@ -27,7 +27,7 @@ use super::{
     valuable::Valuable,
 };
 
-#[derive(Debug, Clone, Default, Serialize)]
+#[derive(Debug, Clone, Default, Serialize,Deserialize)]
 pub struct Venta {
     id: i64,
     monto_total: f64,
