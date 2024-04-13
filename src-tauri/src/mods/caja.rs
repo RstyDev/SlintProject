@@ -1,11 +1,10 @@
 use chrono::{NaiveDateTime, Utc};
 use core::fmt;
-use entity::prelude::Caja as CajaEntity;
+use entity::{caja as CajaDB, movimiento as MovDB};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, DatabaseConnection, EntityTrait, IntoActiveModel,
     QueryOrder, Set,
 };
-
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 type Res<T> = std::result::Result<T, AppError>;
@@ -61,8 +60,8 @@ impl Caja {
             totales.insert(Arc::clone(medio), 0.0);
         }
 
-        caja = match CajaEntity::find()
-            .order_by_desc(entity::caja::Column::Id)
+        caja = match CajaDB::Entity::find()
+            .order_by_desc(CajaDB::Column::Id)
             .one(db.as_ref())
             .await?
         {
@@ -113,12 +112,12 @@ impl Caja {
             Ok(a) => a,
             Err(e) => return Err(e),
         };
-        if CajaEntity::find_by_id(aux.id)
+        if CajaDB::Entity::find_by_id(aux.id)
             .one(db.as_ref())
             .await?
             .is_none()
         {
-            let model = entity::caja::ActiveModel {
+            let model = CajaDB::ActiveModel {
                 id: Set(aux.id),
                 inicio: Set(aux.inicio),
                 cierre: Set(match aux.cierre {
@@ -159,7 +158,7 @@ impl Caja {
                 }
             }
         }
-        entity::movimiento::ActiveModel {
+        MovDB::ActiveModel {
             caja: Set(self.id),
             tipo,
             monto: monto_model,
@@ -178,7 +177,7 @@ impl Caja {
     pub async fn set_n_save(&mut self, db: &DatabaseConnection, monto: f64) -> Res<()> {
         self.monto_cierre = Some(monto);
         self.cierre = Some(Utc::now().naive_local());
-        match CajaEntity::find_by_id(self.id).one(db).await? {
+        match CajaDB::Entity::find_by_id(self.id).one(db).await? {
             Some(model) => {
                 let mut model = model.into_active_model();
                 model.cierre = Set(self.cierre);
@@ -211,10 +210,7 @@ impl Caja {
                 .insert(pago.medio_pago().desc(), pago.monto() + act);
         }
         self.ventas_totales += monto;
-        let model = CajaEntity::find_by_id(self.id)
-            .one(db)
-            .await?
-            .unwrap();
+        let model = CajaDB::Entity::find_by_id(self.id).one(db).await?.unwrap();
         let mut model = model.into_active_model();
         model.ventas_totales = Set(self.ventas_totales);
         model.update(db).await?;

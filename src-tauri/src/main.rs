@@ -1,5 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+use entity::{codigo_barras as CodeDB, pesable as PesDB, rubro as RubDB};
 use mods::{
     caja::Caja,
     cliente::Cli,
@@ -13,7 +15,6 @@ use mods::{
     valuable::Valuable,
     venta::Venta,
 };
-use entity::prelude::{CodigoBarras as CodeEntity,Pesable as PesableEntity,Rubro as RubroEntity,Config as ConfigEntity};
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
 use std::sync::Arc;
@@ -405,23 +406,23 @@ async fn check_codes(code: i64) -> Res<bool> {
         .await
         .map_err(|e| e.to_string())?;
     let disp;
-    let mod_opt = CodeEntity::find()
-        .filter(entity::codigo_barras::Column::Codigo.eq(code))
+    let mod_opt = CodeDB::Entity::find()
+        .filter(CodeDB::Column::Codigo.eq(code))
         .one(&db)
         .await
         .map_err(|e| e.to_string())?;
     disp = match mod_opt {
         Some(_) => false,
         None => {
-            match PesableEntity::find()
-                .filter(entity::pesable::Column::Codigo.eq(code))
+            match PesDB::Entity::find()
+                .filter(PesDB::Column::Codigo.eq(code))
                 .one(&db)
                 .await
             {
                 Ok(a) => {
                     if a.is_none() {
-                        match RubroEntity::find()
-                            .filter(entity::rubro::Column::Codigo.eq(code))
+                        match RubDB::Entity::find()
+                            .filter(RubDB::Column::Codigo.eq(code))
                             .one(&db)
                             .await
                         {

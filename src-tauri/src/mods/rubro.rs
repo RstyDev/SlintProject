@@ -1,6 +1,6 @@
 use chrono::Utc;
 type Res<T> = std::result::Result<T, AppError>;
-use entity::rubro;
+use entity::rubro as RubDB;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
     Set,
@@ -37,8 +37,8 @@ impl Rubro {
         descripcion: &str,
         db: &DatabaseConnection,
     ) -> Res<Rubro> {
-        match entity::rubro::Entity::find()
-            .filter(entity::rubro::Column::Codigo.eq(codigo))
+        match RubDB::Entity::find()
+            .filter(RubDB::Column::Codigo.eq(codigo))
             .one(db)
             .await?
         {
@@ -49,14 +49,14 @@ impl Rubro {
                 })
             }
             None => {
-                let model = entity::rubro::ActiveModel {
+                let model = RubDB::ActiveModel {
                     codigo: Set(codigo),
                     monto: Set(monto),
                     descripcion: Set(descripcion.to_string()),
                     updated_at: Set(Utc::now().naive_local()),
                     ..Default::default()
                 };
-                let res = entity::rubro::Entity::insert(model).exec(db).await?;
+                let res = RubDB::Entity::insert(model).exec(db).await?;
                 Ok(Rubro {
                     id: res.last_insert_id,
                     codigo,
@@ -83,7 +83,7 @@ impl Save for Rubro {
     async fn save(&self) -> Result<(), DbErr> {
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
         println!("conectado");
-        let model = rubro::ActiveModel {
+        let model = RubDB::ActiveModel {
             id: Set(self.id),
             monto: Set(self.monto),
             descripcion: Set(self.descripcion.to_string()),

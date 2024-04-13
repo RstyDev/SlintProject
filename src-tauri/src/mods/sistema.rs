@@ -16,7 +16,11 @@ use super::{
     venta::Venta,
 };
 use chrono::Utc;
-use entity::*;
+use entity::{
+    caja as CajaDB, cliente as CliDB, codigo_barras as CodeDB, config as ConfDB,
+    medio_pago as MedioDB, pesable as PesDB, producto as ProdDB, proveedor as ProvDB,
+    relacion_prod_prov as ProdProvDB, rubro as RubDB, user as UserDB,
+};
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, Database, DatabaseConnection, DbErr, EntityTrait,
@@ -119,7 +123,7 @@ impl<'a> Sistema {
         ))?);
 
         async_runtime::block_on(async {
-            if let Err(_) = entity::caja::Entity::find().one(read_db.as_ref()).await {
+            if let Err(_) = CajaDB::Entity::find().one(read_db.as_ref()).await {
                 Migrator::fresh(write_db.as_ref()).await
             } else {
                 Ok(())
@@ -247,26 +251,26 @@ impl<'a> Sistema {
         let _: JoinHandle<Result<(), AppError>> = async_runtime::spawn(async move {
             let medios = vec!["Efectivo", "Crédito", "Débito"];
             for medio in medios {
-                if entity::medio_pago::Entity::find()
-                    .filter(entity::medio_pago::Column::Medio.eq(medio))
+                if MedioDB::Entity::find()
+                    .filter(MedioDB::Column::Medio.eq(medio))
                     .one(read_db2.as_ref())
                     .await?
                     .is_none()
                 {
-                    let model = entity::medio_pago::ActiveModel {
+                    let model = MedioDB::ActiveModel {
                         medio: Set(medio.to_string()),
                         ..Default::default()
                     };
                     model.insert(write_db2.as_ref()).await?;
                 }
             }
-            if entity::medio_pago::Entity::find()
-                .filter(entity::medio_pago::Column::Medio.eq(CUENTA))
+            if MedioDB::Entity::find()
+                .filter(MedioDB::Column::Medio.eq(CUENTA))
                 .one(read_db2.as_ref())
                 .await?
                 .is_none()
             {
-                let model = entity::medio_pago::ActiveModel {
+                let model = MedioDB::ActiveModel {
                     medio: Set(CUENTA.to_string()),
                     id: Set(0),
                 };
@@ -274,10 +278,10 @@ impl<'a> Sistema {
             }
             return Ok(());
         });
-        if async_runtime::block_on(entity::user::Entity::find().count(read_db.as_ref()))? == 0 {
+        if async_runtime::block_on(UserDB::Entity::find().count(read_db.as_ref()))? == 0 {
             async_runtime::spawn(async move {
                 let db = Arc::clone(&write_db);
-                let model = entity::user::ActiveModel {
+                let model = UserDB::ActiveModel {
                     user_id: Set("admin".to_owned()),
                     pass: Set(get_hash("1234")),
                     rango: Set(Rango::Admin.to_string()),
@@ -294,7 +298,7 @@ impl<'a> Sistema {
     }
 
     pub async fn get_clientes(&self) -> Res<Vec<Cli>> {
-        Ok(entity::cliente::Entity::find()
+        Ok(CliDB::Entity::find()
             .all(self.read_db())
             .await?
             .iter()
@@ -312,11 +316,11 @@ impl<'a> Sistema {
             .collect::<Vec<Cli>>())
     }
     pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<Rango> {
-        match entity::user::Entity::find()
+        match UserDB::Entity::find()
             .filter(
                 Condition::all()
-                    .add(entity::user::Column::UserId.eq(id.to_string()))
-                    .add(entity::user::Column::Pass.eq(pass)),
+                    .add(UserDB::Column::UserId.eq(id.to_string()))
+                    .add(UserDB::Column::Pass.eq(pass)),
             )
             .one(self.read_db())
             .await?
@@ -334,8 +338,8 @@ impl<'a> Sistema {
                 );
                 Ok(self.user().unwrap().rango().clone())
             }
-            None => match entity::user::Entity::find()
-                .filter(entity::user::Column::UserId.eq(id))
+            None => match UserDB::Entity::find()
+                .filter(UserDB::Column::UserId.eq(id))
                 .one(self.read_db())
                 .await?
             {
@@ -389,8 +393,8 @@ impl<'a> Sistema {
         let mut prods = Vec::new();
         match filtro.parse::<i64>() {
             Ok(code) => {
-                if let Some(model) = entity::pesable::Entity::find()
-                    .filter(entity::pesable::Column::Codigo.eq(code))
+                if let Some(model) = PesDB::Entity::find()
+                    .filter(PesDB::Column::Codigo.eq(code))
                     .one(db)
                     .await?
                 {
@@ -403,9 +407,9 @@ impl<'a> Sistema {
                 let mut res = Vec::new();
                 for i in 0..filtros.len() {
                     if i == 0 {
-                        res = entity::pesable::Entity::find()
-                            .filter(entity::pesable::Column::Descripcion.contains(filtros[i]))
-                            .order_by_asc(entity::pesable::Column::Id)
+                        res = PesDB::Entity::find()
+                            .filter(PesDB::Column::Descripcion.contains(filtros[i]))
+                            .order_by_asc(PesDB::Column::Id)
                             .limit(Some((self.configs().cantidad_productos() * 2) as u64))
                             .all(self.read_db())
                             .await?;
@@ -439,8 +443,8 @@ impl<'a> Sistema {
         let (cant, filtro) = Sistema::splitx(filtro)?;
         match filtro.parse::<i64>() {
             Ok(code) => {
-                if let Some(model) = entity::rubro::Entity::find()
-                    .filter(entity::rubro::Column::Codigo.eq(code))
+                if let Some(model) = RubDB::Entity::find()
+                    .filter(RubDB::Column::Codigo.eq(code))
                     .one(db)
                     .await?
                 {
@@ -452,9 +456,9 @@ impl<'a> Sistema {
                 let mut res = Vec::new();
                 for i in 0..filtros.len() {
                     if i == 0 {
-                        res = entity::rubro::Entity::find()
-                            .filter(entity::rubro::Column::Descripcion.contains(filtros[i]))
-                            .order_by_asc(entity::rubro::Column::Id)
+                        res = RubDB::Entity::find()
+                            .filter(RubDB::Column::Descripcion.contains(filtros[i]))
+                            .order_by_asc(RubDB::Column::Id)
                             .limit(Some((self.configs().cantidad_productos() * 2) as u64))
                             .all(self.read_db())
                             .await?;
@@ -488,13 +492,13 @@ impl<'a> Sistema {
         let mut prods = Vec::new();
         match filtro.parse::<f64>() {
             Ok(code) => {
-                if let Some(id) = entity::codigo_barras::Entity::find()
-                    .filter(entity::codigo_barras::Column::Codigo.eq(code))
+                if let Some(id) = CodeDB::Entity::find()
+                    .filter(CodeDB::Column::Codigo.eq(code))
                     .one(db)
                     .await?
                 {
                     prods.push({
-                        let model = entity::producto::Entity::find_by_id(id.producto)
+                        let model = ProdDB::Entity::find_by_id(id.producto)
                             .one(db)
                             .await?
                             .unwrap();
@@ -512,16 +516,14 @@ impl<'a> Sistema {
                 let filtros = filtro.split(' ').collect::<Vec<&str>>();
                 for i in 0..filtros.len() {
                     if i == 0 {
-                        res = entity::producto::Entity::find()
+                        res = ProdDB::Entity::find()
                             .filter(
                                 Condition::any()
-                                    .add(entity::producto::Column::Marca.contains(filtros[i]))
-                                    .add(
-                                        entity::producto::Column::TipoProducto.contains(filtros[i]),
-                                    )
-                                    .add(entity::producto::Column::Variedad.contains(filtros[i])),
+                                    .add(ProdDB::Column::Marca.contains(filtros[i]))
+                                    .add(ProdDB::Column::TipoProducto.contains(filtros[i]))
+                                    .add(ProdDB::Column::Variedad.contains(filtros[i])),
                             )
-                            .order_by_asc(entity::producto::Column::Id)
+                            .order_by_asc(ProdDB::Column::Id)
                             .limit(Some((self.configs().cantidad_productos() * 2) as u64))
                             .all(self.read_db())
                             .await?;
@@ -568,7 +570,7 @@ impl<'a> Sistema {
         }
     }
     pub async fn proveedores(&self) -> Vec<Proveedor> {
-        match entity::proveedor::Entity::find().all(self.read_db()).await {
+        match ProvDB::Entity::find().all(self.read_db()).await {
             Ok(a) => {
                 let res = a
                     .iter()
@@ -598,7 +600,7 @@ impl<'a> Sistema {
     pub fn set_configs(&mut self, configs: Config) {
         self.configs = configs;
         async_runtime::block_on(async {
-            let mut res = entity::config::Entity::find()
+            let mut res = ConfDB::Entity::find()
                 .one(self.read_db())
                 .await
                 .unwrap()
@@ -623,7 +625,7 @@ impl<'a> Sistema {
         async_runtime::block_on(Cli::pagar_deuda_general(cliente, &self.write_db, monto))
     }
     async fn get_cliente(&self, id: i64) -> Res<Cliente> {
-        let model = entity::cliente::Entity::find_by_id(id)
+        let model = CliDB::Entity::find_by_id(id)
             .one(self.read_db.as_ref())
             .await?
             .unwrap();
@@ -663,7 +665,7 @@ impl<'a> Sistema {
             "Kg" => Presentacion::Kg(cantidad.parse().unwrap()),
             _ => panic!("no posible {presentacion}"),
         };
-        let prod_model = producto::ActiveModel {
+        let prod_model = ProdDB::ActiveModel {
             precio_de_venta: Set(precio_de_venta),
             porcentaje: Set(porcentaje),
             precio_de_costo: Set(precio_de_costo),
@@ -675,19 +677,19 @@ impl<'a> Sistema {
             cantidad: Set(presentacion.get_cantidad()),
             ..Default::default()
         };
-        let res_prod = entity::producto::Entity::insert(prod_model)
+        let res_prod = ProdDB::Entity::insert(prod_model)
             .exec(self.write_db())
             .await?;
-        let codigos_model: Vec<codigo_barras::ActiveModel> = codigos_de_barras
+        let codigos_model: Vec<CodeDB::ActiveModel> = codigos_de_barras
             .iter()
-            .map(|x| codigo_barras::ActiveModel {
+            .map(|x| CodeDB::ActiveModel {
                 codigo: Set(*x),
                 producto: Set(res_prod.last_insert_id),
                 ..Default::default()
             })
             .collect();
 
-        entity::codigo_barras::Entity::insert_many(codigos_model)
+        CodeDB::Entity::insert_many(codigos_model)
             .exec(self.write_db())
             .await?;
         for i in 0..codigos_prov.len() {
@@ -696,18 +698,18 @@ impl<'a> Sistema {
             } else {
                 Some(codigos_prov[i].parse::<i64>()?)
             };
-            if let Some(prov) = entity::proveedor::Entity::find()
-                .filter(Condition::all().add(entity::proveedor::Column::Nombre.eq(proveedores[i])))
+            if let Some(prov) = ProvDB::Entity::find()
+                .filter(Condition::all().add(ProvDB::Column::Nombre.eq(proveedores[i])))
                 .one(self.write_db())
                 .await?
             {
-                let relacion_model = relacion_prod_prov::ActiveModel {
+                let relacion_model = ProdProvDB::ActiveModel {
                     producto: Set(res_prod.last_insert_id),
                     proveedor: Set(prov.id),
                     codigo: Set(codigo),
                     ..Default::default()
                 };
-                entity::relacion_prod_prov::Entity::insert(relacion_model)
+                ProdProvDB::Entity::insert(relacion_model)
                     .exec(self.write_db())
                     .await?;
             }
@@ -747,40 +749,18 @@ impl<'a> Sistema {
         async_runtime::block_on(Proveedor::new_to_db(proveedor, contacto, self.write_db()))?;
         Ok(())
     }
-    // async fn producto(&mut self, id: i64) -> Result<Valuable, AppError> {
-    //     let model;
 
-    //     match entity::producto::Entity::find_by_id(id)
-    //         .one(self.read_db())
-    //         .await?
-    //     {
-    //         Some(a) => {
-    //             model = a.to_owned();
-
-    //             return Ok(V::Prod((
-    //                 0,
-    //                 Mapper::map_model_prod(&model, self.read_db()).await?,
-    //             )));
-    //         }
-    //         None => {
-    //             return Err(AppError::NotFound {
-    //                 objeto: String::from("Producto"),
-    //                 instancia: format!("{}", id),
-    //             });
-    //         }
-    //     }
-    // }
     pub async fn agregar_producto_a_venta(&mut self, prod: V, pos: bool) -> Res<()> {
         let existe = match &prod {
-            Valuable::Prod(a) => entity::producto::Entity::find_by_id(*a.1.id())
+            Valuable::Prod(a) => ProdDB::Entity::find_by_id(*a.1.id())
                 .one(self.read_db())
                 .await?
                 .is_some(),
-            Valuable::Pes(a) => entity::pesable::Entity::find_by_id(*a.1.id())
+            Valuable::Pes(a) => PesDB::Entity::find_by_id(*a.1.id())
                 .one(self.read_db())
                 .await?
                 .is_some(),
-            Valuable::Rub(a) => entity::rubro::Entity::find_by_id(*a.1.id())
+            Valuable::Rub(a) => RubDB::Entity::find_by_id(*a.1.id())
                 .one(self.read_db())
                 .await?
                 .is_some(),
@@ -883,9 +863,9 @@ impl<'a> Sistema {
     pub fn filtrar_marca(&self, filtro: &str) -> Res<Vec<String>> {
         let mut hash = HashSet::new();
         async_runtime::block_on(async {
-            entity::producto::Entity::find()
-                .filter(entity::producto::Column::Marca.contains(filtro))
-                .order_by(entity::producto::Column::Marca, sea_orm::Order::Asc)
+            ProdDB::Entity::find()
+                .filter(ProdDB::Column::Marca.contains(filtro))
+                .order_by(ProdDB::Column::Marca, sea_orm::Order::Asc)
                 .all(self.read_db())
                 .await?
                 .iter()
@@ -901,9 +881,9 @@ impl<'a> Sistema {
     pub fn filtrar_tipo_producto(&self, filtro: &str) -> Res<Vec<String>> {
         let mut hash = HashSet::new();
         async_runtime::block_on(async {
-            entity::producto::Entity::find()
-                .filter(entity::producto::Column::TipoProducto.contains(filtro))
-                .order_by(entity::producto::Column::TipoProducto, sea_orm::Order::Asc)
+            ProdDB::Entity::find()
+                .filter(ProdDB::Column::TipoProducto.contains(filtro))
+                .order_by(ProdDB::Column::TipoProducto, sea_orm::Order::Asc)
                 .all(self.read_db())
                 .await?
                 .iter()

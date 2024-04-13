@@ -1,5 +1,5 @@
 use chrono::NaiveDateTime;
-use entity::prelude::{Cliente as CliEntity,Deuda as DeudaEntity,Venta as VentaEntity,Pago as PagoEntity};
+use entity::{cliente as CliDB, deuda as DeudaDB, pago as PagoDB, venta as VentaDB};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait, IntoActiveModel,
     QueryFilter, QueryOrder, QuerySelect, Set,
@@ -10,7 +10,7 @@ use tauri::App;
 
 use super::{error::AppError, lib::Mapper, user::User, venta::Venta};
 type Res<T> = std::result::Result<T, AppError>;
-#[derive(Serialize, Clone, Debug,Deserialize)]
+#[derive(Serialize, Clone, Debug, Deserialize)]
 pub enum Cliente {
     Final,
     Regular(Cli),
@@ -41,8 +41,8 @@ impl Cli {
         created: NaiveDateTime,
         limite: Option<f64>,
     ) -> Res<Cli> {
-        match CliEntity::find()
-            .filter(entity::cliente::Column::Dni.eq(dni))
+        match CliDB::Entity::find()
+            .filter(CliDB::Column::Dni.eq(dni))
             .one(db)
             .await?
         {
@@ -53,7 +53,7 @@ impl Cli {
                 })
             }
             None => {
-                let model = entity::cliente::ActiveModel {
+                let model = CliDB::ActiveModel {
                     nombre: Set(nombre.to_string()),
                     dni: Set(dni),
                     credito: Set(credito),
@@ -62,7 +62,7 @@ impl Cli {
                     limite: Set(limite),
                     ..Default::default()
                 };
-                let res = CliEntity::insert(model).exec(db).await?;
+                let res = CliDB::Entity::insert(model).exec(db).await?;
                 Ok(Cli {
                     id: res.last_insert_id,
                     nombre: Arc::from(nombre),
@@ -107,10 +107,10 @@ impl Cli {
         &self.credito
     }
     pub async fn get_deuda(&self, db: &DatabaseConnection) -> Res<f64> {
-        Ok(DeudaEntity::find()
+        Ok(DeudaDB::Entity::find()
             .select_only()
-            .column(entity::deuda::Column::Monto)
-            .filter(Condition::all().add(entity::deuda::Column::Cliente.eq(self.id)))
+            .column(DeudaDB::Column::Monto)
+            .filter(Condition::all().add(DeudaDB::Column::Cliente.eq(self.id)))
             .all(db)
             .await?
             .iter()
@@ -123,11 +123,11 @@ impl Cli {
         user: Option<Arc<User>>,
     ) -> Res<Vec<Venta>> {
         let mut ventas = Vec::new();
-        let models = VentaEntity::find()
+        let models = VentaDB::Entity::find()
             .filter(
                 Condition::all()
-                    .add(entity::venta::Column::Cliente.eq(self.id))
-                    .add(entity::venta::Column::Paga.eq(false)),
+                    .add(VentaDB::Column::Cliente.eq(self.id))
+                    .add(VentaDB::Column::Paga.eq(false)),
             )
             .all(db)
             .await?;
@@ -143,10 +143,7 @@ impl Cli {
         venta: Venta,
         user: &Option<Arc<User>>,
     ) -> Res<Venta> {
-        let model = match VentaEntity::find_by_id(*venta.id())
-            .one(db)
-            .await?
-        {
+        let model = match VentaDB::Entity::find_by_id(*venta.id()).one(db).await? {
             Some(model) => model,
             None => return Err(AppError::IncorrectError(String::from("Id inexistente"))),
         };
@@ -166,13 +163,13 @@ impl Cli {
         Ok(venta)
     }
     pub async fn pagar_deuda_general(id: i64, db: &DatabaseConnection, mut monto: f64) -> Res<f64> {
-        let models = VentaEntity::find()
+        let models = VentaDB::Entity::find()
             .filter(
                 Condition::all()
-                    .add(entity::venta::Column::Cliente.eq(id))
-                    .add(entity::venta::Column::Paga.eq(false)),
+                    .add(VentaDB::Column::Cliente.eq(id))
+                    .add(VentaDB::Column::Paga.eq(false)),
             )
-            .order_by_asc(entity::venta::Column::Time)
+            .order_by_asc(VentaDB::Column::Time)
             .all(db)
             .await?;
         println!("{:#?} encontrados {}", models, models.len());
@@ -186,18 +183,18 @@ impl Cli {
                 break;
             }
             let mut model = model.into_active_model();
-            let mut pagos = PagoEntity::find()
+            let mut pagos = PagoDB::Entity::find()
                 .filter(
                     Condition::all()
-                        .add(entity::pago::Column::Venta.eq(model.id.clone().unwrap()))
-                        .add(entity::pago::Column::MedioPago.eq(0)),
+                        .add(PagoDB::Column::Venta.eq(model.id.clone().unwrap()))
+                        .add(PagoDB::Column::MedioPago.eq(0)),
                 )
                 .all(db)
                 .await?
                 .iter()
                 .cloned()
                 .map(|pago| pago.into_active_model())
-                .collect::<Vec<entity::pago::ActiveModel>>();
+                .collect::<Vec<PagoDB::ActiveModel>>();
             let mut completados: u8 = 0;
             for i in 0..pagos.len() {
                 if monto <= 0.0 {

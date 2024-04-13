@@ -1,11 +1,11 @@
 use super::lib::Save;
-use entity::{medio_pago::Model, pago};
+use entity::{medio_pago as MedioDB, pago as PagoDB};
 use rand::random;
 use sea_orm::{ActiveModelTrait, ColumnTrait, Database, DbErr, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::async_runtime;
-#[derive(Debug, Clone, Serialize,Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MedioPago {
     medio: Arc<str>,
     id: i64,
@@ -25,7 +25,7 @@ impl MedioPago {
         Arc::clone(&self.medio)
     }
 }
-#[derive(Debug, Clone, Serialize,Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pago {
     int_id: u32,
     medio_pago: MedioPago,
@@ -66,12 +66,12 @@ impl Pago {
 impl Save for Pago {
     async fn save(&self) -> Result<(), DbErr> {
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        let medio_id = entity::medio_pago::Entity::find()
-            .filter(entity::medio_pago::Column::Medio.eq(self.medio().to_string()))
+        let medio_id = MedioDB::Entity::find()
+            .filter(MedioDB::Column::Medio.eq(self.medio().to_string()))
             .one(&db)
             .await?
             .unwrap();
-        let model = pago::ActiveModel {
+        let model = PagoDB::ActiveModel {
             medio_pago: Set(medio_id.id),
             monto: Set(self.monto),
             ..Default::default()
@@ -81,12 +81,12 @@ impl Save for Pago {
     }
 }
 
-pub async fn medio_from_db(medio: &str) -> Model {
+pub async fn medio_from_db(medio: &str) -> MedioDB::Model {
     let db = Database::connect("sqlite://db.sqlite?mode=ro")
         .await
         .unwrap();
-    entity::medio_pago::Entity::find()
-        .filter(entity::medio_pago::Column::Medio.eq(medio))
+    MedioDB::Entity::find()
+        .filter(MedioDB::Column::Medio.eq(medio))
         .one(&db)
         .await
         .unwrap()

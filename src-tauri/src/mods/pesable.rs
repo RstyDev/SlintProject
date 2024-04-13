@@ -1,7 +1,7 @@
 use super::{error::AppError, lib::Save};
 use chrono::Utc;
 type Res<T> = std::result::Result<T, AppError>;
-use entity::pesable;
+use entity::pesable as PesDB;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
     Set,
@@ -44,8 +44,8 @@ impl Pesable {
         costo_kilo: f64,
         descripcion: &str,
     ) -> Res<Pesable> {
-        match entity::pesable::Entity::find()
-            .filter(entity::pesable::Column::Codigo.eq(codigo))
+        match PesDB::Entity::find()
+            .filter(PesDB::Column::Codigo.eq(codigo))
             .one(db)
             .await?
         {
@@ -56,7 +56,7 @@ impl Pesable {
                 })
             }
             None => {
-                let model = entity::pesable::ActiveModel {
+                let model = PesDB::ActiveModel {
                     codigo: Set(codigo),
                     precio_peso: Set(precio_peso),
                     porcentaje: Set(porcentaje),
@@ -65,7 +65,7 @@ impl Pesable {
                     updated_at: Set(Utc::now().naive_local()),
                     ..Default::default()
                 };
-                let res = entity::pesable::Entity::insert(model).exec(db).await?;
+                let res = PesDB::Entity::insert(model).exec(db).await?;
                 Ok(Pesable {
                     id: res.last_insert_id,
                     codigo,
@@ -101,7 +101,7 @@ impl Save for Pesable {
     async fn save(&self) -> Result<(), DbErr> {
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
         println!("conectado");
-        let model = pesable::ActiveModel {
+        let model = PesDB::ActiveModel {
             id: Set(self.id),
             codigo: Set(self.codigo),
             precio_peso: Set(self.precio_peso),

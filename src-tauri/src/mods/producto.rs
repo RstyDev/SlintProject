@@ -6,7 +6,7 @@ use super::{
     valuable::ValuableTrait,
 };
 use chrono::Utc;
-use entity::{codigo_barras, producto};
+use entity::{codigo_barras as CodeDB, producto as ProdDB};
 use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 
@@ -105,7 +105,7 @@ impl Save for Producto {
     async fn save(&self) -> Result<(), DbErr> {
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
         println!("Guardando producto en DB");
-        let model = producto::ActiveModel {
+        let model = ProdDB::ActiveModel {
             precio_de_venta: Set(self.precio_de_venta),
             porcentaje: Set(self.porcentaje),
             precio_de_costo: Set(self.precio_de_costo),
@@ -117,9 +117,9 @@ impl Save for Producto {
             cantidad: Set(self.presentacion().get_cantidad()),
             ..Default::default()
         };
-        let res = entity::producto::Entity::insert(model).exec(&db).await?;
+        let res = ProdDB::Entity::insert(model).exec(&db).await?;
         for codigo in &self.codigos_de_barras {
-            let cod_model = codigo_barras::ActiveModel {
+            let cod_model = CodeDB::ActiveModel {
                 codigo: Set(*codigo),
                 producto: Set(res.last_insert_id),
                 ..Default::default()

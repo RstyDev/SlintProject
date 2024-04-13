@@ -1,8 +1,8 @@
+use super::error::AppError;
+use entity::user as UserDB;
 use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-
-use super::error::AppError;
 type Res<T> = std::result::Result<T, AppError>;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
@@ -29,8 +29,8 @@ impl User {
             "Cajero" => Rango::Cajero,
             _ => panic!("No existe"),
         };
-        match entity::user::Entity::find()
-            .filter(entity::user::Column::UserId.eq(id.as_ref()))
+        match UserDB::Entity::find()
+            .filter(UserDB::Column::UserId.eq(id.as_ref()))
             .one(db)
             .await?
         {
@@ -41,7 +41,7 @@ impl User {
                 rango: rango2,
             }),
             None => {
-                entity::user::ActiveModel {
+                UserDB::ActiveModel {
                     user_id: Set(id.to_string()),
                     pass: Set(pass),
                     rango: Set(rango.to_string()),
