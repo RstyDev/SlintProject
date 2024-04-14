@@ -338,87 +338,97 @@ impl Db {
                 })
                 .collect::<Vec<CodeDB::ActiveModel>>();
             codes.append(&mut code_mod);
-            if prods.len()==100{
+
+            if prods.len() == 150 {
                 if let Err(e) = ProdDB::Entity::insert_many(prods.clone()).exec(db).await {
                     println!("{:#?}", e);
                 }
                 prods.clear();
-            }
-            if codes.len()>=498{
                 if let Err(e) = CodeDB::Entity::insert_many(codes.clone()).exec(db).await {
-                        println!("{:#?}", e);
+                    println!("{:#?}", e);
                 }
                 codes.clear();
             }
         }
-        Ok(())
-    }
-    pub async fn cargar_actualizar_todos_los_productos(
-        productos: &Vec<Producto>,
-        db: &DatabaseConnection,
-    ) -> Result<(), DbErr> {
-        for producto in productos {
-            let encontrado = ProdDB::Entity::find_by_id(*producto.id()).one(db).await?;
-            let mut model: ProdDB::ActiveModel;
-            let codigo_prod: i64;
-            match encontrado {
-                Some(m) => {
-                    codigo_prod = m.id;
-                    model = m.into();
-                    model.marca = Set(producto.marca().to_string());
-                    model.porcentaje = Set(*producto.porcentaje());
-                    model.precio_de_costo = Set(*producto.precio_de_costo());
-                    model.precio_de_venta = Set(*producto.precio_de_venta());
-                    model.presentacion = Set(producto.presentacion().to_string());
-                    model.tipo_producto = Set(producto.tipo_producto().to_string());
-                    model.updated_at = Set(Utc::now().naive_local());
-                    model.variedad = Set(producto.variedad().to_string());
-                    model.update(db).await?;
-                }
-                None => {
-                    model = ProdDB::ActiveModel {
-                        precio_de_venta: Set(*producto.precio_de_venta()),
-                        porcentaje: Set(*producto.porcentaje()),
-                        precio_de_costo: Set(*producto.precio_de_costo()),
-                        tipo_producto: Set(producto.tipo_producto().to_string()),
-                        marca: Set(producto.marca().to_string()),
-                        variedad: Set(producto.variedad().to_string()),
-                        presentacion: Set(producto.presentacion().get_string()),
-                        updated_at: Set(Utc::now().naive_local()),
-                        cantidad: Set(producto.presentacion().get_cantidad()),
-                        ..Default::default()
-                    };
-
-                    codigo_prod = ProdDB::Entity::insert(model).exec(db).await?.last_insert_id;
-                }
+        if prods.len() > 0 {
+            if let Err(e) = ProdDB::Entity::insert_many(prods.clone()).exec(db).await {
+                println!("{:#?}", e);
             }
-
-            CodeDB::Entity::delete_many()
-                .filter(Condition::all().add(CodeDB::Column::Producto.eq(codigo_prod)))
-                .exec(db)
-                .await?;
-
-            let codigos_model: Vec<CodeDB::ActiveModel> = producto
-                .codigos_de_barras()
-                .iter()
-                .map(|x| CodeDB::ActiveModel {
-                    codigo: Set(*x),
-                    producto: Set(codigo_prod),
-                    ..Default::default()
-                })
-                .collect();
-
-            if codigos_model.len() > 1 {
-                CodeDB::Entity::insert_many(codigos_model).exec(db).await?;
-            } else if codigos_model.len() == 1 {
-                CodeDB::Entity::insert(codigos_model[0].to_owned())
-                    .exec(db)
-                    .await?;
+        }
+        if codes.len() > 0 {
+            if let Err(e) = CodeDB::Entity::insert_many(codes.clone()).exec(db).await {
+                println!("{:#?}", e);
             }
         }
 
         Ok(())
     }
+    // pub async fn cargar_actualizar_todos_los_productos(
+    //     productos: &Vec<Producto>,
+    //     db: &DatabaseConnection,
+    // ) -> Result<(), DbErr> {
+    //     for producto in productos {
+    //         let encontrado = ProdDB::Entity::find_by_id(*producto.id()).one(db).await?;
+    //         let mut model: ProdDB::ActiveModel;
+    //         let codigo_prod: i64;
+    //         match encontrado {
+    //             Some(m) => {
+    //                 codigo_prod = m.id;
+    //                 model = m.into();
+    //                 model.marca = Set(producto.marca().to_string());
+    //                 model.porcentaje = Set(*producto.porcentaje());
+    //                 model.precio_de_costo = Set(*producto.precio_de_costo());
+    //                 model.precio_de_venta = Set(*producto.precio_de_venta());
+    //                 model.presentacion = Set(producto.presentacion().to_string());
+    //                 model.tipo_producto = Set(producto.tipo_producto().to_string());
+    //                 model.updated_at = Set(Utc::now().naive_local());
+    //                 model.variedad = Set(producto.variedad().to_string());
+    //                 model.update(db).await?;
+    //             }
+    //             None => {
+    //                 model = ProdDB::ActiveModel {
+    //                     precio_de_venta: Set(*producto.precio_de_venta()),
+    //                     porcentaje: Set(*producto.porcentaje()),
+    //                     precio_de_costo: Set(*producto.precio_de_costo()),
+    //                     tipo_producto: Set(producto.tipo_producto().to_string()),
+    //                     marca: Set(producto.marca().to_string()),
+    //                     variedad: Set(producto.variedad().to_string()),
+    //                     presentacion: Set(producto.presentacion().get_string()),
+    //                     updated_at: Set(Utc::now().naive_local()),
+    //                     cantidad: Set(producto.presentacion().get_cantidad()),
+    //                     ..Default::default()
+    //                 };
+
+    //                 codigo_prod = ProdDB::Entity::insert(model).exec(db).await?.last_insert_id;
+    //             }
+    //         }
+
+    //         CodeDB::Entity::delete_many()
+    //             .filter(Condition::all().add(CodeDB::Column::Producto.eq(codigo_prod)))
+    //             .exec(db)
+    //             .await?;
+
+    //         let codigos_model: Vec<CodeDB::ActiveModel> = producto
+    //             .codigos_de_barras()
+    //             .iter()
+    //             .map(|x| CodeDB::ActiveModel {
+    //                 codigo: Set(*x),
+    //                 producto: Set(codigo_prod),
+    //                 ..Default::default()
+    //             })
+    //             .collect();
+
+    //         if codigos_model.len() > 1 {
+    //             CodeDB::Entity::insert_many(codigos_model).exec(db).await?;
+    //         } else if codigos_model.len() == 1 {
+    //             CodeDB::Entity::insert(codigos_model[0].to_owned())
+    //                 .exec(db)
+    //                 .await?;
+    //         }
+    //     }
+
+    //     Ok(())
+    // }
     pub async fn cargar_todos_los_pesables(
         productos: &Vec<Valuable>,
         db: &DatabaseConnection,

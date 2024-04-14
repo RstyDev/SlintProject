@@ -622,7 +622,7 @@ impl<'a> Sistema {
     pub fn pagar_deuda_general(&self, cliente: i64, monto: f64) -> Res<f64> {
         async_runtime::block_on(Cli::pagar_deuda_general(cliente, &self.write_db, monto))
     }
-    async fn get_cliente(&self, id: i64) -> Res<Cliente> {
+    pub async fn get_cliente(&self, id: i64) -> Res<Cliente> {
         let model = CliDB::Entity::find_by_id(id)
             .one(self.read_db.as_ref())
             .await?

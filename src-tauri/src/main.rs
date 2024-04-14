@@ -25,6 +25,8 @@ use tauri::{
     window::MenuHandle,
     CustomMenuItem, Manager, Menu, Result, State, Submenu,
 };
+
+use crate::mods::cliente::Cliente;
 const DENEGADO: &str = "Permiso denegado";
 #[derive(Clone, Serialize)]
 struct Payload {
@@ -526,7 +528,6 @@ fn get_clientes(sistema: State<Mutex<Sistema>>) -> Res<Vec<Cli>> {
 }
 #[tauri::command]
 fn get_configs(sistema: State<Mutex<Sistema>>) -> Res<Config> {
-    println!("{:#?}", pagar_deuda_general(sistema.clone(), 1, 900.6));
     Ok(sistema.lock().map_err(|e| e.to_string())?.configs().clone())
 }
 #[tauri::command]
@@ -1095,7 +1096,7 @@ fn pagar_deuda_especifica(
 #[tauri::command]
 fn pagar_deuda_general(sistema: State<Mutex<Sistema>>, cliente: i64, monto: f64) -> Res<f64> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
-    //sis.access();
+    sis.access();
     Ok(sis.pagar_deuda_general(cliente, monto)?)
 }
 #[tauri::command]
