@@ -104,6 +104,28 @@ impl Producto {
             Some(model)=>model.into_active_model(),
             None=>return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",self.id) }),
         };
+        model.delete(db).await?;
+        Ok(())
+    }
+    pub async fn editar(self,db:&DatabaseConnection)->Res<()>{
+        let mut model = match ProdDB::Entity::find_by_id(self.id).one(db).await?{
+            Some(model) => model.into_active_model(),
+            None => return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",self.id) }),
+        };
+        if self.precio_de_venta == self.precio_de_costo * (1.0+self.porcentaje/100.0){
+            model.precio_de_venta=Set(self.precio_de_venta);
+        }else{
+            return Err(AppError::IncorrectError(String::from("Cálculo de precio incorrecto")));
+        }
+        model.cantidad = Set(self.presentacion.get_cantidad());
+        model.marca = Set(self.marca.to_string());
+        model.porcentaje = Set(self.porcentaje);
+        model.precio_de_costo = Set(self.precio_de_costo);
+        model.presentacion = Set(self.presentacion.get_string());
+        model.tipo_producto = Set(self.tipo_producto.to_string());
+        model.variedad = Set(self.variedad.to_string());
+        model.updated_at = Set(Utc::now().naive_local());
+        model.update(db).await?;
         Ok(())
     }
 }

@@ -92,6 +92,13 @@ impl Valuable {
             Valuable::Rub((_,rub)) => rub.eliminar(&db).await,
         }
     }
+    pub async fn editar(self,db:DatabaseConnection)->Res<()>{
+        match self{
+            Valuable::Prod((_,prod)) => prod.editar(&db).await,
+            Valuable::Pes((_,pes)) => pes.editar(&db).await,
+            Valuable::Rub((_,rub)) => rub.editar(&db).await,
+        }
+    }
 }
 impl Save for Valuable {
     async fn save(&self) -> Result<(), DbErr> {

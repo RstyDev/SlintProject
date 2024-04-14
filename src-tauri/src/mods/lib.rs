@@ -276,18 +276,18 @@ impl Mapper {
         );
         Ok(venta)
     }
-    pub async fn map_model_cli(cliente: CliDB::Model) -> Cliente {
-        let cli = Cli::new(
-            cliente.id,
-            cliente.nombre.into(),
-            cliente.dni,
-            cliente.credito,
-            cliente.activo,
-            cliente.created,
-            cliente.limite,
-        );
-        Cliente::new(Some(cli))
-    }
+    // pub async fn map_model_cli(cliente: CliDB::Model) -> Cliente {
+    //     let cli = Cli::new(
+    //         cliente.id,
+    //         cliente.nombre.into(),
+    //         cliente.dni,
+    //         cliente.credito,
+    //         cliente.activo,
+    //         cliente.created,
+    //         cliente.limite,
+    //     );
+    //     Cliente::new(Some(cli))
+    // }
 }
 
 impl Db {
@@ -339,7 +339,7 @@ impl Db {
                 .collect::<Vec<CodeDB::ActiveModel>>();
             codes.append(&mut code_mod);
 
-            if prods.len() == 150 {
+            if prods.len() == 165 {
                 if let Err(e) = ProdDB::Entity::insert_many(prods.clone()).exec(db).await {
                     println!("{:#?}", e);
                 }

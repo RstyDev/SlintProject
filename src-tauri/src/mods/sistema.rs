@@ -1,7 +1,7 @@
 type Res<T> = std::result::Result<T, AppError>;
 use super::{
     caja::{Caja, Movimiento},
-    cliente::{Cli, Cliente},
+    cliente::Cli,
     config::Config,
     error::AppError,
     lib::{crear_file, get_hash, leer_file, Db, Mapper},
@@ -622,13 +622,13 @@ impl<'a> Sistema {
     pub fn pagar_deuda_general(&self, cliente: i64, monto: f64) -> Res<f64> {
         async_runtime::block_on(Cli::pagar_deuda_general(cliente, &self.write_db, monto))
     }
-    pub async fn get_cliente(&self, id: i64) -> Res<Cliente> {
-        let model = CliDB::Entity::find_by_id(id)
-            .one(self.read_db.as_ref())
-            .await?
-            .unwrap();
-        Ok(Mapper::map_model_cli(model).await)
-    }
+    // pub async fn get_cliente(&self, id: i64) -> Res<Cliente> {
+    //     let model = CliDB::Entity::find_by_id(id)
+    //         .one(self.read_db.as_ref())
+    //         .await?
+    //         .unwrap();
+    //     Ok(Mapper::map_model_cli(model).await)
+    // }
     pub async fn agregar_producto(
         &mut self,
         proveedores: Vec<&str>,
@@ -937,6 +937,9 @@ impl<'a> Sistema {
     }
     pub fn eliminar_valuable(&self, val:V){
         async_runtime::spawn(val.eliminar(self.write_db.as_ref().clone()));
+    }
+    pub fn editar_valuable(&self, val:V){
+        async_runtime::spawn(val.editar(self.write_db.as_ref().clone()));
     }
     pub fn arc_user(&self) -> Arc<User> {
         Arc::clone(&self.user.as_ref().unwrap())

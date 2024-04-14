@@ -85,6 +85,17 @@ impl Rubro {
         model.delete(db).await?;
         Ok(())
     }
+    pub async fn editar(self, db: &DatabaseConnection)->Res<()>{
+        let mut model= match RubDB::Entity::find_by_id(self.id).one(db).await?{
+            Some(model)=>model.into_active_model(),
+            None=>return Err(AppError::NotFound { objeto: String::from("Rubro"), instancia: format!("{}",self.id) }),
+        };
+        model.codigo = Set(self.codigo);
+        model.descripcion = Set(self.descripcion.to_string());
+        model.updated_at = Set(Utc::now().naive_local());
+        model.update(db).await?;
+        Ok(())
+    }
 }
 impl Save for Rubro {
     async fn save(&self) -> Result<(), DbErr> {

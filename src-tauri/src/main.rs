@@ -478,6 +478,13 @@ fn descontar_producto_de_venta(
     Ok(res)
 }
 #[tauri::command]
+fn editar_producto(sistema: State<Mutex<Sistema>>, prod: V)->Res<()>{
+    let sis=sistema.lock().map_err(|e|e.to_string())?;
+    sis.access();
+    sis.editar_valuable(prod);
+    Ok(())
+}
+#[tauri::command]
 fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>> {
     let id = id.parse::<u32>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
@@ -1293,6 +1300,7 @@ fn main() {
             check_codes,
             close_window,
             descontar_producto_de_venta,
+            editar_producto,
             eliminar_pago,
             eliminar_producto,
             eliminar_producto_de_venta,
