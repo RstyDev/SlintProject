@@ -935,6 +935,9 @@ impl<'a> Sistema {
     pub fn get_deuda_detalle(&self, cliente: Cli) -> Res<Vec<Venta>> {
         async_runtime::block_on(cliente.get_deuda_detalle(&self.read_db, self.user()))
     }
+    pub fn eliminar_valuable(&self, val:V){
+        async_runtime::spawn(val.eliminar(self.write_db.as_ref().clone()));
+    }
     pub fn arc_user(&self) -> Arc<User> {
         Arc::clone(&self.user.as_ref().unwrap())
     }

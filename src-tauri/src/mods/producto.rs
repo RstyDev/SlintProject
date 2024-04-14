@@ -1,14 +1,13 @@
 use std::sync::Arc;
 
 use super::{
-    lib::{redondeo, Save},
-    valuable::Presentacion,
-    valuable::ValuableTrait,
+    error::AppError, lib::{redondeo, Save}, valuable::{Presentacion, ValuableTrait}
 };
 use chrono::Utc;
 use entity::prelude::{CodeDB, ProdDB};
-use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait, Set};
+use sea_orm::{ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set};
 use serde::{Deserialize, Serialize};
+type Res<T> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
@@ -100,6 +99,13 @@ impl Producto {
     //         i+=1;
     //     }
     // }
+    pub async fn eliminar(self,db:&DatabaseConnection)->Res<()>{
+        let model=match ProdDB::Entity::find_by_id(self.id).one(db).await?{
+            Some(model)=>model.into_active_model(),
+            None=>return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",self.id) }),
+        };
+        Ok(())
+    }
 }
 impl Save for Producto {
     async fn save(&self) -> Result<(), DbErr> {

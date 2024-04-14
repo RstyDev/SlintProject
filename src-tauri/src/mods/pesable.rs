@@ -3,8 +3,7 @@ use chrono::Utc;
 type Res<T> = std::result::Result<T, AppError>;
 use entity::prelude::PesDB;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
-    Set,
+    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter, Set
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -94,6 +93,14 @@ impl Pesable {
     }
     pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
+    }
+    pub async fn eliminar(self, db: &DatabaseConnection)->Res<()>{
+        let model=match PesDB::Entity::find_by_id(self.id).one(db).await?{
+            Some(model) => model.into_active_model(),
+            None => return Err(AppError::NotFound { objeto: String::from("Pesable"), instancia: format!("{}",self.id) }),
+        };
+        model.delete(db).await?;
+        Ok(())
     }
 }
 
