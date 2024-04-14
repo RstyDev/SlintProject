@@ -1,5 +1,5 @@
 use chrono::Utc;
-use entity::proveedor as ProvDB;
+use entity::prelude::ProvDB;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
     Set,

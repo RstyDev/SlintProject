@@ -3,10 +3,7 @@ use super::{
     lib::Mapper,
 };
 use chrono::Utc;
-use entity::{
-    cliente as CliDB, deuda as DeudaDB, pago as PagoDB, relacion_venta_pes as VentaPesDB,
-    relacion_venta_prod as VentaProdDB, relacion_venta_rub as VentaRubDB, venta as VentaDB,
-};
+use entity::prelude::{CliDB, DeudaDB, PagoDB, VentaDB, VentaPesDB, VentaProdDB, VentaRubDB};
 type Res<T> = std::result::Result<T, AppError>;
 
 use sea_orm::{

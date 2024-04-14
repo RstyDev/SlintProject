@@ -1,5 +1,5 @@
 use super::lib::Save;
-use entity::{medio_pago as MedioDB, pago as PagoDB};
+use entity::prelude::{MedioDB, PagoDB};
 use rand::random;
 use sea_orm::{ActiveModelTrait, ColumnTrait, Database, DbErr, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};

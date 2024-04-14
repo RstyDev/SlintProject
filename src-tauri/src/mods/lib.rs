@@ -1,9 +1,7 @@
 use chrono::Utc;
-use entity::{
-    cliente as CliDB, codigo_barras as CodeDB, medio_pago as MedioDB, pago as PagoDB,
-    pesable as PesDB, producto as ProdDB, proveedor as ProvDB, relacion_prod_prov as ProdProvDB,
-    relacion_venta_pes as VentaPesDB, relacion_venta_prod as VentaProdDB,
-    relacion_venta_rub as VentaRubDB, rubro as RubDB, user as UserDB, venta as VentaDB,
+use entity::prelude::{
+    CliDB, CodeDB, MedioDB, PagoDB, PesDB, ProdDB, ProdProvDB, ProvDB, RubDB, UserDB, VentaDB,
+    VentaPesDB, VentaProdDB, VentaRubDB,
 };
 
 use sea_orm::{
@@ -311,7 +309,50 @@ impl Db {
         }
         Ok(())
     }
-
+    pub async fn cargar_todos_los_productos(
+        productos: &Vec<Producto>,
+        db: &DatabaseConnection,
+    ) -> Result<(), DbErr> {
+        let mut prods = Vec::new();
+        let mut codes = Vec::new();
+        for producto in productos {
+            prods.push(ProdDB::ActiveModel {
+                id: Set(*producto.id()),
+                precio_de_venta: Set(*producto.precio_de_venta()),
+                porcentaje: Set(*producto.porcentaje()),
+                precio_de_costo: Set(*producto.precio_de_costo()),
+                tipo_producto: Set(producto.tipo_producto().to_string()),
+                marca: Set(producto.marca().to_string()),
+                variedad: Set(producto.variedad().to_string()),
+                presentacion: Set(producto.presentacion().get_string()),
+                cantidad: Set(producto.presentacion().get_cantidad()),
+                updated_at: Set(Utc::now().naive_local()),
+            });
+            let mut code_mod = producto
+                .codigos_de_barras()
+                .iter()
+                .map(|code| CodeDB::ActiveModel {
+                    codigo: Set(*code),
+                    producto: Set(*producto.id()),
+                    ..Default::default()
+                })
+                .collect::<Vec<CodeDB::ActiveModel>>();
+            codes.append(&mut code_mod);
+            if prods.len()==100{
+                if let Err(e) = ProdDB::Entity::insert_many(prods.clone()).exec(db).await {
+                    println!("{:#?}", e);
+                }
+                prods.clear();
+            }
+            if codes.len()>=498{
+                if let Err(e) = CodeDB::Entity::insert_many(codes.clone()).exec(db).await {
+                        println!("{:#?}", e);
+                }
+                codes.clear();
+            }
+        }
+        Ok(())
+    }
     pub async fn cargar_actualizar_todos_los_productos(
         productos: &Vec<Producto>,
         db: &DatabaseConnection,
@@ -440,7 +481,7 @@ impl Db {
     }
     pub async fn cargar_todos_los_valuables(productos: Vec<Valuable>) -> Result<(), DbErr> {
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        Db::cargar_actualizar_todos_los_productos(
+        Db::cargar_todos_los_productos(
             &productos
                 .iter()
                 .filter_map(|x| match x {

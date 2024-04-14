@@ -1,4 +1,4 @@
-use entity::{config as ConfDB, medio_pago as MedioDB};
+use entity::prelude::{ConfDB, MedioDB};
 use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

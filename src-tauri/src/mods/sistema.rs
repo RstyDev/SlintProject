@@ -16,10 +16,8 @@ use super::{
     venta::Venta,
 };
 use chrono::Utc;
-use entity::{
-    caja as CajaDB, cliente as CliDB, codigo_barras as CodeDB, config as ConfDB,
-    medio_pago as MedioDB, pesable as PesDB, producto as ProdDB, proveedor as ProvDB,
-    relacion_prod_prov as ProdProvDB, rubro as RubDB, user as UserDB,
+use entity::prelude::{
+    CajaDB, CliDB, CodeDB, ConfDB, MedioDB, PesDB, ProdDB, ProdProvDB, ProvDB, RubDB, UserDB,
 };
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{

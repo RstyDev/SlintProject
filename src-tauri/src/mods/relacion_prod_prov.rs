@@ -1,4 +1,4 @@
-use entity::relacion_prod_prov as ProdProvDB;
+use entity::prelude::ProdProvDB;
 use sea_orm::{ActiveModelTrait, Database, DbErr, Set};
 use serde::{Deserialize, Serialize};
 

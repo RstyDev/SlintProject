@@ -1,5 +1,5 @@
 use super::error::AppError;
-use entity::user as UserDB;
+use entity::prelude::UserDB;
 use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

@@ -1,6 +1,6 @@
 use chrono::Utc;
 type Res<T> = std::result::Result<T, AppError>;
-use entity::rubro as RubDB;
+use entity::prelude::RubDB;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
     Set,

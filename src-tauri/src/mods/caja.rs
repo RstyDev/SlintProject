@@ -1,6 +1,6 @@
 use chrono::{NaiveDateTime, Utc};
 use core::fmt;
-use entity::{caja as CajaDB, movimiento as MovDB};
+use entity::prelude::{CajaDB, MovDB};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, DatabaseConnection, EntityTrait, IntoActiveModel,
     QueryOrder, Set,

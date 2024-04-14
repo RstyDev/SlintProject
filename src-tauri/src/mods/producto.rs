@@ -6,14 +6,14 @@ use super::{
     valuable::ValuableTrait,
 };
 use chrono::Utc;
-use entity::{codigo_barras as CodeDB, producto as ProdDB};
+use entity::prelude::{CodeDB, ProdDB};
 use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
     id: i64,
-    pub codigos_de_barras: Vec<i64>,
+    codigos_de_barras: Vec<i64>,
     precio_de_venta: f64,
     porcentaje: f64,
     precio_de_costo: f64,

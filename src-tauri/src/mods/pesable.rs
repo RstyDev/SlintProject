@@ -1,7 +1,7 @@
 use super::{error::AppError, lib::Save};
 use chrono::Utc;
 type Res<T> = std::result::Result<T, AppError>;
-use entity::pesable as PesDB;
+use entity::prelude::PesDB;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
     Set,

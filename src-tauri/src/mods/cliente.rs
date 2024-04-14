@@ -1,12 +1,11 @@
 use chrono::NaiveDateTime;
-use entity::{cliente as CliDB, deuda as DeudaDB, pago as PagoDB, venta as VentaDB};
+use entity::prelude::{CliDB, DeudaDB, PagoDB, VentaDB};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait, IntoActiveModel,
     QueryFilter, QueryOrder, QuerySelect, Set,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tauri::App;
 
 use super::{error::AppError, lib::Mapper, user::User, venta::Venta};
 type Res<T> = std::result::Result<T, AppError>;
