@@ -9,7 +9,7 @@ pub struct Model {
     pub id: i32,
     pub updated_at: NaiveDateTime,
     pub nombre: String,
-    pub contacto: Option<i32>,
+    pub contacto: Option<i64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

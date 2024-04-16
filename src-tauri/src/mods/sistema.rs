@@ -743,7 +743,7 @@ impl<'a> Sistema {
         result
     }
 
-    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i32>) -> Res<()> {
+    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i64>) -> Res<()> {
         async_runtime::block_on(Proveedor::new_to_db(proveedor, contacto, self.write_db()))?;
         Ok(())
     }

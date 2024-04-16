@@ -265,7 +265,7 @@ fn agregar_proveedor(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     proveedor: &str,
-    contacto: Option<i32>,
+    contacto: Option<i64>,
 ) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     match sis.arc_user().rango() {

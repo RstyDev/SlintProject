@@ -17,13 +17,13 @@ use super::{
 pub struct Proveedor {
     id: i32,
     nombre: Arc<str>,
-    contacto: Option<i32>,
+    contacto: Option<i64>,
 }
 
 impl Proveedor {
     pub async fn new_to_db(
         nombre: &str,
-        contacto: Option<i32>,
+        contacto: Option<i64>,
         db: &DatabaseConnection,
     ) -> Res<Proveedor> {
         match ProvDB::Entity::find()
@@ -50,7 +50,7 @@ impl Proveedor {
             }
         }
     }
-    pub fn new(id: i32, nombre: &str, contacto: Option<i32>) -> Self {
+    pub fn new(id: i32, nombre: &str, contacto: Option<i64>) -> Self {
         Proveedor {
             id,
             nombre: Arc::from(nombre),
@@ -63,7 +63,7 @@ impl Proveedor {
     pub fn id(&self) -> &i32 {
         &self.id
     }
-    pub fn contacto(&self) -> &Option<i32> {
+    pub fn contacto(&self) -> &Option<i64> {
         &self.contacto
     }
 }
