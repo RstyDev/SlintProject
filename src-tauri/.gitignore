@@ -2,6 +2,5 @@
 # will have compiled files and executables
 /target/
 
-.history/*
-migration/target/*
-db.sqlite
+/.env
+*target*

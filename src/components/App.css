@@ -1,0 +1,18 @@
+.logo.vite:hover {
+  filter: drop-shadow(0 0 2em #747bff);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafb);
+}
+
+#no-iniciado {
+  height: 90svh;
+  display: flex;
+
+  & p {
+    font-size: 5svh;
+    color: #dd1111;
+    margin: auto;
+  }
+}

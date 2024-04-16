@@ -4,8 +4,8 @@ mod cliente;
 mod codigo_barras;
 mod config;
 mod deuda;
+mod m20220101_000001_create_table;
 mod medio_pago;
-mod movimiento;
 mod pago;
 mod pesable;
 mod producto;
@@ -17,7 +17,6 @@ mod relacion_venta_rub;
 mod rubro;
 mod user;
 mod venta;
-
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -29,8 +28,8 @@ impl MigratorTrait for Migrator {
             Box::new(codigo_barras::Migration),
             Box::new(config::Migration),
             Box::new(deuda::Migration),
+            Box::new(m20220101_000001_create_table::Migration),
             Box::new(medio_pago::Migration),
-            Box::new(movimiento::Migration),
             Box::new(pago::Migration),
             Box::new(pesable::Migration),
             Box::new(producto::Migration),
@@ -42,6 +41,6 @@ impl MigratorTrait for Migrator {
             Box::new(rubro::Migration),
             Box::new(user::Migration),
             Box::new(venta::Migration),
-        ]
+            ]
     }
 }

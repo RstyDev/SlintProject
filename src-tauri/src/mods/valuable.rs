@@ -1,11 +1,14 @@
 use super::{
-    config::{Config, Formato}, error::AppError, lib::Save, pesable::Pesable, producto::Producto, rubro::Rubro
+    config::{Config, Formato},
+    lib::Save,
+    pesable::Pesable,
+    producto::Producto,
+    rubro::Rubro,
 };
-use sea_orm::{DatabaseConnection, DbErr};
+use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 use Valuable as V;
-type Res<T> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {
@@ -84,20 +87,6 @@ impl Valuable {
         };
 
         res
-    }
-    pub async fn eliminar(self,db:DatabaseConnection)->Res<()>{
-        match self{
-            Valuable::Prod((_,prod)) => prod.eliminar(&db).await,
-            Valuable::Pes((_,pes)) => pes.eliminar(&db).await,
-            Valuable::Rub((_,rub)) => rub.eliminar(&db).await,
-        }
-    }
-    pub async fn editar(self,db:DatabaseConnection)->Res<()>{
-        match self{
-            Valuable::Prod((_,prod)) => prod.editar(&db).await,
-            Valuable::Pes((_,pes)) => pes.editar(&db).await,
-            Valuable::Rub((_,rub)) => rub.editar(&db).await,
-        }
     }
 }
 impl Save for Valuable {

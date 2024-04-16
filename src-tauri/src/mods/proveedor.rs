@@ -1,5 +1,5 @@
 use chrono::Utc;
-use entity::prelude::ProvDB;
+use entity::proveedor;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
     Set,
@@ -26,8 +26,8 @@ impl Proveedor {
         contacto: Option<i64>,
         db: &DatabaseConnection,
     ) -> Res<Proveedor> {
-        match ProvDB::Entity::find()
-            .filter(ProvDB::Column::Nombre.eq(nombre))
+        match entity::proveedor::Entity::find()
+            .filter(entity::proveedor::Column::Nombre.eq(nombre))
             .one(db)
             .await?
         {
@@ -38,7 +38,7 @@ impl Proveedor {
                 })
             }
             None => {
-                let model = ProvDB::ActiveModel {
+                let model = entity::proveedor::ActiveModel {
                     updated_at: Set(Utc::now().naive_local()),
                     nombre: Set(nombre.to_string()),
                     contacto: Set(contacto),
@@ -69,7 +69,7 @@ impl Proveedor {
 }
 impl Save for Proveedor {
     async fn save(&self) -> Result<(), DbErr> {
-        let model = ProvDB::ActiveModel {
+        let model = proveedor::ActiveModel {
             id: Set(self.id),
             nombre: Set(self.nombre.to_string()),
             contacto: Set(self.contacto),

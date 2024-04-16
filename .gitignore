@@ -6,7 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
 node_modules
 dist
 dist-ssr
@@ -22,7 +21,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.history
-src-tauri/migration/target/*
-src-tauri/.env
-src-tauri/entity/target/*

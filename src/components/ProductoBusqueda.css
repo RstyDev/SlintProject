@@ -1,0 +1,10 @@
+tr{
+    max-height: 1.5em;
+    &:hover{
+        border: 1px solid white;
+    }
+}
+td:nth-child(2){
+    text-align: end;
+    width: 20%;
+}

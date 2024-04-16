@@ -1,6 +1,6 @@
-# Tauri + Vanilla
+# Tauri + React
 
-Aplicación de escritorio de punto de venta desarrollada en Rust con Tauri, vanilla HTML, CSS y JavaScript, con base de datos sqlite integrada, desarrollada por iniciativa propia, con parte de investigación autodidacta, en tiempos libres
+This template should help get you started developing with Tauri and React in Vite.
 
 ## Recommended IDE Setup
 

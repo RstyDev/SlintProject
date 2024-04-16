@@ -36,22 +36,28 @@ input:disabled {
   height: fit-content;
 
 }
+
 #tabla-productos {
   height: fit-content;
 }
-#tabla-productos tr{
+
+#tabla-productos tr {
   max-height: 2em;
 }
+
 #tabla-productos tr:hover {
   background-color: #666;
 }
-.confirm-body{
+
+.confirm-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  & section{
+
+  & section {
     display: inline-block;
-    & button{
+
+    & button {
       width: 5em;
     }
   }
@@ -226,19 +232,29 @@ input:disabled {
   box-sizing: border-box;
 }
 
-@keyframes mov-error{
-  0%{}
-  25%{transform: translateY(3px);}
-  50%{transform: translateY(0px);}
-  75%{transform: translateY(-3px);}
+@keyframes mov-error {
+  0% {}
+
+  25% {
+    transform: translateY(3px);
+  }
+
+  50% {
+    transform: translateY(0px);
+  }
+
+  75% {
+    transform: translateY(-3px);
+  }
 }
-.error{
+
+.error {
   filter: drop-shadow(0px 0px 0px red);
-  
+
   -webkit-animation: mov-error 0.2s infinite;
-    -moz-animation: mov-error 0.2s infinite;
-    -o-animation: mov-error 0.2s infinite;
-    animation: mov-error 0.2s infinite;
+  -moz-animation: mov-error 0.2s infinite;
+  -o-animation: mov-error 0.2s infinite;
+  animation: mov-error 0.2s infinite;
 }
 
 .focuseado {
@@ -251,13 +267,14 @@ input:disabled {
 
 #cuadro-principal {
   width: 98%;
-  height: 75svh;
-  background-color: #0f0f0f50;
+  height: 80svh;
+  
   border-radius: 5px;
-  display: grid;
-  grid-template-columns: 70% 30%;
-  padding: 10px;
+  /* display: grid; */
+  /* grid-template-columns: 70% 30%; */
+  padding: 10px 0px 10px 10px;
   overflow-y: auto;
+
   & #buscador-form {
     display: inline;
     position: fixed;
@@ -304,8 +321,8 @@ input:disabled {
 
   &#cuadro-venta {
     border: solid 1px #6f6f6f;
-    width: 100%;
-    height: 75svh;
+    width: 99%;
+    height: 78svh;
 
     & .focuseable {
       border: solid 1px #535bf2;
@@ -379,7 +396,8 @@ div#pagos section.pago {
 }
 
 #resumen-y-pago {
-  padding-left: 5px;
+  padding-right:10px;
+  height: 77.5svh;
 
   & p {
     align-self: self-end;
@@ -534,46 +552,56 @@ label {
   margin: auto;
 }
 
-.Lower{
+.Lower {
   text-transform: lowercase;
 }
-.Upper{
+
+.Upper {
   text-transform: uppercase;
 }
-.Camel{
+
+.Camel {
   text-transform: capitalize;
 }
+
 #agregar-proveedor-submit div {
   text-align: center;
   width: 100%;
 }
-.add-form{
+
+.add-form {
   display: flex;
   flex-direction: column;
 }
-#form-login{
+
+#form-login {
   height: 90svh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  & *{
+
+  & * {
     margin: 5px;
   }
 }
+
 #agregar-producto-container {
   display: grid;
-  grid-template-columns: 35% 65% ;
+  grid-template-columns: 35% 65%;
   grid-template-rows: auto auto;
-  & #agregar-producto{
+
+  & #agregar-producto {
     grid-column-start: 2;
     grid-row: 1/span 2;
   }
-  & #input-codigo{
+
+  & #input-codigo {
     margin-top: 20px;
     grid-column-start: 1;
   }
-  & #agregar-proveedor-producto{
+
+  & #agregar-proveedor-producto {
     grid-column-start: 1;
   }
 
@@ -586,7 +614,7 @@ label {
       display: inline-block;
     }
   }
-  
+
 }
 
 #cerrar-agregar-proveedor,
@@ -689,6 +717,7 @@ button {
 
   .main-screen {
     border: solid 2px #8f8f8f;
+    background-color: #0f0f0f50;
   }
 
 
