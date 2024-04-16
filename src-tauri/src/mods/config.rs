@@ -8,7 +8,7 @@ type Res<T> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
-    politica_redondeo: f64,
+    politica_redondeo: f32,
     formato_producto: Formato,
     modo_mayus: Mayusculas,
     cantidad_productos: u8,

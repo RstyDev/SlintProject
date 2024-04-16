@@ -17,9 +17,9 @@ pub enum Cliente {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Cli {
-    id: i64,
+    id: i32,
     nombre: Arc<str>,
-    dni: i64,
+    dni: i32,
     credito: bool,
     activo: bool,
     created: NaiveDateTime,

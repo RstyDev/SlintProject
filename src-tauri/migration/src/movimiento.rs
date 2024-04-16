@@ -30,7 +30,7 @@ impl MigrationTrait for Migration {
                             .on_update(ForeignKeyAction::Cascade),
                     )
                     .col(ColumnDef::new(Movimiento::Tipo).boolean().not_null())
-                    .col(ColumnDef::new(Movimiento::Monto).double().not_null())
+                    .col(ColumnDef::new(Movimiento::Monto).float().not_null())
                     .col(ColumnDef::new(Movimiento::Descripcion).string())
                     .col(ColumnDef::new(Movimiento::Time).date_time().not_null())
                     .to_owned(),

@@ -18,9 +18,9 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Producto::PrecioDeVenta).double().not_null())
-                    .col(ColumnDef::new(Producto::Porcentaje).double().not_null())
-                    .col(ColumnDef::new(Producto::PrecioDeCosto).double().not_null())
+                    .col(ColumnDef::new(Producto::PrecioDeVenta).float().not_null())
+                    .col(ColumnDef::new(Producto::Porcentaje).float().not_null())
+                    .col(ColumnDef::new(Producto::PrecioDeCosto).float().not_null())
                     .col(ColumnDef::new(Producto::TipoProducto).string().not_null())
                     .col(ColumnDef::new(Producto::Marca).string().not_null())
                     .col(ColumnDef::new(Producto::Variedad).string().not_null())

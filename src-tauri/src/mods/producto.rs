@@ -11,11 +11,11 @@ type Res<T> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
-    id: i64,
+    id: i32,
     codigos_de_barras: Vec<i64>,
-    precio_de_venta: f64,
-    porcentaje: f64,
-    precio_de_costo: f64,
+    precio_de_venta: f32,
+    porcentaje: f32,
+    precio_de_costo: f32,
     tipo_producto: Arc<str>,
     marca: Arc<str>,
     variedad: Arc<str>,
@@ -24,9 +24,9 @@ pub struct Producto {
 
 impl Producto {
     pub fn new(
-        id: i64,
-        codigos_de_barras: Vec<i64>,
-        precio_de_venta: f64,
+        id: i32,
+        codigos_de_barras: Vec<i32>,
+        precio_de_venta: f32,
         porcentaje: f64,
         precio_de_costo: f64,
         tipo_producto: &str,

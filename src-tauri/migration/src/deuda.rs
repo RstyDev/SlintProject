@@ -29,7 +29,7 @@ impl MigrationTrait for Migration {
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
                     )
-                    .col(ColumnDef::new(Deuda::Monto).double().not_null())
+                    .col(ColumnDef::new(Deuda::Monto).float().not_null())
                     .col(ColumnDef::new(Deuda::Pago).big_integer().not_null())
                     .foreign_key(
                         ForeignKeyCreateStatement::new()

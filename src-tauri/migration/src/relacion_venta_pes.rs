@@ -25,7 +25,7 @@ impl MigrationTrait for Migration {
                             .float()
                             .not_null(),
                     )
-                    .col(ColumnDef::new(RelacionVentaPes::Precio).double().not_null())
+                    .col(ColumnDef::new(RelacionVentaPes::Precio).float().not_null())
                     .col(
                         ColumnDef::new(RelacionVentaPes::Pesable)
                             .big_integer()

@@ -16,11 +16,11 @@ pub struct Caja {
     id: i64,
     inicio: NaiveDateTime,
     cierre: Option<NaiveDateTime>,
-    ventas_totales: f64,
-    monto_inicio: f64,
-    monto_cierre: Option<f64>,
+    ventas_totales: f32,
+    monto_inicio: f32,
+    monto_cierre: Option<f32>,
     cajero: Option<Arc<str>>,
-    totales: HashMap<Arc<str>, f64>,
+    totales: HashMap<Arc<str>, f32>,
 }
 
 #[derive(Debug, Clone, Serialize)]

@@ -40,7 +40,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(
                         ColumnDef::new(RelacionVentaProd::Precio)
-                            .double()
+                            .float()
                             .not_null(),
                     )
                     .col(

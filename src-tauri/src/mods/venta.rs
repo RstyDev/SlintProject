@@ -29,11 +29,11 @@ use super::{
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Venta {
-    id: i64,
-    monto_total: f64,
+    id: i32,
+    monto_total: f32,
     productos: Vec<Valuable>,
     pagos: Vec<Pago>,
-    monto_pagado: f64,
+    monto_pagado: f32,
     vendedor: Option<Arc<User>>,
     cliente: Cliente,
     paga: bool,

@@ -15,9 +15,9 @@ use super::{
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
-    id: i64,
+    id: i32,
     nombre: Arc<str>,
-    contacto: Option<i64>,
+    contacto: Option<i32>,
 }
 
 impl Proveedor {

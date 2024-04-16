@@ -6,8 +6,8 @@ use super::lib::Save;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct RelacionProdProv {
-    id_producto: i64,
-    id_proveedor: i64,
+    id_producto: i32,
+    id_proveedor: i32,
     codigo_interno: Option<i64>,
 }
 

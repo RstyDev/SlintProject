@@ -20,8 +20,8 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Venta::MontoTotal).double().not_null())
-                    .col(ColumnDef::new(Venta::MontoPagado).double().not_null())
+                    .col(ColumnDef::new(Venta::MontoTotal).float().not_null())
+                    .col(ColumnDef::new(Venta::MontoPagado).float().not_null())
                     .col(ColumnDef::new(Venta::Time).date_time().not_null())
                     .col(ColumnDef::new(Venta::Cliente).big_integer())
                     .foreign_key(

@@ -20,9 +20,9 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Caja::Inicio).string().not_null())
                     .col(ColumnDef::new(Caja::Cierre).string())
-                    .col(ColumnDef::new(Caja::MontoInicio).double().not_null())
-                    .col(ColumnDef::new(Caja::MontoCierre).double())
-                    .col(ColumnDef::new(Caja::VentasTotales).double().not_null())
+                    .col(ColumnDef::new(Caja::MontoInicio).float().not_null())
+                    .col(ColumnDef::new(Caja::MontoCierre).float())
+                    .col(ColumnDef::new(Caja::VentasTotales).float().not_null())
                     .col(ColumnDef::new(Caja::Cajero).string())
                     .to_owned(),
             )

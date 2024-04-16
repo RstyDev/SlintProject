@@ -15,9 +15,9 @@ use super::{
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
-    id: i64,
-    codigo: i64,
-    monto: Option<f64>,
+    id: i32,
+    codigo: i32,
+    monto: Option<f32>,
     descripcion: Arc<str>,
 }
 

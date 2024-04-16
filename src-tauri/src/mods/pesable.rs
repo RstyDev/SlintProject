@@ -10,11 +10,11 @@ use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pesable {
-    id: i64,
+    id: i32,
     codigo: i64,
-    precio_peso: f64,
-    porcentaje: f64,
-    costo_kilo: f64,
+    precio_peso: f32,
+    porcentaje: f32,
+    costo_kilo: f32,
     descripcion: Arc<str>,
 }
 impl Pesable {

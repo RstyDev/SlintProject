@@ -8,7 +8,7 @@ use tauri::async_runtime;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MedioPago {
     medio: Arc<str>,
-    id: i64,
+    id: i32,
 }
 
 impl MedioPago {
