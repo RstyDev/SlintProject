@@ -113,9 +113,9 @@ fn agregar_cliente(
     credito: bool,
     limite: Option<&str>,
 ) -> Res<Cli> {
-    let dni = dni.parse::<i64>().map_err(|e| e.to_string())?;
+    let dni = dni.parse::<i32>().map_err(|e| e.to_string())?;
     let limite = match limite {
-        Some(l) => Some(l.parse::<f64>().map_err(|e| e.to_string())?),
+        Some(l) => Some(l.parse::<f32>().map_err(|e| e.to_string())?),
         None => None,
     };
     let sis = sistema.lock().map_err(|e| e.to_string())?;
@@ -146,7 +146,7 @@ fn agregar_pago(
     monto: &str,
     pos: bool,
 ) -> Res<Vec<Pago>> {
-    let monto = monto.parse::<f64>().map_err(|e| e.to_string())?;
+    let monto = monto.parse::<f32>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.agregar_pago(medio_pago, monto, pos)?;
@@ -165,10 +165,10 @@ fn agregar_pesable<'a>(
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     match sis.arc_user().rango() {
         Rango::Admin => {
-            let precio_peso = precio_peso.parse::<f64>().map_err(|e| e.to_string())?;
+            let precio_peso = precio_peso.parse::<f32>().map_err(|e| e.to_string())?;
             let codigo = codigo.parse::<i64>().map_err(|e| e.to_string())?;
-            let costo_kilo = costo_kilo.parse::<f64>().map_err(|e| e.to_string())?;
-            let porcentaje = porcentaje.parse::<f64>().map_err(|e| e.to_string())?;
+            let costo_kilo = costo_kilo.parse::<f32>().map_err(|e| e.to_string())?;
+            let porcentaje = porcentaje.parse::<f32>().map_err(|e| e.to_string())?;
             let pesable = async_runtime::block_on(Pesable::new_to_db(
                 sis.write_db(),
                 codigo,
@@ -265,7 +265,7 @@ fn agregar_proveedor(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     proveedor: &str,
-    contacto: Option<i64>,
+    contacto: Option<i32>,
 ) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     match sis.arc_user().rango() {
@@ -394,7 +394,7 @@ fn cancelar_venta(sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()> {
 fn cerrar_caja(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    monto_actual: f64,
+    monto_actual: f32,
 ) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
@@ -548,7 +548,7 @@ fn get_descripcion_valuable(prod: V, conf: Config) -> String {
     prod.descripcion(&conf)
 }
 #[tauri::command]
-fn get_deuda(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<f64> {
+fn get_deuda(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<f32> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.get_deuda(cliente).map_err(|e| e.to_string())
@@ -650,12 +650,12 @@ fn get_venta_actual(
     Ok(venta)
 }
 #[tauri::command]
-fn hacer_egreso(sistema: State<Mutex<Sistema>>, monto: f64, descripcion: Option<&str>) -> Res<()> {
+fn hacer_egreso(sistema: State<Mutex<Sistema>>, monto: f32, descripcion: Option<&str>) -> Res<()> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     Ok(sis.hacer_egreso(monto, descripcion.map(|d| Arc::from(d)))?)
 }
 #[tauri::command]
-fn hacer_ingreso(sistema: State<Mutex<Sistema>>, monto: f64, descripcion: Option<&str>) -> Res<()> {
+fn hacer_ingreso(sistema: State<Mutex<Sistema>>, monto: f32, descripcion: Option<&str>) -> Res<()> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     Ok(sis.hacer_ingreso(monto, descripcion.map(|d| Arc::from(d)))?)
 }
@@ -1099,7 +1099,7 @@ async fn open_stash<'a>(
 #[tauri::command]
 fn pagar_deuda_especifica(
     sistema: State<Mutex<Sistema>>,
-    cliente: i64,
+    cliente: i32,
     venta: Venta,
 ) -> Res<Venta> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
@@ -1107,7 +1107,7 @@ fn pagar_deuda_especifica(
     Ok(sis.pagar_deuda_especifica(cliente, venta)?)
 }
 #[tauri::command]
-fn pagar_deuda_general(sistema: State<Mutex<Sistema>>, cliente: i64, monto: f64) -> Res<f64> {
+fn pagar_deuda_general(sistema: State<Mutex<Sistema>>, cliente: i32, monto: f32) -> Res<f32> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.pagar_deuda_general(cliente, monto)?)

@@ -17,6 +17,7 @@ beep.volume = 1;
 error.volume = 0.2;
 
 get_configs().then(conf => {
+  console.log(conf)
   configs = conf;
 });
 
@@ -188,7 +189,7 @@ function dibujar_venta(venta) {
   } else {
     vacia = false;
   };
-  console.log(vacia)
+  
   get_clientes().then(clientes => {
     let select = document.getElementById('cliente');
     agregar_options(select, clientes, venta);

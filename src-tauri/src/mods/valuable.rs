@@ -126,11 +126,11 @@ impl PartialEq for Valuable {
 }
 
 pub trait ValuableTrait {
-    fn redondear(&self, politica: &f64) -> Self;
+    fn redondear(&self, politica: &f32) -> Self;
 }
 
 impl ValuableTrait for Valuable {
-    fn redondear(&self, politica: &f64) -> Valuable {
+    fn redondear(&self, politica: &f32) -> Valuable {
         match self {
             V::Pes(a) => V::Pes(a.clone()),
             V::Prod(a) => V::Prod((a.0, a.1.redondear(politica))),

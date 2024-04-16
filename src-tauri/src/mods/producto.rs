@@ -25,10 +25,10 @@ pub struct Producto {
 impl Producto {
     pub fn new(
         id: i32,
-        codigos_de_barras: Vec<i32>,
+        codigos_de_barras: Vec<i64>,
         precio_de_venta: f32,
-        porcentaje: f64,
-        precio_de_costo: f64,
+        porcentaje: f32,
+        precio_de_costo: f32,
         tipo_producto: &str,
         marca: &str,
         variedad: &str,
@@ -46,19 +46,19 @@ impl Producto {
             presentacion,
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn codigos_de_barras(&self) -> &Vec<i64> {
         &self.codigos_de_barras
     }
-    pub fn precio_de_venta(&self) -> &f64 {
+    pub fn precio_de_venta(&self) -> &f32 {
         &self.precio_de_venta
     }
-    pub fn porcentaje(&self) -> &f64 {
+    pub fn porcentaje(&self) -> &f32 {
         &self.porcentaje
     }
-    pub fn precio_de_costo(&self) -> &f64 {
+    pub fn precio_de_costo(&self) -> &f32 {
         &self.precio_de_costo
     }
     pub fn tipo_producto(&self) -> Arc<str> {
@@ -172,7 +172,7 @@ impl PartialEq for Producto {
 }
 
 impl ValuableTrait for Producto {
-    fn redondear(&self, politica: &f64) -> Producto {
+    fn redondear(&self, politica: &f32) -> Producto {
         Producto {
             id: self.id,
             codigos_de_barras: self.codigos_de_barras.clone(),

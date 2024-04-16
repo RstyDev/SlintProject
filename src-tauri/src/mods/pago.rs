@@ -12,13 +12,13 @@ pub struct MedioPago {
 }
 
 impl MedioPago {
-    pub fn new(medio: &str, id: i64) -> MedioPago {
+    pub fn new(medio: &str, id: i32) -> MedioPago {
         MedioPago {
             medio: Arc::from(medio),
             id,
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn desc(&self) -> Arc<str> {
@@ -29,12 +29,12 @@ impl MedioPago {
 pub struct Pago {
     int_id: u32,
     medio_pago: MedioPago,
-    monto: f64,
-    pagado: f64,
+    monto: f32,
+    pagado: f32,
 }
 
 impl Pago {
-    pub fn new(medio_pago: MedioPago, monto: f64, pagado: Option<f64>) -> Pago {
+    pub fn new(medio_pago: MedioPago, monto: f32, pagado: Option<f32>) -> Pago {
         let int_id = random();
 
         Pago {
@@ -53,13 +53,13 @@ impl Pago {
     pub fn medio(&self) -> Arc<str> {
         Arc::clone(&self.medio_pago.medio)
     }
-    pub fn monto(&self) -> f64 {
+    pub fn monto(&self) -> f32 {
         self.monto
     }
     pub fn id(&self) -> u32 {
         self.int_id
     }
-    pub fn pagado(&self) -> &f64 {
+    pub fn pagado(&self) -> &f32 {
         &self.pagado
     }
 }

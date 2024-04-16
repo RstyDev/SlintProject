@@ -16,13 +16,13 @@ use super::{
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
     id: i32,
-    codigo: i32,
+    codigo: i64,
     monto: Option<f32>,
     descripcion: Arc<str>,
 }
 
 impl Rubro {
-    pub fn new(id: i64, codigo: i64, monto: Option<f64>, descripcion: Arc<str>) -> Rubro {
+    pub fn new(id: i32, codigo: i64, monto: Option<f32>, descripcion: Arc<str>) -> Rubro {
         Rubro {
             id,
             codigo,
@@ -32,7 +32,7 @@ impl Rubro {
     }
     pub async fn new_to_db(
         codigo: i64,
-        monto: Option<f64>,
+        monto: Option<f32>,
         descripcion: &str,
         db: &DatabaseConnection,
     ) -> Res<Rubro> {
@@ -65,10 +65,10 @@ impl Rubro {
             }
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
-    pub fn monto(&self) -> Option<&f64> {
+    pub fn monto(&self) -> Option<&f32> {
         self.monto.as_ref()
     }
     pub fn codigo(&self) -> &i64 {
@@ -113,7 +113,7 @@ impl Save for Rubro {
     }
 }
 impl ValuableTrait for Rubro {
-    fn redondear(&self, politica: &f64) -> Rubro {
+    fn redondear(&self, politica: &f32) -> Rubro {
         match &self.monto {
             Some(a) => Rubro {
                 id: self.id,

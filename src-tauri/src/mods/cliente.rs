@@ -27,18 +27,18 @@ pub struct Cli {
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Cuenta {
-    Auth(Option<f64>),
+    Auth(Option<f32>),
     Unauth,
 }
 impl Cli {
     pub async fn new_to_db(
         db: &DatabaseConnection,
         nombre: &str,
-        dni: i64,
+        dni: i32,
         credito: bool,
         activo: bool,
         created: NaiveDateTime,
-        limite: Option<f64>,
+        limite: Option<f32>,
     ) -> Res<Cli> {
         match CliDB::Entity::find()
             .filter(CliDB::Column::Dni.eq(dni))
@@ -78,13 +78,13 @@ impl Cli {
         }
     }
     pub fn new(
-        id: i64,
+        id: i32,
         nombre: Arc<str>,
-        dni: i64,
+        dni: i32,
         credito: bool,
         activo: bool,
         created: NaiveDateTime,
-        limite: Option<f64>,
+        limite: Option<f32>,
     ) -> Cli {
         Cli {
             id,
@@ -99,13 +99,13 @@ impl Cli {
             created,
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn credito(&self) -> &bool {
         &self.credito
     }
-    pub async fn get_deuda(&self, db: &DatabaseConnection) -> Res<f64> {
+    pub async fn get_deuda(&self, db: &DatabaseConnection) -> Res<f32> {
         Ok(DeudaDB::Entity::find()
             .select_only()
             .column(DeudaDB::Column::Monto)
@@ -114,7 +114,7 @@ impl Cli {
             .await?
             .iter()
             .map(|m| m.monto)
-            .sum::<f64>())
+            .sum::<f32>())
     }
     pub async fn get_deuda_detalle(
         &self,
@@ -137,7 +137,7 @@ impl Cli {
     }
 
     pub async fn pagar_deuda_especifica(
-        id: i64,
+        id: i32,
         db: &DatabaseConnection,
         venta: Venta,
         user: &Option<Arc<User>>,
@@ -161,7 +161,7 @@ impl Cli {
         let venta = Mapper::map_model_sale(&model, db, &user).await?;
         Ok(venta)
     }
-    pub async fn pagar_deuda_general(id: i64, db: &DatabaseConnection, mut monto: f64) -> Res<f64> {
+    pub async fn pagar_deuda_general(id: i32, db: &DatabaseConnection, mut monto: f32) -> Res<f32> {
         let models = VentaDB::Entity::find()
             .filter(
                 Condition::all()
@@ -176,7 +176,7 @@ impl Cli {
             - models
                 .iter()
                 .map(|model| model.monto_total - model.monto_pagado)
-                .sum::<f64>();
+                .sum::<f32>();
         for model in models {
             if monto <= 0.0 {
                 break;

@@ -13,7 +13,7 @@ use super::{config::Config, error::AppError, pago::Pago};
 pub struct Totales(HashMap<String, f64>);
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Caja {
-    id: i64,
+    id: i32,
     inicio: NaiveDateTime,
     cierre: Option<NaiveDateTime>,
     ventas_totales: f32,
@@ -27,11 +27,11 @@ pub struct Caja {
 pub enum Movimiento {
     Ingreso {
         descripcion: Option<Arc<str>>,
-        monto: f64,
+        monto: f32,
     },
     Egreso {
         descripcion: Option<Arc<str>>,
-        monto: f64,
+        monto: f32,
     },
 }
 impl fmt::Debug for Caja {
@@ -51,7 +51,7 @@ impl fmt::Debug for Caja {
 impl Caja {
     pub async fn new(
         db: Arc<DatabaseConnection>,
-        monto_inicio: Option<f64>,
+        monto_inicio: Option<f32>,
         config: &Config,
     ) -> Result<Caja, AppError> {
         let caja;
@@ -174,7 +174,7 @@ impl Caja {
     pub fn set_cajero(&mut self, cajero: Arc<str>) {
         self.cajero = Some(cajero);
     }
-    pub async fn set_n_save(&mut self, db: &DatabaseConnection, monto: f64) -> Res<()> {
+    pub async fn set_n_save(&mut self, db: &DatabaseConnection, monto: f32) -> Res<()> {
         self.monto_cierre = Some(monto);
         self.cierre = Some(Utc::now().naive_local());
         match CajaDB::Entity::find_by_id(self.id).one(db).await? {
@@ -197,7 +197,7 @@ impl Caja {
     pub async fn update_total(
         &mut self,
         db: &DatabaseConnection,
-        monto: f64,
+        monto: f32,
         pagos: &Vec<Pago>,
     ) -> Result<(), AppError> {
         // let act=self.totales.remove(&medio).unwrap();

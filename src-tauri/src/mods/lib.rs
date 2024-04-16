@@ -83,7 +83,7 @@ pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
 // pub fn push(pr: Producto, path: &String) {
 //     let mut prods = Vec::new();
 
-pub fn redondeo(politica: &f64, numero: f64) -> f64 {
+pub fn redondeo(politica: &f32, numero: f32) -> f32 {
     let mut res = numero;
     let dif = numero % politica;
     if dif != 0.0 {
@@ -126,7 +126,7 @@ impl Mapper {
             presentacion,
         ))
     }
-    pub fn map_model_rub(rub: &RubDB::Model, monto: f64) -> Rubro {
+    pub fn map_model_rub(rub: &RubDB::Model, monto: f32) -> Rubro {
         Rubro::new(
             rub.id,
             rub.codigo,

@@ -23,7 +23,7 @@ pub struct Proveedor {
 impl Proveedor {
     pub async fn new_to_db(
         nombre: &str,
-        contacto: Option<i64>,
+        contacto: Option<i32>,
         db: &DatabaseConnection,
     ) -> Res<Proveedor> {
         match ProvDB::Entity::find()
@@ -50,7 +50,7 @@ impl Proveedor {
             }
         }
     }
-    pub fn new(id: i64, nombre: &str, contacto: Option<i64>) -> Self {
+    pub fn new(id: i32, nombre: &str, contacto: Option<i32>) -> Self {
         Proveedor {
             id,
             nombre: Arc::from(nombre),
@@ -60,10 +60,10 @@ impl Proveedor {
     pub fn nombre(&self) -> Arc<str> {
         Arc::clone(&self.nombre)
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
-    pub fn contacto(&self) -> &Option<i64> {
+    pub fn contacto(&self) -> &Option<i32> {
         &self.contacto
     }
 }

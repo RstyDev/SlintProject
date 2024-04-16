@@ -54,10 +54,10 @@ impl<'a> Sistema {
     pub fn agregar_cliente(
         &self,
         nombre: &str,
-        dni: i64,
+        dni: i32,
         credito: bool,
         activo: bool,
-        limite: Option<f64>,
+        limite: Option<f32>,
     ) -> Res<Cli> {
         async_runtime::block_on(Cli::new_to_db(
             self.write_db(),
@@ -69,7 +69,7 @@ impl<'a> Sistema {
             limite,
         ))
     }
-    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64, pos: bool) -> Res<f64> {
+    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32, pos: bool) -> Res<f32> {
         let res;
         if pos {
             if !medio_pago.eq("Efectivo")
@@ -186,7 +186,7 @@ impl<'a> Sistema {
         }
         Ok(())
     }
-    pub fn cerrar_caja(&mut self, monto_actual: f64) -> Res<()> {
+    pub fn cerrar_caja(&mut self, monto_actual: f32) -> Res<()> {
         self.caja.set_cajero(self.user().unwrap().nombre());
         let db = Arc::clone(&self.write_db);
         async_runtime::block_on(self.caja.set_n_save(db.as_ref(), monto_actual))?;
@@ -389,7 +389,7 @@ impl<'a> Sistema {
     ) -> Result<Vec<(f32, Pesable)>, AppError> {
         let (cant, filtro) = Sistema::splitx(filtro)?;
         let mut prods = Vec::new();
-        match filtro.parse::<i64>() {
+        match filtro.parse::<i32>() {
             Ok(code) => {
                 if let Some(model) = PesDB::Entity::find()
                     .filter(PesDB::Column::Codigo.eq(code))
@@ -439,7 +439,7 @@ impl<'a> Sistema {
     ) -> Result<Vec<(u8, Rubro)>, AppError> {
         let mut prods = Vec::new();
         let (cant, filtro) = Sistema::splitx(filtro)?;
-        match filtro.parse::<i64>() {
+        match filtro.parse::<i32>() {
             Ok(code) => {
                 if let Some(model) = RubDB::Entity::find()
                     .filter(RubDB::Column::Codigo.eq(code))
@@ -488,7 +488,7 @@ impl<'a> Sistema {
     ) -> Result<Vec<(u8, Producto)>, AppError> {
         let (cant, filtro) = Sistema::splitx(filtro)?;
         let mut prods = Vec::new();
-        match filtro.parse::<f64>() {
+        match filtro.parse::<f32>() {
             Ok(code) => {
                 if let Some(id) = CodeDB::Entity::find()
                     .filter(CodeDB::Column::Codigo.eq(code))
@@ -611,7 +611,7 @@ impl<'a> Sistema {
             res.update(self.write_db()).await.unwrap();
         });
     }
-    pub fn pagar_deuda_especifica(&self, cliente: i64, venta: Venta) -> Res<Venta> {
+    pub fn pagar_deuda_especifica(&self, cliente: i32, venta: Venta) -> Res<Venta> {
         async_runtime::block_on(Cli::pagar_deuda_especifica(
             cliente,
             &self.write_db,
@@ -619,7 +619,7 @@ impl<'a> Sistema {
             &self.user,
         ))
     }
-    pub fn pagar_deuda_general(&self, cliente: i64, monto: f64) -> Res<f64> {
+    pub fn pagar_deuda_general(&self, cliente: i32, monto: f32) -> Res<f32> {
         async_runtime::block_on(Cli::pagar_deuda_general(cliente, &self.write_db, monto))
     }
     // pub async fn get_cliente(&self, id: i64) -> Res<Cliente> {
@@ -647,9 +647,9 @@ impl<'a> Sistema {
         let marca = marca.to_lowercase();
         let variedad = variedad.to_lowercase();
 
-        let precio_de_venta = precio_de_venta.parse::<f64>()?;
-        let porcentaje = porcentaje.parse::<f64>()?;
-        let precio_de_costo = precio_de_costo.parse::<f64>()?;
+        let precio_de_venta = precio_de_venta.parse::<f32>()?;
+        let porcentaje = porcentaje.parse::<f32>()?;
+        let precio_de_costo = precio_de_costo.parse::<f32>()?;
         let codigos_de_barras: Vec<i64> = codigos_de_barras
             .iter()
             .map(|x| x.parse::<i64>().unwrap())
@@ -731,11 +731,11 @@ impl<'a> Sistema {
             match codigos_prov[i].parse::<i64>() {
                 Ok(a) => {
                     self.relaciones
-                        .push(RelacionProdProv::new(*producto.id(), i as i64, Some(a)))
+                        .push(RelacionProdProv::new(*producto.id(), i as i32, Some(a)))
                 }
                 Err(_) => {
                     self.relaciones
-                        .push(RelacionProdProv::new(*producto.id(), i as i64, None))
+                        .push(RelacionProdProv::new(*producto.id(), i as i32, None))
                 }
             };
         }
@@ -743,7 +743,7 @@ impl<'a> Sistema {
         result
     }
 
-    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i64>) -> Res<()> {
+    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i32>) -> Res<()> {
         async_runtime::block_on(Proveedor::new_to_db(proveedor, contacto, self.write_db()))?;
         Ok(())
     }
@@ -921,15 +921,15 @@ impl<'a> Sistema {
         );
         Ok(())
     }
-    pub fn hacer_ingreso(&self, monto: f64, descripcion: Option<Arc<str>>) -> Res<()> {
+    pub fn hacer_ingreso(&self, monto: f32, descripcion: Option<Arc<str>>) -> Res<()> {
         let mov = Movimiento::Ingreso { descripcion, monto };
         async_runtime::block_on(self.caja.hacer_movimiento(mov, &self.write_db))
     }
-    pub fn hacer_egreso(&self, monto: f64, descripcion: Option<Arc<str>>) -> Res<()> {
+    pub fn hacer_egreso(&self, monto: f32, descripcion: Option<Arc<str>>) -> Res<()> {
         let mov = Movimiento::Egreso { descripcion, monto };
         async_runtime::block_on(self.caja.hacer_movimiento(mov, &self.write_db))
     }
-    pub fn get_deuda(&self, cliente: Cli) -> Res<f64> {
+    pub fn get_deuda(&self, cliente: Cli) -> Res<f32> {
         async_runtime::block_on(cliente.get_deuda(&self.read_db))
     }
     pub fn get_deuda_detalle(&self, cliente: Cli) -> Res<Vec<Venta>> {
@@ -978,7 +978,7 @@ impl<'a> Sistema {
     pub fn stash(&self) -> &Vec<Venta> {
         &self.stash
     }
-    pub async fn update_total(&mut self, monto: f64, pagos: &Vec<Pago>) -> Result<(), AppError> {
+    pub async fn update_total(&mut self, monto: f32, pagos: &Vec<Pago>) -> Result<(), AppError> {
         self.caja.update_total(&self.write_db, monto, pagos).await
     }
 }

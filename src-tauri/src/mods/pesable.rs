@@ -19,11 +19,11 @@ pub struct Pesable {
 }
 impl Pesable {
     pub fn new(
-        id: i64,
+        id: i32,
         codigo: i64,
-        precio_peso: f64,
-        porcentaje: f64,
-        costo_kilo: f64,
+        precio_peso: f32,
+        porcentaje: f32,
+        costo_kilo: f32,
         descripcion: &str,
     ) -> Pesable {
         Pesable {
@@ -38,9 +38,9 @@ impl Pesable {
     pub async fn new_to_db(
         db: &DatabaseConnection,
         codigo: i64,
-        precio_peso: f64,
-        porcentaje: f64,
-        costo_kilo: f64,
+        precio_peso: f32,
+        porcentaje: f32,
+        costo_kilo: f32,
         descripcion: &str,
     ) -> Res<Pesable> {
         match PesDB::Entity::find()
@@ -76,19 +76,19 @@ impl Pesable {
             }
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn codigo(&self) -> &i64 {
         &self.codigo
     }
-    pub fn precio_peso(&self) -> &f64 {
+    pub fn precio_peso(&self) -> &f32 {
         &self.precio_peso
     }
-    pub fn porcentaje(&self) -> &f64 {
+    pub fn porcentaje(&self) -> &f32 {
         &self.porcentaje
     }
-    pub fn costo_kilo(&self) -> &f64 {
+    pub fn costo_kilo(&self) -> &f32 {
         &self.costo_kilo
     }
     pub fn descripcion(&self) -> Arc<str> {

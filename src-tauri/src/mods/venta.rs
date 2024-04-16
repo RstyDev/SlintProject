@@ -105,11 +105,11 @@ impl<'a> Venta {
         }
     }
     pub fn build(
-        id: i64,
-        monto_total: f64,
+        id: i32,
+        monto_total: f32,
         productos: Vec<Valuable>,
         pagos: Vec<Pago>,
-        monto_pagado: f64,
+        monto_pagado: f32,
         vendedor: Option<Arc<User>>,
         cliente: Cliente,
         paga: bool,
@@ -127,7 +127,7 @@ impl<'a> Venta {
             cerrada,
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn empty(&mut self) {
@@ -136,7 +136,7 @@ impl<'a> Venta {
         self.monto_total = 0.0;
         self.pagos.clear();
     }
-    pub fn monto_total(&self) -> f64 {
+    pub fn monto_total(&self) -> f32 {
         self.monto_total
     }
     pub fn productos(&self) -> Vec<Valuable> {
@@ -145,10 +145,10 @@ impl<'a> Venta {
     pub fn pagos(&self) -> Vec<Pago> {
         self.pagos.clone()
     }
-    pub fn monto_pagado(&self) -> f64 {
+    pub fn monto_pagado(&self) -> f32 {
         self.monto_pagado
     }
-    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f64) -> Res<f64> {
+    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32) -> Res<f32> {
         let mut es_cred: bool = false;
         match medio_pago {
             CUENTA => match &self.cliente {
@@ -195,7 +195,7 @@ impl<'a> Venta {
         }
         Ok(res)
     }
-    pub fn agregar_producto(&mut self, producto: Valuable, politica: &f64) {
+    pub fn agregar_producto(&mut self, producto: Valuable, politica: &f32) {
         let mut esta = false;
         for i in 0..self.productos.len() {
             if producto == self.productos[i] {
@@ -219,13 +219,13 @@ impl<'a> Venta {
         }
         self.update_monto_total(politica);
     }
-    fn update_monto_total(&mut self, politica: &f64) {
+    fn update_monto_total(&mut self, politica: &f32) {
         self.monto_total = 0.0;
         for i in &self.productos {
             match &i {
-                V::Pes(a) => self.monto_total += redondeo(politica, a.0 as f64 * a.1.precio_peso()),
-                V::Prod(a) => self.monto_total += a.1.precio_de_venta() * a.0 as f64,
-                V::Rub(a) => self.monto_total += a.1.monto().unwrap() * a.0 as f64,
+                V::Pes(a) => self.monto_total += redondeo(politica, a.0 * a.1.precio_peso()),
+                V::Prod(a) => self.monto_total += a.1.precio_de_venta() * a.0 as f32,
+                V::Rub(a) => self.monto_total += a.1.monto().unwrap() * a.0 as f32,
             }
         }
     }
@@ -247,7 +247,7 @@ impl<'a> Venta {
         self.monto_pagado -= pago.monto();
         Ok(())
     }
-    pub fn restar_producto(&mut self, index: usize, politica: &f64) -> Result<Venta, AppError> {
+    pub fn restar_producto(&mut self, index: usize, politica: &f32) -> Result<Venta, AppError> {
         if self.productos().len() > index {
             let mut prod = self.productos.remove(index);
             match &prod {
@@ -280,7 +280,7 @@ impl<'a> Venta {
     pub fn incrementar_producto(
         &mut self,
         index: usize,
-        politica: &f64,
+        politica: &f32,
     ) -> Result<Venta, AppError> {
         if self.productos().len() > index {
             let mut prod = self.productos.remove(index);
@@ -324,7 +324,7 @@ impl<'a> Venta {
             }
         }
     }
-    pub fn eliminar_producto(&mut self, index: usize, politica: &f64) -> Result<Venta, AppError> {
+    pub fn eliminar_producto(&mut self, index: usize, politica: &f32) -> Result<Venta, AppError> {
         if self.productos().len() > index {
             self.productos.remove(index);
             self.update_monto_total(politica);

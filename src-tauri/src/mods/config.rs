@@ -62,7 +62,7 @@ impl Config {
     pub fn medios_pago(&self) -> &Vec<Arc<str>> {
         &self.medios_pago
     }
-    pub fn politica(&self) -> f64 {
+    pub fn politica(&self) -> f32 {
         self.politica_redondeo
     }
     pub fn formato(&self) -> &Formato {
