@@ -260,6 +260,7 @@ fn agregar_producto_a_venta(
     }
     Ok(sis.venta(pos))
 }
+
 #[tauri::command]
 fn agregar_proveedor(
     window: tauri::Window,
