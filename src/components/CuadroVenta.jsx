@@ -6,7 +6,7 @@ import TablaProductos from "./TablaProductos";
 async function buscarProducto(filtrado) {
     return await invoke("get_productos_filtrado", { filtro: '' + filtrado });
 }
-function CuadroVenta({ venta, conf, prodFoc, isProd, busqueda,focuseado,setFocuseado }) {
+function CuadroVenta({ venta,setProdsBusq, conf, prodFoc,pos,draw, isProd, busqueda,focuseado,setFocuseado }) {
     const [total, setTotal] = useState(venta.monto_total);
     const [foc, setFoc] = useState(prodFoc);
     const [focused, setFocused] = useState(focuseado);
@@ -17,13 +17,13 @@ function CuadroVenta({ venta, conf, prodFoc, isProd, busqueda,focuseado,setFocus
 
 
     function dibujarProductos(prods, conf) {
-        setRend(<TablaProductos productos={prods} conf={conf} focuseado={focused} setFocuseado={setFocuseado}/>)
+        setRend(<TablaProductos productos={prods} draw={draw} pos={pos} conf={conf} focuseado={focused} setFocuseado={setFocuseado}/>)
     }
     useEffect(() => {setFoc(prodFoc)}, [prodFoc])
     useEffect(() => {setFocused(focuseado)},[focuseado])
     useEffect(() => {
         if (busqueda) {
-            buscarProducto(busqueda).then(prods => dibujarProductos(prods, conf));
+            buscarProducto(busqueda).then(prods => {setProdsBusq(prods);dibujarProductos(prods, conf)});
         } else {
             setRend(<section id="cuadro-venta">
                 <Productos productos={venta.productos} conf={conf} prodFoc={foc} isProd={isProd} />

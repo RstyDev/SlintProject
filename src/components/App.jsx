@@ -29,6 +29,9 @@ error.volume = 0.2;
 async function open_login() {
   return await invoke("open_login");
 }
+async function agregarProdVentaAct(prod,pos) {
+  return await invoke("agregar_producto_a_venta", { prod: prod, pos: pos });
+}
 
 open_login();
 
@@ -39,6 +42,7 @@ function App() {
   const [venta, setVenta] = useState();
   const [configs, setConfigs] = useState();
   const [busqueda, setBusqueda] = useState();
+  const [prodsBusq, setProdsBusq] = useState([]);
   const [focuseado, setFocuseado] = useState(0);
   const [rend, setRend] = useState(<>
     <section id="no-iniciado" className="main-screen">
@@ -57,6 +61,10 @@ function App() {
           setFocuseado(focuseado + 1);
         } else if (e.keyCode == 38 && focuseado > 0) {
           setFocuseado(focuseado - 1);
+        } else if (e.keyCode == 13){
+          console.log(venta);
+          agregarProdVentaAct(prodsBusq[focuseado],pos);
+          draw(true);
         }
       } else if (e.keyCode == 27) {
         e.currentTarget.value = "";
@@ -69,18 +77,22 @@ function App() {
     }
   }
 
-  function draw() {
+  function draw(clean) {
+    if (clean){
+      setBusqueda("");
+      document.getElementById("buscador").value="";
+    }
     if (logged) {
       get_configs().then(conf => {
         get_venta_actual(pos).then(sale => {
           setVenta(sale);
-          setConfigs(conf)
+          setConfigs(conf);          
           setRend(<>
             <header className="container" >
               <section id="header">
                 <div>
                   <form autoComplete="off">
-                    <input type="text" id="buscador" placeholder="Buscar producto.." onKeyDown={(e) => { handleFocuseado(e) }} onClick={() => { isProd(true) }} onChange={(e) => { setBusqueda(e.currentTarget.value) }} />
+                    <input type="text"  id="buscador" placeholder="Buscar producto.." onKeyDown={(e) => { handleFocuseado(e) }} onClick={() => { isProd(true) }} onChange={(e) => { setBusqueda(e.currentTarget.value) }} />
                   </form>
                 </div>
                 <div>
@@ -89,7 +101,7 @@ function App() {
               </section>
             </header>
             <main className="main-screen">
-              <CuadroPrincipal venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} busqueda={busqueda} focuseado={focuseado} setFocuseado={setFocuseado} />
+              <CuadroPrincipal setProdsBusq={setProdsBusq} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} busqueda={busqueda} focuseado={focuseado} setFocuseado={setFocuseado} />
               <ResumenPago pos={pos} venta={sale} configs={conf} prodFoc={prodFoc} isProd={isProd} />
 
             </main>
