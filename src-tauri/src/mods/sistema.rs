@@ -377,7 +377,7 @@ impl<'a> Sistema {
                 .map(|x| V::Rub(x))
                 .collect(),
         );
-        Ok(res)
+        Ok(res.iter().cloned().take(*self.configs.cantidad_productos() as usize).collect())
     }
     pub fn cerrar_sesion(&mut self) {
         self.user = None;
@@ -408,7 +408,7 @@ impl<'a> Sistema {
                         res = PesDB::Entity::find()
                             .filter(PesDB::Column::Descripcion.contains(filtros[i]))
                             .order_by_asc(PesDB::Column::Id)
-                            .limit(Some((self.configs().cantidad_productos() * 2) as u64))
+                            .limit(Some(*self.configs().cantidad_productos() as u64))
                             .all(self.read_db())
                             .await?;
                     } else {
@@ -457,7 +457,7 @@ impl<'a> Sistema {
                         res = RubDB::Entity::find()
                             .filter(RubDB::Column::Descripcion.contains(filtros[i]))
                             .order_by_asc(RubDB::Column::Id)
-                            .limit(Some((self.configs().cantidad_productos() * 2) as u64))
+                            .limit(Some(*self.configs().cantidad_productos() as u64))
                             .all(self.read_db())
                             .await?;
                     } else {
@@ -522,7 +522,7 @@ impl<'a> Sistema {
                                     .add(ProdDB::Column::Variedad.contains(filtros[i])),
                             )
                             .order_by_asc(ProdDB::Column::Id)
-                            .limit(Some((self.configs().cantidad_productos() * 2) as u64))
+                            .limit(Some(*self.configs().cantidad_productos() as u64))
                             .all(self.read_db())
                             .await?;
                     } else {
