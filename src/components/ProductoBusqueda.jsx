@@ -4,7 +4,8 @@ import { invoke } from "@tauri-apps/api/tauri";
 async function get_descripcion_valuable(prod, conf) {
     return await invoke("get_descripcion_valuable", { "prod": prod, "conf": conf });
 }
-function ProductoBusqueda({conf,producto,focused}){
+function ProductoBusqueda({conf,producto,focused,setFocuseado,index}){
+
     const [desc,setDesc] = useState("");
     get_descripcion_valuable(producto,conf).then(descripcion=>setDesc(descripcion));
     let valor;
@@ -19,7 +20,7 @@ function ProductoBusqueda({conf,producto,focused}){
         valor=producto.Pes[1].precio_peso
         i=producto.Pes[1].id
     }
-    return(<tr tabIndex="2" id={i} className={focused}>
+    return(<tr tabIndex="2" id={i} onClick={()=>{console.log(index);setFocuseado(index)}} onDoubleClick={()=>{console.log(producto)}} className={focused}>
         <td className={conf.modo_mayus}>{desc}</td>
         <td>${valor}</td>
     </tr>)

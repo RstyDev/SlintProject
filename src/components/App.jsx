@@ -7,7 +7,6 @@ import "./App.css";
 import SelectClientes from "./SelectClientes";
 import CuadroPrincipal from "./CuadroPrincipal";
 import ResumenPago from "./ResumenPago";
-import TablaProductos from "./TablaProductos";
 let mensaje1;
 let vacia;
 let user;
@@ -48,8 +47,10 @@ function App() {
       </p>
     </section>
   </>);
-  function handleFocuseado(e) {
-    if (e.currentTarget.value && e.currentTarget.value != "") {
+  function handleFocuseado(e,i) {
+    if (i){
+      setFocuseado(i);
+    }else if (e.currentTarget.value && e.currentTarget.value != "") {
       if (e.keyCode == 40 || e.keyCode == 38 || e.keyCode == 13) {
         e.preventDefault();
         if (e.keyCode == 40 && focuseado < configs.cantidad_productos) {
@@ -88,7 +89,7 @@ function App() {
               </section>
             </header>
             <main className="main-screen">
-              <CuadroPrincipal venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} busqueda={busqueda} focuseado={focuseado} />
+              <CuadroPrincipal venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} busqueda={busqueda} focuseado={focuseado} setFocuseado={setFocuseado} />
               <ResumenPago pos={pos} venta={sale} configs={conf} prodFoc={prodFoc} isProd={isProd} />
 
             </main>

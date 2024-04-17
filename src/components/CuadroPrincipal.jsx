@@ -6,7 +6,7 @@ import ResumenPago from "./ResumenPago";
 
 
 
-function CuadroPrincipal({ venta, conf, prodFoc, posSet, isProd,busqueda,focuseado}) {
+function CuadroPrincipal({ venta, conf, prodFoc, posSet, isProd,busqueda,focuseado,setFocuseado}) {
     const [foc, setFoc] = useState(prodFoc);
     const [focused,setFocused] = useState(focuseado)
     const [pos,setPos] = useState(true);
@@ -27,7 +27,7 @@ function CuadroPrincipal({ venta, conf, prodFoc, posSet, isProd,busqueda,focusea
                 posSet(false);
             }}> Venta B</a>
         </section>
-        <CuadroVenta venta={venta} conf={conf} prodFoc={foc}  isProd={isProd} busqueda={busq} focuseado={focused}/>
+        <CuadroVenta venta={venta} conf={conf} prodFoc={foc}  isProd={isProd} busqueda={busq} focuseado={focused} setFocuseado={setFocuseado}/>
         
     </section>
         
