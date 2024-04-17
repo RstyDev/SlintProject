@@ -4,7 +4,6 @@ mod cliente;
 mod codigo_barras;
 mod config;
 mod deuda;
-mod m20220101_000001_create_table;
 mod medio_pago;
 mod pago;
 mod pesable;
@@ -28,7 +27,6 @@ impl MigratorTrait for Migrator {
             Box::new(codigo_barras::Migration),
             Box::new(config::Migration),
             Box::new(deuda::Migration),
-            Box::new(m20220101_000001_create_table::Migration),
             Box::new(medio_pago::Migration),
             Box::new(pago::Migration),
             Box::new(pesable::Migration),
