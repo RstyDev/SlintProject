@@ -36,10 +36,11 @@ open_login();
 function App() {
   const [logged, setLogged] = useState(false);
   const [prodFoc, setProdFoc] = useState(true);
-  const [pos,setPos]=useState(true);
-  const [venta,setVenta]=useState();
-  const [configs,setConfigs]=useState();
-  const [busqueda,setBusqueda] = useState();
+  const [pos, setPos] = useState(true);
+  const [venta, setVenta] = useState();
+  const [configs, setConfigs] = useState();
+  const [busqueda, setBusqueda] = useState();
+  const [focuseado, setFocuseado] = useState(0);
   const [rend, setRend] = useState(<>
     <section id="no-iniciado" className="main-screen">
       <p>
@@ -47,7 +48,25 @@ function App() {
       </p>
     </section>
   </>);
-
+  function handleFocuseado(e) {
+    if (e.currentTarget.value && e.currentTarget.value != "") {
+      if (e.keyCode == 40 || e.keyCode == 38 || e.keyCode == 13) {
+        e.preventDefault();
+        if (e.keyCode == 40 && focuseado < configs.cantidad_productos) {
+          setFocuseado(focuseado + 1);
+        } else if (e.keyCode == 38 && focuseado > 0) {
+          setFocuseado(focuseado - 1);
+        }
+      } else if (e.keyCode == 27) {
+        e.currentTarget.value = "";
+        setBusqueda(e.currentTarget.value);
+      
+      }
+    }
+    if (e.currentTarget.value == ""){
+      setFocuseado(0)
+    }
+  }
 
   function draw() {
     if (logged) {
@@ -60,7 +79,7 @@ function App() {
               <section id="header">
                 <div>
                   <form autoComplete="off">
-                    <input type="text" id="buscador" placeholder="Buscar producto.." onClick={() => { isProd(true) }} onChange={(e)=>{setBusqueda(e.currentTarget.value)}} />
+                    <input type="text" id="buscador" placeholder="Buscar producto.." onKeyDown={(e) => { handleFocuseado(e) }} onClick={() => { isProd(true) }} onChange={(e) => { setBusqueda(e.currentTarget.value) }} />
                   </form>
                 </div>
                 <div>
@@ -69,7 +88,7 @@ function App() {
               </section>
             </header>
             <main className="main-screen">
-              <CuadroPrincipal venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} busqueda={busqueda} />
+              <CuadroPrincipal venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} busqueda={busqueda} focuseado={focuseado} />
               <ResumenPago pos={pos} venta={sale} configs={conf} prodFoc={prodFoc} isProd={isProd} />
 
             </main>
@@ -85,8 +104,8 @@ function App() {
       return await invoke("get_configs");
     }
   }
-  useEffect(()=>draw(), [logged,prodFoc,busqueda])
-  function isProd(val){
+  useEffect(() => draw(), [logged, prodFoc, busqueda,focuseado])
+  function isProd(val) {
     setProdFoc(val)
   }
   async function unlisten() {
@@ -95,7 +114,7 @@ function App() {
       if (pl.payload.message == 'dibujar venta') {
         get_venta_actual().then(venta => setVenta(venta));
       } else if (pl.payload.message == "confirm stash") {
-       // open_confirm_stash(pos)
+        // open_confirm_stash(pos)
       } else if (pl.payload.message == "inicio sesion") {
         setLogged(true);
       } else if (pl.payload.message == "cerrar sesion") {

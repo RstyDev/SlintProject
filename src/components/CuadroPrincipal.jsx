@@ -6,11 +6,14 @@ import ResumenPago from "./ResumenPago";
 
 
 
-function CuadroPrincipal({ venta, conf, prodFoc, posSet, isProd,busqueda}) {
+function CuadroPrincipal({ venta, conf, prodFoc, posSet, isProd,busqueda,focuseado}) {
     const [foc, setFoc] = useState(prodFoc);
+    const [focused,setFocused] = useState(focuseado)
     const [pos,setPos] = useState(true);
     const [busq,setBusq]=useState(busqueda);
     useEffect(()=>{setBusq(busqueda)},[busqueda])
+    useEffect(()=>{setFocused(focuseado)},[focuseado])
+    useEffect(()=>{setFoc(prodFoc)}, [prodFoc])
     const a = pos ? "v-actual" : "";
     const b = pos ? "" : "v-actual";
     let rets = <section id="cuadro-principal" >
@@ -24,12 +27,9 @@ function CuadroPrincipal({ venta, conf, prodFoc, posSet, isProd,busqueda}) {
                 posSet(false);
             }}> Venta B</a>
         </section>
-        <CuadroVenta venta={venta} conf={conf} prodFoc={foc}  isProd={isProd} busqueda={busq}/>
+        <CuadroVenta venta={venta} conf={conf} prodFoc={foc}  isProd={isProd} busqueda={busq} focuseado={focused}/>
         
     </section>
-    useEffect(()=>{
-        setFoc(prodFoc)
-    }, [prodFoc])
         
     return (
         rets

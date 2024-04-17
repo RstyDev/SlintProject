@@ -76,7 +76,7 @@ impl Default for Config {
             politica_redondeo: 10.0,
             formato_producto: Formato::default(),
             modo_mayus: Mayusculas::default(),
-            cantidad_productos: 10,
+            cantidad_productos: 20,
             medios_pago: vec![
                 "Efectivo".to_owned(),
                 "Crédito".to_owned(),

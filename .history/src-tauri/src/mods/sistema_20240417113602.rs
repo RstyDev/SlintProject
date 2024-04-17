@@ -305,7 +305,7 @@ impl<'a> Sistema {
                 .map(|x| V::Rub(x))
                 .collect(),
         );
-        Ok(res.iter().cloned().take(*self.configs.cantidad_productos() as usize).collect())
+        Ok(res.iter()..take(*self.configs.cantidad_productos() as usize).collect())
     }
     pub fn cerrar_sesion(&mut self) {
         self.user = None;
