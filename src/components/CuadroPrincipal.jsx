@@ -6,12 +6,12 @@ import ResumenPago from "./ResumenPago";
 
 
 
-function CuadroPrincipal({ venta,setProdsBusq,productos, conf,draw, prodFoc, posSet, isProd,busqueda,focuseado,setFocuseado}) {
+function CuadroPrincipal({ venta,setProdsBusq,productos, conf,draw, prodFoc, posSet, isProd,focuseado,setFocuseado}) {
     const [foc, setFoc] = useState(prodFoc);
     const [focused,setFocused] = useState(focuseado)
     const [pos,setPos] = useState(true);
-    const [busq,setBusq]=useState(busqueda);
-    useEffect(()=>{setBusq(busqueda)},[busqueda])
+    const [prods,setProds] = useState(productos);
+    useEffect(()=>{setProds(productos)},[productos]);
     useEffect(()=>{setFocused(focuseado)},[focuseado])
     useEffect(()=>{setFoc(prodFoc)}, [prodFoc])
     const a = pos ? "v-actual" : "";
@@ -27,7 +27,7 @@ function CuadroPrincipal({ venta,setProdsBusq,productos, conf,draw, prodFoc, pos
                 posSet(false);
             }}> Venta B</a>
         </section>
-        <CuadroVenta setProdsBusq={setProdsBusq} productos={productos} pos={pos} draw={draw} venta={venta} conf={conf} prodFoc={foc}  isProd={isProd} busqueda={busq} focuseado={focused} setFocuseado={setFocuseado}/>
+        <CuadroVenta setProdsBusq={setProdsBusq} productos={prods} pos={pos} draw={draw} venta={venta} conf={conf} prodFoc={foc}  isProd={isProd} focuseado={focused} setFocuseado={setFocuseado}/>
         
     </section>
         

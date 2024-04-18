@@ -47,6 +47,13 @@ function App() {
   const [prodsBusq, setProdsBusq] = useState([]);
   const [focuseado, setFocuseado] = useState(0);
   const [productos, setProductos] = useState([]);
+  useEffect(()=>{
+    if (busqueda && busqueda.length >0){
+      buscarProducto(busqueda).then(prods=>{setProductos(prods)})
+    }else{
+      setProductos([]);
+    }
+},[busqueda])
   const [rend, setRend] = useState(<>
     <section id="no-iniciado" className="main-screen">
       <p>
@@ -71,7 +78,7 @@ function App() {
         }
       } else if (e.keyCode == 27) {
         e.currentTarget.value = "";
-        setBusqueda(e.currentTarget.value);
+        setProductos([]);
       
       }
     }
@@ -82,7 +89,7 @@ function App() {
 
   function draw(clean) {
     if (clean){
-      setBusqueda("");
+      setProductos([]);
       document.getElementById("buscador").value="";
     }
     if (logged) {
@@ -95,7 +102,7 @@ function App() {
               <section id="header">
                 <div>
                   <form autoComplete="off">
-                    <input type="text"  id="buscador" placeholder="Buscar producto.." onKeyDown={(e) => { handleFocuseado(e) }} onClick={() => { isProd(true) }} onChange={(e) => { setBusqueda(e.currentTarget.value);buscarProducto(e.currentTarget.value).then(prods=>{setProductos(prods)}) }} />
+                    <input type="text"  id="buscador" placeholder="Buscar producto.." onKeyDown={(e) => { handleFocuseado(e) }} onClick={() => { isProd(true) }} onChange={(e) => { setBusqueda(e.currentTarget.value) }} />
                   </form>
                 </div>
                 <div>
@@ -104,7 +111,7 @@ function App() {
               </section>
             </header>
             <main className="main-screen">
-              <CuadroPrincipal setProdsBusq={setProdsBusq} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} busqueda={busqueda} focuseado={focuseado} setFocuseado={setFocuseado} />
+              <CuadroPrincipal setProdsBusq={setProdsBusq} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd}  focuseado={focuseado} setFocuseado={setFocuseado} />
               <ResumenPago pos={pos} venta={sale} configs={conf} prodFoc={prodFoc} isProd={isProd} />
 
             </main>
@@ -120,7 +127,7 @@ function App() {
       return await invoke("get_configs");
     }
   }
-  useEffect(() => draw(), [logged, prodFoc, busqueda,focuseado])
+  useEffect(() => draw(), [logged, prodFoc, productos,focuseado])
   
   function isProd(val) {
     setProdFoc(val)

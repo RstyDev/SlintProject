@@ -4,6 +4,7 @@ import "./TablaProductos.css"
 
 function TablaProductos({ conf, productos,focuseado,setFocuseado,pos,draw }) {
     const [focused, setFocused] = useState(focuseado);
+    console.log(productos)
     useEffect(()=>{setFocused(focuseado)},[focuseado])
     function mapProds() {
         return productos.map(function (prod, i) {

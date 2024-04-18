@@ -8,7 +8,7 @@ async function agregarProdVentaAct(prod,pos) {
     return await invoke("agregar_producto_a_venta", { prod: prod, pos: pos });
 }
 function ProductoBusqueda({conf,producto,focused,setFocuseado,index,pos,draw}){
-
+    //TODO! de aca hay que sacar get_descripcion_valuable y pasarlo a TablaProductos para hacer menos async
     const [desc,setDesc] = useState("");
     get_descripcion_valuable(producto,conf).then(descripcion=>setDesc(descripcion));
     let valor;
