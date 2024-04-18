@@ -25,7 +25,9 @@ let productosVentaAct = [];
 beep.volume = 1;
 error.volume = 0.2;
 
-
+async function buscarProducto(filtrado) {
+  return await invoke("get_productos_filtrado", { filtro: '' + filtrado });
+}
 async function open_login() {
   return await invoke("open_login");
 }
@@ -44,6 +46,7 @@ function App() {
   const [busqueda, setBusqueda] = useState();
   const [prodsBusq, setProdsBusq] = useState([]);
   const [focuseado, setFocuseado] = useState(0);
+  const [productos, setProductos] = useState([]);
   const [rend, setRend] = useState(<>
     <section id="no-iniciado" className="main-screen">
       <p>
@@ -92,7 +95,7 @@ function App() {
               <section id="header">
                 <div>
                   <form autoComplete="off">
-                    <input type="text"  id="buscador" placeholder="Buscar producto.." onKeyDown={(e) => { handleFocuseado(e) }} onClick={() => { isProd(true) }} onChange={(e) => { setBusqueda(e.currentTarget.value) }} />
+                    <input type="text"  id="buscador" placeholder="Buscar producto.." onKeyDown={(e) => { handleFocuseado(e) }} onClick={() => { isProd(true) }} onChange={(e) => { setBusqueda(e.currentTarget.value);buscarProducto(e.currentTarget.value).then(prods=>{setProductos(prods)}) }} />
                   </form>
                 </div>
                 <div>
@@ -101,7 +104,7 @@ function App() {
               </section>
             </header>
             <main className="main-screen">
-              <CuadroPrincipal setProdsBusq={setProdsBusq} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} busqueda={busqueda} focuseado={focuseado} setFocuseado={setFocuseado} />
+              <CuadroPrincipal setProdsBusq={setProdsBusq} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} busqueda={busqueda} focuseado={focuseado} setFocuseado={setFocuseado} />
               <ResumenPago pos={pos} venta={sale} configs={conf} prodFoc={prodFoc} isProd={isProd} />
 
             </main>
@@ -118,6 +121,7 @@ function App() {
     }
   }
   useEffect(() => draw(), [logged, prodFoc, busqueda,focuseado])
+  
   function isProd(val) {
     setProdFoc(val)
   }
