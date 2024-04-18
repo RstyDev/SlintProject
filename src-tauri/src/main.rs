@@ -1313,6 +1313,7 @@ fn main() {
             get_caja,
             get_clientes,
             get_configs,
+            get_descripciones,
             get_descripcion_valuable,
             get_deuda,
             get_deuda_detalle,
