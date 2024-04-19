@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/tauri";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./Producto.css"
 async function get_descripcion_valuable(prod, conf) {
     return await invoke("get_descripcion_valuable", { "prod": prod, "conf": conf });
@@ -76,8 +76,9 @@ const procesarProd = async (handle,prod, conf, i, setRet) => {
 }
 
 function Producto({ handleProd,producto, conf, i }) {
-    let [ret, setRet] = useState("");
-    if (ret == "") {
+    const [ret, setRet] = useState("");
+    useEffect(procesar,[producto])
+    function procesar(){
         if (Object.keys(producto)[0] == "Pes") {
             procesarPes(handleProd,producto, conf, i, setRet);
         } else if (Object.keys(producto)[0] == "Prod") {

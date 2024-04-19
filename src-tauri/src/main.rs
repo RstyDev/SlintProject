@@ -546,7 +546,7 @@ fn get_filtrado(
 }
 #[tauri::command]
 fn get_log_state(sistema: State<Mutex<Sistema>>) -> Res<bool>{
-    sistema.lock().map_err(|e|e.to_string())?.user().is_some()
+    Ok(sistema.lock().map_err(|e|e.to_string())?.user().is_some())
 }
 #[tauri::command]
 fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
@@ -1264,6 +1264,7 @@ fn main() {
             get_descripcion_valuable,
             get_deuda,
             get_filtrado,
+            get_log_state,
             get_medios_pago,
             get_productos_filtrado,
             get_proveedores,

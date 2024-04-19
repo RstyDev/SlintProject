@@ -6,11 +6,11 @@ import ResumenPago from "./ResumenPago";
 
 
 
-function CuadroPrincipal({ handleProd,venta,productos,busqueda, conf,draw, prodFoc, posSet, isProd,focuseado,setFocuseado}) {
+function CuadroPrincipal({ pos,handleProd,venta,productos,busqueda, conf,draw, prodFoc, posSet, isProd,focuseado,setFocuseado}) {
     const [foc, setFoc] = useState(prodFoc);
     const [focused,setFocused] = useState(focuseado);
     const [busq, setBusqueda] = useState(busqueda);
-    const [pos,setPos] = useState(true);
+    
     
     
     const [sale, setSale]= useState(venta);
@@ -18,11 +18,9 @@ function CuadroPrincipal({ handleProd,venta,productos,busqueda, conf,draw, prodF
     const [ret, setRet] = useState(<section id="cuadro-principal" >
         <section className="ayb">
             <a id="v-a" className={"a-boton " + pos ? "v-actual" : ""} onClick={() => {
-                setPos(true);
                 posSet(true);
             }}> Venta A</a>
             <a id="v-a" className={"a-boton " + pos ? "" : "v-actual"} onClick={() => {
-                setPos(false);
                 posSet(false);
             }}> Venta B</a>
         </section>
@@ -32,11 +30,9 @@ function CuadroPrincipal({ handleProd,venta,productos,busqueda, conf,draw, prodF
         setRet(<section id="cuadro-principal" >
             <section className="ayb">
                 <a id="v-a" className={("a-boton ") + (pos ? "v-actual" : "")} onClick={() => {
-                    setPos(true);
                     posSet(true);
                 }}> Venta A</a>
                 <a id="v-a" className={("a-boton ") + (pos ? "" : "v-actual")} onClick={() => {
-                    setPos(false);
                     posSet(false);
                 }}> Venta B</a>
             </section>

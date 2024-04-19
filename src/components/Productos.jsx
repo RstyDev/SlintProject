@@ -14,7 +14,7 @@ function Productos({ handleProd,productos, conf, prodFoc,isProd}) {
     useEffect(() => {
         setProds(productos.length > 0 ? productos.map((prod, i) => {
             return <Producto handleProd={handleProd} key={i} producto={prod} conf={conf} i={i} />
-        }) : "")})
+        }) : "")},[productos])
     return (<section id="productos" className={"focuseable "+unfoc} onClick={()=>isProd(true)}>
         <article className="articulo">
         <section className="descripcion">

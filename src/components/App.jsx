@@ -34,6 +34,9 @@ async function buscarProducto(filtrado) {
 async function open_login() {
   return await invoke("open_login");
 }
+async function get_log_state() {
+  return await invoke("get_log_state");
+}
 async function agregarProdVentaAct(prod,pos) {
   return await invoke("agregar_producto_a_venta", { prod: prod, pos: pos });
 }
@@ -59,6 +62,7 @@ function App() {
   const [busqueda, setBusqueda] = useState();
   const [focuseado, setFocuseado] = useState(0);
   const [productos, setProductos] = useState([]);
+  get_log_state().then(state=>setLogged(state));
   useEffect(()=>{
     if (busqueda && busqueda.length > 0){
       buscarProducto(busqueda).then(prods=>{setProductos(prods)})
@@ -135,8 +139,7 @@ function App() {
       });
     }
     async function get_venta_actual(pos) {
-      let res = await invoke("get_venta_actual", { pos: pos });
-      return res;
+      return await invoke("get_venta_actual", { pos: pos })
     }
     
   }  function dibujarVenta(sale,conf){
@@ -154,14 +157,14 @@ function App() {
         </section>
       </header>
       <main className="main-screen">
-        <CuadroPrincipal handleProd={handleProd}  busqueda={busqueda} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} focuseado={focuseado} setFocuseado={setFocuseado} />
+        <CuadroPrincipal handleProd={handleProd} pos={pos} busqueda={busqueda} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} focuseado={focuseado} setFocuseado={setFocuseado} />
         <ResumenPago pos={pos} venta={sale} configs={conf} prodFoc={prodFoc} isProd={isProd} />
 
       </main>
     </>);
   }
   
-  useEffect(() => draw(), [logged, prodFoc, productos,focuseado])
+  useEffect(() => draw(), [logged, prodFoc, productos,focuseado,pos])
   
   function isProd(val) {
     setProdFoc(val)
@@ -174,7 +177,8 @@ function App() {
       } else if (pl.payload.message == "confirm stash") {
         // open_confirm_stash(pos)
       } else if (pl.payload.message == "inicio sesion") {
-        setLogged(true);
+        get_log_state().then(state => setLogged(state));
+        
       } else if (pl.payload.message == "cerrar sesion") {
         cerrar_sesion()
       } else if (pl.payload.message == "open stash") {
