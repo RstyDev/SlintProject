@@ -1,14 +1,11 @@
 use super::{
-    config::{Config, Formato},
-    lib::{redondeo, Save},
-    pesable::Pesable,
-    producto::Producto,
-    rubro::Rubro,
+    config::{Config, Formato}, error::AppError, lib::{redondeo, Save}, pesable::Pesable, producto::Producto, rubro::Rubro
 };
-use sea_orm::DbErr;
+use sea_orm::{DatabaseConnection, DbErr};
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 use Valuable as V;
+type Res<T> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {
@@ -18,19 +15,14 @@ pub enum Valuable {
 }
 
 impl Valuable {
-    pub fn price(&self, politica: &f64) -> Option<f64> {
+    pub fn price(&self, politica: &f32) -> Option<f32> {
         match self {
-            V::Pes(a) => Some(redondeo(politica, a.0 as f64 * a.1.precio_peso())),
+            V::Pes(a) => Some(redondeo(politica, a.0 * a.1.precio_peso())),
             V::Prod(a) => Some(*a.1.redondear(politica).precio_de_venta()),
             V::Rub(a) => a.1.redondear(politica).monto().cloned(),
         }
     }
-    // pub fn unifica_codes(&mut self) {
-    //     match self {
-    //         V::Prod(a) => a.1.unifica_codes(),
-    //         _ => (),
-    //     }
-    // }
+    
     pub fn descripcion(&self, conf: &Config) -> String {
         let res = match self {
             V::Pes(a) => a.1.descripcion().to_string(),
@@ -88,6 +80,20 @@ impl Valuable {
 
         res
     }
+    pub async fn eliminar(self,db:DatabaseConnection)->Res<()>{
+        match self{
+            Valuable::Prod((_,prod)) => prod.eliminar(&db).await,
+            Valuable::Pes((_,pes)) => pes.eliminar(&db).await,
+            Valuable::Rub((_,rub)) => rub.eliminar(&db).await,
+        }
+    }
+    pub async fn editar(self,db:DatabaseConnection)->Res<()>{
+        match self{
+            Valuable::Prod((_,prod)) => prod.editar(&db).await,
+            Valuable::Pes((_,pes)) => pes.editar(&db).await,
+            Valuable::Rub((_,rub)) => rub.editar(&db).await,
+        }
+    }
 }
 impl Save for Valuable {
     async fn save(&self) -> Result<(), DbErr> {
@@ -115,11 +121,11 @@ impl PartialEq for Valuable {
 }
 
 pub trait ValuableTrait {
-    fn redondear(&self, politica: &f64) -> Self;
+    fn redondear(&self, politica: &f32) -> Self;
 }
 
 impl ValuableTrait for Valuable {
-    fn redondear(&self, politica: &f64) -> Valuable {
+    fn redondear(&self, politica: &f32) -> Valuable {
         match self {
             V::Pes(a) => V::Pes(a.clone()),
             V::Prod(a) => V::Prod((a.0, a.1.redondear(politica))),

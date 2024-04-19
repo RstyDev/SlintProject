@@ -1,22 +1,21 @@
 use std::sync::Arc;
 
 use super::{
-    lib::{redondeo, Save},
-    valuable::Presentacion,
-    valuable::ValuableTrait,
+    error::AppError, lib::{redondeo, Save}, valuable::{Presentacion, ValuableTrait}
 };
 use chrono::Utc;
-use entity::{codigo_barras, producto};
-use sea_orm::{ActiveModelTrait, Database, DbErr, EntityTrait, Set};
+use entity::prelude::{CodeDB, ProdDB};
+use sea_orm::{ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set};
 use serde::{Deserialize, Serialize};
+type Res<T> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
-    id: i64,
-    pub codigos_de_barras: Vec<i64>,
-    precio_de_venta: f64,
-    porcentaje: f64,
-    precio_de_costo: f64,
+    id: i32,
+    codigos_de_barras: Vec<i64>,
+    precio_de_venta: f32,
+    porcentaje: f32,
+    precio_de_costo: f32,
     tipo_producto: Arc<str>,
     marca: Arc<str>,
     variedad: Arc<str>,
@@ -25,11 +24,11 @@ pub struct Producto {
 
 impl Producto {
     pub fn new(
-        id: i64,
+        id: i32,
         codigos_de_barras: Vec<i64>,
-        precio_de_venta: f64,
-        porcentaje: f64,
-        precio_de_costo: f64,
+        precio_de_venta: f32,
+        porcentaje: f32,
+        precio_de_costo: f32,
         tipo_producto: &str,
         marca: &str,
         variedad: &str,
@@ -47,19 +46,19 @@ impl Producto {
             presentacion,
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn codigos_de_barras(&self) -> &Vec<i64> {
         &self.codigos_de_barras
     }
-    pub fn precio_de_venta(&self) -> &f64 {
+    pub fn precio_de_venta(&self) -> &f32 {
         &self.precio_de_venta
     }
-    pub fn porcentaje(&self) -> &f64 {
+    pub fn porcentaje(&self) -> &f32 {
         &self.porcentaje
     }
-    pub fn precio_de_costo(&self) -> &f64 {
+    pub fn precio_de_costo(&self) -> &f32 {
         &self.precio_de_costo
     }
     pub fn tipo_producto(&self) -> Arc<str> {
@@ -100,12 +99,41 @@ impl Producto {
     //         i+=1;
     //     }
     // }
+    pub async fn eliminar(self,db:&DatabaseConnection)->Res<()>{
+        let model=match ProdDB::Entity::find_by_id(self.id).one(db).await?{
+            Some(model)=>model.into_active_model(),
+            None=>return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",self.id) }),
+        };
+        model.delete(db).await?;
+        Ok(())
+    }
+    pub async fn editar(self,db:&DatabaseConnection)->Res<()>{
+        let mut model = match ProdDB::Entity::find_by_id(self.id).one(db).await?{
+            Some(model) => model.into_active_model(),
+            None => return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",self.id) }),
+        };
+        if self.precio_de_venta == self.precio_de_costo * (1.0+self.porcentaje/100.0){
+            model.precio_de_venta=Set(self.precio_de_venta);
+        }else{
+            return Err(AppError::IncorrectError(String::from("Cálculo de precio incorrecto")));
+        }
+        model.cantidad = Set(self.presentacion.get_cantidad());
+        model.marca = Set(self.marca.to_string());
+        model.porcentaje = Set(self.porcentaje);
+        model.precio_de_costo = Set(self.precio_de_costo);
+        model.presentacion = Set(self.presentacion.get_string());
+        model.tipo_producto = Set(self.tipo_producto.to_string());
+        model.variedad = Set(self.variedad.to_string());
+        model.updated_at = Set(Utc::now().naive_local());
+        model.update(db).await?;
+        Ok(())
+    }
 }
 impl Save for Producto {
     async fn save(&self) -> Result<(), DbErr> {
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
         println!("Guardando producto en DB");
-        let model = producto::ActiveModel {
+        let model = ProdDB::ActiveModel {
             precio_de_venta: Set(self.precio_de_venta),
             porcentaje: Set(self.porcentaje),
             precio_de_costo: Set(self.precio_de_costo),
@@ -117,9 +145,9 @@ impl Save for Producto {
             cantidad: Set(self.presentacion().get_cantidad()),
             ..Default::default()
         };
-        let res = entity::producto::Entity::insert(model).exec(&db).await?;
+        let res = ProdDB::Entity::insert(model).exec(&db).await?;
         for codigo in &self.codigos_de_barras {
-            let cod_model = codigo_barras::ActiveModel {
+            let cod_model = CodeDB::ActiveModel {
                 codigo: Set(*codigo),
                 producto: Set(res.last_insert_id),
                 ..Default::default()
@@ -144,7 +172,7 @@ impl PartialEq for Producto {
 }
 
 impl ValuableTrait for Producto {
-    fn redondear(&self, politica: &f64) -> Producto {
+    fn redondear(&self, politica: &f32) -> Producto {
         Producto {
             id: self.id,
             codigos_de_barras: self.codigos_de_barras.clone(),

@@ -1,11 +1,23 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+use entity::prelude::{CodeDB, PesDB, RubDB};
 use mods::{
-    caja::Caja, cliente::Cli, config::Config, lib::get_hash, pesable::Pesable, rubro::Rubro,
-    sistema::Sistema, user::Rango, user::User, valuable::Valuable, venta::Venta,
+    caja::Caja,
+    cliente::Cli,
+    config::Config,
+    lib::get_hash,
+    pago::Pago,
+    pesable::Pesable,
+    rubro::Rubro,
+    sistema::Sistema,
+    user::{Rango, User},
+    valuable::Valuable as V,
+    venta::Venta,
 };
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
+use std::sync::Arc;
 type Res<T> = std::result::Result<T, String>;
 use std::sync::Mutex;
 use tauri::{
@@ -13,12 +25,13 @@ use tauri::{
     window::MenuHandle,
     CustomMenuItem, Manager, Menu, Result, State, Submenu,
 };
+
 const DENEGADO: &str = "Permiso denegado";
 #[derive(Clone, Serialize)]
 struct Payload {
     message: Option<String>,
     pos: Option<bool>,
-    val: Option<Valuable>,
+    val: Option<V>,
 }
 mod mods;
 fn set_menus(menu: MenuHandle, state: bool) -> Result<()> {
@@ -100,9 +113,9 @@ fn agregar_cliente(
     credito: bool,
     limite: Option<&str>,
 ) -> Res<Cli> {
-    let dni = dni.parse::<i64>().map_err(|e| e.to_string())?;
+    let dni = dni.parse::<i32>().map_err(|e| e.to_string())?;
     let limite = match limite {
-        Some(l) => Some(l.parse::<f64>().map_err(|e| e.to_string())?),
+        Some(l) => Some(l.parse::<f32>().map_err(|e| e.to_string())?),
         None => None,
     };
     let sis = sistema.lock().map_err(|e| e.to_string())?;
@@ -132,11 +145,12 @@ fn agregar_pago(
     medio_pago: &str,
     monto: &str,
     pos: bool,
-) -> Res<f64> {
-    let monto = monto.parse::<f64>().map_err(|e| e.to_string())?;
+) -> Res<Vec<Pago>> {
+    let monto = monto.parse::<f32>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(sis.agregar_pago(medio_pago, monto, pos)?)
+    sis.agregar_pago(medio_pago, monto, pos)?;
+    Ok(sis.venta(pos).pagos())
 }
 #[tauri::command]
 fn agregar_pesable<'a>(
@@ -151,10 +165,10 @@ fn agregar_pesable<'a>(
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     match sis.arc_user().rango() {
         Rango::Admin => {
-            let precio_peso = precio_peso.parse::<f64>().map_err(|e| e.to_string())?;
+            let precio_peso = precio_peso.parse::<f32>().map_err(|e| e.to_string())?;
             let codigo = codigo.parse::<i64>().map_err(|e| e.to_string())?;
-            let costo_kilo = costo_kilo.parse::<f64>().map_err(|e| e.to_string())?;
-            let porcentaje = porcentaje.parse::<f64>().map_err(|e| e.to_string())?;
+            let costo_kilo = costo_kilo.parse::<f32>().map_err(|e| e.to_string())?;
+            let porcentaje = porcentaje.parse::<f32>().map_err(|e| e.to_string())?;
             let pesable = async_runtime::block_on(Pesable::new_to_db(
                 sis.write_db(),
                 codigo,
@@ -211,13 +225,13 @@ fn agregar_producto(
 fn agregar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    prod: Valuable,
+    prod: V,
     pos: bool,
 ) -> Res<Venta> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     match &prod {
-        Valuable::Prod(_) => {
+        V::Prod(_) => {
             async_runtime::block_on(sis.agregar_producto_a_venta(prod, pos))?;
             loop {
                 if let Ok(_) = window
@@ -229,23 +243,24 @@ fn agregar_producto_a_venta(
                 }
             }
         }
-        Valuable::Pes(a) => {
+        V::Pes(a) => {
             async_runtime::spawn(open_select_amount(
                 window.app_handle(),
-                Valuable::Pes(a.clone()),
+                V::Pes(a.clone()),
                 pos,
             ));
         }
-        Valuable::Rub(a) => {
+        V::Rub(a) => {
             async_runtime::spawn(open_select_amount(
                 window.app_handle(),
-                Valuable::Rub(a.clone()),
+                V::Rub(a.clone()),
                 pos,
             ));
         }
     }
     Ok(sis.venta(pos))
 }
+
 #[tauri::command]
 fn agregar_proveedor(
     window: tauri::Window,
@@ -289,7 +304,7 @@ fn agregar_rubro(
 fn agregar_rub_o_pes_a_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    val: Valuable,
+    val: V,
     pos: bool,
 ) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
@@ -380,7 +395,7 @@ fn cancelar_venta(sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()> {
 fn cerrar_caja(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    monto_actual: f64,
+    monto_actual: f32,
 ) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
@@ -393,23 +408,23 @@ async fn check_codes(code: i64) -> Res<bool> {
         .await
         .map_err(|e| e.to_string())?;
     let disp;
-    let mod_opt = entity::codigo_barras::Entity::find()
-        .filter(entity::codigo_barras::Column::Codigo.eq(code))
+    let mod_opt = CodeDB::Entity::find()
+        .filter(CodeDB::Column::Codigo.eq(code))
         .one(&db)
         .await
         .map_err(|e| e.to_string())?;
     disp = match mod_opt {
         Some(_) => false,
         None => {
-            match entity::pesable::Entity::find()
-                .filter(entity::pesable::Column::Codigo.eq(code))
+            match PesDB::Entity::find()
+                .filter(PesDB::Column::Codigo.eq(code))
                 .one(&db)
                 .await
             {
                 Ok(a) => {
                     if a.is_none() {
-                        match entity::rubro::Entity::find()
-                            .filter(entity::rubro::Column::Codigo.eq(code))
+                        match RubDB::Entity::find()
+                            .filter(RubDB::Column::Codigo.eq(code))
                             .one(&db)
                             .await
                         {
@@ -439,9 +454,10 @@ fn close_window(window: tauri::Window) -> Res<()> {
 fn descontar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: usize,
+    index: &str,
     pos: bool,
 ) -> Res<Venta> {
+    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let res = sis.descontar_producto_de_venta(index, pos)?;
@@ -463,20 +479,34 @@ fn descontar_producto_de_venta(
     Ok(res)
 }
 #[tauri::command]
-fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Venta> {
+fn editar_producto(sistema: State<Mutex<Sistema>>, prod: V)->Res<()>{
+    let sis=sistema.lock().map_err(|e|e.to_string())?;
+    sis.access();
+    sis.editar_valuable(prod);
+    Ok(())
+}
+#[tauri::command]
+fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>> {
     let id = id.parse::<u32>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    let res = sis.eliminar_pago(pos, id)?;
-    Ok(res)
+    sis.eliminar_pago(pos, id).map_err(|e| e.to_string())
+}
+#[tauri::command]
+fn eliminar_producto(sistema: State<Mutex<Sistema>>, prod: V)->Res<()>{
+    let sis=sistema.lock().map_err(|e|e.to_string())?;
+    sis.access();
+    sis.eliminar_valuable(prod);
+    Ok(())
 }
 #[tauri::command]
 fn eliminar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: usize,
+    index: &str,
     pos: bool,
 ) -> Res<Venta> {
+    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let res = sis.eliminar_producto_de_venta(index, pos)?;
@@ -515,20 +545,24 @@ fn get_configs(sistema: State<Mutex<Sistema>>) -> Res<Config> {
     Ok(sistema.lock().map_err(|e| e.to_string())?.configs().clone())
 }
 #[tauri::command]
-fn get_descripciones(prods:Vec<Valuable>,conf:Config)->Vec<(String,Option<f64>)>{
-    prods.iter().map(|p|(p.descripcion(&conf),p.price(&conf.politica()))).collect::<Vec<(String,Option<f64>)>>()
+fn get_descripciones(prods:Vec<V>,conf:Config)->Vec<(String,Option<f32>)>{
+    prods.iter().map(|p|(p.descripcion(&conf),p.price(&conf.politica()))).collect::<Vec<(String,Option<f32>)>>()
 }
 #[tauri::command]
-fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {
+fn get_descripcion_valuable(prod: V, conf: Config) -> String {
     prod.descripcion(&conf)
 }
 #[tauri::command]
-fn get_deuda(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<f64> {
-    sistema
-        .lock()
-        .map_err(|e| e.to_string())?
-        .get_deuda(cliente)
-        .map_err(|e| e.to_string())
+fn get_deuda(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<f32> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.access();
+    sis.get_deuda(cliente).map_err(|e| e.to_string())
+}
+#[tauri::command]
+fn get_deuda_detalle(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<Vec<Venta>> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.access();
+    sis.get_deuda_detalle(cliente).map_err(|e| e.to_string())
 }
 #[tauri::command]
 fn get_filtrado(
@@ -545,17 +579,7 @@ fn get_filtrado(
     }
 }
 #[tauri::command]
-fn get_log_state(sistema: State<Mutex<Sistema>>) -> Res<bool>{
-    Ok(sistema.lock().map_err(|e|e.to_string())?.user().is_some())
-}
-#[tauri::command]
-fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
-    let sis = sistema.lock().map_err(|e| e.to_string())?;
-    sis.access();
-    Ok(sis.configs().medios_pago().clone())
-}
-#[tauri::command]
-fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<Valuable>> {
+fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(async_runtime::block_on(
@@ -631,12 +655,23 @@ fn get_venta_actual(
     Ok(venta)
 }
 #[tauri::command]
+fn hacer_egreso(sistema: State<Mutex<Sistema>>, monto: f32, descripcion: Option<&str>) -> Res<()> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    Ok(sis.hacer_egreso(monto, descripcion.map(|d| Arc::from(d)))?)
+}
+#[tauri::command]
+fn hacer_ingreso(sistema: State<Mutex<Sistema>>, monto: f32, descripcion: Option<&str>) -> Res<()> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    Ok(sis.hacer_ingreso(monto, descripcion.map(|d| Arc::from(d)))?)
+}
+#[tauri::command]
 fn incrementar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: usize,
+    index: &str,
     pos: bool,
 ) -> Res<Venta> {
+    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let venta = sis.incrementar_producto_a_venta(index, pos)?;
@@ -928,7 +963,7 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
             let window = tauri::WindowBuilder::new(
                 &handle,
                 "login", /* the unique window label */
-                tauri::WindowUrl::App("src/pages/login/login.html".parse().unwrap()),
+                tauri::WindowUrl::App("/pages/login.html".parse().unwrap()),
             )
             .inner_size(400.0, 300.0)
             .resizable(false)
@@ -947,7 +982,7 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
     }
 }
 #[tauri::command]
-async fn open_select_amount(handle: tauri::AppHandle, val: Valuable, pos: bool) -> Res<()> {
+async fn open_select_amount(handle: tauri::AppHandle, val: V, pos: bool) -> Res<()> {
     match handle.get_window("select-amount") {
         Some(window) => {
             window.show().map_err(|e| e.to_string())?;
@@ -1065,6 +1100,22 @@ async fn open_stash<'a>(
         }
         Ok(())
     }
+}
+#[tauri::command]
+fn pagar_deuda_especifica(
+    sistema: State<Mutex<Sistema>>,
+    cliente: i32,
+    venta: Venta,
+) -> Res<Venta> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.access();
+    Ok(sis.pagar_deuda_especifica(cliente, venta)?)
+}
+#[tauri::command]
+fn pagar_deuda_general(sistema: State<Mutex<Sistema>>, cliente: i32, monto: f32) -> Res<f32> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.access();
+    Ok(sis.pagar_deuda_general(cliente, monto)?)
 }
 #[tauri::command]
 fn try_login(
@@ -1254,7 +1305,9 @@ fn main() {
             check_codes,
             close_window,
             descontar_producto_de_venta,
+            editar_producto,
             eliminar_pago,
+            eliminar_producto,
             eliminar_producto_de_venta,
             eliminar_usuario,
             get_caja,
@@ -1263,15 +1316,16 @@ fn main() {
             get_descripciones,
             get_descripcion_valuable,
             get_deuda,
+            get_deuda_detalle,
             get_filtrado,
-            get_log_state,
-            get_medios_pago,
             get_productos_filtrado,
             get_proveedores,
             get_rango,
             get_stash,
             get_user,
             get_venta_actual,
+            hacer_egreso,
+            hacer_ingreso,
             incrementar_producto_a_venta,
             open_add_prov,
             open_add_select,
@@ -1284,6 +1338,8 @@ fn main() {
             open_login,
             open_select_amount,
             open_stash,
+            pagar_deuda_especifica,
+            pagar_deuda_general,
             try_login,
             select_window,
             set_cliente,

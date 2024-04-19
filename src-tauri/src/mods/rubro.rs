@@ -1,9 +1,8 @@
 use chrono::Utc;
 type Res<T> = std::result::Result<T, AppError>;
-use entity::rubro;
+use entity::prelude::RubDB;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
-    Set,
+    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter, Set
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -16,14 +15,14 @@ use super::{
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
-    id: i64,
+    id: i32,
     codigo: i64,
-    monto: Option<f64>,
+    monto: Option<f32>,
     descripcion: Arc<str>,
 }
 
 impl Rubro {
-    pub fn new(id: i64, codigo: i64, monto: Option<f64>, descripcion: Arc<str>) -> Rubro {
+    pub fn new(id: i32, codigo: i64, monto: Option<f32>, descripcion: Arc<str>) -> Rubro {
         Rubro {
             id,
             codigo,
@@ -33,12 +32,12 @@ impl Rubro {
     }
     pub async fn new_to_db(
         codigo: i64,
-        monto: Option<f64>,
+        monto: Option<f32>,
         descripcion: &str,
         db: &DatabaseConnection,
     ) -> Res<Rubro> {
-        match entity::rubro::Entity::find()
-            .filter(entity::rubro::Column::Codigo.eq(codigo))
+        match RubDB::Entity::find()
+            .filter(RubDB::Column::Codigo.eq(codigo))
             .one(db)
             .await?
         {
@@ -49,14 +48,14 @@ impl Rubro {
                 })
             }
             None => {
-                let model = entity::rubro::ActiveModel {
+                let model = RubDB::ActiveModel {
                     codigo: Set(codigo),
                     monto: Set(monto),
                     descripcion: Set(descripcion.to_string()),
                     updated_at: Set(Utc::now().naive_local()),
                     ..Default::default()
                 };
-                let res = entity::rubro::Entity::insert(model).exec(db).await?;
+                let res = RubDB::Entity::insert(model).exec(db).await?;
                 Ok(Rubro {
                     id: res.last_insert_id,
                     codigo,
@@ -66,10 +65,10 @@ impl Rubro {
             }
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
-    pub fn monto(&self) -> Option<&f64> {
+    pub fn monto(&self) -> Option<&f32> {
         self.monto.as_ref()
     }
     pub fn codigo(&self) -> &i64 {
@@ -78,12 +77,31 @@ impl Rubro {
     pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
     }
+    pub async fn eliminar(self, db:&DatabaseConnection) -> Res<()>{
+        let model= match RubDB::Entity::find_by_id(self.id).one(db).await?{
+            Some(model)=>model.into_active_model(),
+            None=>return Err(AppError::NotFound { objeto: String::from("Rubro"), instancia: format!("{}",self.id) }),
+        };
+        model.delete(db).await?;
+        Ok(())
+    }
+    pub async fn editar(self, db: &DatabaseConnection)->Res<()>{
+        let mut model= match RubDB::Entity::find_by_id(self.id).one(db).await?{
+            Some(model)=>model.into_active_model(),
+            None=>return Err(AppError::NotFound { objeto: String::from("Rubro"), instancia: format!("{}",self.id) }),
+        };
+        model.codigo = Set(self.codigo);
+        model.descripcion = Set(self.descripcion.to_string());
+        model.updated_at = Set(Utc::now().naive_local());
+        model.update(db).await?;
+        Ok(())
+    }
 }
 impl Save for Rubro {
     async fn save(&self) -> Result<(), DbErr> {
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
         println!("conectado");
-        let model = rubro::ActiveModel {
+        let model = RubDB::ActiveModel {
             id: Set(self.id),
             monto: Set(self.monto),
             descripcion: Set(self.descripcion.to_string()),
@@ -95,7 +113,7 @@ impl Save for Rubro {
     }
 }
 impl ValuableTrait for Rubro {
-    fn redondear(&self, politica: &f64) -> Rubro {
+    fn redondear(&self, politica: &f32) -> Rubro {
         match &self.monto {
             Some(a) => Rubro {
                 id: self.id,

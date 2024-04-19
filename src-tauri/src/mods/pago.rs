@@ -1,41 +1,50 @@
 use super::lib::Save;
-use entity::{medio_pago::Model, pago};
+use entity::prelude::{MedioDB, PagoDB};
 use rand::random;
 use sea_orm::{ActiveModelTrait, ColumnTrait, Database, DbErr, EntityTrait, QueryFilter, Set};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::async_runtime;
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MedioPago {
     medio: Arc<str>,
-    id: i64,
+    id: i32,
 }
 
 impl MedioPago {
-    pub fn new(medio: &str, id: i64) -> MedioPago {
+    pub fn new(medio: &str, id: i32) -> MedioPago {
         MedioPago {
             medio: Arc::from(medio),
             id,
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
+    pub fn desc(&self) -> Arc<str> {
+        Arc::clone(&self.medio)
+    }
 }
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pago {
     int_id: u32,
     medio_pago: MedioPago,
-    monto: f64,
+    monto: f32,
+    pagado: f32,
 }
 
 impl Pago {
-    pub fn new(medio_pago: MedioPago, monto: f64) -> Pago {
+    pub fn new(medio_pago: MedioPago, monto: f32, pagado: Option<f32>) -> Pago {
         let int_id = random();
+
         Pago {
             medio_pago,
             monto,
             int_id,
+            pagado: match pagado {
+                Some(a) => a,
+                None => monto,
+            },
         }
     }
     pub fn medio_pago(&self) -> &MedioPago {
@@ -44,22 +53,25 @@ impl Pago {
     pub fn medio(&self) -> Arc<str> {
         Arc::clone(&self.medio_pago.medio)
     }
-    pub fn monto(&self) -> f64 {
+    pub fn monto(&self) -> f32 {
         self.monto
     }
     pub fn id(&self) -> u32 {
         self.int_id
     }
+    pub fn pagado(&self) -> &f32 {
+        &self.pagado
+    }
 }
 impl Save for Pago {
     async fn save(&self) -> Result<(), DbErr> {
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        let medio_id = entity::medio_pago::Entity::find()
-            .filter(entity::medio_pago::Column::Medio.eq(self.medio().to_string()))
+        let medio_id = MedioDB::Entity::find()
+            .filter(MedioDB::Column::Medio.eq(self.medio().to_string()))
             .one(&db)
             .await?
             .unwrap();
-        let model = pago::ActiveModel {
+        let model = PagoDB::ActiveModel {
             medio_pago: Set(medio_id.id),
             monto: Set(self.monto),
             ..Default::default()
@@ -69,12 +81,12 @@ impl Save for Pago {
     }
 }
 
-pub async fn medio_from_db(medio: &str) -> Model {
+pub async fn medio_from_db(medio: &str) -> MedioDB::Model {
     let db = Database::connect("sqlite://db.sqlite?mode=ro")
         .await
         .unwrap();
-    entity::medio_pago::Entity::find()
-        .filter(entity::medio_pago::Column::Medio.eq(medio))
+    MedioDB::Entity::find()
+        .filter(MedioDB::Column::Medio.eq(medio))
         .one(&db)
         .await
         .unwrap()
@@ -92,6 +104,7 @@ impl Default for Pago {
             medio_pago,
             monto: 0.0,
             int_id,
+            pagado: 0.0,
         }
     }
 }

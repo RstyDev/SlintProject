@@ -1,5 +1,5 @@
 use chrono::Utc;
-use entity::proveedor;
+use entity::prelude::ProvDB;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
     Set,
@@ -15,7 +15,7 @@ use super::{
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
-    id: i64,
+    id: i32,
     nombre: Arc<str>,
     contacto: Option<i64>,
 }
@@ -26,8 +26,8 @@ impl Proveedor {
         contacto: Option<i64>,
         db: &DatabaseConnection,
     ) -> Res<Proveedor> {
-        match entity::proveedor::Entity::find()
-            .filter(entity::proveedor::Column::Nombre.eq(nombre))
+        match ProvDB::Entity::find()
+            .filter(ProvDB::Column::Nombre.eq(nombre))
             .one(db)
             .await?
         {
@@ -38,7 +38,7 @@ impl Proveedor {
                 })
             }
             None => {
-                let model = entity::proveedor::ActiveModel {
+                let model = ProvDB::ActiveModel {
                     updated_at: Set(Utc::now().naive_local()),
                     nombre: Set(nombre.to_string()),
                     contacto: Set(contacto),
@@ -50,7 +50,7 @@ impl Proveedor {
             }
         }
     }
-    pub fn new(id: i64, nombre: &str, contacto: Option<i64>) -> Self {
+    pub fn new(id: i32, nombre: &str, contacto: Option<i64>) -> Self {
         Proveedor {
             id,
             nombre: Arc::from(nombre),
@@ -60,7 +60,7 @@ impl Proveedor {
     pub fn nombre(&self) -> Arc<str> {
         Arc::clone(&self.nombre)
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn contacto(&self) -> &Option<i64> {
@@ -69,7 +69,7 @@ impl Proveedor {
 }
 impl Save for Proveedor {
     async fn save(&self) -> Result<(), DbErr> {
-        let model = proveedor::ActiveModel {
+        let model = ProvDB::ActiveModel {
             id: Set(self.id),
             nombre: Set(self.nombre.to_string()),
             contacto: Set(self.contacto),

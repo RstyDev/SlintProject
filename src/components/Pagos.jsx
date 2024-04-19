@@ -4,13 +4,8 @@ import { useEffect } from "react";
 import Pago from "./Pago";
 
 
-async function borrar_pago(pos, e) {
-  console.log("algo")
-  console.log(invoke);
-  return await invoke("eliminar_pago", { "pos": pos, "index": e.currentTarget.parentElement.id });
-}
+
 async function agregar_pago(medio_pago, monto, pos) {
-  console.log(invoke);
   return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos": pos });
 }
 
@@ -41,7 +36,7 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc }) {
   function cash(e, seleccionado, montoAct) {
     e.preventDefault();
     console.log("cash")
-    agregar_pago(seleccionado, montoAct, pos).then(pagos => setPagosVec(mapearPagos(pagos)));
+    agregar_pago(seleccionado, montoAct, pos).then(pagos => {console.log(pagos);setPagosVec(mapearPagos(pagos))});
   }
 }
 

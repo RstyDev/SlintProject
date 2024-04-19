@@ -1,33 +1,38 @@
 use chrono::{NaiveDateTime, Utc};
 use core::fmt;
+use entity::prelude::{CajaDB, MovDB};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, DatabaseConnection, EntityTrait, IntoActiveModel,
     QueryOrder, Set,
 };
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 type Res<T> = std::result::Result<T, AppError>;
-use super::error::AppError;
+use super::{config::Config, error::AppError, pago::Pago};
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Totales(HashMap<String, f64>);
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Caja {
-    id: i64,
+    id: i32,
     inicio: NaiveDateTime,
     cierre: Option<NaiveDateTime>,
-    ventas_totales: f64,
-    monto_inicio: f64,
-    monto_cierre: Option<f64>,
+    ventas_totales: f32,
+    monto_inicio: f32,
+    monto_cierre: Option<f32>,
     cajero: Option<Arc<str>>,
+    totales: HashMap<Arc<str>, f32>,
 }
+
 #[derive(Debug, Clone, Serialize)]
-pub struct Movimiento {
-    id: i64,
-    caja: i64,
-    tipo: TipoMovimiento,
-}
-#[derive(Debug, Clone, Serialize)]
-pub enum TipoMovimiento {
-    Ingreso(f64),
-    Egreso(f64),
+pub enum Movimiento {
+    Ingreso {
+        descripcion: Option<Arc<str>>,
+        monto: f32,
+    },
+    Egreso {
+        descripcion: Option<Arc<str>>,
+        monto: f32,
+    },
 }
 impl fmt::Debug for Caja {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -46,11 +51,17 @@ impl fmt::Debug for Caja {
 impl Caja {
     pub async fn new(
         db: Arc<DatabaseConnection>,
-        monto_inicio: Option<f64>,
+        monto_inicio: Option<f32>,
+        config: &Config,
     ) -> Result<Caja, AppError> {
         let caja;
-        caja = match entity::caja::Entity::find()
-            .order_by_desc(entity::caja::Column::Id)
+        let mut totales = HashMap::new();
+        for medio in config.medios_pago() {
+            totales.insert(Arc::clone(medio), 0.0);
+        }
+
+        caja = match CajaDB::Entity::find()
+            .order_by_desc(CajaDB::Column::Id)
             .one(db.as_ref())
             .await?
         {
@@ -64,6 +75,7 @@ impl Caja {
                         monto_inicio,
                         monto_cierre: None,
                         cajero: None,
+                        totales,
                     }),
                     None => Err(AppError::InicialationError(
                         "Nueva caja requiere un monto de inicio".to_string(),
@@ -77,6 +89,7 @@ impl Caja {
                     monto_inicio: res.monto_inicio,
                     monto_cierre: None,
                     cajero: None,
+                    totales,
                 }),
             },
             None => match monto_inicio {
@@ -88,6 +101,7 @@ impl Caja {
                     monto_inicio,
                     monto_cierre: None,
                     cajero: None,
+                    totales,
                 }),
                 None => Err(AppError::InicialationError(
                     "Nueva caja requiere monto de inicio".to_string(),
@@ -98,12 +112,12 @@ impl Caja {
             Ok(a) => a,
             Err(e) => return Err(e),
         };
-        if entity::caja::Entity::find_by_id(aux.id)
+        if CajaDB::Entity::find_by_id(aux.id)
             .one(db.as_ref())
             .await?
             .is_none()
         {
-            let model = entity::caja::ActiveModel {
+            let model = CajaDB::ActiveModel {
                 id: Set(aux.id),
                 inicio: Set(aux.inicio),
                 cierre: Set(match aux.cierre {
@@ -122,14 +136,48 @@ impl Caja {
         }
         Ok(aux)
     }
+    pub async fn hacer_movimiento(&self, mov: Movimiento, db: &DatabaseConnection) -> Res<()> {
+        let monto_model;
+        let tipo;
+        let desc;
+        match mov {
+            Movimiento::Ingreso { descripcion, monto } => {
+                monto_model = Set(monto);
+                tipo = Set(true);
+                desc = match descripcion {
+                    Some(d) => Set(Some(d.to_string())),
+                    None => Set(None),
+                }
+            }
+            Movimiento::Egreso { descripcion, monto } => {
+                monto_model = Set(monto);
+                tipo = Set(false);
+                desc = match descripcion {
+                    Some(d) => Set(Some(d.to_string())),
+                    None => Set(None),
+                }
+            }
+        }
+        MovDB::ActiveModel {
+            caja: Set(self.id),
+            tipo,
+            monto: monto_model,
+            time: Set(Utc::now().naive_local()),
+            descripcion: desc,
+            ..Default::default()
+        }
+        .insert(db)
+        .await?;
 
+        Ok(())
+    }
     pub fn set_cajero(&mut self, cajero: Arc<str>) {
         self.cajero = Some(cajero);
     }
-    pub async fn set_n_save(&mut self, db: &DatabaseConnection, monto: f64) -> Res<()> {
+    pub async fn set_n_save(&mut self, db: &DatabaseConnection, monto: f32) -> Res<()> {
         self.monto_cierre = Some(monto);
         self.cierre = Some(Utc::now().naive_local());
-        match entity::caja::Entity::find_by_id(self.id).one(db).await? {
+        match CajaDB::Entity::find_by_id(self.id).one(db).await? {
             Some(model) => {
                 let mut model = model.into_active_model();
                 model.cierre = Set(self.cierre);
@@ -145,16 +193,24 @@ impl Caja {
             }
         }
     }
+
     pub async fn update_total(
         &mut self,
         db: &DatabaseConnection,
-        monto: f64,
+        monto: f32,
+        pagos: &Vec<Pago>,
     ) -> Result<(), AppError> {
+        // let act=self.totales.remove(&medio).unwrap();
+        // self.totales.insert(medio,act+monto);
+
+        for pago in pagos {
+            //     println!("{:#?}",pago.medio_pago());
+            let act = self.totales.remove(&pago.medio_pago().desc()).unwrap();
+            self.totales
+                .insert(pago.medio_pago().desc(), pago.monto() + act);
+        }
         self.ventas_totales += monto;
-        let model = entity::caja::Entity::find_by_id(self.id)
-            .one(db)
-            .await?
-            .unwrap();
+        let model = CajaDB::Entity::find_by_id(self.id).one(db).await?.unwrap();
         let mut model = model.into_active_model();
         model.ventas_totales = Set(self.ventas_totales);
         model.update(db).await?;

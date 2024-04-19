@@ -5,7 +5,7 @@ async function borrarPago(pos, e) {
 }
 
 function Pago({ pagado, medios_pago, monto, index,  borrar, agregar }) {
-    const boton = pagado ? <input value="Borrar" onClick={borrar} type="button" id="boton-borrar-pago"></input> : <input value="Cash" type="submit" id="boton-agregar-pago"></input>
+    const boton = pagado ? <input value="Borrar" onClick={borrar} type="button" id="boton-borrar-pago"></input> : <input value="Cash" onClick={()=>{agregar()}} type="submit" id="boton-agregar-pago"></input>
     const [seleccionado, setSeleccionado] = useState(medios_pago[0]);
     const [montoAct, setMontoAct] = useState(""+monto);
     useEffect(()=>{setMontoAct(""+monto)},[monto])
