@@ -517,8 +517,8 @@ fn get_configs(sistema: State<Mutex<Sistema>>) -> Res<Config> {
     Ok(sistema.lock().map_err(|e| e.to_string())?.configs().clone())
 }
 #[tauri::command]
-fn get_descripciones(prods:Vec<Valuable>,conf:Config)->Vec<String>{
-    prods.iter().map(|p|p.descripcion(&conf)).collect::<Vec<String>>()
+fn get_descripciones(prods:Vec<Valuable>,conf:Config)->Vec<(String,Option<f64>)>{
+    prods.iter().map(|p|(p.descripcion(&conf),p.price(&conf.politica()))).collect::<Vec<(String,Option<f64>)>>()
 }
 #[tauri::command]
 fn get_descripcion_valuable(prod: Valuable, conf: Config) -> String {

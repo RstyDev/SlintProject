@@ -1,16 +1,20 @@
 import ProductoBusqueda from "./ProductoBusqueda";
 import { useEffect, useState } from "react";
 import "./TablaProductos.css"
-
+import { invoke } from "@tauri-apps/api/tauri";
+async function get_descripciones(prods, conf) {
+    return await invoke("get_descripciones", { "prods": prods, "conf": conf });
+}
 function TablaProductos({ conf, productos,focuseado,setFocuseado,pos,draw }) {
     const [focused, setFocused] = useState(focuseado);
+    const [prods, setProds] = useState();
     console.log(productos)
-    useEffect(()=>{setFocused(focuseado)},[focuseado])
-    function mapProds() {
-        return productos.map(function (prod, i) {
-            return <ProductoBusqueda draw={draw} key={i} pos={pos} conf={conf} producto={prod} index={i} setFocuseado={setFocuseado} focused={focused == i ? "focuseado" : ""} />
-        })
-    }
+    useEffect(()=>{setFocused(focuseado)},[focuseado]);
+    useEffect(()=>{get_descripciones(productos,conf).then(productosDesc=>{
+        setProds(productosDesc.map(function ([prod,valor],i){
+            return <ProductoBusqueda draw={draw} prod={prod} valor={valor} key={i} pos={pos} conf={conf} producto={productos[i]} index={i} setFocuseado={setFocuseado} focused={focused == i ? "focuseado" : ""} />
+        }))
+    })},[productos])
     return (<table id="tabla-productos">
         <thead>
             <tr>
@@ -19,7 +23,7 @@ function TablaProductos({ conf, productos,focuseado,setFocuseado,pos,draw }) {
             </tr>
         </thead>
         <tbody>
-            {mapProds()}
+            {prods}
         </tbody>
     </table>)
 }

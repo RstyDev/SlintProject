@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./ProductoBusqueda.css";
 import { invoke } from "@tauri-apps/api/tauri";
 async function get_descripcion_valuable(prod, conf) {
@@ -7,23 +7,12 @@ async function get_descripcion_valuable(prod, conf) {
 async function agregarProdVentaAct(prod,pos) {
     return await invoke("agregar_producto_a_venta", { prod: prod, pos: pos });
 }
-function ProductoBusqueda({conf,producto,focused,setFocuseado,index,pos,draw}){
-    //TODO! de aca hay que sacar get_descripcion_valuable y pasarlo a TablaProductos para hacer menos async
-    const [desc,setDesc] = useState("");
-    get_descripcion_valuable(producto,conf).then(descripcion=>setDesc(descripcion));
-    let valor;
-    let i;
-    if (Object.keys(producto)=='Prod'){
-        valor=producto.Prod[1].precio_de_venta
-        i=producto.Prod[1].id
-    }else if (Object.keys(producto)=='Rub'){
-        valor=producto.Rub[1].monto
-        i=producto.Rub[1].id
-    }else if (Object.keys(producto)=='Pes'){
-        valor=producto.Pes[1].precio_peso
-        i=producto.Pes[1].id
-    }
-    return(<tr tabIndex="2" id={i} onClick={()=>{setFocuseado(index)}} onDoubleClick={()=>{agregarProdVentaAct(producto,pos);draw(true)}} className={focused}>
+function ProductoBusqueda({conf,producto,focused,valor,setFocuseado,index,pos,draw,prod}){
+    const [desc,setDesc] = useState(prod);
+    useEffect(()=>{setDesc(prod)},[prod])
+    console.log(producto)
+    
+    return(<tr tabIndex="2" id={index} onClick={()=>{setFocuseado(index)}} onDoubleClick={()=>{agregarProdVentaAct(producto,pos);draw(true)}} className={focused}>
         <td className={conf.modo_mayus}>{desc}</td>
         <td>${valor}</td>
     </tr>)
