@@ -3,14 +3,18 @@ import { useState } from "react";
 import { useEffect } from "react";
 import Producto from "./Producto";
 import "./Productos.css"
-function Productos({ productos, conf, prodFoc,isProd}) {
+function Productos({ handleProd,productos, conf, prodFoc,isProd}) {
     const [unfoc,setUnfoc]=useState(prodFoc?"":"not-focused");
+    const [prods, setProds] = useState(productos.length > 0 ? productos.map((prod, i) => {
+        return <Producto handleProd={handleProd} key={i} producto={prod} conf={conf} i={i} />
+    }) : "")
     useEffect(()=>{
         setUnfoc(prodFoc?"":"not-focused")
     }, [prodFoc])
-    let prods=productos.length>0? productos.map((prod,i)=>{
-        return <Producto key={i} producto={prod} conf={conf} i={i}/>
-    }):"";
+    useEffect(() => {
+        setProds(productos.length > 0 ? productos.map((prod, i) => {
+            return <Producto handleProd={handleProd} key={i} producto={prod} conf={conf} i={i} />
+        }) : "")})
     return (<section id="productos" className={"focuseable "+unfoc} onClick={()=>isProd(true)}>
         <article className="articulo">
         <section className="descripcion">

@@ -25,6 +25,9 @@ let productosVentaAct = [];
 beep.volume = 1;
 error.volume = 0.2;
 
+async function get_configs() {
+  return await invoke("get_configs");
+}
 async function buscarProducto(filtrado) {
   return await invoke("get_productos_filtrado", { filtro: '' + filtrado });
 }
@@ -35,6 +38,16 @@ async function agregarProdVentaAct(prod,pos) {
   return await invoke("agregar_producto_a_venta", { prod: prod, pos: pos });
 }
 
+async function incrementarProdVentaAct(index,pos) {
+  return await invoke("incrementar_producto_a_venta", { index: index, pos: pos });
+}
+async function descontarProdVentaAct(index,pos) {
+  return await invoke("descontar_producto_de_venta", { index: index, pos: pos });
+}
+
+async function eliminarProdVentaAct(index,pos) {
+  return await invoke("eliminar_producto_de_venta", { index: index, pos: pos })
+}
 open_login();
 
 function App() {
@@ -44,11 +57,10 @@ function App() {
   const [venta, setVenta] = useState();
   const [configs, setConfigs] = useState();
   const [busqueda, setBusqueda] = useState();
-  const [prodsBusq, setProdsBusq] = useState([]);
   const [focuseado, setFocuseado] = useState(0);
   const [productos, setProductos] = useState([]);
   useEffect(()=>{
-    if (busqueda && busqueda.length >0){
+    if (busqueda && busqueda.length > 0){
       buscarProducto(busqueda).then(prods=>{setProductos(prods)})
     }else{
       setProductos([]);
@@ -61,6 +73,18 @@ function App() {
       </p>
     </section>
   </>);
+  function handleProd(index,action){
+    console.log("handle")
+    get_configs().then(conf=>{
+      if (action<0){
+        descontarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
+      }else if (action==0){
+        eliminarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
+      }else if (action>0){
+        incrementarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
+      }
+    })
+  }
   function handleFocuseado(e,i) {
     if (i){
       setFocuseado(i);
@@ -72,13 +96,22 @@ function App() {
         } else if (e.keyCode == 38 && focuseado > 0) {
           setFocuseado(focuseado - 1);
         } else if (e.keyCode == 13){
-          console.log(venta);
-          agregarProdVentaAct(prodsBusq[focuseado],pos);
-          draw(true);
+          if (productos.length > 0){
+            agregarProdVentaAct(productos[focuseado],pos);
+            beep.play();
+            e.currentTarget.value = "";
+            setProductos([]);
+            setBusqueda("")
+          }else{
+            error.play();
+            let busc=document.getElementById("buscador");
+            busc.classList.add("error");
+            setTimeout(() => { busc.classList.toggle("error") }, 1000)
+          }
         }
       } else if (e.keyCode == 27) {
         e.currentTarget.value = "";
-        setProductos([]);
+        setBusqueda("")
       
       }
     }
@@ -86,36 +119,18 @@ function App() {
       setFocuseado(0)
     }
   }
-
   function draw(clean) {
-    if (clean){
+    if (clean) {
       setProductos([]);
-      document.getElementById("buscador").value="";
+      document.getElementById("buscador").value = "";
     }
+
     if (logged) {
       get_configs().then(conf => {
         get_venta_actual(pos).then(sale => {
           setVenta(sale);
-          setConfigs(conf);          
-          setRend(<>
-            <header className="container" >
-              <section id="header">
-                <div>
-                  <form autoComplete="off">
-                    <input type="text" autoFocus id="buscador" placeholder="Buscar producto.." onKeyDown={(e) => { handleFocuseado(e) }} onClick={() => { isProd(true) }} onChange={(e) => { setBusqueda(e.currentTarget.value) }} />
-                  </form>
-                </div>
-                <div>
-                  <SelectClientes />
-                </div>
-              </section>
-            </header>
-            <main className="main-screen">
-              <CuadroPrincipal setProdsBusq={setProdsBusq} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd}  focuseado={focuseado} setFocuseado={setFocuseado} />
-              <ResumenPago pos={pos} venta={sale} configs={conf} prodFoc={prodFoc} isProd={isProd} />
-
-            </main>
-          </>);
+          setConfigs(conf);
+          dibujarVenta(sale,conf);
         });
       });
     }
@@ -123,10 +138,29 @@ function App() {
       let res = await invoke("get_venta_actual", { pos: pos });
       return res;
     }
-    async function get_configs() {
-      return await invoke("get_configs");
-    }
+    
+  }  function dibujarVenta(sale,conf){
+    setRend(<>
+      <header className="container" >
+        <section id="header">
+          <div>
+            <form autoComplete="off">
+              <input type="text" autoFocus id="buscador" placeholder="Buscar producto.." onKeyDown={(e) => { handleFocuseado(e) }} onClick={() => { isProd(true) }} onChange={(e) => { setBusqueda(e.currentTarget.value) }} />
+            </form>
+          </div>
+          <div>
+            <SelectClientes />
+          </div>
+        </section>
+      </header>
+      <main className="main-screen">
+        <CuadroPrincipal handleProd={handleProd}  busqueda={busqueda} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} focuseado={focuseado} setFocuseado={setFocuseado} />
+        <ResumenPago pos={pos} venta={sale} configs={conf} prodFoc={prodFoc} isProd={isProd} />
+
+      </main>
+    </>);
   }
+  
   useEffect(() => draw(), [logged, prodFoc, productos,focuseado])
   
   function isProd(val) {

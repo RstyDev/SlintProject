@@ -439,10 +439,9 @@ fn close_window(window: tauri::Window) -> Res<()> {
 fn descontar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: &str,
+    index: usize,
     pos: bool,
 ) -> Res<Venta> {
-    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let res = sis.descontar_producto_de_venta(index, pos)?;
@@ -475,10 +474,9 @@ fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Ven
 fn eliminar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: &str,
+    index: usize,
     pos: bool,
 ) -> Res<Venta> {
-    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let res = sis.eliminar_producto_de_venta(index, pos)?;
@@ -545,6 +543,10 @@ fn get_filtrado(
         "tipo_producto" => Ok(sis.filtrar_tipo_producto(filtro)?),
         _ => Err(format!("Parámetro incorrecto {tipo_filtro}")),
     }
+}
+#[tauri::command]
+fn get_log_state(sistema: State<Mutex<Sistema>>) -> Res<bool>{
+    sistema.lock().map_err(|e|e.to_string())?.user().is_some()
 }
 #[tauri::command]
 fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
@@ -632,10 +634,9 @@ fn get_venta_actual(
 fn incrementar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: &str,
+    index: usize,
     pos: bool,
 ) -> Res<Venta> {
-    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let venta = sis.incrementar_producto_a_venta(index, pos)?;

@@ -6,33 +6,52 @@ import ResumenPago from "./ResumenPago";
 
 
 
-function CuadroPrincipal({ venta,setProdsBusq,productos, conf,draw, prodFoc, posSet, isProd,focuseado,setFocuseado}) {
+function CuadroPrincipal({ handleProd,venta,productos,busqueda, conf,draw, prodFoc, posSet, isProd,focuseado,setFocuseado}) {
     const [foc, setFoc] = useState(prodFoc);
-    const [focused,setFocused] = useState(focuseado)
+    const [focused,setFocused] = useState(focuseado);
+    const [busq, setBusqueda] = useState(busqueda);
     const [pos,setPos] = useState(true);
+    
+    
+    const [sale, setSale]= useState(venta);
     const [prods,setProds] = useState(productos);
-    useEffect(()=>{setProds(productos)},[productos]);
-    useEffect(()=>{setFocused(focuseado)},[focuseado])
-    useEffect(()=>{setFoc(prodFoc)}, [prodFoc])
-    const a = pos ? "v-actual" : "";
-    const b = pos ? "" : "v-actual";
-    let rets = <section id="cuadro-principal" >
+    const [ret, setRet] = useState(<section id="cuadro-principal" >
         <section className="ayb">
-            <a id="v-a" className={"a-boton " + a} onClick={()=>{
+            <a id="v-a" className={"a-boton " + pos ? "v-actual" : ""} onClick={() => {
                 setPos(true);
                 posSet(true);
             }}> Venta A</a>
-            <a id="v-a" className={"a-boton " + b} onClick={()=>{
+            <a id="v-a" className={"a-boton " + pos ? "" : "v-actual"} onClick={() => {
                 setPos(false);
                 posSet(false);
             }}> Venta B</a>
         </section>
-        <CuadroVenta setProdsBusq={setProdsBusq} productos={prods} pos={pos} draw={draw} venta={venta} conf={conf} prodFoc={foc}  isProd={isProd} focuseado={focused} setFocuseado={setFocuseado}/>
-        
-    </section>
+        <CuadroVenta handleProd={handleProd} busqueda={busq} productos={prods} pos={pos} draw={draw} venta={sale} conf={conf} prodFoc={foc} isProd={isProd} focuseado={focused} setFocuseado={setFocuseado} />
+    </section>);
+    useEffect(() => {
+        setRet(<section id="cuadro-principal" >
+            <section className="ayb">
+                <a id="v-a" className={("a-boton ") + (pos ? "v-actual" : "")} onClick={() => {
+                    setPos(true);
+                    posSet(true);
+                }}> Venta A</a>
+                <a id="v-a" className={("a-boton ") + (pos ? "" : "v-actual")} onClick={() => {
+                    setPos(false);
+                    posSet(false);
+                }}> Venta B</a>
+            </section>
+            <CuadroVenta handleProd={handleProd} busqueda={busq} productos={prods} pos={pos} draw={draw} venta={sale} conf={conf} prodFoc={foc} isProd={isProd} focuseado={focused} setFocuseado={setFocuseado} />
+        </section>)},[sale])
+    useEffect(()=>{setSale(venta)},[venta]);
+    useEffect(()=>{setProds(productos)},[productos]);
+    useEffect(()=>{setBusqueda(busqueda)},[busqueda]);
+    useEffect(()=>{setFocused(focuseado)},[focuseado]);
+    useEffect(()=>{setFoc(prodFoc)}, [prodFoc]);
+
+
         
     return (
-        rets
+        ret
     )
 }
 

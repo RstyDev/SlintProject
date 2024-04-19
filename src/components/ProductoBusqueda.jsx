@@ -10,7 +10,6 @@ async function agregarProdVentaAct(prod,pos) {
 function ProductoBusqueda({conf,producto,focused,valor,setFocuseado,index,pos,draw,prod}){
     const [desc,setDesc] = useState(prod);
     useEffect(()=>{setDesc(prod)},[prod])
-    console.log(producto)
     
     return(<tr tabIndex="2" id={index} onClick={()=>{setFocuseado(index)}} onDoubleClick={()=>{agregarProdVentaAct(producto,pos);draw(true)}} className={focused}>
         <td className={conf.modo_mayus}>{desc}</td>
