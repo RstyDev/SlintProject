@@ -102,7 +102,7 @@ function App() {
               <section id="header">
                 <div>
                   <form autoComplete="off">
-                    <input type="text"  id="buscador" placeholder="Buscar producto.." onKeyDown={(e) => { handleFocuseado(e) }} onClick={() => { isProd(true) }} onChange={(e) => { setBusqueda(e.currentTarget.value) }} />
+                    <input type="text" autoFocus id="buscador" placeholder="Buscar producto.." onKeyDown={(e) => { handleFocuseado(e) }} onClick={() => { isProd(true) }} onChange={(e) => { setBusqueda(e.currentTarget.value) }} />
                   </form>
                 </div>
                 <div>

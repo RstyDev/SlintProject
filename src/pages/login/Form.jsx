@@ -35,7 +35,7 @@ function Form() {
 
     return (
         <form onSubmit={submitea} id="form-login">
-            <input type="text" name="Id" id="id" placeholder="Usuario" autoComplete="off" required>
+            <input type="text" autoFocus tabIndex={0} name="Id" id="id" placeholder="Usuario" autoComplete="off" required>
             </input>
             <input type="password" name="Password" id="pass" placeholder="Contraseña" required>
             </input>
