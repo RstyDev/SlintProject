@@ -1,5 +1,5 @@
 use super::{
-    config::{Config, Formato}, error::AppError, lib::Save, pesable::Pesable, producto::Producto, rubro::Rubro
+    config::{Config, Formato}, error::AppError, lib::{redondeo, Save}, pesable::Pesable, producto::Producto, rubro::Rubro
 };
 use sea_orm::{DatabaseConnection, DbErr};
 use serde::{Deserialize, Serialize};
@@ -15,19 +15,14 @@ pub enum Valuable {
 }
 
 impl Valuable {
-    // pub fn price(&self, politica: f64) -> f64 {
-    //     match self {
-    //         V::Pes(a) => redondeo(politica, a.0 as f64 * a.1.precio_peso),
-    //         V::Prod(a) => a.1.redondear(politica).precio_de_venta,
-    //         V::Rub(a) => a.1.redondear(politica).monto,
-    //     }
-    // }
-    // pub fn unifica_codes(&mut self) {
-    //     match self {
-    //         V::Prod(a) => a.1.unifica_codes(),
-    //         _ => (),
-    //     }
-    // }
+    pub fn price(&self, politica: &f32) -> Option<f32> {
+        match self {
+            V::Pes(a) => Some(redondeo(politica, a.0 * a.1.precio_peso())),
+            V::Prod(a) => Some(*a.1.redondear(politica).precio_de_venta()),
+            V::Rub(a) => a.1.redondear(politica).monto().cloned(),
+        }
+    }
+    
     pub fn descripcion(&self, conf: &Config) -> String {
         let res = match self {
             V::Pes(a) => a.1.descripcion().to_string(),
