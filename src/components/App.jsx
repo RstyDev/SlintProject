@@ -51,7 +51,6 @@ async function descontarProdVentaAct(index,pos) {
 async function eliminarProdVentaAct(index,pos) {
   return await invoke("eliminar_producto_de_venta", { index: index, pos: pos })
 }
-open_login();
 
 function App() {
   const [logged, setLogged] = useState(false);
@@ -61,7 +60,13 @@ function App() {
   const [configs, setConfigs] = useState();
   const [busqueda, setBusqueda] = useState();
   const [focuseado, setFocuseado] = useState(0);
+  const [credito,setCredito] = useState(false);
   const [productos, setProductos] = useState([]);
+  const [ultimo, setUltimo] =useState();
+  if (!logged){
+    open_login();
+  }
+
   get_log_state().then(state=>setLogged(state));
   useEffect(()=>{
     if (busqueda && busqueda.length > 0){
@@ -70,6 +75,7 @@ function App() {
       setProductos([]);
     }
 },[busqueda])
+
   const [rend, setRend] = useState(<>
     <section id="no-iniciado" className="main-screen">
       <p>
@@ -78,7 +84,6 @@ function App() {
     </section>
   </>);
   function handleProd(index,action){
-    console.log("handle")
     get_configs().then(conf=>{
       if (action<0){
         descontarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
@@ -90,6 +95,8 @@ function App() {
     })
   }
   function handleFocuseado(e,i) {
+    
+    //console.log(e.currentTarget.value)
     if (i){
       setFocuseado(i);
     }else if (e.currentTarget.value && e.currentTarget.value != "") {
@@ -102,6 +109,7 @@ function App() {
         } else if (e.keyCode == 13){
           if (productos.length > 0){
             agregarProdVentaAct(productos[focuseado],pos);
+            setUltimo(productos[focuseado]);
             beep.play();
             e.currentTarget.value = "";
             setProductos([]);
@@ -119,7 +127,22 @@ function App() {
       
       }
     }
-    if (e.currentTarget.value == ""){
+    if (productos.length < 1){
+      if (e.keyCode == 13){
+        e.preventDefault();
+        if (ultimo){
+          agregarProdVentaAct(ultimo,pos);
+          beep.play();
+            e.currentTarget.value = "";
+            setProductos([]);
+            setBusqueda("")
+        }else{
+          error.play();
+            let busc=document.getElementById("buscador");
+            busc.classList.add("error");
+            setTimeout(() => { busc.classList.toggle("error") }, 1000)
+        }
+      }
       setFocuseado(0)
     }
   }
