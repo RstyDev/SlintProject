@@ -9,9 +9,11 @@ async function agregar_pago(medio_pago, monto, pos) {
   return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos": pos });
 }
 
-function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc }) {
+function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito }) {
   const [pagosVec, setPagosVec] = useState(mapearPagos(pagos))
   const [focused, setFocused] = useState(prodFoc?"not-focused":"");
+  const [cred,setCred] = useState(credito);
+  useEffect(()=>{setCred(credito)},[credito]);
   useEffect(() => {
     setFocused(prodFoc?"not-focused":"")
   }, [prodFoc])
@@ -22,7 +24,7 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc }) {
   return (<>
     <article id="pagos" className={"focuseable " + focused} onClick={() => { isProd(false)}} >
       {pagosVec}
-      <Pago pagado={false} medios_pago={medios_pago} monto={monto} pos={pos} borrar={(e) => { console.log(e); borrar_pago(pos, e) }} agregar={cash} />
+      <Pago pagado={false} credito={cred} medios_pago={medios_pago} monto={monto} pos={pos} borrar={(e) => { console.log(e); borrar_pago(pos, e) }} agregar={cash} />
     </article>
     <p>Resta pagar: {monto}</p>
   </>

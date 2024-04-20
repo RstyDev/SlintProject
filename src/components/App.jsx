@@ -175,19 +175,19 @@ function App() {
             </form>
           </div>
           <div>
-            <SelectClientes />
+            <SelectClientes setCredito={setCredito}/>
           </div>
         </section>
       </header>
       <main className="main-screen">
         <CuadroPrincipal handleProd={handleProd} pos={pos} busqueda={busqueda} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} focuseado={focuseado} setFocuseado={setFocuseado} />
-        <ResumenPago pos={pos} venta={sale} configs={conf} prodFoc={prodFoc} isProd={isProd} />
+        <ResumenPago pos={pos} venta={sale} configs={conf} prodFoc={prodFoc} isProd={isProd} credito={credito} />
 
       </main>
     </>);
   }
   
-  useEffect(() => draw(), [logged, prodFoc, productos,focuseado,pos])
+  useEffect(() => draw(), [logged, prodFoc, productos,focuseado,pos,credito])
   
   function isProd(val) {
     setProdFoc(val)

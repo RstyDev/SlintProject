@@ -4,9 +4,11 @@ import { useEffect } from "react";
 import { useState } from "react";
 import Pagos from "./Pagos";
 
-function ResumenPago({ pos, venta, configs, prodFoc, isProd }) {
+function ResumenPago({ pos, venta, configs, prodFoc, isProd, credito }) {
     const [prods, setProds] = useState("");
     const [focus, setFocus] = useState(prodFoc);
+    const [cred,setCred] = useState(credito);
+    useEffect(()=>{setCred(credito)},[credito]);
     useEffect(() => {
         setFocus(prodFoc)
     }, [prodFoc])
@@ -33,7 +35,7 @@ function ResumenPago({ pos, venta, configs, prodFoc, isProd }) {
                 {prods}
             </article>
 
-            <Pagos prodFoc={focus}  pagos={venta.pagos} medios_pago={configs.medios_pago} monto={venta.monto_total - venta.monto_pagado} pos={pos} isProd={isProd} />
+            <Pagos prodFoc={focus} credito={cred} pagos={venta.pagos} medios_pago={configs.medios_pago} monto={venta.monto_total - venta.monto_pagado} pos={pos} isProd={isProd} />
 
         </section>
     )
