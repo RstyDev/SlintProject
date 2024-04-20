@@ -15,7 +15,7 @@ function SelectClientes({setCredito}){
         get_clientes().then(clientes=>{
             //setVec(clientes)
             setClientes(vec.map((cliente,i)=>{
-                return <option value={i+1}> {cliente.nombre}</option>
+                return <option value={i+1} key={i}>  {cliente.nombre}</option>
             }))
            
         })
