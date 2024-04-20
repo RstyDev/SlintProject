@@ -30,7 +30,7 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc }) {
  
   function mapearPagos(pagos) {
     return pagos.map(function (pago, i) {
-      return <Pago key={i} pagado={true} medios_pago={[pago.medio_pago]} monto={pago.monto} index={i} borrar={(e) => borrar_pago(pos, e)} agregar={cash} />
+      return <Pago key={i} pagado={true} medios_pago={[pago.medio_pago.medio]} monto={pago.monto} index={i} borrar={(e) => borrar_pago(pos, e)} agregar={cash} />
     })
   }
   function cash(e, seleccionado, montoAct) {

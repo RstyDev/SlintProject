@@ -19,7 +19,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Rubro::Codigo).big_integer().not_null())
-                    .col(ColumnDef::new(Rubro::Monto).double())
+                    .col(ColumnDef::new(Rubro::Monto).float())
                     .col(ColumnDef::new(Rubro::Descripcion).string().not_null())
                     .col(ColumnDef::new(Rubro::UpdatedAt).date_time().not_null())
                     .to_owned(),

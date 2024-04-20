@@ -1,6 +1,5 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
 use entity::prelude::{CodeDB, PesDB, RubDB};
 use mods::{
     caja::Caja,
@@ -454,10 +453,9 @@ fn close_window(window: tauri::Window) -> Res<()> {
 fn descontar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: &str,
+    index: usize,
     pos: bool,
 ) -> Res<Venta> {
-    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let res = sis.descontar_producto_de_venta(index, pos)?;
@@ -503,10 +501,9 @@ fn eliminar_producto(sistema: State<Mutex<Sistema>>, prod: V)->Res<()>{
 fn eliminar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: &str,
+    index: usize,
     pos: bool,
 ) -> Res<Venta> {
-    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let res = sis.eliminar_producto_de_venta(index, pos)?;
@@ -577,6 +574,16 @@ fn get_filtrado(
         "tipo_producto" => Ok(sis.filtrar_tipo_producto(filtro)?),
         _ => Err(format!("Parámetro incorrecto {tipo_filtro}")),
     }
+}
+#[tauri::command]
+fn get_log_state(sistema: State<Mutex<Sistema>>) -> Res<bool>{
+    Ok(sistema.lock().map_err(|e|e.to_string())?.user().is_some())
+}
+#[tauri::command]
+fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.access();
+    Ok(sis.configs().medios_pago().iter().map(|m|m.to_string()).collect())
 }
 #[tauri::command]
 fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>> {
@@ -668,10 +675,9 @@ fn hacer_ingreso(sistema: State<Mutex<Sistema>>, monto: f32, descripcion: Option
 fn incrementar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
-    index: &str,
+    index: usize,
     pos: bool,
 ) -> Res<Venta> {
-    let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let venta = sis.incrementar_producto_a_venta(index, pos)?;
@@ -963,7 +969,7 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
             let window = tauri::WindowBuilder::new(
                 &handle,
                 "login", /* the unique window label */
-                tauri::WindowUrl::App("/pages/login.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/login/login.html".parse().unwrap()),
             )
             .inner_size(400.0, 300.0)
             .resizable(false)
@@ -1318,6 +1324,8 @@ fn main() {
             get_deuda,
             get_deuda_detalle,
             get_filtrado,
+            get_log_state,
+            get_medios_pago,
             get_productos_filtrado,
             get_proveedores,
             get_rango,

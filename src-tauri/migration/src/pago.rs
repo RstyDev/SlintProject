@@ -29,7 +29,7 @@ impl MigrationTrait for Migration {
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
                     )
-                    .col(ColumnDef::new(Pago::Monto).double().not_null())
+                    .col(ColumnDef::new(Pago::Monto).float().not_null())
                     .col(ColumnDef::new(Pago::Venta).big_integer().not_null())
                     .foreign_key(
                         ForeignKeyCreateStatement::new()
@@ -39,6 +39,7 @@ impl MigrationTrait for Migration {
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
                     )
+                    .col(ColumnDef::new(Pago::Pagado).float().not_null())
                     .to_owned(),
             )
             .await
@@ -55,5 +56,6 @@ pub enum Pago {
     Id,
     MedioPago,
     Monto,
+    Pagado,
     Venta,
 }

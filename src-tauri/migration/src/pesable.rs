@@ -19,9 +19,9 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Pesable::Codigo).big_integer().not_null())
-                    .col(ColumnDef::new(Pesable::PrecioPeso).double().not_null())
-                    .col(ColumnDef::new(Pesable::Porcentaje).double().not_null())
-                    .col(ColumnDef::new(Pesable::CostoKilo).double().not_null())
+                    .col(ColumnDef::new(Pesable::PrecioPeso).float().not_null())
+                    .col(ColumnDef::new(Pesable::Porcentaje).float().not_null())
+                    .col(ColumnDef::new(Pesable::CostoKilo).float().not_null())
                     .col(ColumnDef::new(Pesable::Descripcion).string().not_null())
                     .col(ColumnDef::new(Pesable::UpdatedAt).date_time().not_null())
                     .to_owned(),

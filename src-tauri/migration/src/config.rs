@@ -25,7 +25,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Config::FormatoProducto).string().not_null())
                     .col(ColumnDef::new(Config::ModoMayus).string().not_null())
-                    .col(ColumnDef::new(Config::PoliticaRedondeo).double().not_null())
+                    .col(ColumnDef::new(Config::PoliticaRedondeo).float().not_null())
                     .to_owned(),
             )
             .await
