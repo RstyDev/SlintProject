@@ -778,7 +778,7 @@ impl<'a> Sistema {
         } else {
             return Err(AppError::NotFound {
                 objeto: String::from("Producto"),
-                instancia: format!("{}", prod.descripcion(&self.configs())),
+                instancia: prod.descripcion(&self.configs()),
             });
         }
 

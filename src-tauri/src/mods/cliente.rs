@@ -48,7 +48,7 @@ impl Cli {
             Some(_) => {
                 return Err(AppError::ExistingError {
                     objeto: "Cliente".to_string(),
-                    instancia: format!("{}", dni),
+                    instancia: dni.to_string(),
                 })
             }
             None => {

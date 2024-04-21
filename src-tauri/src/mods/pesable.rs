@@ -52,7 +52,7 @@ impl Pesable {
             Some(_) => {
                 return Err(AppError::ExistingError {
                     objeto: "Pesable".to_string(),
-                    instancia: format!("{}", codigo),
+                    instancia: codigo.to_string(),
                 })
             }
             None => {
@@ -101,7 +101,7 @@ impl Pesable {
             None => {
                 return Err(AppError::NotFound {
                     objeto: String::from("Pesable"),
-                    instancia: format!("{}", self.id),
+                    instancia: self.id.to_string(),
                 })
             }
         };
@@ -114,7 +114,7 @@ impl Pesable {
             None => {
                 return Err(AppError::NotFound {
                     objeto: String::from("Pesable"),
-                    instancia: format!("{}", self.id),
+                    instancia: self.id.to_string(),
                 })
             }
         };

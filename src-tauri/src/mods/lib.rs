@@ -44,7 +44,7 @@ pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result
     let mut f = File::create(path)?;
     println!("Path que se actualiza: {}", path);
     let buf = serde_json::to_string_pretty(escritura)?;
-    write!(f, "{}", format!("{}", buf))?;
+    write!(f, "{}", buf)?;
     Ok(())
 }
 
@@ -294,7 +294,7 @@ impl Db {
             None => {
                 return Err(AppError::NotFound {
                     objeto: String::from("Usuario"),
-                    instancia: format!("{}", user.id()),
+                    instancia: user.id().to_string(),
                 })
             }
         }

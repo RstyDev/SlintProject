@@ -214,7 +214,7 @@ fn agregar_producto(
                 presentacion,
             ))?;
             close_window(window)?;
-            Ok(format!("Agregado {:#?}", prod))
+            Ok(format!("Agregado {prod:#?}"))
         }
         Rango::Cajero => Err(DENEGADO.to_string()),
     }
@@ -345,7 +345,7 @@ fn agregar_usuario(
 }
 #[tauri::command]
 fn buscador(name: &str) -> String {
-    format!("Hello, {}! You've been mensajed from Rust!", name)
+    format!("Hello, {name}! You've been mensajed from Rust!")
 }
 #[tauri::command]
 async fn cerrar_sesion<'ab>(

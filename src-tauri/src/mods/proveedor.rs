@@ -82,8 +82,8 @@ impl ToString for Proveedor {
     fn to_string(&self) -> String {
         let res;
         match self.contacto {
-            Some(a) => res = format!("{} {}", self.nombre, a),
-            None => res = format!("{}", self.nombre),
+            Some(a) => res = format!("{} {a}",self.nombre),
+            None => res = self.nombre.to_string(),
         }
         res
     }

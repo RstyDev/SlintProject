@@ -40,7 +40,7 @@ impl Rubro {
             Some(_) => {
                 return Err(AppError::ExistingError {
                     objeto: String::from("Rubro"),
-                    instancia: format!("{}", codigo),
+                    instancia: codigo.to_string(),
                 })
             }
             None => {
@@ -79,7 +79,7 @@ impl Rubro {
             None => {
                 return Err(AppError::NotFound {
                     objeto: String::from("Rubro"),
-                    instancia: format!("{}", self.id),
+                    instancia: self.id.to_string(),
                 })
             }
         };
@@ -92,7 +92,7 @@ impl Rubro {
             None => {
                 return Err(AppError::NotFound {
                     objeto: String::from("Rubro"),
-                    instancia: format!("{}", self.id),
+                    instancia: self.id.to_string(),
                 })
             }
         };

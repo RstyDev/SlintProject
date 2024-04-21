@@ -105,7 +105,7 @@ impl Producto {
             None => {
                 return Err(AppError::NotFound {
                     objeto: String::from("Producto"),
-                    instancia: format!("{}", self.id),
+                    instancia: self.id.to_string(),
                 })
             }
         };
@@ -118,7 +118,7 @@ impl Producto {
             None => {
                 return Err(AppError::NotFound {
                     objeto: String::from("Producto"),
-                    instancia: format!("{}", self.id),
+                    instancia: self.id.to_string(),
                 })
             }
         };
@@ -152,7 +152,7 @@ impl Save for Producto {
             tipo_producto: Set(self.tipo_producto.to_string()),
             marca: Set(self.marca.to_string()),
             variedad: Set(self.variedad.to_string()),
-            presentacion: Set(format!("{}", self.presentacion.get_string())),
+            presentacion: Set(self.presentacion.get_string().to_string()),
             updated_at: Set(Utc::now().naive_local()),
             cantidad: Set(self.presentacion().get_cantidad()),
             ..Default::default()
