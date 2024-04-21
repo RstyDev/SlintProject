@@ -32,13 +32,17 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito,setDisa
       setDisabledCli("disabled");
     }
     setRent(<>
-    <article id="pagos" className={"focuseable " + focused} onClick={(e) => {console.log(e.currentTarget);document.getElementById("input-activo").select(); isProd(false)}} >
+    <article id="pagos" className={"focuseable " + focused} onClick={(e) => {click(e)}} >
       {pagosVec}
       <Pago pagado={false} credito={cred} id={0} medios_pago={medios_pago} monto={monto} pos={pos} borrar={(e) => { console.log(e); borrar_pago(pos, e, ) }} agregar={cash} />
     </article>
     <p>Resta pagar: {monto}</p>
   </>)},[pagosVec,focused])
-
+  function click(e){
+    console.log(e.currentTarget);
+    document.getElementById("input-activo").select();
+    isProd(false);
+  }
 
 
 
