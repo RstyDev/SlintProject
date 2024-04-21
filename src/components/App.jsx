@@ -63,6 +63,7 @@ function App() {
   const [credito,setCredito] = useState(false);
   const [productos, setProductos] = useState([]);
   const [ultimo, setUltimo] =useState();
+  const [disabledCli, setDisabledCli] = useState("");
   if (!logged){
     open_login();
   }
@@ -175,19 +176,19 @@ function App() {
             </form>
           </div>
           <div>
-            <SelectClientes setCredito={setCredito}/>
+            <SelectClientes setCredito={setCredito} disabledCli={disabledCli}/>
           </div>
         </section>
       </header>
       <main className="main-screen">
         <CuadroPrincipal handleProd={handleProd} pos={pos} busqueda={busqueda} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} focuseado={focuseado} setFocuseado={setFocuseado} />
-        <ResumenPago pos={pos} venta={sale} configs={conf} prodFoc={prodFoc} isProd={isProd} credito={credito} />
+        <ResumenPago pos={pos} venta={sale} setDisabledCli={setDisabledCli} configs={conf} prodFoc={prodFoc} isProd={isProd} credito={credito} />
 
       </main>
     </>);
   }
   
-  useEffect(() => draw(), [logged, prodFoc, productos,focuseado,pos,credito])
+  useEffect(() => draw(), [logged, prodFoc, productos,focuseado,pos,credito,disabledCli])
   
   function isProd(val) {
     setProdFoc(val)

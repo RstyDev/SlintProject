@@ -12,7 +12,7 @@ async function agregar_pago(medio_pago, monto, pos) {
   return await invoke("agregar_pago", { "medioPago": medio_pago, "monto": monto, "pos": pos });
 }
 
-function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito }) {
+function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito,setDisabledCli }) {
   const [pagosVec, setPagosVec] = useState(mapearPagos(pagos))
   const [focused, setFocused] = useState(prodFoc?"not-focused":"");
   const [cred,setCred] = useState(credito);
@@ -25,13 +25,19 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito }) {
   </>)
   useEffect(()=>{setCred(credito)},[credito]);
   useEffect(() => {setFocused(prodFoc?"not-focused":"")}, [prodFoc])
-  useEffect(()=>{setRent(<>
-    <article id="pagos" className={"focuseable " + focused} onClick={() => { isProd(false)}} >
+  useEffect(()=>{
+    if(pagosVec.length==0){
+      setDisabledCli("");
+    }else{
+      setDisabledCli("disabled");
+    }
+    setRent(<>
+    <article id="pagos" className={"focuseable " + focused} onClick={(e) => {console.log(e.currentTarget);document.getElementById("input-activo").select(); isProd(false)}} >
       {pagosVec}
       <Pago pagado={false} credito={cred} id={0} medios_pago={medios_pago} monto={monto} pos={pos} borrar={(e) => { console.log(e); borrar_pago(pos, e, ) }} agregar={cash} />
     </article>
     <p>Resta pagar: {monto}</p>
-  </>)},[pagosVec])
+  </>)},[pagosVec,focused])
 
 
 
@@ -40,7 +46,6 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito }) {
  
   function mapearPagos(pagos) {
     return pagos.map(function (pago, i) {
-      console.log(pago)
       return <Pago key={i} pagado={true} medios_pago={[pago.medio_pago.medio]} monto={pago.monto} id={pago.int_id} borrar={(e) => borrar_pago(pos, e).then(pagos=>setPagosVec(mapearPagos(pagos)))} agregar={cash} />
     })
   }
