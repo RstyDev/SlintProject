@@ -8,6 +8,21 @@ function ResumenPago({ pos, venta, configs, prodFoc, isProd, credito,setDisabled
     const [prods, setProds] = useState("");
     const [focus, setFocus] = useState(prodFoc);
     const [cred,setCred] = useState(credito);
+    const [rend, setRend] = useState(<section id="resumen-y-pago">
+    <article id="resumen">
+        {prods}
+    </article>
+    <Pagos prodFoc={focus} setDisabledCli={setDisabledCli} credito={cred} pagos={venta.pagos} medios_pago={configs.medios_pago} monto={venta.monto_total - venta.monto_pagado} pos={pos} isProd={isProd} />
+</section>)
+    useEffect(()=>{
+        setRend(<section id="resumen-y-pago">
+    <article id="resumen">
+        {prods}
+    </article>
+
+    <Pagos prodFoc={focus} setDisabledCli={setDisabledCli} credito={cred} pagos={venta.pagos} medios_pago={configs.medios_pago} monto={venta.monto_total - venta.monto_pagado} pos={pos} isProd={isProd} />
+
+</section>)},[venta])
     useEffect(()=>{setCred(credito)},[credito]);
     useEffect(() => {
         setFocus(prodFoc)
@@ -29,16 +44,7 @@ function ResumenPago({ pos, venta, configs, prodFoc, isProd, credito,setDisabled
     }, [])
 
 
-    return (
-        <section id="resumen-y-pago">
-            <article id="resumen">
-                {prods}
-            </article>
-
-            <Pagos prodFoc={focus} setDisabledCli={setDisabledCli} credito={cred} pagos={venta.pagos} medios_pago={configs.medios_pago} monto={venta.monto_total - venta.monto_pagado} pos={pos} isProd={isProd} />
-
-        </section>
-    )
+    return (rend)
 }
 
 export default ResumenPago;

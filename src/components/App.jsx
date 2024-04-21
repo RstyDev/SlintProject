@@ -90,7 +90,7 @@ function App() {
         descontarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
       }else if (action==0){
         eliminarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
-      }else if (action>0){
+      }else{
         incrementarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
       }
     })
@@ -127,8 +127,7 @@ function App() {
         setBusqueda("")
       
       }
-    }
-    if (productos.length < 1){
+    }else{
       if (e.keyCode == 13){
         e.preventDefault();
         if (ultimo){
@@ -196,17 +195,22 @@ function App() {
   async function unlisten() {
 
     return await listen('main', (pl) => {
-      if (pl.payload.message == 'dibujar venta') {
-        get_venta_actual().then(venta => setVenta(venta));
-      } else if (pl.payload.message == "confirm stash") {
-        // open_confirm_stash(pos)
-      } else if (pl.payload.message == "inicio sesion") {
-        get_log_state().then(state => setLogged(state));
-        
-      } else if (pl.payload.message == "cerrar sesion") {
-        cerrar_sesion()
-      } else if (pl.payload.message == "open stash") {
-        open_stash()
+      switch (pl.payload.message){
+        case "dibujar venta":
+          get_venta_actual().then(venta => setVenta(venta));
+          break;
+        case "confirm stash":
+          // open_confirm_stash(pos)
+          break;
+        case "inicio sesion":
+          get_log_state().then(state => setLogged(state));
+          break;
+        case "cerrar sesion":
+          cerrar_sesion();
+          break;
+        case "open stash":
+          open_stash();
+          break;
       }
     })
   }

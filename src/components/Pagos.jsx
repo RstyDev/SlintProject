@@ -24,6 +24,7 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito,setDisa
     <p>Resta pagar: {monto}</p>
   </>)
   useEffect(()=>{setCred(credito)},[credito]);
+  useEffect(()=>{setPagosVec(mapearPagos(pagos))},[pagos])
   useEffect(() => {setFocused(prodFoc?"not-focused":"")}, [prodFoc])
   useEffect(()=>{
     if(pagosVec.length==0){

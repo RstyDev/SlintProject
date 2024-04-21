@@ -79,14 +79,19 @@ function Producto({ handleProd,producto, conf, i }) {
     const [ret, setRet] = useState("");
     useEffect(procesar,[producto])
     function procesar(){
-        if (Object.keys(producto)[0] == "Pes") {
-            procesarPes(handleProd,producto, conf, i, setRet);
-        } else if (Object.keys(producto)[0] == "Prod") {
-            procesarProd(handleProd,producto, conf, i, setRet);
-        } else if (Object.keys(producto)[0] == "Rub") {
-            procesarRub(handleProd,producto, conf, i, setRet);
-        } else {
-            console.error("Error de tipo de producto");
+        switch (Object.keys(producto)[0]){
+            case "Pes":
+                procesarPes(handleProd,producto, conf, i, setRet);
+                break;
+            case "Prod":
+                procesarProd(handleProd,producto, conf, i, setRet);
+                break;
+            case "Rub":
+                procesarRub(handleProd,producto, conf, i, setRet);
+                break;
+            default:
+                console.error("Error de tipo de producto");
+                break;
         }
     }
     return ret
