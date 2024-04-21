@@ -7,7 +7,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::{error::AppError, lib::Mapper, user::User, venta::Venta};
+use super::{AppError, Mapper, User, Venta};
 type Res<T> = std::result::Result<T, AppError>;
 #[derive(Serialize, Clone, Debug, Deserialize)]
 pub enum Cliente {

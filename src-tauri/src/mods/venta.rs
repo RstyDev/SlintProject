@@ -1,7 +1,3 @@
-use super::{
-    cliente::{Cli, Cliente},
-    lib::Mapper,
-};
 use chrono::Utc;
 use entity::prelude::{CliDB, DeudaDB, PagoDB, VentaDB, VentaPesDB, VentaProdDB, VentaRubDB};
 type Res<T> = std::result::Result<T, AppError>;
@@ -19,13 +15,7 @@ const CUENTA: &str = "Cuenta Corriente";
 
 use crate::mods::pago::medio_from_db;
 
-use super::{
-    error::AppError,
-    lib::{redondeo, Save},
-    pago::{MedioPago, Pago},
-    user::User,
-    valuable::Valuable,
-};
+use super::{redondeo, AppError, Cli, Cliente, Mapper, MedioPago, Pago, Save, User, Valuable};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Venta {

@@ -18,19 +18,11 @@ use Valuable as V;
 
 type Res<T> = std::result::Result<T, AppError>;
 
+use super::{
+    AppError, Cli, Cliente, MedioPago, Pago, Pesable, Presentacion, Producto, Proveedor,
+    RelacionProdProv, Rubro, User, Venta,
+};
 use crate::mods::valuable::Valuable;
-
-use super::cliente::{Cli, Cliente};
-use super::error::AppError;
-use super::pago::{MedioPago, Pago};
-use super::pesable::Pesable;
-use super::producto::Producto;
-use super::proveedor::Proveedor;
-use super::relacion_prod_prov::RelacionProdProv;
-use super::rubro::Rubro;
-use super::user::User;
-use super::valuable::Presentacion;
-use super::venta::Venta;
 pub struct Db;
 pub struct Mapper;
 pub trait Save {

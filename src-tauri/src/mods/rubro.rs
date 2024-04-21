@@ -2,16 +2,13 @@ use chrono::Utc;
 type Res<T> = std::result::Result<T, AppError>;
 use entity::prelude::RubDB;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter, Set
+    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait,
+    IntoActiveModel, QueryFilter, Set,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::{
-    error::AppError,
-    lib::{redondeo, Save},
-    valuable::ValuableTrait,
-};
+use super::{redondeo, valuable::ValuableTrait, AppError, Save};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
@@ -77,18 +74,28 @@ impl Rubro {
     pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
     }
-    pub async fn eliminar(self, db:&DatabaseConnection) -> Res<()>{
-        let model= match RubDB::Entity::find_by_id(self.id).one(db).await?{
-            Some(model)=>model.into_active_model(),
-            None=>return Err(AppError::NotFound { objeto: String::from("Rubro"), instancia: format!("{}",self.id) }),
+    pub async fn eliminar(self, db: &DatabaseConnection) -> Res<()> {
+        let model = match RubDB::Entity::find_by_id(self.id).one(db).await? {
+            Some(model) => model.into_active_model(),
+            None => {
+                return Err(AppError::NotFound {
+                    objeto: String::from("Rubro"),
+                    instancia: format!("{}", self.id),
+                })
+            }
         };
         model.delete(db).await?;
         Ok(())
     }
-    pub async fn editar(self, db: &DatabaseConnection)->Res<()>{
-        let mut model= match RubDB::Entity::find_by_id(self.id).one(db).await?{
-            Some(model)=>model.into_active_model(),
-            None=>return Err(AppError::NotFound { objeto: String::from("Rubro"), instancia: format!("{}",self.id) }),
+    pub async fn editar(self, db: &DatabaseConnection) -> Res<()> {
+        let mut model = match RubDB::Entity::find_by_id(self.id).one(db).await? {
+            Some(model) => model.into_active_model(),
+            None => {
+                return Err(AppError::NotFound {
+                    objeto: String::from("Rubro"),
+                    instancia: format!("{}", self.id),
+                })
+            }
         };
         model.codigo = Set(self.codigo);
         model.descripcion = Set(self.descripcion.to_string());

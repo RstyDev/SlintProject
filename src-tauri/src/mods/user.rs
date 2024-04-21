@@ -1,4 +1,4 @@
-use super::error::AppError;
+use super::AppError;
 use entity::prelude::UserDB;
 use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};

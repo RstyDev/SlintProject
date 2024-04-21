@@ -2,7 +2,7 @@ use entity::prelude::ProdProvDB;
 use sea_orm::{ActiveModelTrait, Database, DbErr, Set};
 use serde::{Deserialize, Serialize};
 
-use super::lib::Save;
+use super::Save;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct RelacionProdProv {

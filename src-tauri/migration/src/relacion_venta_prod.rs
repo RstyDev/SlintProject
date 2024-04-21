@@ -38,11 +38,7 @@ impl MigrationTrait for Migration {
                             .small_integer()
                             .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(RelacionVentaProd::Precio)
-                            .float()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(RelacionVentaProd::Precio).float().not_null())
                     .col(
                         ColumnDef::new(RelacionVentaProd::Venta)
                             .big_integer()

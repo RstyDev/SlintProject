@@ -1,6 +1,4 @@
-use super::{
-    config::{Config, Formato}, error::AppError, lib::{redondeo, Save}, pesable::Pesable, producto::Producto, rubro::Rubro
-};
+use super::{redondeo, AppError, Config, Formato, Pesable, Producto, Rubro, Save};
 use sea_orm::{DatabaseConnection, DbErr};
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
@@ -22,7 +20,7 @@ impl Valuable {
             V::Rub(a) => a.1.redondear(politica).monto().cloned(),
         }
     }
-    
+
     pub fn descripcion(&self, conf: &Config) -> String {
         let res = match self {
             V::Pes(a) => a.1.descripcion().to_string(),
@@ -80,18 +78,18 @@ impl Valuable {
 
         res
     }
-    pub async fn eliminar(self,db:DatabaseConnection)->Res<()>{
-        match self{
-            Valuable::Prod((_,prod)) => prod.eliminar(&db).await,
-            Valuable::Pes((_,pes)) => pes.eliminar(&db).await,
-            Valuable::Rub((_,rub)) => rub.eliminar(&db).await,
+    pub async fn eliminar(self, db: DatabaseConnection) -> Res<()> {
+        match self {
+            Valuable::Prod((_, prod)) => prod.eliminar(&db).await,
+            Valuable::Pes((_, pes)) => pes.eliminar(&db).await,
+            Valuable::Rub((_, rub)) => rub.eliminar(&db).await,
         }
     }
-    pub async fn editar(self,db:DatabaseConnection)->Res<()>{
-        match self{
-            Valuable::Prod((_,prod)) => prod.editar(&db).await,
-            Valuable::Pes((_,pes)) => pes.editar(&db).await,
-            Valuable::Rub((_,rub)) => rub.editar(&db).await,
+    pub async fn editar(self, db: DatabaseConnection) -> Res<()> {
+        match self {
+            Valuable::Prod((_, prod)) => prod.editar(&db).await,
+            Valuable::Pes((_, pes)) => pes.editar(&db).await,
+            Valuable::Rub((_, rub)) => rub.editar(&db).await,
         }
     }
 }

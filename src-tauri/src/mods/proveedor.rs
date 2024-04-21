@@ -8,10 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 type Res<T> = std::result::Result<T, AppError>;
 
-use super::{
-    error::AppError,
-    lib::{Mapper, Save},
-};
+use super::{AppError, Mapper, Save};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {

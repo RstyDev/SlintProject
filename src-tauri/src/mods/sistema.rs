@@ -1,19 +1,8 @@
 type Res<T> = std::result::Result<T, AppError>;
 use super::{
-    caja::{Caja, Movimiento},
-    cliente::Cli,
-    config::Config,
-    error::AppError,
-    lib::{crear_file, get_hash, leer_file, Db, Mapper},
-    pago::Pago,
-    pesable::Pesable,
-    producto::Producto,
-    proveedor::Proveedor,
-    relacion_prod_prov::RelacionProdProv,
-    rubro::Rubro,
-    user::{Rango, User},
-    valuable::{Presentacion, Valuable, ValuableTrait},
-    venta::Venta,
+    crear_file, get_hash, leer_file, AppError, Caja, Cli, Config, Db, Mapper, Movimiento, Pago,
+    Pesable, Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Rubro, User, Valuable,
+    ValuableTrait, Venta,
 };
 use chrono::Utc;
 use entity::prelude::{
@@ -34,11 +23,16 @@ pub struct Sistema {
     read_db: Arc<DatabaseConnection>,
     caja: Caja,
     configs: Config,
-    ventas: (Venta, Venta),
+    ventas: Ventas,
     proveedores: Vec<Proveedor>,
     relaciones: Vec<RelacionProdProv>,
     stash: Vec<Venta>,
     registro: Vec<Venta>,
+}
+
+pub struct Ventas{
+    pub a:Venta,
+    pub b:Venta,
 }
 
 async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
@@ -73,25 +67,25 @@ impl<'a> Sistema {
         let res;
         if pos {
             if !medio_pago.eq("Efectivo")
-                && self.ventas.0.monto_pagado() + monto > self.ventas.0.monto_total()
+                && self.ventas.a.monto_pagado() + monto > self.ventas.a.monto_total()
             {
                 return Err(AppError::AmountError {
-                    a_pagar: self.ventas.0.monto_total() - self.ventas.0.monto_pagado(),
+                    a_pagar: self.ventas.a.monto_total() - self.ventas.a.monto_pagado(),
                     pagado: monto,
                 });
             } else {
-                res = self.ventas.0.agregar_pago(medio_pago, monto);
+                res = self.ventas.a.agregar_pago(medio_pago, monto);
             }
         } else {
             if !medio_pago.eq("Efectivo")
-                && self.ventas.1.monto_pagado() + monto > self.ventas.1.monto_total()
+                && self.ventas.b.monto_pagado() + monto > self.ventas.b.monto_total()
             {
                 return Err(AppError::AmountError {
-                    a_pagar: self.ventas.1.monto_total() - self.ventas.1.monto_pagado(),
+                    a_pagar: self.ventas.b.monto_total() - self.ventas.b.monto_pagado(),
                     pagado: monto,
                 });
             } else {
-                res = self.ventas.1.agregar_pago(medio_pago, monto);
+                res = self.ventas.b.agregar_pago(medio_pago, monto);
             }
         }
         println!("{:#?}", res);
@@ -150,10 +144,10 @@ impl<'a> Sistema {
             read_db,
             caja,
             configs,
-            ventas: (
-                async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), true))?,
-                async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), false))?,
-            ),
+            ventas: Ventas{
+                a:async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), true))?,
+                b:async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), false))?,
+            },
             proveedores: proveedores.clone(),
             relaciones,
             stash,
@@ -180,9 +174,9 @@ impl<'a> Sistema {
 
     pub fn cancelar_venta(&mut self, pos: bool) -> Res<()> {
         if pos {
-            self.ventas.0.empty();
+            self.ventas.a.empty();
         } else {
-            self.ventas.1.empty();
+            self.ventas.b.empty();
         }
         Ok(())
     }
@@ -330,10 +324,10 @@ impl<'a> Sistema {
                     user.pass,
                     user.rango.as_str(),
                 )));
-                self.ventas = (
-                    Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
-                    Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
-                );
+                self.ventas = Ventas{
+                    a:Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
+                    b:Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
+                };
                 Ok(self.user().unwrap().rango().clone())
             }
             None => match UserDB::Entity::find()
@@ -377,7 +371,11 @@ impl<'a> Sistema {
                 .map(|x| V::Rub(x))
                 .collect(),
         );
-        Ok(res.iter().cloned().take(*self.configs.cantidad_productos() as usize).collect())
+        Ok(res
+            .iter()
+            .cloned()
+            .take(*self.configs.cantidad_productos() as usize)
+            .collect())
     }
     pub fn cerrar_sesion(&mut self) {
         self.user = None;
@@ -586,10 +584,10 @@ impl<'a> Sistema {
     pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Vec<Pago>> {
         let res;
         if pos {
-            self.ventas.0.eliminar_pago(id)?;
+            self.ventas.a.eliminar_pago(id)?;
             res = self.venta(pos).pagos()
         } else {
-            self.ventas.1.eliminar_pago(id)?;
+            self.ventas.b.eliminar_pago(id)?;
             res = self.venta(pos).pagos()
         }
 
@@ -769,12 +767,12 @@ impl<'a> Sistema {
             if pos {
                 result = Ok(self
                     .ventas
-                    .0
+                    .a
                     .agregar_producto(prod, &self.configs().politica()))
             } else {
                 result = Ok(self
                     .ventas
-                    .1
+                    .b
                     .agregar_producto(prod, &self.configs().politica()))
             }
         } else {
@@ -793,11 +791,11 @@ impl<'a> Sistema {
     ) -> Result<Venta, AppError> {
         Ok(if pos {
             self.ventas
-                .0
+                .a
                 .restar_producto(index, &self.configs().politica())?
         } else {
             self.ventas
-                .1
+                .b
                 .restar_producto(index, &self.configs().politica())?
         })
     }
@@ -810,12 +808,12 @@ impl<'a> Sistema {
         if pos {
             result = self
                 .ventas
-                .0
+                .a
                 .incrementar_producto(index, &self.configs().politica());
         } else {
             result = self
                 .ventas
-                .1
+                .b
                 .incrementar_producto(index, &self.configs().politica());
         }
 
@@ -828,24 +826,24 @@ impl<'a> Sistema {
     ) -> Result<Venta, AppError> {
         let result;
         if pos {
-            if self.ventas.0.productos().len() > 1 {
+            if self.ventas.a.productos().len() > 1 {
                 result = self
                     .ventas
-                    .0
+                    .a
                     .eliminar_producto(index, &self.configs().politica());
             } else {
-                self.ventas.0.empty();
-                result = Ok(self.ventas.0.clone());
+                self.ventas.a.empty();
+                result = Ok(self.ventas.a.clone());
             }
         } else {
-            if self.ventas.1.productos().len() > 1 {
+            if self.ventas.b.productos().len() > 1 {
                 result = self
                     .ventas
-                    .1
+                    .b
                     .eliminar_producto(index, &self.configs().politica());
             } else {
-                self.ventas.1.empty();
-                result = Ok(self.ventas.1.clone());
+                self.ventas.b.empty();
+                result = Ok(self.ventas.b.clone());
             }
         }
 
@@ -853,9 +851,9 @@ impl<'a> Sistema {
     }
     pub fn venta(&self, pos: bool) -> Venta {
         if pos {
-            self.ventas.0.clone()
+            self.ventas.a.clone()
         } else {
-            self.ventas.1.clone()
+            self.ventas.b.clone()
         }
     }
     pub fn filtrar_marca(&self, filtro: &str) -> Res<Vec<String>> {
@@ -899,9 +897,9 @@ impl<'a> Sistema {
     }
     fn set_venta(&mut self, pos: bool, venta: Venta) {
         if pos {
-            self.ventas.0 = venta;
+            self.ventas.a = venta;
         } else {
-            self.ventas.1 = venta;
+            self.ventas.b = venta;
         }
     }
     fn cerrar_venta(&mut self, pos: bool) -> Res<()> {
@@ -935,10 +933,10 @@ impl<'a> Sistema {
     pub fn get_deuda_detalle(&self, cliente: Cli) -> Res<Vec<Venta>> {
         async_runtime::block_on(cliente.get_deuda_detalle(&self.read_db, self.user()))
     }
-    pub fn eliminar_valuable(&self, val:V){
+    pub fn eliminar_valuable(&self, val: V) {
         async_runtime::spawn(val.eliminar(self.write_db.as_ref().clone()));
     }
-    pub fn editar_valuable(&self, val:V){
+    pub fn editar_valuable(&self, val: V) {
         async_runtime::spawn(val.editar(self.write_db.as_ref().clone()));
     }
     pub fn arc_user(&self) -> Arc<User> {
@@ -958,9 +956,9 @@ impl<'a> Sistema {
     }
     pub fn set_cliente(&mut self, id: i32, pos: bool) -> Res<()> {
         if pos {
-            async_runtime::block_on(self.ventas.0.set_cliente(id, &self.read_db))
+            async_runtime::block_on(self.ventas.a.set_cliente(id, &self.read_db))
         } else {
-            async_runtime::block_on(self.ventas.1.set_cliente(id, &self.read_db))
+            async_runtime::block_on(self.ventas.b.set_cliente(id, &self.read_db))
         }
     }
     pub fn unstash_sale(&mut self, pos: bool, index: usize) -> Res<()> {

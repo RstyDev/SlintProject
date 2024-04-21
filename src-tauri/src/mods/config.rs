@@ -3,7 +3,7 @@ use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::error::AppError;
+use super::AppError;
 type Res<T> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use super::{
-    error::AppError, lib::{redondeo, Save}, valuable::{Presentacion, ValuableTrait}
-};
+use super::{redondeo, AppError, Presentacion, Save, ValuableTrait};
 use chrono::Utc;
 use entity::prelude::{CodeDB, ProdDB};
-use sea_orm::{ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set};
+use sea_orm::{
+    ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set,
+};
 use serde::{Deserialize, Serialize};
 type Res<T> = std::result::Result<T, AppError>;
 
@@ -99,23 +99,35 @@ impl Producto {
     //         i+=1;
     //     }
     // }
-    pub async fn eliminar(self,db:&DatabaseConnection)->Res<()>{
-        let model=match ProdDB::Entity::find_by_id(self.id).one(db).await?{
-            Some(model)=>model.into_active_model(),
-            None=>return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",self.id) }),
+    pub async fn eliminar(self, db: &DatabaseConnection) -> Res<()> {
+        let model = match ProdDB::Entity::find_by_id(self.id).one(db).await? {
+            Some(model) => model.into_active_model(),
+            None => {
+                return Err(AppError::NotFound {
+                    objeto: String::from("Producto"),
+                    instancia: format!("{}", self.id),
+                })
+            }
         };
         model.delete(db).await?;
         Ok(())
     }
-    pub async fn editar(self,db:&DatabaseConnection)->Res<()>{
-        let mut model = match ProdDB::Entity::find_by_id(self.id).one(db).await?{
+    pub async fn editar(self, db: &DatabaseConnection) -> Res<()> {
+        let mut model = match ProdDB::Entity::find_by_id(self.id).one(db).await? {
             Some(model) => model.into_active_model(),
-            None => return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",self.id) }),
+            None => {
+                return Err(AppError::NotFound {
+                    objeto: String::from("Producto"),
+                    instancia: format!("{}", self.id),
+                })
+            }
         };
-        if self.precio_de_venta == self.precio_de_costo * (1.0+self.porcentaje/100.0){
-            model.precio_de_venta=Set(self.precio_de_venta);
-        }else{
-            return Err(AppError::IncorrectError(String::from("Cálculo de precio incorrecto")));
+        if self.precio_de_venta == self.precio_de_costo * (1.0 + self.porcentaje / 100.0) {
+            model.precio_de_venta = Set(self.precio_de_venta);
+        } else {
+            return Err(AppError::IncorrectError(String::from(
+                "Cálculo de precio incorrecto",
+            )));
         }
         model.cantidad = Set(self.presentacion.get_cantidad());
         model.marca = Set(self.marca.to_string());

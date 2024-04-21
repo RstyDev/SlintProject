@@ -1,4 +1,4 @@
-use super::lib::Save;
+use super::Save;
 use entity::prelude::{MedioDB, PagoDB};
 use rand::random;
 use sea_orm::{ActiveModelTrait, ColumnTrait, Database, DbErr, EntityTrait, QueryFilter, Set};
