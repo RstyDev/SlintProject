@@ -3,6 +3,8 @@ use core::num::ParseIntError;
 use sea_orm::DbErr;
 use std::{io, num::ParseFloatError, time::SystemTimeError};
 use thiserror::Error;
+pub type Res<T> = std::result::Result<T, AppError>;
+pub type Result<T> = std::result::Result<T,String>;
 
 #[derive(Debug, Error)]
 pub enum AppError {

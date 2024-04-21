@@ -20,6 +20,8 @@ pub use cliente::Cliente;
 pub use config::Config;
 pub use config::Formato;
 pub use error::AppError;
+pub use error::Res;
+pub use error::Result;
 pub use lib::crear_file;
 pub use lib::get_hash;
 pub use lib::leer_file;

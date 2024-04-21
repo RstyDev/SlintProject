@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use super::{redondeo, AppError, Presentacion, Save, ValuableTrait};
+use super::{redondeo, AppError, Presentacion, Save, ValuableTrait,Res};
 use chrono::Utc;
 use entity::prelude::{CodeDB, ProdDB};
 use sea_orm::{
     ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set,
 };
 use serde::{Deserialize, Serialize};
-type Res<T> = std::result::Result<T, AppError>;
+
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {

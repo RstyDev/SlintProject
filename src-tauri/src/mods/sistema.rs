@@ -1,8 +1,8 @@
-type Res<T> = std::result::Result<T, AppError>;
+
 use super::{
     crear_file, get_hash, leer_file, AppError, Caja, Cli, Config, Db, Mapper, Movimiento, Pago,
     Pesable, Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Rubro, User, Valuable,
-    ValuableTrait, Venta,
+    ValuableTrait, Venta,Res
 };
 use chrono::Utc;
 use entity::prelude::{

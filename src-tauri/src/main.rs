@@ -2,12 +2,21 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use entity::prelude::{CodeDB, PesDB, RubDB};
 use mods::{
-    get_hash, Caja, Cli, Config, Pago, Pesable, Rango, Rubro, Sistema, User, Valuable as V, Venta,
+    Caja,
+    Cli,
+    Config,
+    get_hash,
+    Pago,
+    Pesable,
+    Rubro,
+    Sistema,
+    Rango, User,
+    Valuable as V,
+    Venta,Result as Res
 };
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
 use std::sync::Arc;
-type Res<T> = std::result::Result<T, String>;
 use std::sync::Mutex;
 use tauri::{
     async_runtime::{self, block_on},
@@ -467,8 +476,8 @@ fn descontar_producto_de_venta(
     Ok(res)
 }
 #[tauri::command]
-fn editar_producto(sistema: State<Mutex<Sistema>>, prod: V) -> Res<()> {
-    let sis = sistema.lock().map_err(|e| e.to_string())?;
+fn editar_producto(sistema: State<Mutex<Sistema>>, prod: V)->Res<()>{
+    let sis=sistema.lock().map_err(|e|e.to_string())?;
     sis.access();
     sis.editar_valuable(prod);
     Ok(())
@@ -481,8 +490,8 @@ fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec
     sis.eliminar_pago(pos, id).map_err(|e| e.to_string())
 }
 #[tauri::command]
-fn eliminar_producto(sistema: State<Mutex<Sistema>>, prod: V) -> Res<()> {
-    let sis = sistema.lock().map_err(|e| e.to_string())?;
+fn eliminar_producto(sistema: State<Mutex<Sistema>>, prod: V)->Res<()>{
+    let sis=sistema.lock().map_err(|e|e.to_string())?;
     sis.access();
     sis.eliminar_valuable(prod);
     Ok(())
@@ -532,11 +541,8 @@ fn get_configs(sistema: State<Mutex<Sistema>>) -> Res<Config> {
     Ok(sistema.lock().map_err(|e| e.to_string())?.configs().clone())
 }
 #[tauri::command]
-fn get_descripciones(prods: Vec<V>, conf: Config) -> Vec<(String, Option<f32>)> {
-    prods
-        .iter()
-        .map(|p| (p.descripcion(&conf), p.price(&conf.politica())))
-        .collect::<Vec<(String, Option<f32>)>>()
+fn get_descripciones(prods:Vec<V>,conf:Config)->Vec<(String,Option<f32>)>{
+    prods.iter().map(|p|(p.descripcion(&conf),p.price(&conf.politica()))).collect::<Vec<(String,Option<f32>)>>()
 }
 #[tauri::command]
 fn get_descripcion_valuable(prod: V, conf: Config) -> String {
@@ -569,19 +575,14 @@ fn get_filtrado(
     }
 }
 #[tauri::command]
-fn get_log_state(sistema: State<Mutex<Sistema>>) -> Res<bool> {
-    Ok(sistema.lock().map_err(|e| e.to_string())?.user().is_some())
+fn get_log_state(sistema: State<Mutex<Sistema>>) -> Res<bool>{
+    Ok(sistema.lock().map_err(|e|e.to_string())?.user().is_some())
 }
 #[tauri::command]
 fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(sis
-        .configs()
-        .medios_pago()
-        .iter()
-        .map(|m| m.to_string())
-        .collect())
+    Ok(sis.configs().medios_pago().iter().map(|m|m.to_string()).collect())
 }
 #[tauri::command]
 fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>> {

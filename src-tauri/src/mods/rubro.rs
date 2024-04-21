@@ -1,5 +1,4 @@
 use chrono::Utc;
-type Res<T> = std::result::Result<T, AppError>;
 use entity::prelude::RubDB;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait,
@@ -8,7 +7,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::{redondeo, valuable::ValuableTrait, AppError, Save};
+use super::{redondeo, valuable::ValuableTrait, AppError, Save,Res};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {

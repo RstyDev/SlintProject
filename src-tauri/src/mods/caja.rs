@@ -7,8 +7,8 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
-type Res<T> = std::result::Result<T, AppError>;
-use super::{AppError, Config, Pago};
+
+use super::{AppError, Config, Pago, Res};
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Totales(HashMap<String, f64>);
 #[derive(Clone, Serialize, Deserialize)]

@@ -1,6 +1,6 @@
-use super::{AppError, Save};
+use super::{AppError, Save,Res};
 use chrono::Utc;
-type Res<T> = std::result::Result<T, AppError>;
+
 use entity::prelude::PesDB;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait,

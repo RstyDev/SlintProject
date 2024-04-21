@@ -16,11 +16,10 @@ use std::io::{Read, Write};
 use std::sync::Arc;
 use Valuable as V;
 
-type Res<T> = std::result::Result<T, AppError>;
 
 use super::{
     AppError, Cli, Cliente, MedioPago, Pago, Pesable, Presentacion, Producto, Proveedor,
-    RelacionProdProv, Rubro, User, Venta,
+    RelacionProdProv, Rubro, User, Venta,Res,
 };
 use crate::mods::valuable::Valuable;
 pub struct Db;

@@ -1,9 +1,9 @@
-use super::{redondeo, AppError, Config, Formato, Pesable, Producto, Rubro, Save};
+use super::{redondeo, Config, Formato, Pesable, Producto, Rubro, Save,Res};
 use sea_orm::{DatabaseConnection, DbErr};
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 use Valuable as V;
-type Res<T> = std::result::Result<T, AppError>;
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {

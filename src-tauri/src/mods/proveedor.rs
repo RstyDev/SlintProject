@@ -6,9 +6,9 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-type Res<T> = std::result::Result<T, AppError>;
 
-use super::{AppError, Mapper, Save};
+
+use super::{AppError, Mapper, Save,Res};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {

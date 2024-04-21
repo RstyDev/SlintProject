@@ -1,6 +1,6 @@
 use chrono::Utc;
 use entity::prelude::{CliDB, DeudaDB, PagoDB, VentaDB, VentaPesDB, VentaProdDB, VentaRubDB};
-type Res<T> = std::result::Result<T, AppError>;
+
 
 use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, Condition, Database, DatabaseConnection, DbErr,
@@ -15,7 +15,7 @@ const CUENTA: &str = "Cuenta Corriente";
 
 use crate::mods::pago::medio_from_db;
 
-use super::{redondeo, AppError, Cli, Cliente, Mapper, MedioPago, Pago, Save, User, Valuable};
+use super::{redondeo,Res, AppError, Cli, Cliente, Mapper, MedioPago, Pago, Save, User, Valuable};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Venta {
