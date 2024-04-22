@@ -775,14 +775,14 @@ async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-cliente",
-                tauri::WindowUrl::App("/pages/add-cliente.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/add-cliente/add-cliente.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
             .resizable(false)
             .minimizable(false)
             .title("Agregar Cliente")
-            .inner_size(640.0, 400.0)
+            .inner_size(400.0, 200.0)
             .menu(Menu::new())
             .build()
             .map_err(|e| e.to_string())?;

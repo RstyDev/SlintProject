@@ -1,0 +1,11 @@
+#credito{
+    height: 130%;
+}
+#cuenta{
+    display: inline-block;
+}
+article{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

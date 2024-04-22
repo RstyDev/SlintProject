@@ -1,7 +1,11 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { useState } from "react";
 import { useEffect } from "react";
-function SelectClientes({setCredito,disabledCli,draw}){
+
+async function set_cliente(id) {
+    return await invoke("set_cliente", { id: id, pos: posA });
+}
+function SelectClientes({setCredito,disabledCli,draw}){ //TODO hay que terminar este comportamiento al cambiar de A y B
     const [clientes,setClientes]=useState([]);
     const [vec,setVec]=useState([{nombre: "Lucas", credito: true},{nombre: "Pablo",credito: false}]);
     const [rend, setRend] = useState(<select id="cliente" disabled={disabledCli} onSelect={(e)=>{select(e)}}>
