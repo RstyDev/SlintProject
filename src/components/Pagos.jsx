@@ -38,7 +38,7 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito,setDisa
       <Pago pagado={false} isProd={isProd} credito={cred} id={0} medios_pago={medios_pago} monto={monto} pos={pos} borrar={(e) => { console.log(e); borrar_pago(pos, e, ) }} agregar={cash} />
     </article>
     <p>Resta pagar: {monto}</p>
-  </>)},[pagosVec,focused])
+  </>)},[pagosVec,focused,cred])
   function click(e){
     console.log(e.currentTarget);
     document.getElementById("input-activo").select();

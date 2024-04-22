@@ -782,7 +782,7 @@ async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
             .resizable(false)
             .minimizable(false)
             .title("Agregar Cliente")
-            .inner_size(400.0, 200.0)
+            .inner_size(400.0, 230.0)
             .menu(Menu::new())
             .build()
             .map_err(|e| e.to_string())?;
@@ -1184,8 +1184,7 @@ async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &s
     res
 }
 #[tauri::command]
-fn set_cliente(sistema: State<Mutex<Sistema>>, id: &str, pos: bool) -> Res<Venta> {
-    let id = id.parse::<i32>().map_err(|e| e.to_string())?;
+fn set_cliente(sistema: State<Mutex<Sistema>>, id: i32, pos: bool) -> Res<Venta> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.set_cliente(id, pos)?;
     Ok(sis.venta(pos))

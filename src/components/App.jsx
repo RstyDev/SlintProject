@@ -40,7 +40,9 @@ async function get_log_state() {
 async function agregarProdVentaAct(prod,pos) {
   return await invoke("agregar_producto_a_venta", { prod: prod, pos: pos });
 }
-
+async function set_cliente(id, pos) {
+  return await invoke("set_cliente", { id: id, pos: pos });
+}
 async function incrementarProdVentaAct(index,pos) {
   return await invoke("incrementar_producto_a_venta", { index: index, pos: pos });
 }
@@ -67,7 +69,6 @@ function App() {
   if (!logged){
     open_login();
   }
-  
   get_log_state().then(state=>setLogged(state));
   useEffect(()=>{
     if (busqueda && busqueda.length > 0){
@@ -95,8 +96,16 @@ function App() {
       }
     })
   }
-  function handleFocuseado(e,i) {
-    
+  function setCliente(id){
+    set_cliente(id,pos).then(venta=>{
+      get_configs().then(conf=>{
+        setVenta(venta);
+        dibujarVenta(venta,conf)
+
+      })
+    })
+  }
+  function handleFocuseado(e,i) {  
     //console.log(e.currentTarget.value)
     if (i){
       setFocuseado(i);
@@ -175,7 +184,7 @@ function App() {
             </form>
           </div>
           <div>
-            <SelectClientes setCredito={setCredito} disabledCli={disabledCli} draw={draw}/>
+            <SelectClientes cliente={sale.cliente} setCliente={setCliente} pos={pos} setCredito={setCredito} disabledCli={disabledCli} draw={draw} />
           </div>
         </section>
       </header>
