@@ -187,7 +187,7 @@ function App() {
     </>);
   }
   
-  useEffect(() => draw(), [logged, prodFoc, productos,focuseado,pos,credito,disabledCli])
+  useEffect(() => draw(), [logged, prodFoc, productos,focuseado,pos,credito,disabledCli,pos])
   
   function isProd(val) {
     setProdFoc(val)
