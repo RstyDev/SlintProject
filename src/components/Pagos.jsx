@@ -44,11 +44,6 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito,setDisa
     document.getElementById("input-activo").select();
     isProd(false);
   }
-
-
-
-  return (rend)
- 
   function mapearPagos(pagos) {
     return pagos.map(function (pago, i) {
       return <Pago key={i} pagado={true} medios_pago={[pago.medio_pago.medio]} monto={pago.monto} id={pago.int_id} borrar={(e) => borrar_pago(pos, e).then(pagos=>setPagosVec(mapearPagos(pagos)))} agregar={cash} />
@@ -59,6 +54,12 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito,setDisa
     console.log("cash")
     agregar_pago(seleccionado, montoAct, pos).then(pagos => {console.log(pagos);setPagosVec(mapearPagos(pagos))});
   }
+
+
+
+  return (rend)
+ 
+  
 }
 
 

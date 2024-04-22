@@ -22,11 +22,9 @@ function ResumenPago({ pos, venta, configs, prodFoc, isProd, credito,setDisabled
 
     <Pagos prodFoc={focus} setDisabledCli={setDisabledCli} credito={cred} pagos={venta.pagos} medios_pago={configs.medios_pago} monto={venta.monto_total - venta.monto_pagado} pos={pos} isProd={isProd} />
 
-</section>)},[venta])
+</section>)},[venta,focus,prods])
     useEffect(()=>{setCred(credito)},[credito]);
-    useEffect(() => {
-        setFocus(prodFoc)
-    }, [prodFoc])
+    useEffect(() => {setFocus(prodFoc)}, [prodFoc])
 
     useEffect(() => {
         async function get_descripcion_valuable(prod, conf) {
@@ -41,7 +39,7 @@ function ResumenPago({ pos, venta, configs, prodFoc, isProd, credito,setDisabled
                 }
             })
         })
-    }, [])
+    }, [venta,pos])
 
 
     return (rend)
