@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { useState } from "react";
 import { useEffect } from "react";
-function SelectClientes({setCredito,disabledCli}){
+function SelectClientes({setCredito,disabledCli,draw}){
     const [clientes,setClientes]=useState([]);
     const [vec,setVec]=useState([{nombre: "Lucas", credito: true},{nombre: "Pablo",credito: false}]);
     const [rend, setRend] = useState(<select id="cliente" disabled={disabledCli} onSelect={(e)=>{select(e)}}>
@@ -26,10 +26,10 @@ function SelectClientes({setCredito,disabledCli}){
 </select>)},[clientes,vec,disabledCli])
     function select(e){
         if (e.currentTarget.value>0){
-        setCredito(vec[e.currentTarget.value - 1].credito)
-    }else{
-        setCredito(false)
-    }
+            setCredito(vec[e.currentTarget.value - 1].credito)
+        }else{
+            setCredito(false)
+        }
     }
     return(rend)
 }

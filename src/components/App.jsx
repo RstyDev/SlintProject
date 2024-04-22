@@ -67,7 +67,7 @@ function App() {
   if (!logged){
     open_login();
   }
-
+  
   get_log_state().then(state=>setLogged(state));
   useEffect(()=>{
     if (busqueda && busqueda.length > 0){
@@ -175,7 +175,7 @@ function App() {
             </form>
           </div>
           <div>
-            <SelectClientes setCredito={setCredito} disabledCli={disabledCli}/>
+            <SelectClientes setCredito={setCredito} disabledCli={disabledCli} draw={draw}/>
           </div>
         </section>
       </header>

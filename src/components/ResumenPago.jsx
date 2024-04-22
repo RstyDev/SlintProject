@@ -22,7 +22,7 @@ function ResumenPago({ pos, venta, configs, prodFoc, isProd, credito,setDisabled
 
     <Pagos prodFoc={focus} setDisabledCli={setDisabledCli} credito={cred} pagos={venta.pagos} medios_pago={configs.medios_pago} monto={venta.monto_total - venta.monto_pagado} pos={pos} isProd={isProd} />
 
-</section>)},[venta,focus,prods])
+</section>)},[venta,focus,prods,configs,pos])
     useEffect(()=>{setCred(credito)},[credito]);
     useEffect(() => {setFocus(prodFoc)}, [prodFoc])
 
@@ -31,15 +31,18 @@ function ResumenPago({ pos, venta, configs, prodFoc, isProd, credito,setDisabled
             return await invoke("get_descripcion_valuable", { "prod": prod, "conf": conf });
         }
         let resumenes = [];
-        venta.productos.forEach((prod, i) => {
-            get_descripcion_valuable(prod, configs).then(desc => {
-                resumenes.push(<ItemResumen key={i} descripcion={desc} />)
-                if (venta.productos.length == resumenes.length) {
-                    setProds(resumenes)
-                }
-            })
-        })
-    }, [venta,pos])
+        if (venta.productos.length > 0)
+            venta.productos.forEach((prod, i) => {
+                get_descripcion_valuable(prod, configs).then(desc => {
+                    resumenes.push(<ItemResumen key={i} descripcion={desc} />)
+                    if (venta.productos.length == resumenes.length) {
+                        setProds(resumenes)
+                    }
+                })
+            });
+        else
+            setProds([])
+    }, [venta,pos,configs])
 
 
     return (rend)

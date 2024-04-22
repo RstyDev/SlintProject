@@ -2,17 +2,16 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { useEffect, useState } from "react";
 
 
-function Pago({ pagado, medios_pago, monto, id,  borrar, agregar,credito }) {
-    const boton = pagado ? <input value="Borrar" onClick={borrar} type="button" id="boton-borrar-pago"></input> : <input value="Cash" onClick={(e)=>{agregar(e,seleccionado,montoAct)}} type="submit" id="boton-agregar-pago"></input>
+function Pago({ pagado, medios_pago, monto, id,  borrar, agregar,credito,isProd }) {
+    const boton = pagado ? <input value="Borrar" onClick={(e)=>{isProd(false);borrar(e)}} type="button" id="boton-borrar-pago"></input> : <input value="Cash" onClick={(e)=>{isProd(false);agregar(e,seleccionado,montoAct)}} type="submit" id="boton-agregar-pago"></input>
     const [seleccionado, setSeleccionado] = useState(credito?medios_pago[0]:medios_pago[1]);
     const [montoAct, setMontoAct] = useState(""+monto);
     useEffect(()=>{setMontoAct(""+monto)},[monto])
     
     
-    const input = pagado ? <input type="number" placeholder={montoAct} readOnly={pagado} disabled="disabled" className="input-monto"  step="0.01" /> : 
-    <input type="number" value={montoAct}  onChange={(e)=>{
+    const input = pagado ? <input type="number" onClick={()=>{isProd(false)}} placeholder={montoAct} readOnly={pagado} disabled="disabled" className="input-monto"  step="0.01" /> : 
+        <input type="number" onClick={() => { isProd(false) }} value={montoAct}  onChange={(e)=>{
         setMontoAct(e.currentTarget.value)}} className="input-monto" id="input-activo" step="0.01" />
-    
     
     const opts = medios_pago.map(function (opt, i) {
         let sel;
@@ -24,7 +23,6 @@ function Pago({ pagado, medios_pago, monto, id,  borrar, agregar,credito }) {
         }
         if(credito || i>0 || pagado)
         return <option key={i} id={i} defaultValue={sel} value={opt}>{opt}</option>
-    
     });
     
     return (<form className="pago" id={id} onSubmit={(e) => agregar(e, seleccionado, montoAct)}>

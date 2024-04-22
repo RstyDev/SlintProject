@@ -17,9 +17,9 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito,setDisa
   const [focused, setFocused] = useState(prodFoc?"not-focused":"");
   const [cred,setCred] = useState(credito);
   const [rend, setRent] = useState(<>
-    <article id="pagos" className={"focuseable " + focused} onClick={() => { isProd(false)}} >
+    <article id="pagos" className={"focuseable " + focused}  >
       {pagosVec}
-      <Pago pagado={false} credito={cred} id={0} medios_pago={medios_pago} monto={monto} pos={pos} borrar={(e) => { console.log(e); borrar_pago(pos, e, ) }} agregar={cash} />
+      <Pago pagado={false} isProd={isProd} credito={cred} id={0} medios_pago={medios_pago} monto={monto} pos={pos} borrar={(e) => { console.log(e); borrar_pago(pos, e, ) }} agregar={cash} />
     </article>
     <p>Resta pagar: {monto}</p>
   </>)
@@ -33,20 +33,20 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito,setDisa
       setDisabledCli("disabled");
     }
     setRent(<>
-    <article id="pagos" className={"focuseable " + focused} onClick={(e) => {click(e)}} >
+    <article id="pagos" className={"focuseable " + focused}  >
       {pagosVec}
-      <Pago pagado={false} credito={cred} id={0} medios_pago={medios_pago} monto={monto} pos={pos} borrar={(e) => { console.log(e); borrar_pago(pos, e, ) }} agregar={cash} />
+      <Pago pagado={false} isProd={isProd} credito={cred} id={0} medios_pago={medios_pago} monto={monto} pos={pos} borrar={(e) => { console.log(e); borrar_pago(pos, e, ) }} agregar={cash} />
     </article>
     <p>Resta pagar: {monto}</p>
   </>)},[pagosVec,focused])
   function click(e){
     console.log(e.currentTarget);
     document.getElementById("input-activo").select();
-    isProd(false);
+    //isProd(false);
   }
   function mapearPagos(pagos) {
     return pagos.map(function (pago, i) {
-      return <Pago key={i} pagado={true} medios_pago={[pago.medio_pago.medio]} monto={pago.monto} id={pago.int_id} borrar={(e) => borrar_pago(pos, e).then(pagos=>setPagosVec(mapearPagos(pagos)))} agregar={cash} />
+      return <Pago key={i} isProd={isProd} pagado={true} medios_pago={[pago.medio_pago.medio]} monto={pago.monto} id={pago.int_id} borrar={(e) => borrar_pago(pos, e).then(pagos=>setPagosVec(mapearPagos(pagos)))} agregar={cash} />
     })
   }
   function cash(e, seleccionado, montoAct) {
