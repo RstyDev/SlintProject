@@ -735,7 +735,7 @@ async fn open_add_select(handle: tauri::AppHandle) -> Res<()> {
             .resizable(false)
             .minimizable(false)
             .title("Seleccione una opción")
-            .inner_size(210.0, 80.0)
+            .inner_size(600.0, 380.0)
             .menu(Menu::new())
             .build()
             .map_err(|e| e.to_string())?;
