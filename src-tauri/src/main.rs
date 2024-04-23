@@ -45,7 +45,7 @@ async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-product", /* the unique window label */
-                tauri::WindowUrl::App("/pages/add-product.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/add-product/add-product.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -67,7 +67,7 @@ async fn open_add_pesable(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-pesable", /* the unique window label */
-                tauri::WindowUrl::App("/pages/add-pesable.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/add-pesable/add-pesable.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -88,7 +88,7 @@ async fn open_add_rubro(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-rubro", /* the unique window label */
-                tauri::WindowUrl::App("/pages/add-rubro.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/add-rubro/add-rubro.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -705,7 +705,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-prov", /* the unique window label */
-                tauri::WindowUrl::App("/pages/add-prov.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/add-prov/add-prov.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -728,7 +728,7 @@ async fn open_add_select(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-select",
-                tauri::WindowUrl::App("/pages/add-select.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/add-producto/add-producto.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -752,7 +752,7 @@ async fn open_add_user(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-user", /* the unique window label */
-                tauri::WindowUrl::App("/pages/add-user.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/add-user/add-user.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -791,7 +791,7 @@ async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
     }
 }
 #[tauri::command]
-async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()> {
+async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()> { //TODO!(Hay que ver si es necesario usar un mismo html o no asi evi el window.emit)
     match handle.get_window("confirm-cancel") {
         Some(window) => {
             window.show().map_err(|e| e.to_string())?;
@@ -811,7 +811,7 @@ async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()> {
             let win = tauri::WindowBuilder::new(
                 &handle,
                 "confirm-cancel",
-                tauri::WindowUrl::App("/pages/confirm.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/confirm/confirm.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -856,7 +856,7 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "cerrar-caja",
-                tauri::WindowUrl::App("/pages/cerrar-caja.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/cerrar-caja/cerrar-caja.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -872,7 +872,7 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
     }
 }
 #[tauri::command]
-async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
+async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> { //TODO!(Aca la otra parte que usa el confirm)
     match handle.get_window("confirm") {
         Some(window) => {
             window.show().map_err(|e| e.to_string())?;
@@ -937,7 +937,7 @@ async fn open_edit_settings(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "edit-settings", /* the unique window label */
-                tauri::WindowUrl::App("/pages/edit-settings.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/edit-settings/edit-settings.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -1015,7 +1015,7 @@ async fn open_select_amount(handle: tauri::AppHandle, val: V, pos: bool) -> Res<
             let window = tauri::WindowBuilder::new(
                 &handle,
                 "select-amount",
-                tauri::WindowUrl::App("/pages/select-amount.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/select-amount/select-amount.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -1078,7 +1078,7 @@ async fn open_stash<'a>(
                 let win = tauri::WindowBuilder::new(
                     &handle,
                     "open-stash", /* the unique window label */
-                    tauri::WindowUrl::App("/pages/stash.html".parse().unwrap()),
+                    tauri::WindowUrl::App("src/pages/stash/stash.html".parse().unwrap()),
                 )
                 .always_on_top(true)
                 .center()
