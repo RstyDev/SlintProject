@@ -24,15 +24,15 @@ function ProdForm(){
             <input type="number" step="0.01" onChange={(e)=>{
                 setCosto(e.currentTarget.value);
                 setPrecio(e.currentTarget.value * (1+(porc/100)))
-                }} defaultValue={costo} placeholder="Costo"/>
+                }} value={costo} placeholder="Costo"/>
             <input type="number" step="0.01" onChange={(e)=>{
                 setPorc(e.currentTarget.value);
                 setPrecio(costo * (1+(e.currentTarget.value/100)));
-            }} defaultValue={porc} placeholder="Porcentaje"/>
+            }} value={porc} placeholder="Porcentaje"/>
             <input type="number" step="0.01" onChange={(e)=>{
                 setPrecio(e.currentTarget.value);
                 setPorc(((e.currentTarget.value/costo)-1)*100)
-            }} defaultValue={precio} placeholder="Precio de Venta"/>
+            }} value={precio} placeholder="Precio de Venta"/>
         </form>
         <Codes codes={codes} setCodes={setCodes}/>
     </>)

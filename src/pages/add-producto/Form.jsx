@@ -10,7 +10,6 @@ function Form(){
     const [tipo,setTipo] = useState(0);
     const [form, setForm] = useState(seteaForm(prodForm));
     function seteaForm(form){
-        console.log(form)
         return <>
             <select name="tipo" id="tipo" onChange={(e)=>{console.log(e.currentTarget.value);setTipo(e.currentTarget.value)}}>
                 <option value={0} defaultValue="selected">Producto</option>
