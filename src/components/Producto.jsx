@@ -1,12 +1,14 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { useEffect, useState } from "react";
+import "./Producto.css"
 
 async function get_descripcion_valuable(prod, conf) {
     return await invoke("get_descripcion_valuable", { "prod": prod, "conf": conf });
 }
-var ret;
-const procesarPes = async (handle, setCant,prod, conf, i, setRet) => {
+
+const procesarPes = async (cantidad,setCantidad,handle, prod, conf, i, setRet) => {
     let disabled = prod.Pes[0] <= 1 ? "disabled" : "";
+    
     get_descripcion_valuable(prod, conf).then(desc => {
         setRet(
             <article id={i} className="articulo">
@@ -14,9 +16,9 @@ const procesarPes = async (handle, setCant,prod, conf, i, setRet) => {
                     <p>{desc}</p>
                 </section>
                 <section className="cantidad">
-                    <button className="button restar" disabled={disabled} onClick={()=>{handle(i, -1)}}>-</button>
-                    <input type="text" className="cantidad-producto" defaultValue={prod.Pes[0]} onKeyDown={(e) => { if (e.keyCode == 13) setCant(i,e.currentTarget.value)}} />
-                    <button className="button sumar" onClick={()=>{handle(i, 1)}}>+</button>
+                    <button className="button restar" disabled={disabled} onClick={()=>{setCantidad(parseFloat(cantidad-1));handle(i, -1)}}>-</button>
+                    <input type="text" className="cantidad-producto" value={cantidad} onChange={(e)=>{setCantidad(parseFloat(e.currentTarget.value));}} onKeyDown={(e) =>{setCantidad(parseFloat(e.currentTarget.value));if (e.keyCode==13) handle(i, cantidad,true)}}/>
+                    <button className="button sumar" onClick={()=>{setCantidad(parseFloat(cantidad)+1);handle(i, 1)}}>+</button>
                 </section>
                 <section className="monto">
                     <p></p>
@@ -37,9 +39,9 @@ const procesarRub = async (handle,prod, conf, i, setRet) => {
                     <p>{desc}</p>
                 </section>
                 <section className="cantidad">
-                    <button className="button restar" disabled={disabled} onClick={()=>{handle(i,-1)}}>-</button>
-                    <input type="text" className="cantidad-producto" defaultValue={prod.Rub[0]} onKeyDown={(e) => {if (e.keyCode == 13) setCant(i, e.currentTarget.value)}} />
-                    <button className="button sumar" onClick={()=>{handle(i,1)}}>+</button>
+                    <button className="button restar" disabled={disabled} onClick={()=>{setCantidad(parseInt(cantidad-1));handle(i, -1)}}>-</button>
+                    <input type="text" className="cantidad-producto" value={cantidad} onChange={(e)=>{setCantidad(parseInt(e.currentTarget.value));}} onKeyDown={(e) =>{setCantidad(parseInt(e.currentTarget.value));if (e.keyCode==13) handle(i, cantidad,true)}}/>
+                    <button className="button sumar" onClick={()=>{setCantidad(parseInt(cantidad)+1);handle(i, 1)}}>+</button>
                 </section>
                 <section className="monto">
                     <p></p>
@@ -51,17 +53,18 @@ const procesarRub = async (handle,prod, conf, i, setRet) => {
             </article>)
     })
 }
-const procesarProd = async (handle, setCant,prod, conf, i, setRet) => {
+const procesarProd = async (cantidad,setCantidad,handle, prod, conf, i, setRet) => {
     let disabled = prod.Prod[0] <= 1 ? "disabled" : "";
     let desc = await get_descripcion_valuable(prod, conf);
+    
     setRet(<article id={i} className="articulo">
         <section className={"descripcion " + conf.modo_mayus}>
             <p>{desc}</p>
         </section>
         <section className="cantidad">
-            <button className="button restar" disabled={disabled} onClick={()=>{handle(i, -1)}}>-</button>
-            <input type="text" className="cantidad-producto" defaultValue={prod.Prod[0]} onKeyDown={(e) =>{if (e.keyCode==13) setCant(i, e.currentTarget.value)}} />
-            <button className="button sumar" onClick={()=>{handle(i, 1)}}>+</button>
+            <button className="button restar" disabled={disabled} onClick={()=>{setCantidad(parseInt(cantidad-1));handle(i, -1)}}>-</button>
+            <input type="text" className="cantidad-producto" value={cantidad} onChange={(e)=>{setCantidad(e.currentTarget.value);}} onKeyDown={(e) =>{setCantidad(parseInt(e.currentTarget.value));if (e.keyCode==13) handle(i, cantidad,true)}} />
+            <button className="button sumar" onClick={()=>{setCantidad(parseInt(cantidad)+1);handle(i, 1)}}>+</button>
         </section>
         <section className="monto">
             <p>{prod.Prod[1].precio_de_venta}</p>
@@ -75,26 +78,37 @@ const procesarProd = async (handle, setCant,prod, conf, i, setRet) => {
     </article>);
 }
 
-function Producto({ handleProd,setCant,producto, conf, i }) {
+function Producto({ handleProd,producto, conf, i }) {
     const [ret, setRet] = useState("");
-    useEffect(procesar,[producto])
+    const [cantidad,setCantidad] = useState(()=>{
+    if (Object.keys(producto)[0]=='Prod')
+        return producto.Prod[0]
+    else if(Object.keys(producto)[0]=='Pes')
+        return producto.Pes[0]
+    else if (Object.keys(producto)[0]=='Rub')
+        return producto.Rub[0]
+    });
+    console.log(Object.keys(producto))
+    
     function procesar(){
+        console.log(cantidad)
         switch (Object.keys(producto)[0]){
             case "Pes":
-                procesarPes(handleProd,setCant,producto, conf, i, setRet);
+                procesarPes(cantidad,setCantidad,handleProd,producto, conf, i, setRet);
                 break;
             case "Prod":
-                procesarProd(handleProd,setCant,producto, conf, i, setRet);
+                procesarProd(cantidad,setCantidad,handleProd,producto, conf, i, setRet);
                 break;
             case "Rub":
-                procesarRub(handleProd, setCant,setCant,producto, conf, i, setRet);
+                procesarRub(cantidad,setCantidad,handleProd, producto, conf, i, setRet);
                 break;
             default:
                 console.error("Error de tipo de producto");
                 break;
+            }
         }
-    }
+    useEffect(procesar,[producto,cantidad])
     return ret
 }
-
+                
 export default Producto;

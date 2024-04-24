@@ -14,7 +14,7 @@ function CuadroVenta({ handleProd,setCant,venta,busqueda, conf, prodFoc,pos,draw
     const [busq, setBusq] = useState(busqueda);
     const [focused, setFocused] = useState(focuseado);
     const [rend, setRend] = useState(<section id="cuadro-venta">
-        <Productos setCant={setCant} handleProd={handleProd} productos={sale.productos} conf={conf} prodFoc={foc} isProd={isProd} />
+        <Productos  handleProd={handleProd} productos={sale.productos} conf={conf} prodFoc={foc} isProd={isProd} />
         <section id="monto-total">TOTAL {total}</section>
     </section>);
     useEffect(()=>{setSale(venta)},[venta]);
@@ -33,7 +33,7 @@ function CuadroVenta({ handleProd,setCant,venta,busqueda, conf, prodFoc,pos,draw
             dibujarProductos(prods, conf);
         } else {
             setRend(<section id="cuadro-venta">
-                <Productos setCant={setCant} handleProd={handleProd} productos={sale.productos} conf={conf} prodFoc={foc} isProd={isProd} />
+                <Productos handleProd={handleProd} productos={sale.productos} conf={conf} prodFoc={foc} isProd={isProd} />
                 <section id="monto-total">TOTAL {total}</section>
             </section>)
         }

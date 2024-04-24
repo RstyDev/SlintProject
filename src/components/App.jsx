@@ -89,14 +89,19 @@ function App() {
       </p>
     </section>
   </>);
-  function handleProd(index,action){
+  function handleProd(index,action,exacto){
     get_configs().then(conf=>{
-      if (action<0){
-        descontarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
-      }else if (action==0){
-        eliminarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
+      if(exacto){
+        console.log(action)
+        setCantidad(index,action,pos).then(sale=>dibujarVenta(sale,conf));
       }else{
-        incrementarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
+        if (action<0){
+          descontarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
+        }else if (action==0){
+          eliminarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
+        }else{
+          incrementarProdVentaAct(index,pos).then(sale=>dibujarVenta(sale,conf));
+        }
       }
     })
   }
@@ -110,11 +115,7 @@ function App() {
     })
   }
 
-  function setCant(i,cantidad){
-    get_configs().then(conf=>{
-      setCantidad(i,cantidad,pos).then(sale=>{dibujarVenta(sale,conf)})
-    })
-  }
+  
   function handleFocuseado(e,i) {  
     //console.log(e.currentTarget.value)
     if (i){
@@ -199,7 +200,7 @@ function App() {
         </section>
       </header>
       <main className="main-screen">
-        <CuadroPrincipal setCant={setCant} handleProd={handleProd} pos={pos} busqueda={busqueda} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} focuseado={focuseado} setFocuseado={setFocuseado} />
+        <CuadroPrincipal  handleProd={handleProd} pos={pos} busqueda={busqueda} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} focuseado={focuseado} setFocuseado={setFocuseado} />
         <ResumenPago pos={pos} venta={sale} setDisabledCli={setDisabledCli} configs={conf} prodFoc={prodFoc} isProd={isProd} credito={credito} />
 
       </main>

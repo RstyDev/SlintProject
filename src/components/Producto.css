@@ -1,0 +1,10 @@
+#productos{
+    & .articulo input.cantidad-producto,.articulo button{
+        padding: 10px 15px;
+        margin: auto 5px;
+    }
+
+    p{
+        margin: auto 0px;
+    }
+} 
