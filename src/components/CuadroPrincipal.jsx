@@ -6,7 +6,7 @@ import ResumenPago from "./ResumenPago";
 
 
 
-function CuadroPrincipal({ pos,handleProd,venta,productos,busqueda, conf,draw, prodFoc, posSet, isProd,focuseado,setFocuseado}) {
+function CuadroPrincipal({ pos,setCant,handleProd,venta,productos,busqueda, conf,draw, prodFoc, posSet, isProd,focuseado,setFocuseado}) {
     const [foc, setFoc] = useState(prodFoc);
     const [focused,setFocused] = useState(focuseado);
     const [busq, setBusqueda] = useState(busqueda);
@@ -24,7 +24,7 @@ function CuadroPrincipal({ pos,handleProd,venta,productos,busqueda, conf,draw, p
                 posSet(false);
             }}> Venta B</a>
         </section>
-        <CuadroVenta handleProd={handleProd} busqueda={busq} productos={prods} pos={pos} draw={draw} venta={sale} conf={conf} prodFoc={foc} isProd={isProd} focuseado={focused} setFocuseado={setFocuseado} />
+        <CuadroVenta setCant={setCant} handleProd={handleProd} busqueda={busq} productos={prods} pos={pos} draw={draw} venta={sale} conf={conf} prodFoc={foc} isProd={isProd} focuseado={focused} setFocuseado={setFocuseado} />
     </section>);
     useEffect(() => {
         setRet(<section id="cuadro-principal" >
@@ -36,7 +36,7 @@ function CuadroPrincipal({ pos,handleProd,venta,productos,busqueda, conf,draw, p
                     posSet(false);
                 }}> Venta B</a>
             </section>
-            <CuadroVenta handleProd={handleProd} busqueda={busq} productos={prods} pos={pos} draw={draw} venta={sale} conf={conf} prodFoc={foc} isProd={isProd} focuseado={focused} setFocuseado={setFocuseado} />
+            <CuadroVenta setCant={setCant} handleProd={handleProd} busqueda={busq} productos={prods} pos={pos} draw={draw} venta={sale} conf={conf} prodFoc={foc} isProd={isProd} focuseado={focused} setFocuseado={setFocuseado} />
         </section>)},[sale])
     useEffect(()=>{setSale(venta)},[venta]);
     useEffect(()=>{setProds(productos)},[productos]);

@@ -138,6 +138,16 @@ impl<'a> Venta {
     pub fn monto_pagado(&self) -> f32 {
         self.monto_pagado
     }
+    pub fn set_cantidad_producto(&mut self,index:usize,cantidad: f32)->Res<Self>{
+        let producto= self.productos.remove(index);
+        let producto=match producto{
+            Valuable::Prod((_,prod)) => Valuable::Prod((cantidad as u8,prod)),
+            Valuable::Pes((_,pes)) => Valuable::Pes((cantidad,pes)),
+            Valuable::Rub((_,rub)) => Valuable::Rub((cantidad as u8,rub)),
+        };
+        self.productos.insert(index, producto);
+        Ok(self.clone())
+    }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32) -> Res<f32> {
         let mut es_cred: bool = false;
         match medio_pago {

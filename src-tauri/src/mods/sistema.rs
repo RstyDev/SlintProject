@@ -954,6 +954,17 @@ impl<'a> Sistema {
         );
         Ok(())
     }
+    pub fn set_cantidad_producto_venta(&mut self, index:usize,cantidad: f32, pos:bool)->Res<Venta>{
+        if index<self.venta(pos).productos().len(){
+            if pos{
+                self.ventas.a.set_cantidad_producto(index,cantidad)
+            }else{
+                self.ventas.b.set_cantidad_producto(index,cantidad)
+            }
+        }else{
+            Err(AppError::NotFound { objeto: String::from("Producto"), instancia: index.to_string() })
+        }
+    }
     pub fn set_cliente(&mut self, id: i32, pos: bool) -> Res<()> {
         if pos {
             async_runtime::block_on(self.ventas.a.set_cliente(id, &self.read_db))

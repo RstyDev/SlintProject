@@ -50,6 +50,10 @@ async function descontarProdVentaAct(index,pos) {
   return await invoke("descontar_producto_de_venta", { index: index, pos: pos });
 }
 
+async function setCantidad(index,cantidad, pos) {
+  return await invoke("set_cantidad_producto_venta", { index: index, cantidad:cantidad, pos: pos });
+}
+
 async function eliminarProdVentaAct(index,pos) {
   return await invoke("eliminar_producto_de_venta", { index: index, pos: pos })
 }
@@ -103,6 +107,12 @@ function App() {
         dibujarVenta(venta,conf)
 
       })
+    })
+  }
+
+  function setCant(i,cantidad){
+    get_configs().then(conf=>{
+      setCantidad(i,cantidad,pos).then(sale=>{dibujarVenta(sale,conf)})
     })
   }
   function handleFocuseado(e,i) {  
@@ -189,7 +199,7 @@ function App() {
         </section>
       </header>
       <main className="main-screen">
-        <CuadroPrincipal handleProd={handleProd} pos={pos} busqueda={busqueda} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} focuseado={focuseado} setFocuseado={setFocuseado} />
+        <CuadroPrincipal setCant={setCant} handleProd={handleProd} pos={pos} busqueda={busqueda} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} focuseado={focuseado} setFocuseado={setFocuseado} />
         <ResumenPago pos={pos} venta={sale} setDisabledCli={setDisabledCli} configs={conf} prodFoc={prodFoc} isProd={isProd} credito={credito} />
 
       </main>

@@ -1184,6 +1184,13 @@ async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &s
     res
 }
 #[tauri::command]
+fn set_cantidad_producto_venta(sistema: State<Mutex<Sistema>>,index:usize,cantidad: &str, pos:bool)->Res<Venta>{
+    let cantidad = cantidad.parse::<f32>().map_err(|e|e.to_string())?;
+    let mut sis=sistema.lock().map_err(|e|e.to_string())?;
+    sis.access();
+    Ok(sis.set_cantidad_producto_venta(index, cantidad,pos)?)
+}
+#[tauri::command]
 fn set_cliente(sistema: State<Mutex<Sistema>>, id: i32, pos: bool) -> Res<Venta> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.set_cliente(id, pos)?;
@@ -1348,6 +1355,7 @@ fn main() {
             pagar_deuda_general,
             try_login,
             select_window,
+            set_cantidad_producto_venta,
             set_cliente,
             set_configs,
             stash_n_close,
