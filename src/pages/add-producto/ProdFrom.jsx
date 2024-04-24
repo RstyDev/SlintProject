@@ -34,7 +34,7 @@ function ProdForm(){
                 setPorc(((e.currentTarget.value/costo)-1)*100)
             }} defaultValue={precio} placeholder="Precio de Venta"/>
         </form>
-            <Codes codes={codes} setCodes={setCodes}/>
+        <Codes codes={codes} setCodes={setCodes}/>
     </>)
 }
 
