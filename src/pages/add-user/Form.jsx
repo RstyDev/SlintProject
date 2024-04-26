@@ -5,7 +5,7 @@ async function agregarUsuario(id,nombre,pass,rango){
 }
 
 export default function Form(){
-    const [state,setState] = useState({id:0,nombre:"",pass:"",rango:"Cajero"})
+    const [state,setState] = useState({id:"",nombre:"",pass:"",rango:"Cajero"})
     return(<form onSubmit={()=>{agregarUsuario(state.id,state.nombre,state.pass,state.rango)}}>
         <input type="text" value={state.id} onChange={(e)=>setState({...state, id:e.currentTarget.value})} placeholder="Usuario" required/>
         <input type="text" value={state.nombre} onChange={(e)=>setState({...state,nombre:e.currentTarget.value})} placeholder="Nombre" required/>

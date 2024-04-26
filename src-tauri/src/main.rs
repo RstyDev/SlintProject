@@ -266,8 +266,15 @@ fn agregar_proveedor(
     proveedor: &str,
     contacto: Option<&str>,
 ) -> Res<()> {
+    let contacto=match contacto{
+        Some(c)=>if c.len()>0{
+            Some(c.parse::<i64>().map_err(|e|e.to_string())?)
+        }else{
+            None
+        },
+        None=>None,
+    };
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
-    let contacto=contacto.map(|c|c.parse::<i64>()?);
     match sis.arc_user().rango() {
         Rango::Admin => {
             sis.agregar_proveedor(proveedor, contacto)?;
@@ -809,10 +816,10 @@ async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()> { /
             Ok(())
         }
         None => {
-            let win = tauri::WindowBuilder::new(
+            tauri::WindowBuilder::new(
                 &handle,
                 "confirm-cancel",
-                tauri::WindowUrl::App("src/pages/confirm/confirm.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/confirm/cancelar-venta.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -823,28 +830,6 @@ async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()> { /
             .title("Confirmar")
             .build()
             .map_err(|e| e.to_string())?;
-            std::thread::sleep(std::time::Duration::from_millis(500));
-            win.emit(
-                "get-venta",
-                Payload {
-                    message: Some(String::from("cancelar venta")),
-                    pos: Some(act),
-                    val: None,
-                },
-            )
-            .map_err(|e| e.to_string())?;
-            for _ in 0..7 {
-                std::thread::sleep(std::time::Duration::from_millis(175));
-                win.emit(
-                    "get-venta",
-                    Payload {
-                        message: Some(String::from("cancelar venta")),
-                        pos: Some(act),
-                        val: None,
-                    },
-                )
-                .map_err(|e| e.to_string())?;
-            }
             Ok(())
         }
     }

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Producto from "./Producto";
 import "./Productos.css"
 function Productos({ handleProd,productos, conf, prodFoc,isProd}) {
+    //const [state,setState] = useState()
     const [unfoc,setUnfoc]=useState(prodFoc?"":"not-focused");
     const [prods, setProds] = useState(productos.length > 0 ? productos.map((prod, i) => {
         return <Producto handleProd={handleProd} key={i} producto={prod} conf={conf} i={i} />

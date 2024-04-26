@@ -2,37 +2,32 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { emit, listen } from "@tauri-apps/api/event";
-//import reactLogo from "./assets/react.svg";
 import "./App.css";
 import SelectClientes from "./SelectClientes";
 import CuadroPrincipal from "./CuadroPrincipal";
 import ResumenPago from "./ResumenPago";
-let mensaje1;
-let vacia;
-let user;
-let posA = true;
-let posicionVenta = 0;
-let timeoutId;
-let codigosProv = [];
-let codigosProd = [];
-let configs;
-let idUlt;
-let buscador;
+import { act } from "react-dom/test-utils";
+
 let beep = new Audio('src/assets/beep.mp3');
 let error = new Audio('src/assets/error.mp3');
-let productosDib = [];
-let productosVentaAct = [];
+
 beep.volume = 1;
 error.volume = 0.2;
 
 async function get_configs() {
   return await invoke("get_configs");
 }
+async function open_confirm_stash(pos) {
+  return await invoke("open_confirm_stash",{pos:pos})
+}
 async function buscarProducto(filtrado) {
   return await invoke("get_productos_filtrado", { filtro: '' + filtrado });
 }
 async function open_login() {
   return await invoke("open_login");
+}
+async function open_cancelar_venta(pos){
+  return await invoke("open_cancelar_venta",{act:pos})
 }
 async function get_log_state() {
   return await invoke("get_log_state");
@@ -70,6 +65,11 @@ function App() {
   const [productos, setProductos] = useState([]);
   const [ultimo, setUltimo] =useState();
   const [disabledCli, setDisabledCli] = useState("");
+  document.addEventListener('keydown',(e)=>{
+    if (e.keyCode==115 && productos.length == 0){
+      open_cancelar_venta(pos);
+    }
+  })
   if (!logged){
     open_login();
   }
@@ -220,7 +220,7 @@ function App() {
           get_venta_actual().then(venta => setVenta(venta));
           break;
         case "confirm stash":
-          // open_confirm_stash(pos)
+          open_confirm_stash(pos)
           break;
         case "inicio sesion":
           get_log_state().then(state => setLogged(state));

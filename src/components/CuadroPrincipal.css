@@ -1,0 +1,56 @@
+#cuadro-principal {
+    width: 98%;
+    height: 80svh;
+  
+    border-radius: 5px;
+    /* display: grid; */
+    /* grid-template-columns: 70% 30%; */
+    padding: 10px 0px 10px 10px;
+    overflow-y: auto;
+  
+    & #buscador-form {
+      display: inline;
+      position: fixed;
+      bottom: 85svh;
+      left: 80%;
+  
+    }
+  
+    & section.ayb {
+      display: inline;
+      position: fixed;
+      bottom: 93svh;
+      left: 28%;
+  
+      & a {
+        display: inline-block;
+      }
+  
+      & a:hover {
+        cursor: pointer;
+      }
+    }
+    & .cantidad {
+      grid-column-start: 2;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    
+      & button {
+        flex-grow: 1;
+      }
+    
+      & .cantidad-producto {
+        display: inline;
+        padding: 5px 8px;
+        flex-grow: 2;
+        width: 100%;
+        text-align: center;
+      }
+    }
+  }
+  
+  #buscador {
+    grid-column-start: 1;
+    grid-column-end: 3;
+  }
