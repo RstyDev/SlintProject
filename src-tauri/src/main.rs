@@ -719,7 +719,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
             .center()
             .resizable(false)
             .minimizable(false)
-            .inner_size(430.0, 110.0)
+            .inner_size(330.0, 210.0)
             .menu(Menu::new())
             .title("Agregar Proveedor")
             .build()

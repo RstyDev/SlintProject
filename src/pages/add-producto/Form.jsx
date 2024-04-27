@@ -3,7 +3,17 @@ import { useState } from "react";
 import ProdForm from "./ProdFrom";
 import PesForm from "./PesForm";
 import RubForm from "./RubForm";
+async function close_window() {
+    return await invoke("close_window");
+}
 function Form(){
+    document.addEventListener('keydown',(e)=>{
+        if (e.keyCode==13){
+            //enter
+        }else if (e.keyCode==27){
+            close_window();
+        }
+    })
     const prodForm = <ProdForm />
     const pesForm = <PesForm />
     const rubForm = <RubForm />

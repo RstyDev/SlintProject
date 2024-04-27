@@ -30,8 +30,13 @@ async function submitea(e) {
 }
 
 function Form() {
-
-    //id.focus();
+    document.addEventListener('keydown',(e)=>{
+        if (e.keyCode==13){
+            //enter
+        }else if (e.keyCode==27){
+            close_window();
+        }
+    })
 
     return (
         <form onSubmit={submitea} id="form-login">
