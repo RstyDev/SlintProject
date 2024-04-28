@@ -1,13 +1,24 @@
 import { useState } from "react";
+import { invoke } from "@tauri-apps/api/tauri";
+
+async function agregar_pesable(precio,cod,costo,porc,desc){
+    return await invoke("agregar_pesable",{precio_peso: precio,
+        codigo: cod,
+        costo_kilo: costo,
+        porcentaje: porc,
+        descripcion: desc})
+}
+
 
 function PesForm(){
+    const [pes,setPes] = useState({ codigo: "",descripcion:""})
     const [porc, setPorc] = useState(40);
     const [costo, setCosto] = useState(0);
     const [precio, setPrecio] = useState(0);
     return(
-        <form>
+        <form onSubmit={()=>agregar_pesable(precio,pes.codigo,costo,porc,pes.descripcion)}>
             <label htmlFor="desc">Descripción:</label>
-            <input name="desc" type="text" placeholder="Descripción" required/>
+            <input name="desc" type="text" onChange={(e)=>setPes({...pes,descripcion: e.currentTarget.value})} placeholder="Descripción" required/>
             <label htmlFor="costo">Costo:</label>
             <input type="number" name="costo" placeholder="Costo por kilo" onChange={(e)=>{
                 setCosto(e.currentTarget.value);
@@ -24,7 +35,7 @@ function PesForm(){
                 setPorc(((e.currentTarget.value/costo)-1)*100)
             }} placeholder="Precio por kilo" value={precio} step={0.01} required/>
             <label htmlFor="cod">Código</label>
-            <input type="number" name="cod" placeholder="Código" />
+            <input type="number" onChange={(e)=>setPes({...pes,codigo:e.currentTarget.value})} name="cod" placeholder="Código" />
         </form>
     )
 }

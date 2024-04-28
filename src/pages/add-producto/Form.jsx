@@ -8,17 +8,13 @@ async function close_window() {
 }
 function Form(){
     document.addEventListener('keydown',(e)=>{
-        if (e.keyCode==13){
-            //enter
-        }else if (e.keyCode==27){
+        if (e.keyCode==27){
             close_window();
         }
     })
-    const prodForm = <ProdForm />
-    const pesForm = <PesForm />
-    const rubForm = <RubForm />
+    
     const [tipo,setTipo] = useState(0);
-    const [form, setForm] = useState(seteaForm(prodForm));
+    const [form, setForm] = useState(seteaForm(<ProdForm />));
     function seteaForm(form){
         return <>
             <select name="tipo" id="tipo" onChange={(e)=>{console.log(e.currentTarget.value);setTipo(e.currentTarget.value)}}>
@@ -33,13 +29,13 @@ function Form(){
     useEffect(()=>{
         switch(tipo){
             case '0':
-                setForm(seteaForm(prodForm));
+                setForm(seteaForm(<ProdForm />));
                 break;
             case '1':
-                setForm(seteaForm(pesForm));
+                setForm(seteaForm(<PesForm />));
                 break;
             case '2':
-                setForm(seteaForm(rubForm));
+                setForm(seteaForm(<RubForm />));
                 break;
         }
     },[tipo])

@@ -5,9 +5,7 @@ async function close_window() {
 
 export default function Form(){
     document.addEventListener('keydown',(e)=>{
-        if (e.keyCode==13){
-            //enter
-        }else if (e.keyCode==27){
+        if (e.keyCode==27){
             close_window();
         }
     })

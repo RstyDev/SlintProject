@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import Codes from "./Codes";
 
@@ -7,6 +8,9 @@ function ProdForm(){
     const [porc, setPorc] = useState(40);
     const [costo, setCosto] = useState(0);
     const [precio, setPrecio] = useState(0);
+    useEffect(()=>{
+        console.log(codes);
+    },[codes])
     return(<>
         <form> 
             <input type="text" placeholder="Tipo de Producto"/>
