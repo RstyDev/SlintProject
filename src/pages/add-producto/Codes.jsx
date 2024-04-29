@@ -9,12 +9,10 @@ function mapea(codes,rm){
     })
 }
 function Codes({codes,setCodes}){
-    const [cods,setCods] = useState(codes);
     const [inputs,setInputs] = useState(mapea(codes,rm))
-    useEffect(()=>{setCods(codes)},[codes])
-    useEffect(()=>{setInputs(mapea(codes,rm))},[cods])
+    useEffect(()=>{setInputs(mapea(codes,rm))},[codes])
     function rm(index){
-        let codigos=[...cods];
+        let codigos=[...codes];
         codigos.splice(index,1);
         setCodes(codigos);
     }
@@ -22,16 +20,16 @@ function Codes({codes,setCodes}){
         <span>Se recomienda no agregar más de 3 productos por producto</span>
         {inputs}
         <section >
-            <input onKeyDown={(e)=>{console.log(e.key);if(e.keyCode==13){setCodes([...cods,e.currentTarget.value])}}} type="number" name="code" placeholder="Código" id="code"/>
-            <button onClick={(e)=>setCodes([...cods,e.currentTarget.previousElementSibling.value])} >Agregar</button>
+            <input onKeyDown={(e)=>{console.log(e.key);if(e.keyCode==13){setCodes([...codes,e.currentTarget.value])}}} type="number" name="code" placeholder="Código" id="code"/>
+            <button onClick={(e)=>setCodes([...codes,e.currentTarget.previousElementSibling.value])} >Agregar</button>
         </section>
     </>);
     useEffect(()=>{setRend(<>
         <span>Se recomienda no agregar más de 3 productos por producto</span>
         {inputs}
         <section >
-            <input onKeyDown={(e)=>{console.log(e.key);if(e.keyCode==13){setCodes([...cods,e.currentTarget.value])}}} type="number" name="code" placeholder="Código" id="code"/>
-            <button onClick={(e)=>setCodes([...cods,e.currentTarget.previousElementSibling.value])} >Agregar</button>
+            <input onKeyDown={(e)=>{console.log(e.key);if(e.keyCode==13){setCodes([...codes,e.currentTarget.value])}}} type="number" name="code" placeholder="Código" id="code"/>
+            <button onClick={(e)=>setCodes([...codes,e.currentTarget.previousElementSibling.value])} >Agregar</button>
         </section>
     </>)},[inputs])
     return (rend)
