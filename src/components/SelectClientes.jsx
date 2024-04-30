@@ -8,7 +8,7 @@ function SelectClientes({setCredito,disabledCli,pos,cliente,setCliente}){
     const [vec,setVec]=useState([]);
     const [client,setClient]=useState(cliente);
     const [rend, setRend] = useState(<select id="cliente" value={selectValue(client)} disabled={disabledCli} onChange={(e)=>{select(e)}}>
-    <option value='0' defaultValue={client=="Final"?"selected":""} >Consumidor Final</option>
+    <option value='0' defaultValue="selected" >Consumidor Final</option>
     {clientes}
 </select>);
     function selectValue(client){
@@ -39,6 +39,7 @@ function SelectClientes({setCredito,disabledCli,pos,cliente,setCliente}){
     {clientes}
 </select>)},[clientes,vec,disabledCli])
     const select=(e)=>{
+        console.log(vec)
         if(e.currentTarget.value>0){
         setCliente(vec[e.currentTarget.value-1])
     }else{

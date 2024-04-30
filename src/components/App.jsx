@@ -119,23 +119,15 @@ function App() {
     })
   }
   function setCliente(cliente) {
-    let regular=(Object.keys(cliente)[0]=='Regular')?true:false;
-    let dato;
-    if (regular){
-      dato=cliente.Regular.id
-    }else{
-      dato=cliente.id;
-    }
-    set_cliente(dato, pos).then(venta => {
+    set_cliente(cliente.id, pos).then(venta => {
       get_configs().then(conf => {
-        if (regular){
-          setCredito(cliente.Regular.credito)
+        if (Object.keys(cliente).length>1){
+          setCredito(cliente.credito)
         }else{
           setCredito(false)
         }
         setVenta(venta);
         dibujarVenta(venta, conf)
-
       })
     })
   
@@ -193,6 +185,7 @@ function App() {
     }
   }
   function draw(clean) {
+    console.log(credito)
     if (clean) {
       setProductos([]);
       document.getElementById("buscador").value = "";
@@ -205,7 +198,7 @@ function App() {
           setVenta(sale);
           setConfigs(conf);
           if(Object.keys(sale.cliente)[0]=='Regular'){
-            setCliente(sale.cliente)
+            setCliente(sale.cliente.Regular)
           }else{
             setCliente({id:0})
           }
@@ -218,7 +211,6 @@ function App() {
     }
 
   } function dibujarVenta(sale, conf) {
-    console.log(sale)
     setRend(<>
       <header className="container" >
         <section id="header">
