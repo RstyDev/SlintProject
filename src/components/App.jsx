@@ -122,9 +122,9 @@ function App() {
     let regular=(Object.keys(cliente)[0]=='Regular')?true:false;
     let dato;
     if (regular){
-      dato=cliente.id
+      dato=cliente.Regular.id
     }else{
-      dato=0;
+      dato=cliente.id;
     }
     set_cliente(dato, pos).then(venta => {
       get_configs().then(conf => {
@@ -204,8 +204,11 @@ function App() {
           console.log(sale.cliente)
           setVenta(sale);
           setConfigs(conf);
-          if(sale.cliente)
-          setCliente(sale.cliente)
+          if(Object.keys(sale.cliente)[0]=='Regular'){
+            setCliente(sale.cliente)
+          }else{
+            setCliente({id:0})
+          }
           dibujarVenta(sale, conf);
         });
       });

@@ -38,7 +38,8 @@ function SelectClientes({setCredito,disabledCli,pos,cliente,setCliente}){
     <option value='0' defaultValue="selected" >Consumidor Final</option>
     {clientes}
 </select>)},[clientes,vec,disabledCli])
-    const select=(e)=>{if(e.currentTarget.value>0){
+    const select=(e)=>{
+        if(e.currentTarget.value>0){
         setCliente(vec[e.currentTarget.value-1])
     }else{
         setCliente({id:0})
