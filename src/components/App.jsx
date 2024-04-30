@@ -118,14 +118,27 @@ function App() {
       }
     })
   }
-  function setCliente(id) {
-    set_cliente(id, pos).then(venta => {
+  function setCliente(cliente) {
+    let regular=(Object.keys(cliente)[0]=='Regular')?true:false;
+    let dato;
+    if (regular){
+      dato=cliente.id
+    }else{
+      dato=0;
+    }
+    set_cliente(dato, pos).then(venta => {
       get_configs().then(conf => {
+        if (regular){
+          setCredito(cliente.Regular.credito)
+        }else{
+          setCredito(false)
+        }
         setVenta(venta);
         dibujarVenta(venta, conf)
 
       })
     })
+  
   }
 
 
@@ -188,8 +201,11 @@ function App() {
     if (logged) {
       get_configs().then(conf => {
         get_venta_actual(pos).then(sale => {
+          console.log(sale.cliente)
           setVenta(sale);
           setConfigs(conf);
+          if(sale.cliente)
+          setCliente(sale.cliente)
           dibujarVenta(sale, conf);
         });
       });
