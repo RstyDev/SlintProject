@@ -17,7 +17,7 @@ const procesarPes = async (cantidad,setCantidad,handle, prod, conf, i, setRet) =
                 </section>
                 <section className="cantidad">
                     <button className="button restar" disabled={disabled} onClick={()=>{setCantidad(parseFloat(cantidad-1));handle(i, -1)}}>-</button>
-                    <input type="text" className="cantidad-producto" value={cantidad} onChange={(e)=>{setCantidad(parseFloat(e.currentTarget.value));}} onKeyDown={(e) =>{setCantidad(parseFloat(e.currentTarget.value));if (e.keyCode==13) handle(i, cantidad,true)}}/>
+                    <input type="text" className="cantidad-producto" value={cantidad} onChange={(e)=>{setCantidad(parseFloat(e.currentTarget.value));}} onKeyDown={(e) =>{if (e.keyCode==13) handle(i, cantidad,true)}}/>
                     <button className="button sumar" onClick={()=>{setCantidad(parseFloat(cantidad)+1);handle(i, 1)}}>+</button>
                 </section>
                 <section className="monto">
@@ -40,7 +40,7 @@ const procesarRub = async (handle,prod, conf, i, setRet) => {
                 </section>
                 <section className="cantidad">
                     <button className="button restar" disabled={disabled} onClick={()=>{setCantidad(parseInt(cantidad-1));handle(i, -1)}}>-</button>
-                    <input type="text" className="cantidad-producto" value={cantidad} onChange={(e)=>{setCantidad(parseInt(e.currentTarget.value));}} onKeyDown={(e) =>{setCantidad(parseInt(e.currentTarget.value));if (e.keyCode==13) handle(i, cantidad,true)}}/>
+                    <input type="text" className="cantidad-producto" value={cantidad} onChange={(e) => { setCantidad(parseInt(e.currentTarget.value));}} onKeyDown={(e) =>{if (e.keyCode==13) handle(i, cantidad,true)}}/>
                     <button className="button sumar" onClick={()=>{setCantidad(parseInt(cantidad)+1);handle(i, 1)}}>+</button>
                 </section>
                 <section className="monto">
@@ -63,7 +63,7 @@ const procesarProd = async (cantidad,setCantidad,handle, prod, conf, i, setRet) 
         </section>
         <section className="cantidad">
             <button className="button restar" disabled={disabled} onClick={()=>{setCantidad(parseInt(cantidad-1));handle(i, -1)}}>-</button>
-            <input type="text" className="cantidad-producto" value={cantidad} onChange={(e)=>{setCantidad(e.currentTarget.value);}} onKeyDown={(e) =>{setCantidad(parseInt(e.currentTarget.value));if (e.keyCode==13) handle(i, cantidad,true)}} />
+            <input type="text" className="cantidad-producto" value={cantidad} onChange={(e) => { setCantidad(e.currentTarget.value);}} onKeyDown={(e) =>{if (e.keyCode==13) handle(i, cantidad,true)}} />
             <button className="button sumar" onClick={()=>{setCantidad(parseInt(cantidad)+1);handle(i, 1)}}>+</button>
         </section>
         <section className="monto">
@@ -88,7 +88,6 @@ function Producto({ handleProd,producto, conf, i }) {
     else if (Object.keys(producto)[0]=='Rub')
         return producto.Rub[0]
     });
-    console.log(Object.keys(producto))
     
     function procesar(){
         console.log(cantidad)

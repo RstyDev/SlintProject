@@ -957,9 +957,9 @@ impl<'a> Sistema {
     pub fn set_cantidad_producto_venta(&mut self, index:usize,cantidad: f32, pos:bool)->Res<Venta>{
         if index<self.venta(pos).productos().len(){
             if pos{
-                self.ventas.a.set_cantidad_producto(index,cantidad)
+                self.ventas.a.set_cantidad_producto(index,cantidad,&self.configs.politica())
             }else{
-                self.ventas.b.set_cantidad_producto(index,cantidad)
+                self.ventas.b.set_cantidad_producto(index,cantidad,&self.configs.politica())
             }
         }else{
             Err(AppError::NotFound { objeto: String::from("Producto"), instancia: index.to_string() })

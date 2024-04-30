@@ -398,7 +398,7 @@ div#pagos section.pago {
 #resumen-y-pago {
   padding-right: 10px;
   height: 77.5svh;
-  max-width: 33%;
+  width: 350px;
   & p {
     align-self: self-end;
     margin: 2px;

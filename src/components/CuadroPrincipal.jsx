@@ -23,6 +23,7 @@ function CuadroPrincipal({ pos,handleProd,venta,productos,busqueda, conf,draw, p
         </section>
         <CuadroVenta  handleProd={handleProd} busqueda={busq} productos={prods} pos={pos} draw={draw} venta={sale} conf={conf} prodFoc={foc} isProd={isProd} focuseado={focused} setFocuseado={setFocuseado} />
     </section>);
+    useEffect(()=>{setSale(venta)},[venta]);
     useEffect(() => {
         setRet(<section id="cuadro-principal" >
             <section className="ayb">
@@ -35,12 +36,11 @@ function CuadroPrincipal({ pos,handleProd,venta,productos,busqueda, conf,draw, p
             </section>
             <CuadroVenta  handleProd={handleProd} busqueda={busq} productos={prods} pos={pos} draw={draw} venta={sale} conf={conf} prodFoc={foc} isProd={isProd} focuseado={focused} setFocuseado={setFocuseado} />
         </section>)},[sale])
-    useEffect(()=>{setSale(venta)},[venta]);
     useEffect(()=>{setProds(productos)},[productos]);
     useEffect(()=>{setBusqueda(busqueda)},[busqueda]);
     useEffect(()=>{setFocused(focuseado)},[focuseado]);
     useEffect(()=>{setFoc(prodFoc)}, [prodFoc]);
-
+    
 
         
     return (

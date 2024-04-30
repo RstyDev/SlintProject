@@ -17,9 +17,10 @@ function CuadroVenta({ handleProd,setCant,venta,busqueda, conf, prodFoc,pos,draw
         <Productos  handleProd={handleProd} productos={sale.productos} conf={conf} prodFoc={foc} isProd={isProd} />
         <section id="monto-total">TOTAL {total}</section>
     </section>);
+    
     useEffect(()=>{setSale(venta)},[venta]);
     useEffect(()=>{setProds(productos)},[productos]);
-    useEffect(()=>{setTotal(venta.monto_total)},[venta]);
+    useEffect(()=>{setTotal(venta.monto_total)},[venta.monto_total]);
     useEffect(()=>{setBusq(busqueda)},[busqueda])
 
     function dibujarProductos(prods, conf) {

@@ -139,6 +139,7 @@ fn agregar_cliente(
 }
 #[tauri::command]
 fn agregar_pago(
+    window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     medio_pago: &str,
     monto: &str,
@@ -148,6 +149,23 @@ fn agregar_pago(
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.agregar_pago(medio_pago, monto, pos)?;
+    if sis.venta(pos).pagos().len()==0{
+        loop {
+        if window
+            .emit(
+                "main",
+                Payload {
+                    message: Some(String::from("dibujar venta")),
+                    pos: None,
+                    val: None,
+                },
+            )
+            .is_ok()
+        {
+            break;
+        }
+    }
+    }
     Ok(sis.venta(pos).pagos())
 }
 #[tauri::command]
@@ -459,28 +477,12 @@ fn close_window(window: tauri::Window) -> Res<()> {
 #[tauri::command]
 fn descontar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
-    window: tauri::Window,
     index: usize,
     pos: bool,
 ) -> Res<Venta> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let res = sis.descontar_producto_de_venta(index, pos)?;
-    loop {
-        if window
-            .emit(
-                "main",
-                Payload {
-                    message: Some("dibujar venta".to_string()),
-                    pos: None,
-                    val: None,
-                },
-            )
-            .is_ok()
-        {
-            break;
-        };
-    }
     Ok(res)
 }
 #[tauri::command]
@@ -681,28 +683,12 @@ fn hacer_ingreso(sistema: State<Mutex<Sistema>>, monto: f32, descripcion: Option
 #[tauri::command]
 fn incrementar_producto_a_venta(
     sistema: State<Mutex<Sistema>>,
-    window: tauri::Window,
     index: usize,
     pos: bool,
 ) -> Res<Venta> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let venta = sis.incrementar_producto_a_venta(index, pos)?;
-    loop {
-        if window
-            .emit(
-                "main",
-                Payload {
-                    message: Some("dibujar venta".to_string()),
-                    pos: None,
-                    val: None,
-                },
-            )
-            .is_ok()
-        {
-            break;
-        }
-    }
     Ok(venta)
 }
 #[tauri::command]
