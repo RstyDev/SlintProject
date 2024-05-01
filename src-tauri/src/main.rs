@@ -864,7 +864,7 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> { //
             let win = tauri::WindowBuilder::new(
                 &handle,
                 "confirm", /* the unique window label */
-                tauri::WindowUrl::App("/pages/confirm.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/confirm/confirm-stash.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -987,7 +987,7 @@ async fn open_select_amount(handle: tauri::AppHandle, val: V, pos: bool) -> Res<
             let window = tauri::WindowBuilder::new(
                 &handle,
                 "select-amount",
-                tauri::WindowUrl::App("src/pages/select-amount/select-amount.html".parse().unwrap()),
+                tauri::WindowUrl::App("src/pages/amount/select-amount.html".parse().unwrap()),
             )
             .always_on_top(true)
             .center()
