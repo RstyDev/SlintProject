@@ -38,70 +38,70 @@ fn set_menus(menu: MenuHandle, state: bool) -> Result<()> {
     menu.get_item("add user").set_enabled(state)?;
     Ok(menu.get_item("edit settings").set_enabled(state)?)
 }
-async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("add-product") {
-        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
-        None => {
-            tauri::WindowBuilder::new(
-                &handle,
-                "add-product", /* the unique window label */
-                tauri::WindowUrl::App(INDEX.parse().unwrap()),
-            )
-            .always_on_top(true)
-            .center()
-            .resizable(false)
-            .minimizable(false)
-            .inner_size(800.0, 400.0)
-            .menu(Menu::new())
-            .build()
-            .map_err(|e| e.to_string())?;
-            Ok(())
-        }
-    }
-}
+// async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
+//     match handle.get_window("add-product") {
+//         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
+//         None => {
+//             tauri::WindowBuilder::new(
+//                 &handle,
+//                 "add-product", /* the unique window label */
+//                 tauri::WindowUrl::App(INDEX.parse().unwrap()),
+//             )
+//             .always_on_top(true)
+//             .center()
+//             .resizable(false)
+//             .minimizable(false)
+//             .inner_size(800.0, 400.0)
+//             .menu(Menu::new())
+//             .build()
+//             .map_err(|e| e.to_string())?;
+//             Ok(())
+//         }
+//     }
+// }
 
-async fn open_add_pesable(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("add-pesable") {
-        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
-        None => {
-            tauri::WindowBuilder::new(
-                &handle,
-                "add-pesable", /* the unique window label */
-                tauri::WindowUrl::App(INDEX.parse().unwrap()),
-            )
-            .always_on_top(true)
-            .center()
-            .resizable(false)
-            .minimizable(false)
-            .inner_size(350.0, 260.0)
-            .menu(Menu::new())
-            .build()
-            .map_err(|e| e.to_string())?;
-            Ok(())
-        }
-    }
-}
-async fn open_add_rubro(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("add-rubro") {
-        Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
-        None => {
-            tauri::WindowBuilder::new(
-                &handle,
-                "add-rubro", /* the unique window label */
-                tauri::WindowUrl::App(INDEX.parse().unwrap()),
-            )
-            .always_on_top(true)
-            .center()
-            .resizable(false)
-            .minimizable(false)
-            .inner_size(350.0, 180.0)
-            .menu(Menu::new())
-            .build()
-            .map_err(|e| e.to_string())?;
-            Ok(())
-        }
-    }
-}
+// async fn open_add_pesable(handle: tauri::AppHandle) -> Res<()> {
+//     match handle.get_window("add-pesable") {
+//         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
+//         None => {
+//             tauri::WindowBuilder::new(
+//                 &handle,
+//                 "add-pesable", /* the unique window label */
+//                 tauri::WindowUrl::App(INDEX.parse().unwrap()),
+//             )
+//             .always_on_top(true)
+//             .center()
+//             .resizable(false)
+//             .minimizable(false)
+//             .inner_size(350.0, 260.0)
+//             .menu(Menu::new())
+//             .build()
+//             .map_err(|e| e.to_string())?;
+//             Ok(())
+//         }
+//     }
+// }
+// async fn open_add_rubro(handle: tauri::AppHandle) -> Res<()> {
+//     match handle.get_window("add-rubro") {
+//         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
+//         None => {
+//             tauri::WindowBuilder::new(
+//                 &handle,
+//                 "add-rubro", /* the unique window label */
+//                 tauri::WindowUrl::App(INDEX.parse().unwrap()),
+//             )
+//             .always_on_top(true)
+//             .center()
+//             .resizable(false)
+//             .minimizable(false)
+//             .inner_size(350.0, 180.0)
+//             .menu(Menu::new())
+//             .build()
+//             .map_err(|e| e.to_string())?;
+//             Ok(())
+//         }
+//     }
+// }
 #[tauri::command]
 fn agregar_cliente(
     sistema: State<Mutex<Sistema>>,
@@ -715,13 +715,13 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
     }
 }
 #[tauri::command]
-async fn open_add_select(handle: tauri::AppHandle) -> Res<()> {
-    match handle.get_window("add-select") {
+async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
+    match handle.get_window("add-prod") {
         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
             tauri::WindowBuilder::new(
                 &handle,
-                "add-select",
+                "add-prod",
                 tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
@@ -845,7 +845,7 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
 }
 #[tauri::command]
 async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> { //TODO!(Aca la otra parte que usa el confirm)
-    match handle.get_window("confirm") {
+    match handle.get_window("confirm-stash") {
         Some(window) => {
             window.show().map_err(|e| e.to_string())?;
             window
@@ -863,7 +863,7 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> { //
         None => {
             let win = tauri::WindowBuilder::new(
                 &handle,
-                "confirm", /* the unique window label */
+                "confirm-stash", /* the unique window label */
                 tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
@@ -1135,26 +1135,26 @@ fn try_login(
     }
     Ok(close_window(window)?)
 }
-#[tauri::command]
-async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &str) -> Res<()> {
-    let res;
-    match dato {
-        "Producto" => {
-            res = open_add_product(handle).await;
-        }
-        "Pesable" => {
-            res = open_add_pesable(handle).await;
-        }
-        "Rubro" => {
-            res = open_add_rubro(handle).await;
-        }
-        _ => return Err("Solo existen Producto, Pesable y Rubro".to_string()),
-    }
-    if res.is_ok() {
-        close_window(window)?;
-    }
-    res
-}
+// #[tauri::command]
+// async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &str) -> Res<()> {
+//     let res;
+//     match dato {
+//         "Producto" => {
+//             res = open_add_product(handle).await;
+//         }
+//         "Pesable" => {
+//             res = open_add_pesable(handle).await;
+//         }
+//         "Rubro" => {
+//             res = open_add_rubro(handle).await;
+//         }
+//         _ => return Err("Solo existen Producto, Pesable y Rubro".to_string()),
+//     }
+//     if res.is_ok() {
+//         close_window(window)?;
+//     }
+//     res
+// }
 #[tauri::command]
 fn set_cantidad_producto_venta(sistema: State<Mutex<Sistema>>,index:usize,cantidad: &str, pos:bool)->Res<Venta>{
     let cantidad = cantidad.parse::<f32>().map_err(|e|e.to_string())?;
@@ -1313,7 +1313,7 @@ fn main() {
             hacer_ingreso,
             incrementar_producto_a_venta,
             open_add_prov,
-            open_add_select,
+            open_add_product,
             open_add_user,
             open_add_cliente,
             open_cancelar_venta,
@@ -1326,7 +1326,7 @@ fn main() {
             pagar_deuda_especifica,
             pagar_deuda_general,
             try_login,
-            select_window,
+            // select_window,
             set_cantidad_producto_venta,
             set_cliente,
             set_configs,
@@ -1341,7 +1341,7 @@ fn main() {
     let handle = app.handle();
     window.on_menu_event(move |event| {
         match event.menu_item_id() {
-            "add product" => async_runtime::block_on(open_add_select(handle.clone())),
+            "add product" => async_runtime::block_on(open_add_product(handle.clone())),
             "add prov" => async_runtime::block_on(open_add_prov(handle.clone())),
             "add user" => async_runtime::block_on(open_add_user(handle.clone())),
             "add cliente" => async_runtime::block_on(open_add_cliente(handle.clone())),

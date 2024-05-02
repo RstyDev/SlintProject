@@ -6,7 +6,7 @@ import RubForm from "../components/RubForm";
 async function close_window() {
     return await invoke("close_window");
 }
-function Form(){
+function AddProdPage(){
     document.addEventListener('keydown',(e)=>{
         if (e.keyCode==27){
             close_window();
@@ -42,4 +42,4 @@ function Form(){
     return(form)
 }
 
-export default Form;
+export default AddProdPage;

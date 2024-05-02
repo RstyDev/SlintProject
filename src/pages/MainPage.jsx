@@ -3,13 +3,13 @@ import { useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { emit, listen } from "@tauri-apps/api/event";
 import "./MainPage.css";
-import SelectClientes from "./SelectClientes";
-import CuadroPrincipal from "./CuadroPrincipal";
-import ResumenPago from "./ResumenPago";
+import SelectClientes from "../components/SelectClientes";
+import CuadroPrincipal from "../components/CuadroPrincipal";
+import ResumenPago from "../components/ResumenPago";
 import { act } from "react-dom/test-utils";
 
-let beep = new Audio('src/assets/beep.mp3');
-let error = new Audio('src/assets/error.mp3');
+let beep = new Audio('./../src/assets/beep.mp3');
+let error = new Audio('./../src/assets/error.mp3');
 
 beep.volume = 1;
 error.volume = 0.2;
@@ -106,7 +106,7 @@ function MainPage() {
   function handleProd(index, action, exacto) {
     get_configs().then(conf => {
       if (exacto) {
-        setCantidad(index, action, pos).then(sale =>{setVenta(sale);dibujarVenta(sale, conf)});
+        setCantidad(index, action, pos).then(sale => { setVenta(sale); dibujarVenta(sale, conf) });
       } else {
         if (action < 0) {
           descontarProdVentaAct(index, pos).then(sale => dibujarVenta(sale, conf));
@@ -121,16 +121,16 @@ function MainPage() {
   function setCliente(cliente) {
     set_cliente(cliente.id, pos).then(venta => {
       get_configs().then(conf => {
-        if (Object.keys(cliente).length>1){
+        if (Object.keys(cliente).length > 1) {
           setCredito(cliente.credito)
-        }else{
+        } else {
           setCredito(false)
         }
         setVenta(venta);
         dibujarVenta(venta, conf)
       })
     })
-  
+
   }
 
 
@@ -197,10 +197,10 @@ function MainPage() {
           console.log(sale.cliente)
           setVenta(sale);
           setConfigs(conf);
-          if(Object.keys(sale.cliente)[0]=='Regular'){
+          if (Object.keys(sale.cliente)[0] == 'Regular') {
             setCliente(sale.cliente.Regular)
-          }else{
-            setCliente({id:0})
+          } else {
+            setCliente({ id: 0 })
           }
           dibujarVenta(sale, conf);
         });
@@ -232,7 +232,7 @@ function MainPage() {
   }
 
   useEffect(() => draw(), [logged, prodFoc, productos, focuseado, pos, credito, disabledCli, pos])
-  
+
   function isProd(val) {
     setProdFoc(val)
     if (val) {
@@ -278,7 +278,7 @@ function MainPage() {
   }
 
 
-  useEffect(()=>{unlisten()},[venta])
+  useEffect(() => { unlisten() }, [venta])
 
   //unlisten();
   return (

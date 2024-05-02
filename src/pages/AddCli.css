@@ -4,7 +4,7 @@
 #cuenta{
     display: inline-block;
 }
-article{
+#add-cli article{
     display: flex;
     align-items: center;
     justify-content: center;

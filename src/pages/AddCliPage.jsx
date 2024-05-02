@@ -11,7 +11,7 @@ async function close_window() {
 async function agregar_cliente(nombre, dni, credito, limite) {
     return await invoke("agregar_cliente", { nombre: nombre, dni: dni, credito: credito, limite: limite })
 }
-function AddCliPage(){
+export default function AddCliPage(){
     document.addEventListener("keydown",(e)=>{
         if (e.keyCode==27){
             close_window();
@@ -41,7 +41,7 @@ function AddCliPage(){
     
     
     return (
-    <form className="add-form" onSubmit={()=>agregar_cliente(nombre,dni,credVal,limite)}>
+    <form className="add-form" id="add-cli" onSubmit={()=>agregar_cliente(nombre,dni,credVal,limite)}>
         <input type="text" name="nombre" id="nombre" placeholder="Nombre" onChange={(e)=>setNombre(e.currentTarget.value)} required/>
         <input type="number" name="dni" id="dni" placeholder="DNI" onChange={(e)=>setDni(e.currentTarget.value)} required/>
         {checkbox}
@@ -50,5 +50,3 @@ function AddCliPage(){
     </form>
     )
 }
-
-export default AddCliPage;
