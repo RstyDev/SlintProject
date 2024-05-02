@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { listen } from "@tauri-apps/api/event"
-export default function Form(){
+export default function SelectAmountPage(){
     const [state,setState]=useState({prod:{},rend:<></>})
     async function unlisten() {
         return await listen('main', (pl) => {

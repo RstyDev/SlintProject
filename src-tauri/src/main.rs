@@ -23,7 +23,7 @@ use tauri::{
     window::MenuHandle,
     CustomMenuItem, Manager, Menu, Result, State, Submenu,
 };
-
+const INDEX: &str = "index.html";
 const DENEGADO: &str = "Permiso denegado";
 #[derive(Clone, Serialize)]
 struct Payload {
@@ -45,7 +45,7 @@ async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-product", /* the unique window label */
-                tauri::WindowUrl::App("src/pages/add-product/add-product.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -67,7 +67,7 @@ async fn open_add_pesable(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-pesable", /* the unique window label */
-                tauri::WindowUrl::App("src/pages/add-pesable/add-pesable.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -88,7 +88,7 @@ async fn open_add_rubro(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-rubro", /* the unique window label */
-                tauri::WindowUrl::App("src/pages/add-rubro/add-rubro.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -699,7 +699,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-prov", /* the unique window label */
-                tauri::WindowUrl::App("src/pages/add-prov/add-prov.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -722,7 +722,7 @@ async fn open_add_select(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-select",
-                tauri::WindowUrl::App("src/pages/add-producto/add-producto.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -746,7 +746,7 @@ async fn open_add_user(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-user", /* the unique window label */
-                tauri::WindowUrl::App("src/pages/add-user/add-user.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -769,7 +769,7 @@ async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "add-cliente",
-                tauri::WindowUrl::App("src/pages/add-cliente/add-cliente.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -805,7 +805,7 @@ async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()> { /
             tauri::WindowBuilder::new(
                 &handle,
                 "confirm-cancel",
-                tauri::WindowUrl::App("src/pages/confirm/cancelar-venta.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -828,7 +828,7 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "cerrar-caja",
-                tauri::WindowUrl::App("src/pages/cerrar-caja/cerrar-caja.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -864,7 +864,7 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> { //
             let win = tauri::WindowBuilder::new(
                 &handle,
                 "confirm", /* the unique window label */
-                tauri::WindowUrl::App("src/pages/confirm/confirm-stash.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -909,7 +909,7 @@ async fn open_edit_settings(handle: tauri::AppHandle) -> Res<()> {
             tauri::WindowBuilder::new(
                 &handle,
                 "edit-settings", /* the unique window label */
-                tauri::WindowUrl::App("src/pages/edit-settings/edit-settings.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -940,7 +940,7 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
             let window = tauri::WindowBuilder::new(
                 &handle,
                 "login", /* the unique window label */
-                tauri::WindowUrl::App("index.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .inner_size(400.0, 300.0)
             .resizable(false)
@@ -987,7 +987,7 @@ async fn open_select_amount(handle: tauri::AppHandle, val: V, pos: bool) -> Res<
             let window = tauri::WindowBuilder::new(
                 &handle,
                 "select-amount",
-                tauri::WindowUrl::App("src/pages/amount/select-amount.html".parse().unwrap()),
+                tauri::WindowUrl::App(INDEX.parse().unwrap()),
             )
             .always_on_top(true)
             .center()
@@ -1050,7 +1050,7 @@ async fn open_stash<'a>(
                 let win = tauri::WindowBuilder::new(
                     &handle,
                     "open-stash", /* the unique window label */
-                    tauri::WindowUrl::App("src/pages/stash/stash.html".parse().unwrap()),
+                    tauri::WindowUrl::App(INDEX.parse().unwrap()),
                 )
                 .always_on_top(true)
                 .center()

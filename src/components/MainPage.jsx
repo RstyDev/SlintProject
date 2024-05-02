@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { emit, listen } from "@tauri-apps/api/event";
-import "./App.css";
+import "./MainPage.css";
 import SelectClientes from "./SelectClientes";
 import CuadroPrincipal from "./CuadroPrincipal";
 import ResumenPago from "./ResumenPago";

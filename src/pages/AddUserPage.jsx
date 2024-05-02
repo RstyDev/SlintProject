@@ -6,7 +6,7 @@ async function agregarUsuario(id,nombre,pass,rango){
 async function close_window() {
     return await invoke("close_window");
 }
-export default function Form(){
+export default function AddUserPage(){
     document.addEventListener('keydown',(e)=>{
         if (e.keyCode==27){
             close_window();

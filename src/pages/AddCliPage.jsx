@@ -1,4 +1,4 @@
-import "./Form.css"
+import "./AddCli.css"
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 
@@ -11,7 +11,7 @@ async function close_window() {
 async function agregar_cliente(nombre, dni, credito, limite) {
     return await invoke("agregar_cliente", { nombre: nombre, dni: dni, credito: credito, limite: limite })
 }
-function Form(){
+function AddCliPage(){
     document.addEventListener("keydown",(e)=>{
         if (e.keyCode==27){
             close_window();
@@ -51,4 +51,4 @@ function Form(){
     )
 }
 
-export default Form;
+export default AddCliPage;

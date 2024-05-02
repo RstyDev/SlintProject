@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useState } from "react";
-import ProdForm from "./ProdFrom";
-import PesForm from "./PesForm";
-import RubForm from "./RubForm";
+import ProdForm from "../components/ProdFrom";
+import PesForm from "../components/PesForm";
+import RubForm from "../components/RubForm";
 async function close_window() {
     return await invoke("close_window");
 }

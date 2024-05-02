@@ -29,7 +29,7 @@ async function submitea(e) {
     }
 }
 
-function Login() {
+function LoginPage() {
     document.addEventListener('keydown',(e)=>{
         if (e.keyCode==27){
             close_window();
@@ -48,4 +48,4 @@ function Login() {
     );
 }
 
-export default Login;
+export default LoginPage;
