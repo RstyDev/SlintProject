@@ -4,7 +4,7 @@
         margin: auto 5px;
     }
 
-    p{
+    p:is(p){
         margin: auto 0px;
     }
 } 

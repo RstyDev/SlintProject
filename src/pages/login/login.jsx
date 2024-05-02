@@ -1,11 +1,51 @@
-import React from "react";
-import ReactDOM from "react-dom/client"
-import Form from "./Form";
-import "./../../styles.css"
+import { invoke } from "@tauri-apps/api/tauri";
 
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-    <React.StrictMode>
-        <Form />
-    </React.StrictMode>
-);
+
+var error = new Audio('./../../assets/error.mp3');
+
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function submitea(e) {
+    e.preventDefault();
+    const id = document.getElementById('id');
+    const pass = document.getElementById('pass');
+    console.log(id.value);
+    console.log(pass.value);
+    try {
+        await invoke("try_login", { id: id.value, pass: pass.value });
+    } catch (err) {
+        console.log(err)
+        error.play();
+        if (err.includes("Usuario")) {
+            id.classList.add("error");
+            setTimeout(() => { id.classList.toggle("error") }, 1000)
+        } else if (err.includes("Contraseña")) {
+            pass.classList.add("error");
+            setTimeout(() => { pass.classList.toggle("error") }, 1000)
+        }
+    }
+}
+
+function Login() {
+    document.addEventListener('keydown',(e)=>{
+        if (e.keyCode==27){
+            close_window();
+        }
+    })
+
+    return (
+        <form onSubmit={submitea} id="form-login">
+            <input type="text" autoFocus tabIndex={0} defaultValue="" name="Id" id="id" placeholder="Usuario" autoComplete="off" required>
+            </input>
+            <input type="password" name="Password" id="pass" defaultValue="" placeholder="Contraseña" required>
+            </input>
+            <input type="submit" value="Iniciar sesión">
+            </input>
+        </form>
+    );
+}
+
+export default Login;

@@ -10,7 +10,7 @@
   height: 90svh;
   display: flex;
 
-  & p {
+  & p:is(p) {
     font-size: 5svh;
     color: #dd1111;
     margin: auto;

@@ -177,7 +177,7 @@ form {
 
   }
 
-  & p {
+  & p:is(p) {
     text-align: center;
     margin: auto 0;
   }
@@ -399,7 +399,7 @@ div#pagos section.pago {
   padding-right: 10px;
   height: 77.5svh;
   width: 350px;
-  & p {
+  & p:is(p) {
     align-self: self-end;
     margin: 2px;
   }

@@ -53,7 +53,7 @@ async function eliminarProdVentaAct(index, pos) {
   return await invoke("eliminar_producto_de_venta", { index: index, pos: pos })
 }
 
-function App() {
+function MainPage() {
   const [logged, setLogged] = useState(false);
   const [prodFoc, setProdFoc] = useState(true);
   const [pos, setPos] = useState(true);
@@ -288,4 +288,4 @@ function App() {
 }
 
 
-export default App;
+export default MainPage;

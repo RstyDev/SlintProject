@@ -22,7 +22,7 @@
       bottom: 93svh;
       left: 28%;
   
-      & a {
+      & a:is(a) {
         display: inline-block;
       }
   

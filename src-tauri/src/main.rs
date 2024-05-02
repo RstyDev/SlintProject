@@ -940,7 +940,7 @@ async fn open_login(handle: tauri::AppHandle) -> Res<()> {
             let window = tauri::WindowBuilder::new(
                 &handle,
                 "login", /* the unique window label */
-                tauri::WindowUrl::App("src/pages/login/login.html".parse().unwrap()),
+                tauri::WindowUrl::App("index.html".parse().unwrap()),
             )
             .inner_size(400.0, 300.0)
             .resizable(false)
