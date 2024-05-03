@@ -7,11 +7,11 @@ async function get_descripcion_valuable(prod, conf) {
 async function agregarProdVentaAct(prod,pos) {
     return await invoke("agregar_producto_a_venta", { prod: prod, pos: pos });
 }
-function ProductoBusqueda({conf,producto,focused,valor,setFocuseado,index,pos,draw,prod}){
+function ProductoBusqueda({handleFocuseado,conf,producto,focused,valor,setFocuseado,index,pos,draw,prod}){
     const [desc,setDesc] = useState(prod);
     useEffect(()=>{setDesc(prod)},[prod])
     
-    return(<tr tabIndex="2" id={index} onClick={()=>{setFocuseado(index)}} onDoubleClick={()=>{agregarProdVentaAct(producto,pos);draw(true)}} className={focused}>
+    return(<tr tabIndex="2" id={index} onClick={()=>{setFocuseado(index)}} onDoubleClick={(e)=>{handleFocuseado(e,false,true)}} className={focused}>
         <td className={conf.modo_mayus}>{desc}</td>
         <td>${valor}</td>
     </tr>)

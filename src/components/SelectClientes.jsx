@@ -26,8 +26,6 @@ function SelectClientes({setCredito,disabledCli,pos,cliente,setCliente}){
         get_clientes().then(cli=>{
             setVec(cli)
             setClientes(cli.map((cli,i)=>{
-                console.log(client);
-                console.log(cli)
                 return <option value={cli.id} key={i} defaultValue={client!="Final" && client.Regular.id == cli.id ? "selected" : ""} > {cli.nombre}</option>
             }))
            

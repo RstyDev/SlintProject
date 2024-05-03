@@ -32,14 +32,6 @@ pub fn get_hash(pass: &str) -> i64 {
     pass.hash(&mut h);
     h.finish() as i64
 }
-
-// pub async fn save_many<T: Save>(datos: Vec<T>) -> Result<(), DbErr> {
-//     for dato in datos {
-//         dato.save().await?;
-//     }
-//     Ok(())
-// }
-
 pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
     println!("Path que se actualiza: {}", path);
@@ -70,10 +62,6 @@ pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     }
     Ok(())
 }
-
-// pub fn push(pr: Producto, path: &String) {
-//     let mut prods = Vec::new();
-
 pub fn redondeo(politica: &f32, numero: f32) -> f32 {
     let mut res = numero;
     let dif = numero % politica;
@@ -267,18 +255,6 @@ impl Mapper {
         );
         Ok(venta)
     }
-    // pub async fn map_model_cli(cliente: CliDB::Model) -> Cliente {
-    //     let cli = Cli::new(
-    //         cliente.id,
-    //         cliente.nombre.into(),
-    //         cliente.dni,
-    //         cliente.credito,
-    //         cliente.activo,
-    //         cliente.created,
-    //         cliente.limite,
-    //     );
-    //     Cliente::new(Some(cli))
-    // }
 }
 
 impl Db {

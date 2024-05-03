@@ -16,10 +16,10 @@ export default function App() {
     let window;
     switch (appWindow.label) {
         case "login":
-            window = <LoginPage />;
+            window = <LoginPage />; //hecho
             break;
         case "add-prod":
-            window = <AddProdPage />;
+            window = <AddProdPage />; 
             break;
         case "add-prov":
             window = <AddProvPage />;

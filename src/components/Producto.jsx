@@ -90,7 +90,6 @@ function Producto({ handleProd,producto, conf, i }) {
     });
     
     function procesar(){
-        console.log(cantidad)
         switch (Object.keys(producto)[0]){
             case "Pes":
                 procesarPes(cantidad,setCantidad,handleProd,producto, conf, i, setRet);

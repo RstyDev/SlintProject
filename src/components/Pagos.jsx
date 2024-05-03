@@ -42,7 +42,6 @@ function Pagos({ pagos, medios_pago, monto, pos, isProd, prodFoc,credito,setDisa
   function click(e){
     console.log(e.currentTarget);
     document.getElementById("input-activo").select();
-    //isProd(false);
   }
   function mapearPagos(pagos) {
     return pagos.map(function (pago, i) {

@@ -38,70 +38,6 @@ fn set_menus(menu: MenuHandle, state: bool) -> Result<()> {
     menu.get_item("add user").set_enabled(state)?;
     Ok(menu.get_item("edit settings").set_enabled(state)?)
 }
-// async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
-//     match handle.get_window("add-product") {
-//         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
-//         None => {
-//             tauri::WindowBuilder::new(
-//                 &handle,
-//                 "add-product", /* the unique window label */
-//                 tauri::WindowUrl::App(INDEX.parse().unwrap()),
-//             )
-//             .always_on_top(true)
-//             .center()
-//             .resizable(false)
-//             .minimizable(false)
-//             .inner_size(800.0, 400.0)
-//             .menu(Menu::new())
-//             .build()
-//             .map_err(|e| e.to_string())?;
-//             Ok(())
-//         }
-//     }
-// }
-
-// async fn open_add_pesable(handle: tauri::AppHandle) -> Res<()> {
-//     match handle.get_window("add-pesable") {
-//         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
-//         None => {
-//             tauri::WindowBuilder::new(
-//                 &handle,
-//                 "add-pesable", /* the unique window label */
-//                 tauri::WindowUrl::App(INDEX.parse().unwrap()),
-//             )
-//             .always_on_top(true)
-//             .center()
-//             .resizable(false)
-//             .minimizable(false)
-//             .inner_size(350.0, 260.0)
-//             .menu(Menu::new())
-//             .build()
-//             .map_err(|e| e.to_string())?;
-//             Ok(())
-//         }
-//     }
-// }
-// async fn open_add_rubro(handle: tauri::AppHandle) -> Res<()> {
-//     match handle.get_window("add-rubro") {
-//         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
-//         None => {
-//             tauri::WindowBuilder::new(
-//                 &handle,
-//                 "add-rubro", /* the unique window label */
-//                 tauri::WindowUrl::App(INDEX.parse().unwrap()),
-//             )
-//             .always_on_top(true)
-//             .center()
-//             .resizable(false)
-//             .minimizable(false)
-//             .inner_size(350.0, 180.0)
-//             .menu(Menu::new())
-//             .build()
-//             .map_err(|e| e.to_string())?;
-//             Ok(())
-//         }
-//     }
-// }
 #[tauri::command]
 fn agregar_cliente(
     sistema: State<Mutex<Sistema>>,
@@ -1135,26 +1071,6 @@ fn try_login(
     }
     Ok(close_window(window)?)
 }
-// #[tauri::command]
-// async fn select_window(handle: tauri::AppHandle, window: tauri::Window, dato: &str) -> Res<()> {
-//     let res;
-//     match dato {
-//         "Producto" => {
-//             res = open_add_product(handle).await;
-//         }
-//         "Pesable" => {
-//             res = open_add_pesable(handle).await;
-//         }
-//         "Rubro" => {
-//             res = open_add_rubro(handle).await;
-//         }
-//         _ => return Err("Solo existen Producto, Pesable y Rubro".to_string()),
-//     }
-//     if res.is_ok() {
-//         close_window(window)?;
-//     }
-//     res
-// }
 #[tauri::command]
 fn set_cantidad_producto_venta(sistema: State<Mutex<Sistema>>,index:usize,cantidad: &str, pos:bool)->Res<Venta>{
     let cantidad = cantidad.parse::<f32>().map_err(|e|e.to_string())?;
@@ -1326,7 +1242,6 @@ fn main() {
             pagar_deuda_especifica,
             pagar_deuda_general,
             try_login,
-            // select_window,
             set_cantidad_producto_venta,
             set_cliente,
             set_configs,

@@ -134,23 +134,23 @@ function MainPage() {
   }
 
 
-  function handleFocuseado(e, i) {
-    //console.log(e.currentTarget.value)
+  function handleFocuseado(e, i,dbClick) {
     if (i) {
       setFocuseado(i);
-    } else if (e.currentTarget.value && e.currentTarget.value != "") {
-      if (e.keyCode == 40 || e.keyCode == 38 || e.keyCode == 13) {
+    } else if ((e.currentTarget.value && e.currentTarget.value != "")||dbClick) {
+      if (e.keyCode == 40 || e.keyCode == 38 || e.keyCode == 13||dbClick) {
         e.preventDefault();
         if (e.keyCode == 40 && focuseado < configs.cantidad_productos) {
           setFocuseado(focuseado + 1);
         } else if (e.keyCode == 38 && focuseado > 0) {
           setFocuseado(focuseado - 1);
-        } else if (e.keyCode == 13) {
+        } else if (e.keyCode == 13||dbClick) {
+          let posicion=dbClick?e.currentTarget.id:focuseado;
           if (productos.length > 0) {
-            agregarProdVentaAct(productos[focuseado], pos);
-            setUltimo(productos[focuseado]);
+            agregarProdVentaAct(productos[posicion], pos);
+            setUltimo(productos[posicion]);
             beep.play();
-            e.currentTarget.value = "";
+            document.getElementById('buscador').value="";
             setProductos([]);
             setBusqueda("")
           } else {
@@ -185,7 +185,6 @@ function MainPage() {
     }
   }
   function draw(clean) {
-    console.log(credito)
     if (clean) {
       setProductos([]);
       document.getElementById("buscador").value = "";
@@ -194,7 +193,6 @@ function MainPage() {
     if (logged) {
       get_configs().then(conf => {
         get_venta_actual(pos).then(sale => {
-          console.log(sale.cliente)
           setVenta(sale);
           setConfigs(conf);
           if (Object.keys(sale.cliente)[0] == 'Regular') {
@@ -225,7 +223,7 @@ function MainPage() {
         </section>
       </header>
       <main className="main-screen">
-        <CuadroPrincipal handleProd={handleProd} pos={pos} busqueda={busqueda} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} focuseado={focuseado} setFocuseado={setFocuseado} />
+        <CuadroPrincipal handleFocuseado={handleFocuseado} handleProd={handleProd} pos={pos} busqueda={busqueda} productos={productos} draw={draw} venta={sale} conf={conf} prodFoc={prodFoc} posSet={setPos} isProd={isProd} focuseado={focuseado} setFocuseado={setFocuseado} />
         <ResumenPago pos={pos} venta={sale} setDisabledCli={setDisabledCli} configs={conf} prodFoc={prodFoc} isProd={isProd} credito={credito} />
       </main>
     </>);
@@ -280,7 +278,6 @@ function MainPage() {
 
   useEffect(() => { unlisten() }, [venta])
 
-  //unlisten();
   return (
     rend
   );
