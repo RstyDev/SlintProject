@@ -1324,3 +1324,33 @@ fn main() {
     });
     app.run(|_, _| {})
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works_test() {
+        async_runtime::spawn(async{main()});
+    }
+    #[test]
+    fn agregar_cliente_test(){
+        let app = tauri::Builder::default()
+        .manage(Mutex::new(Sistema::new().unwrap()))
+        .setup(|app|{
+            let window = app.get_window("main").unwrap();
+            let sist=app.state::<Mutex<Sistema>>();
+            match agregar_cliente(sist.clone(), window, "NombrePrueba", "38649487", true, Some("15000")){
+                Ok(a) => {
+                    
+                    //assert!(a.nombre()=="NombrePrueba"&&*a.credito()==true)
+                },
+                Err(e) => panic!("{e}"),
+            }
+            let algo=async_runtime::block_on(sist.lock().unwrap().get_clientes()).unwrap();
+                panic!("a");
+            
+            Ok(())
+        });
+    }
+}

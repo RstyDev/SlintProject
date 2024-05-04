@@ -105,6 +105,9 @@ impl Cli {
     pub fn credito(&self) -> &bool {
         &self.credito
     }
+    pub fn nombre(&self)->&str{
+        self.nombre.as_ref()
+    }
     pub async fn get_deuda(&self, db: &DatabaseConnection) -> Res<f32> {
         Ok(DeudaDB::Entity::find()
             .select_only()
