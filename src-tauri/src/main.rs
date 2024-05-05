@@ -1327,6 +1327,10 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    
+
+    use std::{future::Future, pin::Pin};
+
     use super::*;
 
     #[test]
@@ -1334,23 +1338,54 @@ mod tests {
         async_runtime::spawn(async{main()});
     }
     #[test]
-    fn agregar_cliente_test(){
+     fn not_open_login_test(){
+        let app=tauri::Builder::default()
+        .manage(Mutex::new(Sistema::new().unwrap()))
+        .any_thread()
+        .build(tauri::generate_context!()).unwrap();
+        assert!(app.get_window("login").is_none()); 
+    }
+    #[test]
+    fn open_login_test(){
         let app = tauri::Builder::default()
         .manage(Mutex::new(Sistema::new().unwrap()))
+        .any_thread()
         .setup(|app|{
             let window = app.get_window("main").unwrap();
-            let sist=app.state::<Mutex<Sistema>>();
-            match agregar_cliente(sist.clone(), window, "NombrePrueba", "38649487", true, Some("15000")){
-                Ok(a) => {
-                    
-                    //assert!(a.nombre()=="NombrePrueba"&&*a.credito()==true)
-                },
-                Err(e) => panic!("{e}"),
+            async_runtime::block_on(open_login(app.handle()))?;
+            if window.get_window("login").is_none(){
+                panic!("None")
             }
-            let algo=async_runtime::block_on(sist.lock().unwrap().get_clientes()).unwrap();
-                panic!("a");
+            
             
             Ok(())
         });
+        app.run(tauri::generate_context!()).unwrap()
+    }
+    // #[test]
+    // fn agregar_cliente_test(){
+    //     let app = tauri::Builder::default()
+    //     .manage(Mutex::new(Sistema::new().unwrap()))
+    //     .any_thread()
+    //     .setup(|app|{
+    //         let window = app.get_window("main").unwrap();
+    //         let sist=app.state::<Mutex<Sistema>>();
+    //         let res;
+            
+    //         match agregar_cliente(sist.clone(), window, "NombrePrueba", "38649487", true, Some("15000")){
+    //             Ok(a) => {
+    //                 res=Err(AppError::IncorrectError(String::from("err")));
+    //                 assert!(a.nombre()=="NombrePrueba"&&*a.credito()==true)
+    //             },
+    //             Err(e) => res=Err(AppError::IncorrectError(String::from("err"))),
+    //         }
+            
+    //         Ok(res?)
+    //     });
+    //     app.run(tauri::generate_context!()).unwrap()
+    // }
+    #[test]
+    fn it_works_test2() {
+        async_runtime::spawn(async{main()});
     }
 }

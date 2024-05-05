@@ -105,6 +105,7 @@ impl Cli {
     pub fn credito(&self) -> &bool {
         &self.credito
     }
+    #[cfg(test)]
     pub fn nombre(&self)->&str{
         self.nombre.as_ref()
     }
