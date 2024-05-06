@@ -1429,4 +1429,32 @@ mod tests {
             Err(e) => panic!("{e}"),
         }
     }
+    #[test]
+    fn get_clientes_test(){
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        window = app.get_window("main").unwrap();
+        try_login(app.state::<Mutex<Sistema>>(), window.clone(), "test", "9876").unwrap();
+        let nombre="NombreCliente";
+        let dni="37846515";
+        let nombre2="Nombre2";
+        let dni2="73222512";
+        if let Err(e)=agregar_cliente(app.state::<Mutex<Sistema>>(),window,nombre,dni,None){
+            panic!("{e}");
+        }
+        if let Err(e)=agregar_cliente(app.state::<Mutex<Sistema>>(),window,nombre2,dni2,Some(1000.0)){
+            panic!("{e}");
+        }
+        let clientes=match get_clientes(app.state::<Mutex<Sistema>>()){
+            Ok(cli) => cli,
+            Err(e) => panic!("{e}"),
+        };
+        assert!(clientes[0].nombre()==nombre&&clientes[1].nombre()==nombre2);
+
+    }
 }

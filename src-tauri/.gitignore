@@ -4,3 +4,4 @@
 
 /.env
 *target*
+build_rs*
