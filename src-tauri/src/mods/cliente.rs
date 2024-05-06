@@ -7,7 +7,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::{AppError, Mapper, User, Venta,Res};
+use super::{AppError, Mapper, Res, User, Venta};
 
 #[derive(Serialize, Clone, Debug, Deserialize)]
 pub enum Cliente {
@@ -20,14 +20,13 @@ pub struct Cli {
     id: i32,
     nombre: Arc<str>,
     dni: i32,
-    credito: bool,
     activo: bool,
     created: NaiveDateTime,
     limite: Cuenta,
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Cuenta {
-    Auth(Option<f32>),
+    Auth(f32),
     Unauth,
 }
 impl Cli {
@@ -35,7 +34,6 @@ impl Cli {
         db: &DatabaseConnection,
         nombre: &str,
         dni: i32,
-        credito: bool,
         activo: bool,
         created: NaiveDateTime,
         limite: Option<f32>,
@@ -55,7 +53,6 @@ impl Cli {
                 let model = CliDB::ActiveModel {
                     nombre: Set(nombre.to_string()),
                     dni: Set(dni),
-                    credito: Set(credito),
                     activo: Set(activo),
                     created: Set(created),
                     limite: Set(limite),
@@ -67,11 +64,10 @@ impl Cli {
                     nombre: Arc::from(nombre),
                     dni,
                     activo,
-                    credito,
                     created,
-                    limite: match credito {
-                        true => Cuenta::Auth(limite),
-                        false => Cuenta::Unauth,
+                    limite: match limite {
+                        Some(limit) => Cuenta::Auth(limit),
+                        None => Cuenta::Unauth,
                     },
                 })
             }
@@ -81,7 +77,6 @@ impl Cli {
         id: i32,
         nombre: Arc<str>,
         dni: i32,
-        credito: bool,
         activo: bool,
         created: NaiveDateTime,
         limite: Option<f32>,
@@ -90,10 +85,9 @@ impl Cli {
             id,
             nombre,
             dni,
-            credito,
-            limite: match credito {
-                true => Cuenta::Auth(limite),
-                false => Cuenta::Unauth,
+            limite: match limite {
+                Some(limit) => Cuenta::Auth(limit),
+                None => Cuenta::Unauth,
             },
             activo,
             created,
@@ -102,11 +96,15 @@ impl Cli {
     pub fn id(&self) -> &i32 {
         &self.id
     }
-    pub fn credito(&self) -> &bool {
-        &self.credito
+    #[cfg(test)]
+    pub fn dni(&self)->&i32{
+        &self.dni
+    }
+    pub fn limite(&self)->&Cuenta{
+        &self.limite
     }
     #[cfg(test)]
-    pub fn nombre(&self)->&str{
+    pub fn nombre(&self) -> &str {
         self.nombre.as_ref()
     }
     pub async fn get_deuda(&self, db: &DatabaseConnection) -> Res<f32> {

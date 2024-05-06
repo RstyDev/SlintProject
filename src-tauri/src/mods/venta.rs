@@ -1,7 +1,6 @@
 use chrono::Utc;
 use entity::prelude::{CliDB, DeudaDB, PagoDB, VentaDB, VentaPesDB, VentaProdDB, VentaRubDB};
 
-
 use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, Condition, Database, DatabaseConnection, DbErr,
     EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Set,
@@ -15,7 +14,7 @@ const CUENTA: &str = "Cuenta Corriente";
 
 use crate::mods::pago::medio_from_db;
 
-use super::{redondeo,Res, AppError, Cli, Cliente, Mapper, MedioPago, Pago, Save, User, Valuable};
+use super::{redondeo, AppError,Cuenta::Auth,Cuenta::Unauth, Cli, Cliente, Mapper, MedioPago, Pago, Res, Save, User, Valuable};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Venta {
@@ -138,12 +137,17 @@ impl<'a> Venta {
     pub fn monto_pagado(&self) -> f32 {
         self.monto_pagado
     }
-    pub fn set_cantidad_producto(&mut self,index:usize,cantidad: f32,politica:&f32)->Res<Self>{
-        let producto= self.productos.remove(index);
-        let producto=match producto{
-            Valuable::Prod((_,prod)) => Valuable::Prod((cantidad as u8,prod)),
-            Valuable::Pes((_,pes)) => Valuable::Pes((cantidad,pes)),
-            Valuable::Rub((_,rub)) => Valuable::Rub((cantidad as u8,rub)),
+    pub fn set_cantidad_producto(
+        &mut self,
+        index: usize,
+        cantidad: f32,
+        politica: &f32,
+    ) -> Res<Self> {
+        let producto = self.productos.remove(index);
+        let producto = match producto {
+            Valuable::Prod((_, prod)) => Valuable::Prod((cantidad as u8, prod)),
+            Valuable::Pes((_, pes)) => Valuable::Pes((cantidad, pes)),
+            Valuable::Rub((_, rub)) => Valuable::Rub((cantidad as u8, rub)),
         };
         self.productos.insert(index, producto);
         self.update_monto_total(politica);
@@ -158,12 +162,12 @@ impl<'a> Venta {
                         "No esta permitido cuenta corriente en este cliente",
                     )))
                 }
-                Cliente::Regular(cli) => match cli.credito() {
-                    true => {
+                Cliente::Regular(cli) => match cli.limite() {
+                    Auth(_) => {
                         let medio_pago = MedioPago::new(CUENTA, 0);
                         self.pagos.push(Pago::new(medio_pago, monto, Some(0.0)));
                     }
-                    false => {
+                    Unauth => {
                         return Err(AppError::IncorrectError(String::from(
                             "No esta permitido cuenta corriente en este cliente",
                         )))
@@ -311,7 +315,6 @@ impl<'a> Venta {
                         model.id,
                         Arc::from(model.nombre),
                         model.dni,
-                        model.credito,
                         model.activo,
                         model.created,
                         model.limite,

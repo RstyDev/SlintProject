@@ -8,8 +8,8 @@ async function get_rango() {
 async function close_window() {
     return await invoke("close_window");
 }
-async function agregar_cliente(nombre, dni, credito, limite) {
-    return await invoke("agregar_cliente", { nombre: nombre, dni: dni, credito: credito, limite: limite })
+async function agregar_cliente(nombre, dni,  limite) {
+    return await invoke("agregar_cliente", { nombre: nombre, dni: dni,  limite: limite })
 }
 export default function AddCliPage(){
     document.addEventListener("keydown",(e)=>{
@@ -41,7 +41,7 @@ export default function AddCliPage(){
     
     
     return (
-    <form className="add-form" id="add-cli" onSubmit={()=>agregar_cliente(nombre,dni,credVal,limite)}>
+    <form className="add-form" id="add-cli" onSubmit={()=>agregar_cliente(nombre,dni,limite)}>
         <input type="text" name="nombre" id="nombre" placeholder="Nombre" onChange={(e)=>setNombre(e.currentTarget.value)} required/>
         <input type="number" name="dni" id="dni" placeholder="DNI" onChange={(e)=>setDni(e.currentTarget.value)} required/>
         {checkbox}

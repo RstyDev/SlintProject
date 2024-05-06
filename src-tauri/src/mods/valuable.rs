@@ -1,9 +1,8 @@
-use super::{redondeo, Config, Formato, Pesable, Producto, Rubro, Save,Res};
+use super::{redondeo, Config, Formato, Pesable, Producto, Res, Rubro, Save};
 use sea_orm::{DatabaseConnection, DbErr};
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 use Valuable as V;
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {
@@ -26,8 +25,22 @@ impl Valuable {
             V::Pes(a) => a.1.descripcion().to_string(),
             V::Rub(a) => a.1.descripcion().to_string(),
             V::Prod(a) => match conf.formato() {
-                Formato::Mtv => format!("{} {} {} {} {}", a.1.marca(), a.1.tipo_producto(), a.1.variedad(), a.1.presentacion().get_cantidad(), a.1.presentacion().get_string()),
-                Formato::Tmv => format!("{} {} {} {} {}", a.1.tipo_producto(), a.1.marca(), a.1.variedad(), a.1.presentacion().get_cantidad(), a.1.presentacion().get_string()),
+                Formato::Mtv => format!(
+                    "{} {} {} {} {}",
+                    a.1.marca(),
+                    a.1.tipo_producto(),
+                    a.1.variedad(),
+                    a.1.presentacion().get_cantidad(),
+                    a.1.presentacion().get_string()
+                ),
+                Formato::Tmv => format!(
+                    "{} {} {} {} {}",
+                    a.1.tipo_producto(),
+                    a.1.marca(),
+                    a.1.variedad(),
+                    a.1.presentacion().get_cantidad(),
+                    a.1.presentacion().get_string()
+                ),
             },
         };
 

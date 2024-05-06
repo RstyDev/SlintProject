@@ -5,7 +5,6 @@ use std::sync::Arc;
 
 use super::Res;
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     politica_redondeo: f32,

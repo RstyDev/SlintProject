@@ -7,7 +7,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::{redondeo, valuable::ValuableTrait, AppError, Save,Res};
+use super::{redondeo, valuable::ValuableTrait, AppError, Res, Save};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {

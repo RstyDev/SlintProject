@@ -2,17 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use entity::prelude::{CodeDB, PesDB, RubDB};
 use mods::{
-    Caja,
-    Cli,
-    Config,
-    get_hash,
-    Pago,
-    Pesable,
-    Rubro,
-    Sistema,
-    Rango, User,
-    Valuable as V,
-    Venta,Result as Res
+    get_hash, Caja, Cli, Config, Pago, Pesable, Rango, Result as Res, Rubro, Sistema, User,
+    Valuable as V, Venta,
 };
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
@@ -44,7 +35,6 @@ fn agregar_cliente(
     window: tauri::Window,
     nombre: &str,
     dni: &str,
-    credito: bool,
     limite: Option<&str>,
 ) -> Res<Cli> {
     let dni = dni.parse::<i32>().map_err(|e| e.to_string())?;
@@ -54,7 +44,7 @@ fn agregar_cliente(
     };
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    let cli = sis.agregar_cliente(nombre, dni, credito, true, limite)?;
+    let cli = sis.agregar_cliente(nombre, dni, true, limite)?;
     loop {
         if window
             .emit(
@@ -85,22 +75,22 @@ fn agregar_pago(
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.agregar_pago(medio_pago, monto, pos)?;
-    if sis.venta(pos).pagos().len()==0{
+    if sis.venta(pos).pagos().len() == 0 {
         loop {
-        if window
-            .emit(
-                "main",
-                Payload {
-                    message: Some(String::from("dibujar venta")),
-                    pos: None,
-                    val: None,
-                },
-            )
-            .is_ok()
-        {
-            break;
+            if window
+                .emit(
+                    "main",
+                    Payload {
+                        message: Some(String::from("dibujar venta")),
+                        pos: None,
+                        val: None,
+                    },
+                )
+                .is_ok()
+            {
+                break;
+            }
         }
-    }
     }
     Ok(sis.venta(pos).pagos())
 }
@@ -220,13 +210,15 @@ fn agregar_proveedor(
     proveedor: &str,
     contacto: Option<&str>,
 ) -> Res<()> {
-    let contacto=match contacto{
-        Some(c)=>if c.len()>0{
-            Some(c.parse::<i64>().map_err(|e|e.to_string())?)
-        }else{
-            None
-        },
-        None=>None,
+    let contacto = match contacto {
+        Some(c) => {
+            if c.len() > 0 {
+                Some(c.parse::<i64>().map_err(|e| e.to_string())?)
+            } else {
+                None
+            }
+        }
+        None => None,
     };
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     match sis.arc_user().rango() {
@@ -422,8 +414,8 @@ fn descontar_producto_de_venta(
     Ok(res)
 }
 #[tauri::command]
-fn editar_producto(sistema: State<Mutex<Sistema>>, prod: V)->Res<()>{
-    let sis=sistema.lock().map_err(|e|e.to_string())?;
+fn editar_producto(sistema: State<Mutex<Sistema>>, prod: V) -> Res<()> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.editar_valuable(prod);
     Ok(())
@@ -436,8 +428,8 @@ fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec
     sis.eliminar_pago(pos, id).map_err(|e| e.to_string())
 }
 #[tauri::command]
-fn eliminar_producto(sistema: State<Mutex<Sistema>>, prod: V)->Res<()>{
-    let sis=sistema.lock().map_err(|e|e.to_string())?;
+fn eliminar_producto(sistema: State<Mutex<Sistema>>, prod: V) -> Res<()> {
+    let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.eliminar_valuable(prod);
     Ok(())
@@ -487,8 +479,11 @@ fn get_configs(sistema: State<Mutex<Sistema>>) -> Res<Config> {
     Ok(sistema.lock().map_err(|e| e.to_string())?.configs().clone())
 }
 #[tauri::command]
-fn get_descripciones(prods:Vec<V>,conf:Config)->Vec<(String,Option<f32>)>{
-    prods.iter().map(|p|(p.descripcion(&conf),p.price(&conf.politica()))).collect::<Vec<(String,Option<f32>)>>()
+fn get_descripciones(prods: Vec<V>, conf: Config) -> Vec<(String, Option<f32>)> {
+    prods
+        .iter()
+        .map(|p| (p.descripcion(&conf), p.price(&conf.politica())))
+        .collect::<Vec<(String, Option<f32>)>>()
 }
 #[tauri::command]
 fn get_descripcion_valuable(prod: V, conf: Config) -> String {
@@ -521,14 +516,19 @@ fn get_filtrado(
     }
 }
 #[tauri::command]
-fn get_log_state(sistema: State<Mutex<Sistema>>) -> Res<bool>{
-    Ok(sistema.lock().map_err(|e|e.to_string())?.user().is_some())
+fn get_log_state(sistema: State<Mutex<Sistema>>) -> Res<bool> {
+    Ok(sistema.lock().map_err(|e| e.to_string())?.user().is_some())
 }
 #[tauri::command]
 fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(sis.configs().medios_pago().iter().map(|m|m.to_string()).collect())
+    Ok(sis
+        .configs()
+        .medios_pago()
+        .iter()
+        .map(|m| m.to_string())
+        .collect())
 }
 #[tauri::command]
 fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>> {
@@ -721,7 +721,8 @@ async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
     }
 }
 #[tauri::command]
-async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()> { //TODO!(Hay que ver si es necesario usar un mismo html o no asi evi el window.emit)
+async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()> {
+    //TODO!(Hay que ver si es necesario usar un mismo html o no asi evi el window.emit)
     match handle.get_window("confirm-cancel") {
         Some(window) => {
             window.show().map_err(|e| e.to_string())?;
@@ -780,7 +781,8 @@ async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
     }
 }
 #[tauri::command]
-async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> { //TODO!(Aca la otra parte que usa el confirm)
+async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
+    //TODO!(Aca la otra parte que usa el confirm)
     match handle.get_window("confirm-stash") {
         Some(window) => {
             window.show().map_err(|e| e.to_string())?;
@@ -1072,11 +1074,16 @@ fn try_login(
     Ok(close_window(window)?)
 }
 #[tauri::command]
-fn set_cantidad_producto_venta(sistema: State<Mutex<Sistema>>,index:usize,cantidad: &str, pos:bool)->Res<Venta>{
-    let cantidad = cantidad.parse::<f32>().map_err(|e|e.to_string())?;
-    let mut sis=sistema.lock().map_err(|e|e.to_string())?;
+fn set_cantidad_producto_venta(
+    sistema: State<Mutex<Sistema>>,
+    index: usize,
+    cantidad: &str,
+    pos: bool,
+) -> Res<Venta> {
+    let cantidad = cantidad.parse::<f32>().map_err(|e| e.to_string())?;
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(sis.set_cantidad_producto_venta(index, cantidad,pos)?)
+    Ok(sis.set_cantidad_producto_venta(index, cantidad, pos)?)
 }
 #[tauri::command]
 fn set_cliente(sistema: State<Mutex<Sistema>>, id: i32, pos: bool) -> Res<Venta> {
@@ -1151,8 +1158,7 @@ fn unstash_sale(
     }
     Ok(sis.unstash_sale(pos, index)?)
 }
-
-fn main() {
+fn get_menu() -> Menu {
     let cerrar_caja_menu = CustomMenuItem::new(String::from("cerrar caja"), "Cerrar caja");
     let add_product_menu = CustomMenuItem::new(String::from("add product"), "Agregar producto");
     let add_prov_menu = CustomMenuItem::new(String::from("add prov"), "Agregar proveedor");
@@ -1181,10 +1187,13 @@ fn main() {
             .add_item(open_stash_menu),
     );
     let caja = Submenu::new("Caja", Menu::new().add_item(cerrar_caja_menu));
-    let menu = Menu::new()
+    Menu::new()
         .add_submenu(opciones)
         .add_submenu(venta)
-        .add_submenu(caja);
+        .add_submenu(caja)
+}
+fn main() {
+    let menu = get_menu();
     let app = tauri::Builder::default()
         .manage(Mutex::new(Sistema::new().unwrap()))
         .invoke_handler(tauri::generate_handler![
@@ -1327,65 +1336,97 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    
-
-    use std::{future::Future, pin::Pin};
-
     use super::*;
 
     #[test]
     fn it_works_test() {
-        async_runtime::spawn(async{main()});
+        async_runtime::spawn(async { main() });
     }
     #[test]
-     fn not_open_login_test(){
-        let app=tauri::Builder::default()
-        .manage(Mutex::new(Sistema::new().unwrap()))
-        .any_thread()
-        .build(tauri::generate_context!()).unwrap();
-        assert!(app.get_window("login").is_none()); 
-    }
-    #[test]
-    fn open_login_test(){
+    fn not_open_login_test() {
         let app = tauri::Builder::default()
-        .manage(Mutex::new(Sistema::new().unwrap()))
-        .any_thread()
-        .setup(|app|{
-            let window = app.get_window("main").unwrap();
-            async_runtime::block_on(open_login(app.handle()))?;
-            if window.get_window("login").is_none(){
-                panic!("None")
-            }
-            
-            
-            Ok(())
-        });
-        app.run(tauri::generate_context!()).unwrap()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        assert!(app.get_window("login").is_none());
     }
-    // #[test]
-    // fn agregar_cliente_test(){
-    //     let app = tauri::Builder::default()
-    //     .manage(Mutex::new(Sistema::new().unwrap()))
-    //     .any_thread()
-    //     .setup(|app|{
-    //         let window = app.get_window("main").unwrap();
-    //         let sist=app.state::<Mutex<Sistema>>();
-    //         let res;
-            
-    //         match agregar_cliente(sist.clone(), window, "NombrePrueba", "38649487", true, Some("15000")){
-    //             Ok(a) => {
-    //                 res=Err(AppError::IncorrectError(String::from("err")));
-    //                 assert!(a.nombre()=="NombrePrueba"&&*a.credito()==true)
-    //             },
-    //             Err(e) => res=Err(AppError::IncorrectError(String::from("err"))),
-    //         }
-            
-    //         Ok(res?)
-    //     });
-    //     app.run(tauri::generate_context!()).unwrap()
-    // }
     #[test]
-    fn it_works_test2() {
-        async_runtime::spawn(async{main()});
+    fn open_login_test() {
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let _ = async_runtime::block_on(open_login(app.handle()));
+        match async_runtime::block_on(open_login(app.handle())) {
+            Ok(_) => assert!(app.get_window("login").is_some()),
+            Err(e) => panic!("No se abrio la ventana: {}", e),
+        }
+    }
+    #[test]
+    fn try_login_test() {
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        async_runtime::block_on(open_login(app.handle())).unwrap();
+        window = app.get_window("login").unwrap();
+        try_login(app.state::<Mutex<Sistema>>(), window, "test", "9876").unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "Contraseña")]
+    fn not_pass_try_login_test() {
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        async_runtime::block_on(open_login(app.handle())).unwrap();
+        window = app.get_window("login").unwrap();
+        if let Err(e) = try_login(app.state::<Mutex<Sistema>>(), window, "test", "6548") {
+            panic!("{e}");
+        }
+    }
+    #[test]
+    #[should_panic(expected = "Usuario")]
+    fn not_user_try_login_test() {
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        async_runtime::block_on(open_login(app.handle())).unwrap();
+        window = app.get_window("login").unwrap();
+        if let Err(e) = try_login(app.state::<Mutex<Sistema>>(), window, "other", "9876") {
+            panic!("{e}");
+        }
+    }
+    #[test]
+    fn agregar_cliente_test(){
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        window = app.get_window("main").unwrap();
+        try_login(app.state::<Mutex<Sistema>>(), window.clone(), "test", "9876").unwrap();
+        let nombre="NombreCliente";
+        let dni="37846515";
+        match agregar_cliente(app.state::<Mutex<Sistema>>(),window,nombre,dni,None){
+            Ok(a) => assert!(nombre==a.nombre() && dni.parse::<i32>().unwrap()==*a.dni()),
+            Err(e) => panic!("{e}"),
+        }
     }
 }

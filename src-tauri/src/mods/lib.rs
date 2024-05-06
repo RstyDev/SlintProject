@@ -16,10 +16,9 @@ use std::io::{Read, Write};
 use std::sync::Arc;
 use Valuable as V;
 
-
 use super::{
     AppError, Cli, Cliente, MedioPago, Pago, Pesable, Presentacion, Producto, Proveedor,
-    RelacionProdProv, Rubro, User, Venta,Res,
+    RelacionProdProv, Res, Rubro, User, Venta,
 };
 use crate::mods::valuable::Valuable;
 pub struct Db;
@@ -234,7 +233,6 @@ impl Mapper {
                     model.id,
                     Arc::from(model.nombre.as_str()),
                     model.dni,
-                    model.credito,
                     model.activo,
                     model.created,
                     model.limite,

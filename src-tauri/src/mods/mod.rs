@@ -17,6 +17,7 @@ pub use caja::Caja;
 pub use caja::Movimiento;
 pub use cliente::Cli;
 pub use cliente::Cliente;
+pub use cliente::Cuenta;
 pub use config::Config;
 pub use config::Formato;
 pub use error::AppError;

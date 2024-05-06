@@ -7,8 +7,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-
-use super::{AppError, Mapper, Save,Res};
+use super::{AppError, Mapper, Res, Save};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
@@ -82,7 +81,7 @@ impl ToString for Proveedor {
     fn to_string(&self) -> String {
         let res;
         match self.contacto {
-            Some(a) => res = format!("{} {a}",self.nombre),
+            Some(a) => res = format!("{} {a}", self.nombre),
             None => res = self.nombre.to_string(),
         }
         res

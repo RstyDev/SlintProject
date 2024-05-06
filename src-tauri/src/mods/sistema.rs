@@ -1,8 +1,7 @@
-
 use super::{
     crear_file, get_hash, leer_file, AppError, Caja, Cli, Config, Db, Mapper, Movimiento, Pago,
-    Pesable, Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Rubro, User, Valuable,
-    ValuableTrait, Venta,Res
+    Pesable, Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User,
+    Valuable, ValuableTrait, Venta,
 };
 use chrono::Utc;
 use entity::prelude::{
@@ -30,9 +29,9 @@ pub struct Sistema {
     registro: Vec<Venta>,
 }
 
-pub struct Ventas{
-    pub a:Venta,
-    pub b:Venta,
+pub struct Ventas {
+    pub a: Venta,
+    pub b: Venta,
 }
 
 async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
@@ -49,7 +48,6 @@ impl<'a> Sistema {
         &self,
         nombre: &str,
         dni: i32,
-        credito: bool,
         activo: bool,
         limite: Option<f32>,
     ) -> Res<Cli> {
@@ -57,7 +55,6 @@ impl<'a> Sistema {
             self.write_db(),
             nombre,
             dni,
-            credito,
             activo,
             Utc::now().naive_local(),
             limite,
@@ -106,6 +103,39 @@ impl<'a> Sistema {
             self.write_db(),
         ))
     }
+    #[cfg(test)]
+    pub fn test(user: Option<Arc<User>>) -> Res<Sistema> {
+        let write_db = Arc::from(async_runtime::block_on(get_db(
+            "sqlite://test/db.sqlite?mode=rwc",
+        ))?);
+        let read_db = Arc::from(async_runtime::block_on(get_db(
+            "sqlite://test/db.sqlite?mode=ro",
+        ))?);
+        let w1 = Arc::clone(&write_db);
+        async_runtime::block_on(Migrator::fresh(w1.as_ref())).unwrap();
+        let configs = async_runtime::block_on(Config::get_or_def(&write_db.as_ref())).unwrap();
+        let caja = async_runtime::block_on(Caja::new(Arc::clone(&write_db), Some(0.0), &configs))?;
+        let w2 = Arc::clone(&write_db);
+        let w3 = Arc::clone(&write_db);
+        let r2 = Arc::clone(&read_db);
+        let sis = Sistema {
+            user,
+            write_db,
+            read_db,
+            caja,
+            configs,
+            ventas: Ventas {
+                a: async_runtime::block_on(Venta::get_or_new(None, w2.as_ref(), true))?,
+                b: async_runtime::block_on(Venta::get_or_new(None, w3.as_ref(), false))?,
+            },
+            proveedores: Vec::new(),
+            relaciones: Vec::new(),
+            stash: Vec::new(),
+            registro: Vec::new(),
+        };
+        Sistema::procesar_test(Arc::clone(&w2), r2)?;
+        Ok(sis)
+    }
     pub fn new() -> Res<Sistema> {
         let write_db = Arc::from(async_runtime::block_on(get_db(
             "sqlite://db.sqlite?mode=rwc",
@@ -144,9 +174,9 @@ impl<'a> Sistema {
             read_db,
             caja,
             configs,
-            ventas: Ventas{
-                a:async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), true))?,
-                b:async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), false))?,
+            ventas: Ventas {
+                a: async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), true))?,
+                b: async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), false))?,
             },
             proveedores: proveedores.clone(),
             relaciones,
@@ -199,6 +229,51 @@ impl<'a> Sistema {
 
     pub fn caja(&self) -> &Caja {
         &self.caja
+    }
+    #[cfg(test)]
+    fn procesar_test(
+        write_db: Arc<DatabaseConnection>,
+        read_db: Arc<DatabaseConnection>,
+    ) -> Res<()> {
+        let write_db2 = Arc::clone(&write_db);
+        let read_db2 = Arc::clone(&read_db);
+        let _: JoinHandle<Result<(), AppError>> = async_runtime::spawn(async move {
+            let medios = vec!["Efectivo", "Crédito", "Débito"];
+            for medio in medios {
+                let model = MedioDB::ActiveModel {
+                    medio: Set(medio.to_string()),
+                    ..Default::default()
+                };
+                model.insert(write_db2.as_ref()).await?;
+            }
+            if MedioDB::Entity::find()
+                .filter(MedioDB::Column::Medio.eq(CUENTA))
+                .one(read_db2.as_ref())
+                .await?
+                .is_none()
+            {
+                let model = MedioDB::ActiveModel {
+                    medio: Set(CUENTA.to_string()),
+                    id: Set(0),
+                };
+                model.insert(write_db2.as_ref()).await?;
+            }
+            return Ok(());
+        });
+        if async_runtime::block_on(UserDB::Entity::find().count(read_db.as_ref()))? == 0 {
+            async_runtime::block_on(async move {
+                let db = Arc::clone(&write_db);
+                let model = UserDB::ActiveModel {
+                    user_id: Set("test".to_owned()),
+                    pass: Set(get_hash("9876")),
+                    rango: Set(Rango::Admin.to_string()),
+                    nombre: Set("Admin".to_owned()),
+                    ..Default::default()
+                };
+                model.insert(db.as_ref()).await.unwrap();
+            });
+        }
+        Ok(())
     }
     fn procesar(
         write_db: Arc<DatabaseConnection>,
@@ -299,7 +374,6 @@ impl<'a> Sistema {
                     model.id,
                     Arc::from(model.nombre.as_str()),
                     model.dni,
-                    model.credito,
                     model.activo,
                     model.created,
                     model.limite,
@@ -324,9 +398,9 @@ impl<'a> Sistema {
                     user.pass,
                     user.rango.as_str(),
                 )));
-                self.ventas = Ventas{
-                    a:Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
-                    b:Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
+                self.ventas = Ventas {
+                    a: Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
+                    b: Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
                 };
                 Ok(self.user().unwrap().rango().clone())
             }
@@ -954,15 +1028,27 @@ impl<'a> Sistema {
         );
         Ok(())
     }
-    pub fn set_cantidad_producto_venta(&mut self, index:usize,cantidad: f32, pos:bool)->Res<Venta>{
-        if index<self.venta(pos).productos().len(){
-            if pos{
-                self.ventas.a.set_cantidad_producto(index,cantidad,&self.configs.politica())
-            }else{
-                self.ventas.b.set_cantidad_producto(index,cantidad,&self.configs.politica())
+    pub fn set_cantidad_producto_venta(
+        &mut self,
+        index: usize,
+        cantidad: f32,
+        pos: bool,
+    ) -> Res<Venta> {
+        if index < self.venta(pos).productos().len() {
+            if pos {
+                self.ventas
+                    .a
+                    .set_cantidad_producto(index, cantidad, &self.configs.politica())
+            } else {
+                self.ventas
+                    .b
+                    .set_cantidad_producto(index, cantidad, &self.configs.politica())
             }
-        }else{
-            Err(AppError::NotFound { objeto: String::from("Producto"), instancia: index.to_string() })
+        } else {
+            Err(AppError::NotFound {
+                objeto: String::from("Producto"),
+                instancia: index.to_string(),
+            })
         }
     }
     pub fn set_cliente(&mut self, id: i32, pos: bool) -> Res<()> {

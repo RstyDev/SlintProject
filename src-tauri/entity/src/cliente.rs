@@ -9,7 +9,6 @@ pub struct Model {
     pub id: i32,
     pub nombre: String,
     pub dni: i32,
-    pub credito: bool,
     #[sea_orm(column_type = "Double", nullable)]
     pub limite: Option<f32>,
     pub activo: bool,
