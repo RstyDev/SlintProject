@@ -73,6 +73,10 @@ impl Rubro {
     pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
     }
+    #[cfg(test)]
+    pub fn desc(&self)->String{
+        self.descripcion.to_string()
+    }
     pub async fn eliminar(self, db: &DatabaseConnection) -> Res<()> {
         let model = match RubDB::Entity::find_by_id(self.id).one(db).await? {
             Some(model) => model.into_active_model(),

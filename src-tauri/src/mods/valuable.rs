@@ -43,8 +43,15 @@ impl Valuable {
                 ),
             },
         };
-
         res
+    }
+    #[cfg(test)]
+    pub fn desc(&self)->String{
+        match self{
+            Valuable::Prod(prod) => prod.1.desc(),
+            Valuable::Pes(pes) => pes.1.desc(),
+            Valuable::Rub(rub) => rub.1.desc(),
+        }
     }
     pub async fn eliminar(self, db: DatabaseConnection) -> Res<()> {
         match self {

@@ -108,6 +108,10 @@ impl Pesable {
         model.delete(db).await?;
         Ok(())
     }
+    #[cfg(test)]
+    pub fn desc(&self)->String{
+        self.descripcion.to_string()
+    }
     pub async fn editar(self, db: &DatabaseConnection) -> Res<()> {
         let mut model = match PesDB::Entity::find_by_id(self.id).one(db).await? {
             Some(model) => model.into_active_model(),

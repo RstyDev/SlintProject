@@ -1430,6 +1430,23 @@ mod tests {
         }
     }
     #[test]
+    #[should_panic(expected = "existente")]
+    fn agregar_cliente_existente_test(){
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        window = app.get_window("main").unwrap();
+        try_login(app.state::<Mutex<Sistema>>(), window.clone(), "test", "9876").unwrap();
+        let nombre="NombreCliente";
+        let dni="37846515";
+        agregar_cliente(app.state::<Mutex<Sistema>>(),window.clone(),nombre,dni,None).unwrap();
+        agregar_cliente(app.state::<Mutex<Sistema>>(), window, nombre, dni, None).unwrap();
+    }
+    #[test]
     fn get_clientes_test(){
         let app = tauri::Builder::default()
             .manage(Mutex::new(Sistema::test(None).unwrap()))
@@ -1444,10 +1461,10 @@ mod tests {
         let dni="37846515";
         let nombre2="Nombre2";
         let dni2="73222512";
-        if let Err(e)=agregar_cliente(app.state::<Mutex<Sistema>>(),window,nombre,dni,None){
+        if let Err(e)=agregar_cliente(app.state::<Mutex<Sistema>>(),window.clone(),nombre,dni,None){
             panic!("{e}");
         }
-        if let Err(e)=agregar_cliente(app.state::<Mutex<Sistema>>(),window,nombre2,dni2,Some(1000.0)){
+        if let Err(e)=agregar_cliente(app.state::<Mutex<Sistema>>(),window,nombre2,dni2,Some("1000.0")){
             panic!("{e}");
         }
         let clientes=match get_clientes(app.state::<Mutex<Sistema>>()){
@@ -1455,6 +1472,78 @@ mod tests {
             Err(e) => panic!("{e}"),
         };
         assert!(clientes[0].nombre()==nombre&&clientes[1].nombre()==nombre2);
-
+    }
+    #[test]
+    fn agregar_pesable_test(){
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        let desc="PesablePrueba";
+        window = app.get_window("main").unwrap();
+        try_login( app.state::<Mutex<Sistema>>(),window.clone(),"test","9876").unwrap();
+        agregar_pesable(window, app.state::<Mutex<Sistema>>(), "1000", "1541546", "1400", "40", desc).unwrap();
+        match get_productos_filtrado(app.state::<Mutex<Sistema>>(), desc){
+            Ok(res) => assert!(res.len()==1&&res[0].desc()==desc),
+            Err(e) => panic!("{e}"),
+        }
+    }
+    #[test]
+    #[should_panic(expected = "existente")]
+    fn agregar_pesable_existente_test(){
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        let desc="PesablePrueba";
+        window = app.get_window("main").unwrap();
+        try_login( app.state::<Mutex<Sistema>>(),window.clone(),"test","9876").unwrap();
+        agregar_pesable(window.clone(), app.state::<Mutex<Sistema>>(), "1000", "1541546", "1400", "40", desc).unwrap();
+        match agregar_pesable(window, app.state::<Mutex<Sistema>>(), "1000", "1541546", "1400", "40", desc){
+            Ok(_)=>(),
+            Err(e)=>panic!("{e}"),
+        }
+    }
+    #[test]
+    fn agregar_producto_test(){
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        
+        window = app.get_window("main").unwrap();
+        try_login( app.state::<Mutex<Sistema>>(),window.clone(),"test","9876").unwrap();
+        agregar_producto(window, app.state::<Mutex<Sistema>>(), Vec::new(), Vec::new(), vec!["51435613"], "1400", "40", "1000", "tipo_producto", "marca", "variedad", "5", "Un").unwrap();
+        match get_productos_filtrado(app.state::<Mutex<Sistema>>(), "tip mar var"){
+            Ok(res) => assert!(res.len()==1&&res[0].desc().contains("tipo")&&res[0].desc().contains("marca")&&res[0].desc().contains("variedad")),
+            Err(e) => panic!("{e}"),
+        }
+    }
+    #[test]
+    #[should_panic(expected = "existente")]
+    fn agregar_producto_existente_test(){
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        window = app.get_window("main").unwrap();
+        try_login( app.state::<Mutex<Sistema>>(),window.clone(),"test","9876").unwrap();
+        agregar_producto(window.clone(), app.state::<Mutex<Sistema>>(), Vec::new(), Vec::new(), vec!["51435613"], "1400", "40", "1000", "tipo_producto", "marca", "variedad", "5", "Un").unwrap();
+        match agregar_producto(window, app.state::<Mutex<Sistema>>(), Vec::new(), Vec::new(), vec!["51435613"], "1400", "40", "1000", "tipo_producto", "marca", "variedad", "5", "Un"){
+            Ok(_) => (),
+            Err(e) => panic!("{e}"),
+        }
     }
 }
