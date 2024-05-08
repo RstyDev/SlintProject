@@ -109,7 +109,7 @@ impl Pesable {
         Ok(())
     }
     #[cfg(test)]
-    pub fn desc(&self)->String{
+    pub fn desc(&self) -> String {
         self.descripcion.to_string()
     }
     pub async fn editar(self, db: &DatabaseConnection) -> Res<()> {

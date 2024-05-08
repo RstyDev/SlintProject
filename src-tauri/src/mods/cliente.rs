@@ -97,10 +97,10 @@ impl Cli {
         &self.id
     }
     #[cfg(test)]
-    pub fn dni(&self)->&i32{
+    pub fn dni(&self) -> &i32 {
         &self.dni
     }
-    pub fn limite(&self)->&Cuenta{
+    pub fn limite(&self) -> &Cuenta {
         &self.limite
     }
     #[cfg(test)]

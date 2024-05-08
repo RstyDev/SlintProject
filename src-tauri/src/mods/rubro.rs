@@ -74,7 +74,7 @@ impl Rubro {
         Arc::clone(&self.descripcion)
     }
     #[cfg(test)]
-    pub fn desc(&self)->String{
+    pub fn desc(&self) -> String {
         self.descripcion.to_string()
     }
     pub async fn eliminar(self, db: &DatabaseConnection) -> Res<()> {

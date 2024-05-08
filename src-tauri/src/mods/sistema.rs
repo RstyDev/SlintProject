@@ -715,104 +715,130 @@ impl<'a> Sistema {
         cantidad: &str,
         presentacion: &str,
     ) -> Res<Producto> {
-        let tipo_producto = tipo_producto.to_lowercase();
-        let marca = marca.to_lowercase();
-        let variedad = variedad.to_lowercase();
+        match ProdDB::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(ProdDB::Column::TipoProducto.eq(tipo_producto))
+                    .add(ProdDB::Column::Marca.eq(marca))
+                    .add(ProdDB::Column::Variedad.eq(variedad))
+                    .add(ProdDB::Column::Presentacion.eq(presentacion))
+                    .add(ProdDB::Column::Cantidad.eq(cantidad)),
+            )
+            .one(self.read_db())
+            .await?
+        {
+            Some(_) => {
+                return Err(AppError::ExistingError {
+                    objeto: String::from("Prodcuto"),
+                    instancia: format!(
+                        "{} {} {} {} {}",
+                        tipo_producto, marca, variedad, cantidad, presentacion
+                    ),
+                })
+            }
+            None => {
+                let tipo_producto = tipo_producto.to_lowercase();
+                let marca = marca.to_lowercase();
+                let variedad = variedad.to_lowercase();
 
-        let precio_de_venta = precio_de_venta.parse::<f32>()?;
-        let porcentaje = porcentaje.parse::<f32>()?;
-        let precio_de_costo = precio_de_costo.parse::<f32>()?;
-        let codigos_de_barras: Vec<i64> = codigos_de_barras
-            .iter()
-            .map(|x| x.parse::<i64>().unwrap())
-            .collect();
-        let presentacion = match presentacion {
-            "Gr" => Presentacion::Gr(cantidad.parse().unwrap()),
-            "Un" => Presentacion::Un(cantidad.parse().unwrap()),
-            "Lt" => Presentacion::Lt(cantidad.parse().unwrap()),
-            "Ml" => Presentacion::Ml(cantidad.parse().unwrap()),
-            "CC" => Presentacion::CC(cantidad.parse().unwrap()),
-            "Kg" => Presentacion::Kg(cantidad.parse().unwrap()),
-            _ => panic!("no posible {presentacion}"),
-        };
-        let prod_model = ProdDB::ActiveModel {
-            precio_de_venta: Set(precio_de_venta),
-            porcentaje: Set(porcentaje),
-            precio_de_costo: Set(precio_de_costo),
-            tipo_producto: Set(tipo_producto.to_string()),
-            marca: Set(marca.to_owned()),
-            variedad: Set(variedad.to_owned()),
-            presentacion: Set(presentacion.get_string()),
-            updated_at: Set(Utc::now().naive_local()),
-            cantidad: Set(presentacion.get_cantidad()),
-            ..Default::default()
-        };
-        let res_prod = ProdDB::Entity::insert(prod_model)
-            .exec(self.write_db())
-            .await?;
-        let codigos_model: Vec<CodeDB::ActiveModel> = codigos_de_barras
-            .iter()
-            .map(|x| CodeDB::ActiveModel {
-                codigo: Set(*x),
-                producto: Set(res_prod.last_insert_id),
-                ..Default::default()
-            })
-            .collect();
-
-        CodeDB::Entity::insert_many(codigos_model)
-            .exec(self.write_db())
-            .await?;
-        for i in 0..codigos_prov.len() {
-            let codigo = if codigos_prov[i].len() == 0 {
-                None
-            } else {
-                Some(codigos_prov[i].parse::<i64>()?)
-            };
-            if let Some(prov) = ProvDB::Entity::find()
-                .filter(Condition::all().add(ProvDB::Column::Nombre.eq(proveedores[i])))
-                .one(self.write_db())
-                .await?
-            {
-                let relacion_model = ProdProvDB::ActiveModel {
-                    producto: Set(res_prod.last_insert_id),
-                    proveedor: Set(prov.id),
-                    codigo: Set(codigo),
+                let precio_de_venta = precio_de_venta.parse::<f32>()?;
+                let porcentaje = porcentaje.parse::<f32>()?;
+                let precio_de_costo = precio_de_costo.parse::<f32>()?;
+                let codigos_de_barras: Vec<i64> = codigos_de_barras
+                    .iter()
+                    .map(|x| x.parse::<i64>().unwrap())
+                    .collect();
+                let presentacion = match presentacion {
+                    "Gr" => Presentacion::Gr(cantidad.parse().unwrap()),
+                    "Un" => Presentacion::Un(cantidad.parse().unwrap()),
+                    "Lt" => Presentacion::Lt(cantidad.parse().unwrap()),
+                    "Ml" => Presentacion::Ml(cantidad.parse().unwrap()),
+                    "CC" => Presentacion::CC(cantidad.parse().unwrap()),
+                    "Kg" => Presentacion::Kg(cantidad.parse().unwrap()),
+                    _ => panic!("no posible {presentacion}"),
+                };
+                let prod_model = ProdDB::ActiveModel {
+                    precio_de_venta: Set(precio_de_venta),
+                    porcentaje: Set(porcentaje),
+                    precio_de_costo: Set(precio_de_costo),
+                    tipo_producto: Set(tipo_producto.to_string()),
+                    marca: Set(marca.to_owned()),
+                    variedad: Set(variedad.to_owned()),
+                    presentacion: Set(presentacion.get_string()),
+                    updated_at: Set(Utc::now().naive_local()),
+                    cantidad: Set(presentacion.get_cantidad()),
                     ..Default::default()
                 };
-                ProdProvDB::Entity::insert(relacion_model)
+                let res_prod = ProdDB::Entity::insert(prod_model)
                     .exec(self.write_db())
                     .await?;
+                let codigos_model: Vec<CodeDB::ActiveModel> = codigos_de_barras
+                    .iter()
+                    .map(|x| CodeDB::ActiveModel {
+                        codigo: Set(*x),
+                        producto: Set(res_prod.last_insert_id),
+                        ..Default::default()
+                    })
+                    .collect();
+
+                CodeDB::Entity::insert_many(codigos_model)
+                    .exec(self.write_db())
+                    .await?;
+                for i in 0..codigos_prov.len() {
+                    let codigo = if codigos_prov[i].len() == 0 {
+                        None
+                    } else {
+                        Some(codigos_prov[i].parse::<i64>()?)
+                    };
+                    if let Some(prov) = ProvDB::Entity::find()
+                        .filter(Condition::all().add(ProvDB::Column::Nombre.eq(proveedores[i])))
+                        .one(self.write_db())
+                        .await?
+                    {
+                        let relacion_model = ProdProvDB::ActiveModel {
+                            producto: Set(res_prod.last_insert_id),
+                            proveedor: Set(prov.id),
+                            codigo: Set(codigo),
+                            ..Default::default()
+                        };
+                        ProdProvDB::Entity::insert(relacion_model)
+                            .exec(self.write_db())
+                            .await?;
+                    }
+                }
+
+                let producto = Producto::new(
+                    res_prod.last_insert_id,
+                    codigos_de_barras,
+                    precio_de_venta,
+                    porcentaje,
+                    precio_de_costo,
+                    tipo_producto.as_str(),
+                    marca.as_str(),
+                    variedad.as_str(),
+                    presentacion,
+                );
+
+                let result = Ok(producto.clone());
+
+                for i in 0..proveedores.len() {
+                    match codigos_prov[i].parse::<i64>() {
+                        Ok(a) => self.relaciones.push(RelacionProdProv::new(
+                            *producto.id(),
+                            i as i32,
+                            Some(a),
+                        )),
+                        Err(_) => self.relaciones.push(RelacionProdProv::new(
+                            *producto.id(),
+                            i as i32,
+                            None,
+                        )),
+                    };
+                }
+
+                result
             }
         }
-
-        let producto = Producto::new(
-            res_prod.last_insert_id,
-            codigos_de_barras,
-            precio_de_venta,
-            porcentaje,
-            precio_de_costo,
-            tipo_producto.as_str(),
-            marca.as_str(),
-            variedad.as_str(),
-            presentacion,
-        );
-
-        let result = Ok(producto.clone());
-
-        for i in 0..proveedores.len() {
-            match codigos_prov[i].parse::<i64>() {
-                Ok(a) => {
-                    self.relaciones
-                        .push(RelacionProdProv::new(*producto.id(), i as i32, Some(a)))
-                }
-                Err(_) => {
-                    self.relaciones
-                        .push(RelacionProdProv::new(*producto.id(), i as i32, None))
-                }
-            };
-        }
-
-        result
     }
 
     pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i64>) -> Res<()> {

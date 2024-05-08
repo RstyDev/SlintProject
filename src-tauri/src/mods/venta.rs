@@ -14,7 +14,10 @@ const CUENTA: &str = "Cuenta Corriente";
 
 use crate::mods::pago::medio_from_db;
 
-use super::{redondeo, AppError,Cuenta::Auth,Cuenta::Unauth, Cli, Cliente, Mapper, MedioPago, Pago, Res, Save, User, Valuable};
+use super::{
+    redondeo, AppError, Cli, Cliente, Cuenta::Auth, Cuenta::Unauth, Mapper, MedioPago, Pago, Res,
+    Save, User, Valuable,
+};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Venta {

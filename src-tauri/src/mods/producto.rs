@@ -112,8 +112,15 @@ impl Producto {
         Ok(())
     }
     #[cfg(test)]
-    pub fn desc(&self)->String{
-        format!("{} {} {} {} {}",self.tipo_producto,self.marca,self.variedad,self.presentacion.get_cantidad(),self.presentacion.get_string())
+    pub fn desc(&self) -> String {
+        format!(
+            "{} {} {} {} {}",
+            self.tipo_producto,
+            self.marca,
+            self.variedad,
+            self.presentacion.get_cantidad(),
+            self.presentacion.get_string()
+        )
     }
     pub async fn editar(self, db: &DatabaseConnection) -> Res<()> {
         let mut model = match ProdDB::Entity::find_by_id(self.id).one(db).await? {
