@@ -1699,6 +1699,10 @@ mod tests {
             "9876",
         )
         .unwrap();
+        let marca="marca";
+        let tipo="tipo_prod";
+        let variedad= "variedad";
+
         agregar_producto(
             window,
             app.state::<Mutex<Sistema>>(),
@@ -1708,13 +1712,19 @@ mod tests {
             "1400",
             "40",
             "1000",
-            "tipo_producto",
-            "marca",
-            "variedad",
+            tipo,
+            marca,
+            variedad,
             "5",
             "Un",
         )
         .unwrap();
-        get_productos_filtrado()
+        let res=get_productos_filtrado(app.state::<Mutex<Sistema>>(),"ti mar var 5").unwrap();
+        let prod=match &res[0]{
+            V::Prod(p) => p.1.clone(),
+            V::Pes(p) => panic!("Dio Pes {p:#?}"),
+            V::Rub(r) => panic!("Dios Rub {r:#?}"),
+        };
+        assert!(prod.marca().as_ref()==marca && prod.tipo_producto().as_ref()==tipo);
     }
 }
