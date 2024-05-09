@@ -1683,7 +1683,7 @@ mod tests {
         }
     }
     #[test]
-    fn get_productos_filtrado_test(){
+    fn get_productos_filtrado_test() {
         let app = tauri::Builder::default()
             .manage(Mutex::new(Sistema::test(None).unwrap()))
             .any_thread()
@@ -1699,16 +1699,16 @@ mod tests {
             "9876",
         )
         .unwrap();
-        let marca="marca";
-        let tipo="tipo_prod";
-        let variedad= "variedad";
+        let marca = "marca";
+        let tipo = "tipo_prod";
+        let variedad = "variedad";
 
         agregar_producto(
-            window,
+            window.clone(),
             app.state::<Mutex<Sistema>>(),
             Vec::new(),
             Vec::new(),
-            vec!["51435613"],
+            vec!["6841651"],
             "1400",
             "40",
             "1000",
@@ -1719,12 +1719,168 @@ mod tests {
             "Un",
         )
         .unwrap();
-        let res=get_productos_filtrado(app.state::<Mutex<Sistema>>(),"ti mar var 5").unwrap();
-        let prod=match &res[0]{
+        agregar_producto(
+            window,
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec!["51435613"],
+            "1400",
+            "40",
+            "1000",
+            "type",
+            "brand",
+            "variedad",
+            "5",
+            "Un",
+        )
+        .unwrap();
+        let res = get_productos_filtrado(app.state::<Mutex<Sistema>>(), "ti mar va ").unwrap();
+        let prod = match &res[0] {
             V::Prod(p) => p.1.clone(),
             V::Pes(p) => panic!("Dio Pes {p:#?}"),
             V::Rub(r) => panic!("Dios Rub {r:#?}"),
         };
-        assert!(prod.marca().as_ref()==marca && prod.tipo_producto().as_ref()==tipo);
+        assert!(
+            res.len() == 1
+                && prod.marca().as_ref() == marca
+                && prod.tipo_producto().as_ref() == tipo
+        );
+    }
+    #[test]
+    fn agregar_producto_a_venta_test() {
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        window = app.get_window("main").unwrap();
+        try_login(
+            app.state::<Mutex<Sistema>>(),
+            window.clone(),
+            "test",
+            "9876",
+        )
+        .unwrap();
+        let marca = "marca";
+        let tipo = "tipo_prod";
+        let variedad = "variedad";
+        agregar_producto(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec!["6841651"],
+            "1400",
+            "40",
+            "1000",
+            tipo,
+            marca,
+            variedad,
+            "5",
+            "Un",
+        )
+        .unwrap();
+        agregar_producto(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec!["51435613"],
+            "2800",
+            "40",
+            "2000",
+            "type",
+            "brand",
+            "variedad",
+            "5",
+            "Un",
+        )
+        .unwrap();
+        let res = get_productos_filtrado(app.state::<Mutex<Sistema>>(), " ").unwrap();
+        agregar_producto_a_venta(
+            app.state::<Mutex<Sistema>>(),
+            window.clone(),
+            res[0].to_owned(),
+            true,
+        )
+        .unwrap();
+        agregar_producto_a_venta(
+            app.state::<Mutex<Sistema>>(),
+            window,
+            res[1].to_owned(),
+            true,
+        )
+        .unwrap();
+        assert!(
+            app.state::<Mutex<Sistema>>()
+                .lock()
+                .unwrap()
+                .venta(true)
+                .monto_total()
+                == (4200.0)
+        );
+    }
+    #[test]
+    fn agregar_producto_a_venta_repetido_test() {
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let window;
+        window = app.get_window("main").unwrap();
+        try_login(
+            app.state::<Mutex<Sistema>>(),
+            window.clone(),
+            "test",
+            "9876",
+        )
+        .unwrap();
+        let marca = "marca";
+        let tipo = "tipo_prod";
+        let variedad = "variedad";
+        agregar_producto(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec!["6841651"],
+            "1400",
+            "40",
+            "1000",
+            tipo,
+            marca,
+            variedad,
+            "5",
+            "Un",
+        )
+        .unwrap();
+        let res = get_productos_filtrado(app.state::<Mutex<Sistema>>(), " ").unwrap();
+        agregar_producto_a_venta(
+            app.state::<Mutex<Sistema>>(),
+            window.clone(),
+            res[0].to_owned(),
+            true,
+        )
+        .unwrap();
+        agregar_producto_a_venta(
+            app.state::<Mutex<Sistema>>(),
+            window,
+            res[0].to_owned(),
+            true,
+        )
+        .unwrap();
+        assert!(
+            app.state::<Mutex<Sistema>>()
+                .lock()
+                .unwrap()
+                .venta(true)
+                .monto_total()
+                == (2800.0)
+        );
     }
 }

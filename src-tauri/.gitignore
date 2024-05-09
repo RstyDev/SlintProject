@@ -5,4 +5,4 @@
 /.env
 *target*
 build_rs*
-test
+test/*
