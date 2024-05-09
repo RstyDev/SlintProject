@@ -1337,6 +1337,23 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tauri::{App, AppHandle, Window};
+
+    fn build(login: bool) -> (App, Window, AppHandle) {
+        let app = tauri::Builder::default()
+            .manage(Mutex::new(Sistema::test(None).unwrap()))
+            .any_thread()
+            .menu(get_menu())
+            .build(tauri::generate_context!())
+            .unwrap();
+        let win = app.get_window("main").unwrap();
+
+        let handle = app.handle();
+        if login {
+            try_login(app.state::<Mutex<Sistema>>(), win.clone(), "test", "9876").unwrap();
+        }
+        (app, win, handle)
+    }
 
     #[test]
     fn it_works_test() {
@@ -1344,23 +1361,12 @@ mod tests {
     }
     #[test]
     fn not_open_login_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
+        let (app, _, _) = build(false);
         assert!(app.get_window("login").is_none());
     }
     #[test]
     fn open_login_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let _ = async_runtime::block_on(open_login(app.handle()));
+        let (app, _, _) = build(false);
         match async_runtime::block_on(open_login(app.handle())) {
             Ok(_) => assert!(app.get_window("login").is_some()),
             Err(e) => panic!("No se abrio la ventana: {}", e),
@@ -1368,66 +1374,23 @@ mod tests {
     }
     #[test]
     fn try_login_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
-        async_runtime::block_on(open_login(app.handle())).unwrap();
-        window = app.get_window("login").unwrap();
-        try_login(app.state::<Mutex<Sistema>>(), window, "test", "9876").unwrap();
+        build(true);
     }
     #[test]
     #[should_panic(expected = "Contraseña")]
     fn not_pass_try_login_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
-        async_runtime::block_on(open_login(app.handle())).unwrap();
-        window = app.get_window("login").unwrap();
-        if let Err(e) = try_login(app.state::<Mutex<Sistema>>(), window, "test", "6548") {
-            panic!("{e}");
-        }
+        let (app, window, _) = build(false);
+        try_login(app.state::<Mutex<Sistema>>(), window, "test", "6548").unwrap();
     }
     #[test]
     #[should_panic(expected = "Usuario")]
     fn not_user_try_login_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
-        async_runtime::block_on(open_login(app.handle())).unwrap();
-        window = app.get_window("login").unwrap();
-        if let Err(e) = try_login(app.state::<Mutex<Sistema>>(), window, "other", "9876") {
-            panic!("{e}");
-        }
+        let (app, window, _) = build(false);
+        try_login(app.state::<Mutex<Sistema>>(), window, "other", "9876").unwrap();
     }
     #[test]
     fn agregar_cliente_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
-        window = app.get_window("main").unwrap();
-        try_login(
-            app.state::<Mutex<Sistema>>(),
-            window.clone(),
-            "test",
-            "9876",
-        )
-        .unwrap();
+        let (app, window, _) = build(true);
         let nombre = "NombreCliente";
         let dni = "37846515";
         match agregar_cliente(app.state::<Mutex<Sistema>>(), window, nombre, dni, None) {
@@ -1438,21 +1401,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "existente")]
     fn agregar_cliente_existente_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
-        window = app.get_window("main").unwrap();
-        try_login(
-            app.state::<Mutex<Sistema>>(),
-            window.clone(),
-            "test",
-            "9876",
-        )
-        .unwrap();
+        let (app, window, _) = build(true);
         let nombre = "NombreCliente";
         let dni = "37846515";
         agregar_cliente(
@@ -1467,67 +1416,34 @@ mod tests {
     }
     #[test]
     fn get_clientes_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
-        window = app.get_window("main").unwrap();
-        try_login(
-            app.state::<Mutex<Sistema>>(),
-            window.clone(),
-            "test",
-            "9876",
-        )
-        .unwrap();
+        let (app, window, _) = build(true);
         let nombre = "NombreCliente";
         let dni = "37846515";
         let nombre2 = "Nombre2";
         let dni2 = "73222512";
-        if let Err(e) = agregar_cliente(
+        agregar_cliente(
             app.state::<Mutex<Sistema>>(),
             window.clone(),
             nombre,
             dni,
             None,
-        ) {
-            panic!("{e}");
-        }
-        if let Err(e) = agregar_cliente(
+        )
+        .unwrap();
+        agregar_cliente(
             app.state::<Mutex<Sistema>>(),
             window,
             nombre2,
             dni2,
             Some("1000.0"),
-        ) {
-            panic!("{e}");
-        }
-        let clientes = match get_clientes(app.state::<Mutex<Sistema>>()) {
-            Ok(cli) => cli,
-            Err(e) => panic!("{e}"),
-        };
+        )
+        .unwrap();
+        let clientes = get_clientes(app.state::<Mutex<Sistema>>()).unwrap();
         assert!(clientes[0].nombre() == nombre && clientes[1].nombre() == nombre2);
     }
     #[test]
     fn agregar_pesable_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
+        let (app, window, _) = build(true);
         let desc = "PesablePrueba";
-        window = app.get_window("main").unwrap();
-        try_login(
-            app.state::<Mutex<Sistema>>(),
-            window.clone(),
-            "test",
-            "9876",
-        )
-        .unwrap();
         agregar_pesable(
             window,
             app.state::<Mutex<Sistema>>(),
@@ -1546,22 +1462,8 @@ mod tests {
     #[test]
     #[should_panic(expected = "existente")]
     fn agregar_pesable_existente_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
+        let (app, window, _) = build(true);
         let desc = "PesablePrueba";
-        window = app.get_window("main").unwrap();
-        try_login(
-            app.state::<Mutex<Sistema>>(),
-            window.clone(),
-            "test",
-            "9876",
-        )
-        .unwrap();
         agregar_pesable(
             window.clone(),
             app.state::<Mutex<Sistema>>(),
@@ -1572,7 +1474,7 @@ mod tests {
             desc,
         )
         .unwrap();
-        match agregar_pesable(
+        agregar_pesable(
             window,
             app.state::<Mutex<Sistema>>(),
             "1000",
@@ -1580,29 +1482,12 @@ mod tests {
             "1400",
             "40",
             desc,
-        ) {
-            Ok(_) => (),
-            Err(e) => panic!("{e}"),
-        }
+        )
+        .unwrap();
     }
     #[test]
     fn agregar_producto_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
-
-        window = app.get_window("main").unwrap();
-        try_login(
-            app.state::<Mutex<Sistema>>(),
-            window.clone(),
-            "test",
-            "9876",
-        )
-        .unwrap();
+        let (app,window,_)=build(true);
         agregar_producto(
             window,
             app.state::<Mutex<Sistema>>(),
@@ -1632,21 +1517,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "existente")]
     fn agregar_producto_existente_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
-        window = app.get_window("main").unwrap();
-        try_login(
-            app.state::<Mutex<Sistema>>(),
-            window.clone(),
-            "test",
-            "9876",
-        )
-        .unwrap();
+        let (app,window,_)=build(true);
         agregar_producto(
             window.clone(),
             app.state::<Mutex<Sistema>>(),
@@ -1663,7 +1534,7 @@ mod tests {
             "Un",
         )
         .unwrap();
-        match agregar_producto(
+        agregar_producto(
             window,
             app.state::<Mutex<Sistema>>(),
             Vec::new(),
@@ -1677,32 +1548,14 @@ mod tests {
             "variedad",
             "5",
             "Un",
-        ) {
-            Ok(_) => (),
-            Err(e) => panic!("{e}"),
-        }
+        ).unwrap();
     }
     #[test]
     fn get_productos_filtrado_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
-        window = app.get_window("main").unwrap();
-        try_login(
-            app.state::<Mutex<Sistema>>(),
-            window.clone(),
-            "test",
-            "9876",
-        )
-        .unwrap();
+        let (app,window,_)=build(true);
         let marca = "marca";
         let tipo = "tipo_prod";
         let variedad = "variedad";
-
         agregar_producto(
             window.clone(),
             app.state::<Mutex<Sistema>>(),
@@ -1749,21 +1602,7 @@ mod tests {
     }
     #[test]
     fn agregar_producto_a_venta_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
-        window = app.get_window("main").unwrap();
-        try_login(
-            app.state::<Mutex<Sistema>>(),
-            window.clone(),
-            "test",
-            "9876",
-        )
-        .unwrap();
+        let (app,window,_)=build(true);
         let marca = "marca";
         let tipo = "tipo_prod";
         let variedad = "variedad";
@@ -1825,21 +1664,7 @@ mod tests {
     }
     #[test]
     fn agregar_producto_a_venta_repetido_test() {
-        let app = tauri::Builder::default()
-            .manage(Mutex::new(Sistema::test(None).unwrap()))
-            .any_thread()
-            .menu(get_menu())
-            .build(tauri::generate_context!())
-            .unwrap();
-        let window;
-        window = app.get_window("main").unwrap();
-        try_login(
-            app.state::<Mutex<Sistema>>(),
-            window.clone(),
-            "test",
-            "9876",
-        )
-        .unwrap();
+        let (app, window, _) = build(true);
         let marca = "marca";
         let tipo = "tipo_prod";
         let variedad = "variedad";
