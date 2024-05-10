@@ -1487,7 +1487,7 @@ mod tests {
     }
     #[test]
     fn agregar_producto_test() {
-        let (app,window,_)=build(true);
+        let (app, window, _) = build(true);
         agregar_producto(
             window,
             app.state::<Mutex<Sistema>>(),
@@ -1517,7 +1517,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "existente")]
     fn agregar_producto_existente_test() {
-        let (app,window,_)=build(true);
+        let (app, window, _) = build(true);
         agregar_producto(
             window.clone(),
             app.state::<Mutex<Sistema>>(),
@@ -1548,11 +1548,12 @@ mod tests {
             "variedad",
             "5",
             "Un",
-        ).unwrap();
+        )
+        .unwrap();
     }
     #[test]
     fn get_productos_filtrado_test() {
-        let (app,window,_)=build(true);
+        let (app, window, _) = build(true);
         let marca = "marca";
         let tipo = "tipo_prod";
         let variedad = "variedad";
@@ -1602,7 +1603,7 @@ mod tests {
     }
     #[test]
     fn agregar_producto_a_venta_test() {
-        let (app,window,_)=build(true);
+        let (app, window, _) = build(true);
         let marca = "marca";
         let tipo = "tipo_prod";
         let variedad = "variedad";
@@ -1707,5 +1708,38 @@ mod tests {
                 .monto_total()
                 == (2800.0)
         );
+    }
+    #[test]
+    fn agregar_rubro_test() {
+        let (app, window, _) = build(true);
+        let desc = "Rubro";
+        agregar_rubro(window, app.state::<Mutex<Sistema>>(), "6441", desc).unwrap();
+        let res = get_productos_filtrado(app.state::<Mutex<Sistema>>(), "rub").unwrap();
+        let rub = match &res[0] {
+            V::Prod(_) => panic!("Dio Prod"),
+            V::Pes(_) => panic!("Dio Pes"),
+            V::Rub(rub) => rub.1.clone(),
+        };
+        assert!(res.len() == 1 && rub.desc() == desc)
+    }
+    #[test]
+    #[should_panic(expected = "existente")]
+    fn agregar_rubro_repetido_test() {
+        let (app, window, _) = build(true);
+        let cod = "1465";
+        agregar_rubro(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            cod,
+            "UnaDesc",
+        )
+        .unwrap();
+        agregar_rubro(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            cod,
+            "OtraDesc",
+        )
+        .unwrap();
     }
 }
