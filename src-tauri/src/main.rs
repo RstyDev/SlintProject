@@ -1339,7 +1339,7 @@ mod tests {
     use super::*;
     use tauri::{App, AppHandle, Window};
 
-    fn build(login: bool) -> (App, Window, AppHandle) {
+    fn build(logged: bool) -> (App, Window, AppHandle) {
         let app = tauri::Builder::default()
             .manage(Mutex::new(Sistema::test(None).unwrap()))
             .any_thread()
@@ -1349,16 +1349,12 @@ mod tests {
         let win = app.get_window("main").unwrap();
 
         let handle = app.handle();
-        if login {
+        if logged {
             try_login(app.state::<Mutex<Sistema>>(), win.clone(), "test", "9876").unwrap();
         }
         (app, win, handle)
     }
 
-    #[test]
-    fn it_works_test() {
-        async_runtime::spawn(async { main() });
-    }
     #[test]
     fn not_open_login_test() {
         let (app, _, _) = build(false);
@@ -1741,5 +1737,22 @@ mod tests {
             "OtraDesc",
         )
         .unwrap();
+    }
+    #[test]
+    fn agregar_proveedor_sin_contacto_test(){
+        let (app,window,_)=build(true);
+        let prov="EjemploProv";
+        agregar_proveedor(window,app.state::<Mutex<Sistema>>(),prov,None).unwrap();
+        let provs=async_runtime::block_on(app.state::<Mutex<Sistema>>().lock().unwrap().proveedores()).clone();
+        assert!(provs.len()==1 && provs[0].nombre().as_ref()==prov && provs[0].contacto().is_none());
+    }
+    #[test]
+    fn agregar_proveedor_con_contacto_test(){
+        let (app,window,_) = build(true);
+        let prov = "EjemploProv2";
+        let cont = "54161";
+        agregar_proveedor(window, app.state::<Mutex<Sistema>>(), prov, Some(cont)).unwrap();
+        let provs = async_runtime::block_on(app.state::<Mutex<Sistema>>().lock().unwrap().proveedores()).clone();
+        assert!(provs.len()==1 && provs[0].nombre().as_ref()==prov && provs[0].contacto().unwrap()==cont.parse::<i64>().unwrap())
     }
 }
