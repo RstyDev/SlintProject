@@ -105,12 +105,22 @@ fn agregar_pesable<'a>(
     descripcion: &'a str,
 ) -> Res<String> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.access();
     match sis.arc_user().rango() {
         Rango::Admin => {
             let precio_peso = precio_peso.parse::<f32>().map_err(|e| e.to_string())?;
             let codigo = codigo.parse::<i64>().map_err(|e| e.to_string())?;
             let costo_kilo = costo_kilo.parse::<f32>().map_err(|e| e.to_string())?;
-            let porcentaje = porcentaje.parse::<f32>().map_err(|e| e.to_string())?;
+            let porcentaje = match porcentaje.parse::<f32>().map_err(|e| e.to_string()) {
+                Ok(res) => {
+                    println!("salio bien {}", res);
+                    res
+                }
+                Err(e) => {
+                    println!("salio mal {e}");
+                    return Err(e.into());
+                }
+            };
             let pesable = async_runtime::block_on(Pesable::new_to_db(
                 sis.write_db(),
                 codigo,
@@ -142,6 +152,7 @@ fn agregar_producto(
     presentacion: &str,
 ) -> Res<String> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.access();
     match sis.arc_user().rango() {
         Rango::Admin => {
             let prod = block_on(sis.agregar_producto(
@@ -1336,8 +1347,11 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    use self::mods::Producto;
+
     use super::*;
     use tauri::{App, AppHandle, Window};
+    const INCORRECT : &str = "Incorrect";
 
     fn build(logged: bool) -> (App, Window, AppHandle) {
         let app = tauri::Builder::default()
@@ -1411,6 +1425,19 @@ mod tests {
         agregar_cliente(app.state::<Mutex<Sistema>>(), window, nombre, dni, None).unwrap();
     }
     #[test]
+    #[should_panic(expected = "Sesión no iniciada")]
+    fn not_logged_agregar_cliente_test() {
+        let (app, window, _) = build(false);
+        agregar_cliente(
+            app.state::<Mutex<Sistema>>(),
+            window,
+            "nombre",
+            "464511",
+            None,
+        )
+        .unwrap();
+    }
+    #[test]
     fn get_clientes_test() {
         let (app, window, _) = build(true);
         let nombre = "NombreCliente";
@@ -1435,6 +1462,12 @@ mod tests {
         .unwrap();
         let clientes = get_clientes(app.state::<Mutex<Sistema>>()).unwrap();
         assert!(clientes[0].nombre() == nombre && clientes[1].nombre() == nombre2);
+    }
+    #[test]
+    #[should_panic(expected = "Sesión no iniciada")]
+    fn not_logged_get_clientes() {
+        let (app, _, _) = build(false);
+        get_clientes(app.state::<Mutex<Sistema>>()).unwrap();
     }
     #[test]
     fn agregar_pesable_test() {
@@ -1463,9 +1496,9 @@ mod tests {
         agregar_pesable(
             window.clone(),
             app.state::<Mutex<Sistema>>(),
-            "1000",
-            "1541546",
             "1400",
+            "1541546",
+            "1000",
             "40",
             desc,
         )
@@ -1478,6 +1511,81 @@ mod tests {
             "1400",
             "40",
             desc,
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "invalid float")]
+    fn not_precio_peso_agregar_pesable_test() {
+        let (app, window, _) = build(true);
+        agregar_pesable(
+            window,
+            app.state::<Mutex<Sistema>>(),
+            INCORRECT,
+            "1651351",
+            "1800",
+            "30",
+            "descripcion",
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "invalid digit")]
+    fn not_codigo_agregar_pesable_test() {
+        let (app, window, _) = build(true);
+        agregar_pesable(
+            window,
+            app.state::<Mutex<Sistema>>(),
+            "1450",
+            INCORRECT,
+            "1800",
+            "30",
+            "descripcion",
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "invalid float")]
+    fn not_costo_kilo_agregar_pesable_test() {
+        let (app, window, _) = build(true);
+        agregar_pesable(
+            window,
+            app.state::<Mutex<Sistema>>(),
+            "1458",
+            "1651351",
+            INCORRECT,
+            "30",
+            "descripcion",
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "invalid float")]
+    fn not_porcentaje_agregar_pesable_test() {
+        let (app, window, _) = build(true);
+        agregar_pesable(
+            window,
+            app.state::<Mutex<Sistema>>(),
+            "4810",
+            "1651351",
+            "1800",
+            INCORRECT,
+            "descripcion",
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "Sesión no iniciada")]
+    fn not_logged_agregar_pesable_test() {
+        let (app, window, _) = build(false);
+        agregar_pesable(
+            window,
+            app.state::<Mutex<Sistema>>(),
+            "1240",
+            "1651351",
+            "1800",
+            "30",
+            "descripcion",
         )
         .unwrap();
     }
@@ -1544,6 +1652,153 @@ mod tests {
             "variedad",
             "5",
             "Un",
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "Sesión no iniciada")]
+    fn not_logged_agregar_producto_test(){
+        let (app, window, _) = build(false);
+        agregar_producto(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec!["51435613"],
+            "1400",
+            "40",
+            "1000",
+            "tipo_producto",
+            "marca",
+            "variedad",
+            "5",
+            "Un",
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "ParseInt")]
+    fn not_code_agregar_producto_test(){
+        let (app, window, _) = build(true);
+        agregar_producto(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec![INCORRECT],
+            "1400",
+            "40",
+            "1000",
+            "tipo_producto",
+            "marca",
+            "variedad",
+            "5",
+            "Un",
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "flotante")]
+    fn not_precio_de_venta_agregar_producto_test(){
+        let (app, window, _) = build(true);
+        agregar_producto(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec!["51435613"],
+            INCORRECT,
+            "40",
+            "1000",
+            "tipo_producto",
+            "marca",
+            "variedad",
+            "5",
+            "Un",
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "flotante")]
+    fn not_porcentaje_agregar_producto_test(){
+        let (app, window, _) = build(true);
+        agregar_producto(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec!["51435613"],
+            "1400",
+            INCORRECT,
+            "1000",
+            "tipo_producto",
+            "marca",
+            "variedad",
+            "5",
+            "Un",
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "flotante")]
+    fn not_precio_costo_agregar_producto_test(){
+        let (app, window, _) = build(true);
+        agregar_producto(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec!["51435613"],
+            "1400",
+            "40",
+            INCORRECT,
+            "tipo_producto",
+            "marca",
+            "variedad",
+            "5",
+            "Un",
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "ParseInt")]
+    fn not_cantidad_agregar_producto_test(){
+        let (app, window, _) = build(true);
+        agregar_producto(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec!["51435613"],
+            "1400",
+            "40",
+            "1000",
+            "tipo_producto",
+            "marca",
+            "variedad",
+            INCORRECT,
+            "Un",
+        )
+        .unwrap();
+    }
+    #[test]
+    #[should_panic(expected = "no posible")]
+    fn not_presentacion_agregar_producto_test(){
+        let (app, window, _) = build(true);
+        agregar_producto(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec!["51435613"],
+            "1400",
+            "40",
+            "1000",
+            "tipo_producto",
+            "marca",
+            "variedad",
+            "5",
+            INCORRECT,
         )
         .unwrap();
     }
@@ -1660,6 +1915,12 @@ mod tests {
         );
     }
     #[test]
+    #[should_panic(expected="No encontrado")]
+    fn not_exist_agregar_producto_a_venta_test(){
+        let (app,window,_)=build(true);
+        agregar_producto_a_venta(app.state::<Mutex<Sistema>>(), window, V::Prod((0,Producto::new( 541651,  Vec::new(),  1400.0,  40.0,  1000.0,  "tipo",  "marca",  "variedad",  mods::Presentacion::Un(1)))), true).unwrap();
+    }
+    #[test]
     fn agregar_producto_a_venta_repetido_test() {
         let (app, window, _) = build(true);
         let marca = "marca";
@@ -1739,20 +2000,42 @@ mod tests {
         .unwrap();
     }
     #[test]
-    fn agregar_proveedor_sin_contacto_test(){
-        let (app,window,_)=build(true);
-        let prov="EjemploProv";
-        agregar_proveedor(window,app.state::<Mutex<Sistema>>(),prov,None).unwrap();
-        let provs=async_runtime::block_on(app.state::<Mutex<Sistema>>().lock().unwrap().proveedores()).clone();
-        assert!(provs.len()==1 && provs[0].nombre().as_ref()==prov && provs[0].contacto().is_none());
+    fn agregar_proveedor_sin_contacto_test() {
+        let (app, window, _) = build(true);
+        let prov = "EjemploProv";
+        agregar_proveedor(window, app.state::<Mutex<Sistema>>(), prov, None).unwrap();
+        let provs =
+            async_runtime::block_on(app.state::<Mutex<Sistema>>().lock().unwrap().proveedores())
+                .clone();
+        assert!(
+            provs.len() == 1 && provs[0].nombre().as_ref() == prov && provs[0].contacto().is_none()
+        );
     }
     #[test]
-    fn agregar_proveedor_con_contacto_test(){
-        let (app,window,_) = build(true);
+    fn agregar_proveedor_con_contacto_test() {
+        let (app, window, _) = build(true);
         let prov = "EjemploProv2";
         let cont = "54161";
         agregar_proveedor(window, app.state::<Mutex<Sistema>>(), prov, Some(cont)).unwrap();
-        let provs = async_runtime::block_on(app.state::<Mutex<Sistema>>().lock().unwrap().proveedores()).clone();
-        assert!(provs.len()==1 && provs[0].nombre().as_ref()==prov && provs[0].contacto().unwrap()==cont.parse::<i64>().unwrap())
+        let provs =
+            async_runtime::block_on(app.state::<Mutex<Sistema>>().lock().unwrap().proveedores())
+                .clone();
+        assert!(
+            provs.len() == 1
+                && provs[0].nombre().as_ref() == prov
+                && provs[0].contacto().unwrap() == cont.parse::<i64>().unwrap()
+        )
+    }
+    #[test]
+    #[should_panic(expected = "invalid digit")]
+    fn not_contacto_agregar_proveedor_test() {
+        let (app, window, _) = build(true);
+        agregar_proveedor(
+            window,
+            app.state::<Mutex<Sistema>>(),
+            "EjemploProv",
+            Some(INCORRECT),
+        )
+        .unwrap();
     }
 }
