@@ -1,7 +1,5 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use entity::prelude::{CodeDB, PesDB, RubDB};
-
-use mods::{
+use super::{
     get_hash ,Caja, Cli, Config, Pago, Pesable, Rango, Result as Res, Rubro, Sistema, User,
     Valuable as V, Venta,
 };
@@ -17,10 +15,17 @@ use tauri::{
 const INDEX: &str = "index.html";
 const DENEGADO: &str = "Permiso denegado";
 #[derive(Clone, Serialize)]
-struct Payload {
+pub struct Payload {
     message: Option<String>,
     pos: Option<bool>,
     val: Option<V>,
+}
+impl Payload{
+    pub fn new(message: Option<String>,
+        pos: Option<bool>,
+        val: Option<V>)->Payload{
+            Payload { message, pos, val }
+        }
 }
 pub fn get_menu() -> Menu {
     let cerrar_caja_menu = CustomMenuItem::new(String::from("cerrar caja"), "Cerrar caja");
@@ -62,8 +67,8 @@ fn set_menus(menu: MenuHandle, state: bool) -> Result<()> {
     menu.get_item("add user").set_enabled(state)?;
     Ok(menu.get_item("edit settings").set_enabled(state)?)
 }
-#[tauri::command]
-pub fn agregar_cliente(
+
+pub fn agregar_cliente_2(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
     nombre: &str,
@@ -93,11 +98,11 @@ pub fn agregar_cliente(
             break;
         }
     }
-    close_window(window)?;
+    close_window_2(window)?;
     Ok(cli)
 }
-#[tauri::command]
-pub fn agregar_pago(
+
+pub fn agregar_pago_2(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     medio_pago: &str,
@@ -127,8 +132,7 @@ pub fn agregar_pago(
     }
     Ok(sis.venta(pos).pagos())
 }
-#[tauri::command]
-pub fn agregar_pesable<'a>(
+pub fn agregar_pesable_2<'a>(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     precio_peso: &str,
@@ -162,14 +166,13 @@ pub fn agregar_pesable<'a>(
                 costo_kilo,
                 descripcion,
             ))?;
-            close_window(window)?;
+            close_window_2(window)?;
             Ok(pesable.descripcion().to_string())
         }
         Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
-#[tauri::command]
-pub fn agregar_producto(
+pub fn agregar_producto_2(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     proveedores: Vec<&str>,
@@ -201,14 +204,13 @@ pub fn agregar_producto(
                 cantidad,
                 presentacion,
             ))?;
-            close_window(window)?;
+            close_window_2(window)?;
             Ok(format!("Agregado {prod:#?}"))
         }
         Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
-#[tauri::command]
-pub fn agregar_producto_a_venta(
+pub fn agregar_producto_a_venta_2(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
     prod: V,
@@ -230,14 +232,14 @@ pub fn agregar_producto_a_venta(
             }
         }
         V::Pes(a) => {
-            async_runtime::spawn(open_select_amount(
+            async_runtime::spawn(open_select_amount_2(
                 window.app_handle(),
                 V::Pes(a.clone()),
                 pos,
             ));
         }
         V::Rub(a) => {
-            async_runtime::spawn(open_select_amount(
+            async_runtime::spawn(open_select_amount_2(
                 window.app_handle(),
                 V::Rub(a.clone()),
                 pos,
@@ -247,8 +249,7 @@ pub fn agregar_producto_a_venta(
     Ok(sis.venta(pos))
 }
 
-#[tauri::command]
-pub fn agregar_proveedor(
+pub fn agregar_proveedor_2(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     proveedor: &str,
@@ -268,13 +269,12 @@ pub fn agregar_proveedor(
     match sis.arc_user().rango() {
         Rango::Admin => {
             sis.agregar_proveedor(proveedor, contacto)?;
-            Ok(close_window(window)?)
+            Ok(close_window_2(window)?)
         }
         Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
-#[tauri::command]
-pub fn agregar_rubro(
+pub fn agregar_rubro_2(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     codigo: &str,
@@ -290,14 +290,13 @@ pub fn agregar_rubro(
                 descripcion,
                 sis.write_db(),
             ))?;
-            close_window(window)?;
+            close_window_2(window)?;
             Ok(rubro.descripcion().to_string())
         }
         Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
-#[tauri::command]
-pub fn agregar_rub_o_pes_a_venta(
+pub fn agregar_rub_o_pes_a_venta_2(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
     val: V,
@@ -320,10 +319,9 @@ pub fn agregar_rub_o_pes_a_venta(
             break;
         }
     }
-    Ok(close_window(window)?)
+    Ok(close_window_2(window)?)
 }
-#[tauri::command]
-pub fn agregar_usuario(
+pub fn agregar_usuario_2(
     window: tauri::Window,
     sistema: State<Mutex<Sistema>>,
     id: &str,
@@ -335,16 +333,14 @@ pub fn agregar_usuario(
     match sis.arc_user().rango() {
         Rango::Admin => {
             let res = sis.agregar_usuario(id, nombre, pass, rango)?;
-            close_window(window)?;
+            close_window_2(window)?;
             Ok(res)
         }
         Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
-
-#[tauri::command]
-pub async fn cerrar_sesion<'ab>(
-    sistema: State<'ab, Mutex<Sistema>>,
+pub async fn cerrar_sesion_2<'a>(
+    sistema: State<'a, Mutex<Sistema>>,
     handle: tauri::AppHandle,
 ) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
@@ -378,14 +374,12 @@ pub async fn cerrar_sesion<'ab>(
         }
     }
 }
-#[tauri::command]
-pub fn cancelar_venta(sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()> {
+pub fn cancelar_venta_2(sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.cancelar_venta(pos).map_err(|e| e.to_string())
 }
-#[tauri::command]
-pub fn cerrar_caja(
+pub fn cerrar_caja_2(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
     monto_actual: f32,
@@ -393,10 +387,9 @@ pub fn cerrar_caja(
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.cerrar_caja(monto_actual)?;
-    Ok(close_window(window)?)
+    Ok(close_window_2(window)?)
 }
-#[tauri::command]
-pub async fn check_codes(code: i64) -> Res<bool> {
+pub async fn check_codes_2(code: i64) -> Res<bool> {
     let db = Database::connect("sqlite://db.sqlite?mode=ro")
         .await
         .map_err(|e| e.to_string())?;
@@ -434,8 +427,7 @@ pub async fn check_codes(code: i64) -> Res<bool> {
     };
     Ok(disp)
 }
-#[tauri::command]
-pub fn close_window(window: tauri::Window) -> Res<()> {
+pub fn close_window_2(window: tauri::Window) -> Res<()> {
     loop {
         if window.close().is_ok() {
             break;
@@ -443,8 +435,7 @@ pub fn close_window(window: tauri::Window) -> Res<()> {
     }
     Ok(())
 }
-#[tauri::command]
-pub fn descontar_producto_de_venta(
+pub fn descontar_producto_de_venta_2(
     sistema: State<Mutex<Sistema>>,
     index: usize,
     pos: bool,
@@ -454,29 +445,25 @@ pub fn descontar_producto_de_venta(
     let res = sis.descontar_producto_de_venta(index, pos)?;
     Ok(res)
 }
-#[tauri::command]
-pub fn editar_producto(sistema: State<Mutex<Sistema>>, prod: V) -> Res<()> {
+pub fn editar_producto_2(sistema: State<Mutex<Sistema>>, prod: V) -> Res<()> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.editar_valuable(prod);
     Ok(())
 }
-#[tauri::command]
-pub fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>> {
+pub fn eliminar_pago_2(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>> {
     let id = id.parse::<u32>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.eliminar_pago(pos, id).map_err(|e| e.to_string())
 }
-#[tauri::command]
-pub fn eliminar_producto(sistema: State<Mutex<Sistema>>, prod: V) -> Res<()> {
+pub fn eliminar_producto_2(sistema: State<Mutex<Sistema>>, prod: V) -> Res<()> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.eliminar_valuable(prod);
     Ok(())
 }
-#[tauri::command]
-pub fn eliminar_producto_de_venta(
+pub fn eliminar_producto_de_venta_2(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
     index: usize,
@@ -497,53 +484,44 @@ pub fn eliminar_producto_de_venta(
     }
     Ok(res)
 }
-#[tauri::command]
-pub fn eliminar_usuario(sistema: State<Mutex<Sistema>>, user: User) -> Res<()> {
+pub fn eliminar_usuario_2(sistema: State<Mutex<Sistema>>, user: User) -> Res<()> {
     let res = sistema.lock().map_err(|e| e.to_string())?;
     res.access();
     Ok(res.eliminar_usuario(user)?)
 }
-#[tauri::command]
-pub fn get_caja(sistema: State<Mutex<Sistema>>) -> Res<Caja> {
+pub fn get_caja_2(sistema: State<Mutex<Sistema>>) -> Res<Caja> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.caja().clone())
 }
-#[tauri::command]
-pub fn get_clientes(sistema: State<Mutex<Sistema>>) -> Res<Vec<Cli>> {
+pub fn get_clientes_2(sistema: State<Mutex<Sistema>>) -> Res<Vec<Cli>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(async_runtime::block_on(sis.get_clientes())?)
 }
-#[tauri::command]
-pub fn get_configs(sistema: State<Mutex<Sistema>>) -> Res<Config> {
+pub fn get_configs_2(sistema: State<Mutex<Sistema>>) -> Res<Config> {
     Ok(sistema.lock().map_err(|e| e.to_string())?.configs().clone())
 }
-#[tauri::command]
-pub fn get_descripciones(prods: Vec<V>, conf: Config) -> Vec<(String, Option<f32>)> {
+pub fn get_descripciones_2(prods: Vec<V>, conf: Config) -> Vec<(String, Option<f32>)> {
     prods
         .iter()
         .map(|p| (p.descripcion(&conf), p.price(&conf.politica())))
         .collect::<Vec<(String, Option<f32>)>>()
 }
-#[tauri::command]
-pub fn get_descripcion_valuable(prod: V, conf: Config) -> String {
+pub fn get_descripcion_valuable_2(prod: V, conf: Config) -> String {
     prod.descripcion(&conf)
 }
-#[tauri::command]
-pub fn get_deuda(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<f32> {
+pub fn get_deuda_2(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<f32> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.get_deuda(cliente).map_err(|e| e.to_string())
 }
-#[tauri::command]
-pub fn get_deuda_detalle(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<Vec<Venta>> {
+pub fn get_deuda_detalle_2(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<Vec<Venta>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.get_deuda_detalle(cliente).map_err(|e| e.to_string())
 }
-#[tauri::command]
-pub fn get_filtrado(
+pub fn get_filtrado_2(
     sistema: State<Mutex<Sistema>>,
     filtro: &str,
     tipo_filtro: &str,
@@ -556,12 +534,10 @@ pub fn get_filtrado(
         _ => Err(format!("Parámetro incorrecto {tipo_filtro}")),
     }
 }
-#[tauri::command]
-pub fn get_log_state(sistema: State<Mutex<Sistema>>) -> Res<bool> {
+pub fn get_log_state_2(sistema: State<Mutex<Sistema>>) -> Res<bool> {
     Ok(sistema.lock().map_err(|e| e.to_string())?.user().is_some())
 }
-#[tauri::command]
-pub fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
+pub fn get_medios_pago_2(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis
@@ -571,16 +547,14 @@ pub fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
         .map(|m| m.to_string())
         .collect())
 }
-#[tauri::command]
-pub fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>> {
+pub fn get_productos_filtrado_2(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(async_runtime::block_on(
         sis.val_filtrado(filtro, sis.read_db()),
     )?)
 }
-#[tauri::command]
-pub fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Res<Vec<String>> {
+pub fn get_proveedores_2(sistema: State<'_, Mutex<Sistema>>) -> Res<Vec<String>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(async_runtime::block_on(sis.proveedores())
@@ -588,8 +562,7 @@ pub fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Res<Vec<String>> {
         .map(|x| x.to_string())
         .collect())
 }
-#[tauri::command]
-pub fn get_rango(sistema: State<Mutex<Sistema>>) -> Res<Rango> {
+pub fn get_rango_2(sistema: State<Mutex<Sistema>>) -> Res<Rango> {
     Ok(sistema
         .lock()
         .map_err(|e| e.to_string())?
@@ -597,14 +570,12 @@ pub fn get_rango(sistema: State<Mutex<Sistema>>) -> Res<Rango> {
         .rango()
         .clone())
 }
-#[tauri::command]
-pub fn get_stash(sistema: State<Mutex<Sistema>>) -> Res<Vec<Venta>> {
+pub fn get_stash_2(sistema: State<Mutex<Sistema>>) -> Res<Vec<Venta>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.stash().clone())
 }
-#[tauri::command]
-pub fn get_user(sistema: State<Mutex<Sistema>>) -> Res<User> {
+pub fn get_user_2(sistema: State<Mutex<Sistema>>) -> Res<User> {
     Ok(sistema
         .lock()
         .map_err(|e| e.to_string())?
@@ -612,8 +583,7 @@ pub fn get_user(sistema: State<Mutex<Sistema>>) -> Res<User> {
         .as_ref()
         .clone())
 }
-#[tauri::command]
-pub fn get_venta_actual(
+pub fn get_venta_actual_2(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
     pos: bool,
@@ -647,8 +617,7 @@ pub fn get_venta_actual(
     println!("{:#?}", venta);
     Ok(venta)
 }
-#[tauri::command]
-pub fn hacer_egreso(
+pub fn hacer_egreso_2(
     sistema: State<Mutex<Sistema>>,
     monto: f32,
     descripcion: Option<&str>,
@@ -656,8 +625,7 @@ pub fn hacer_egreso(
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     Ok(sis.hacer_egreso(monto, descripcion.map(|d| Arc::from(d)))?)
 }
-#[tauri::command]
-pub fn hacer_ingreso(
+pub fn hacer_ingreso_2(
     sistema: State<Mutex<Sistema>>,
     monto: f32,
     descripcion: Option<&str>,
@@ -665,8 +633,7 @@ pub fn hacer_ingreso(
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     Ok(sis.hacer_ingreso(monto, descripcion.map(|d| Arc::from(d)))?)
 }
-#[tauri::command]
-pub fn incrementar_producto_a_venta(
+pub fn incrementar_producto_a_venta_2(
     sistema: State<Mutex<Sistema>>,
     index: usize,
     pos: bool,
@@ -676,8 +643,7 @@ pub fn incrementar_producto_a_venta(
     let venta = sis.incrementar_producto_a_venta(index, pos)?;
     Ok(venta)
 }
-#[tauri::command]
-pub async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
+pub async fn open_add_prov_2(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("add-prov") {
         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
@@ -699,8 +665,7 @@ pub async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
         }
     }
 }
-#[tauri::command]
-pub async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
+pub async fn open_add_product_2(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("add-prod") {
         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
@@ -723,8 +688,7 @@ pub async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
     }
 }
 
-#[tauri::command]
-pub async fn open_add_user(handle: tauri::AppHandle) -> Res<()> {
+pub async fn open_add_user_2(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("add-user") {
         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
@@ -746,8 +710,7 @@ pub async fn open_add_user(handle: tauri::AppHandle) -> Res<()> {
         }
     }
 }
-#[tauri::command]
-pub async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
+pub async fn open_add_cliente_2(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("add-cliente") {
         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
@@ -769,8 +732,7 @@ pub async fn open_add_cliente(handle: tauri::AppHandle) -> Res<()> {
         }
     }
 }
-#[tauri::command]
-pub async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()> {
+pub async fn open_cancelar_venta_2(handle: tauri::AppHandle, act: bool) -> Res<()> {
     //TODO!(Hay que ver si es necesario usar un mismo html o no asi evi el window.emit)
     match handle.get_window("confirm-cancel") {
         Some(window) => {
@@ -806,8 +768,7 @@ pub async fn open_cancelar_venta(handle: tauri::AppHandle, act: bool) -> Res<()>
         }
     }
 }
-#[tauri::command]
-pub async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
+pub async fn open_cerrar_caja_2(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("cerrar-caja") {
         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
@@ -829,8 +790,7 @@ pub async fn open_cerrar_caja(handle: tauri::AppHandle) -> Res<()> {
         }
     }
 }
-#[tauri::command]
-pub async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
+pub async fn open_confirm_stash_2(handle: tauri::AppHandle, act: bool) -> Res<()> {
     //TODO!(Aca la otra parte que usa el confirm)
     match handle.get_window("confirm-stash") {
         Some(window) => {
@@ -888,8 +848,7 @@ pub async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> 
         }
     }
 }
-#[tauri::command]
-pub async fn open_edit_settings(handle: tauri::AppHandle) -> Res<()> {
+pub async fn open_edit_settings_2(handle: tauri::AppHandle) -> Res<()> {
     match handle.get_window("edit-settings") {
         Some(window) => Ok(window.show().map_err(|e| e.to_string())?),
         None => {
@@ -911,8 +870,7 @@ pub async fn open_edit_settings(handle: tauri::AppHandle) -> Res<()> {
         }
     }
 }
-#[tauri::command]
-pub async fn open_login(handle: tauri::AppHandle) -> Res<()> {
+pub async fn open_login_2(handle: tauri::AppHandle) -> Res<()> {
     handle
         .get_window("main")
         .unwrap()
@@ -945,8 +903,7 @@ pub async fn open_login(handle: tauri::AppHandle) -> Res<()> {
         }
     }
 }
-#[tauri::command]
-pub async fn open_select_amount(handle: tauri::AppHandle, val: V, pos: bool) -> Res<()> {
+pub async fn open_select_amount_2(handle: tauri::AppHandle, val: V, pos: bool) -> Res<()> {
     match handle.get_window("select-amount") {
         Some(window) => {
             window.show().map_err(|e| e.to_string())?;
@@ -1007,8 +964,7 @@ pub async fn open_select_amount(handle: tauri::AppHandle, val: V, pos: bool) -> 
         }
     }
 }
-#[tauri::command]
-pub async fn open_stash<'a>(
+pub async fn open_stash_2<'a>(
     handle: tauri::AppHandle,
     sistema: State<'a, Mutex<Sistema>>,
     pos: bool,
@@ -1065,8 +1021,7 @@ pub async fn open_stash<'a>(
         Ok(())
     }
 }
-#[tauri::command]
-pub fn pagar_deuda_especifica(
+pub fn pagar_deuda_especifica_2(
     sistema: State<Mutex<Sistema>>,
     cliente: i32,
     venta: Venta,
@@ -1075,14 +1030,65 @@ pub fn pagar_deuda_especifica(
     sis.access();
     Ok(sis.pagar_deuda_especifica(cliente, venta)?)
 }
-#[tauri::command]
-pub fn pagar_deuda_general(sistema: State<Mutex<Sistema>>, cliente: i32, monto: f32) -> Res<f32> {
+pub fn pagar_deuda_general_2(sistema: State<Mutex<Sistema>>, cliente: i32, monto: f32) -> Res<f32> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.pagar_deuda_general(cliente, monto)?)
 }
-#[tauri::command]
-pub fn try_login(
+pub fn set_cantidad_producto_venta_2(
+    sistema: State<Mutex<Sistema>>,
+    index: usize,
+    cantidad: &str,
+    pos: bool,
+) -> Res<Venta> {
+    let cantidad = cantidad.parse::<f32>().map_err(|e| e.to_string())?;
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.access();
+    Ok(sis.set_cantidad_producto_venta(index, cantidad, pos)?)
+}
+pub fn set_cliente_2(sistema: State<Mutex<Sistema>>, id: i32, pos: bool) -> Res<Venta> {
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.set_cliente(id, pos)?;
+    Ok(sis.venta(pos))
+}
+pub fn set_configs_2(
+    window: tauri::Window,
+    sistema: State<Mutex<Sistema>>,
+    configs: Config,
+) -> Res<()> {
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    match sis.arc_user().rango() {
+        Rango::Admin => {
+            sis.set_configs(configs);
+            Ok(close_window_2(window)?)
+        }
+        Rango::Cajero => Err(DENEGADO.to_string()),
+    }
+}
+
+pub fn stash_n_close_2(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()> {
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    sis.access();
+    sis.stash_sale(pos)?;
+    loop {
+        if window
+            .emit(
+                "main",
+                Payload {
+                    message: Some("dibujar venta".into()),
+                    pos: None,
+                    val: None,
+                },
+            )
+            .is_ok()
+        {
+            break;
+        }
+    }
+    println!("{:#?}", sis.stash());
+    Ok(close_window_2(window)?)
+}
+pub fn try_login_2(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
     id: &str,
@@ -1120,67 +1126,9 @@ pub fn try_login(
     if let Some(window) = tauri::Window::get_window(&window, "main") {
         window.maximize().map_err(|e| e.to_string())?;
     }
-    Ok(close_window(window)?)
+    Ok(close_window_2(window)?)
 }
-#[tauri::command]
-pub fn set_cantidad_producto_venta(
-    sistema: State<Mutex<Sistema>>,
-    index: usize,
-    cantidad: &str,
-    pos: bool,
-) -> Res<Venta> {
-    let cantidad = cantidad.parse::<f32>().map_err(|e| e.to_string())?;
-    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
-    sis.access();
-    Ok(sis.set_cantidad_producto_venta(index, cantidad, pos)?)
-}
-#[tauri::command]
-pub fn set_cliente(sistema: State<Mutex<Sistema>>, id: i32, pos: bool) -> Res<Venta> {
-    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
-    sis.set_cliente(id, pos)?;
-    Ok(sis.venta(pos))
-}
-#[tauri::command]
-pub fn set_configs(
-    window: tauri::Window,
-    sistema: State<Mutex<Sistema>>,
-    configs: Config,
-) -> Res<()> {
-    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
-    match sis.arc_user().rango() {
-        Rango::Admin => {
-            sis.set_configs(configs);
-            Ok(close_window(window)?)
-        }
-        Rango::Cajero => Err(DENEGADO.to_string()),
-    }
-}
-
-#[tauri::command]
-pub fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()> {
-    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
-    sis.access();
-    sis.stash_sale(pos)?;
-    loop {
-        if window
-            .emit(
-                "main",
-                Payload {
-                    message: Some("dibujar venta".into()),
-                    pos: None,
-                    val: None,
-                },
-            )
-            .is_ok()
-        {
-            break;
-        }
-    }
-    println!("{:#?}", sis.stash());
-    Ok(close_window(window)?)
-}
-#[tauri::command]
-pub fn unstash_sale(
+pub fn unstash_sale_2(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
     pos: bool,

@@ -1,11 +1,15 @@
 #[cfg(test)]
 mod tests {
-    use super::cmds::*;
 
-    use self::mods::Producto;
-    use super::*;
+    use crate::*;
 
-    use tauri::{App, AppHandle, Window};
+
+    use super::super::*;
+
+    
+    
+
+    use tauri::{async_runtime, App, AppHandle, Manager, Window};
     const INCORRECT: &str = "Incorrect";
 
     fn build(logged: bool) -> (App, Window, AppHandle) {
