@@ -3,14 +3,11 @@
 mod mods;
 
 use mods::{
-    Caja, Cli, Config, Pago,  Rango, Result as Res,  Sistema, User,
-    Valuable as V, Venta,cmd::*
+    cmd::*, Caja, Cli, Config, Pago, Rango, Result as Res, Sistema, User, Valuable as V, Venta,
 };
 
 use std::sync::Mutex;
-use tauri::{
-     async_runtime, Manager, State
-};
+use tauri::{async_runtime, Manager, State};
 #[tauri::command]
 fn agregar_cliente(
     sistema: State<Mutex<Sistema>>,
@@ -19,7 +16,7 @@ fn agregar_cliente(
     dni: &str,
     limite: Option<&str>,
 ) -> Res<Cli> {
-    agregar_cliente_2(sistema,window,nombre,dni,limite)
+    agregar_cliente_2(sistema, window, nombre, dni, limite)
 }
 #[tauri::command]
 fn agregar_pago(
@@ -28,8 +25,8 @@ fn agregar_pago(
     medio_pago: &str,
     monto: &str,
     pos: bool,
-) -> Res<Vec<Pago>>{
-    agregar_pago_2(window,sistema,medio_pago,monto,pos)
+) -> Res<Vec<Pago>> {
+    agregar_pago_2(window, sistema, medio_pago, monto, pos)
 }
 #[tauri::command]
 fn agregar_pesable(
@@ -40,8 +37,16 @@ fn agregar_pesable(
     costo_kilo: &str,
     porcentaje: &str,
     descripcion: &str,
-) -> Res<String>{
-    agregar_pesable_2(window,sistema,precio_peso,codigo,costo_kilo,porcentaje,descripcion)
+) -> Res<String> {
+    agregar_pesable_2(
+        window,
+        sistema,
+        precio_peso,
+        codigo,
+        costo_kilo,
+        porcentaje,
+        descripcion,
+    )
 }
 #[tauri::command]
 fn agregar_producto(
@@ -58,10 +63,22 @@ fn agregar_producto(
     variedad: &str,
     cantidad: &str,
     presentacion: &str,
-) -> Res<String>{
-    agregar_producto_2(window,sistema,proveedores,codigos_prov,codigos_de_barras
-        ,precio_de_venta,porcentaje,precio_de_costo,tipo_producto,
-    marca,variedad,cantidad,presentacion)
+) -> Res<String> {
+    agregar_producto_2(
+        window,
+        sistema,
+        proveedores,
+        codigos_prov,
+        codigos_de_barras,
+        precio_de_venta,
+        porcentaje,
+        precio_de_costo,
+        tipo_producto,
+        marca,
+        variedad,
+        cantidad,
+        presentacion,
+    )
 }
 #[tauri::command]
 fn agregar_producto_a_venta(
@@ -69,8 +86,8 @@ fn agregar_producto_a_venta(
     window: tauri::Window,
     prod: V,
     pos: bool,
-) -> Res<Venta>{
-    agregar_producto_a_venta_2(sistema,window,prod,pos)
+) -> Res<Venta> {
+    agregar_producto_a_venta_2(sistema, window, prod, pos)
 }
 #[tauri::command]
 fn agregar_proveedor(
@@ -79,7 +96,7 @@ fn agregar_proveedor(
     proveedor: &str,
     contacto: Option<&str>,
 ) -> Res<()> {
-    agregar_proveedor_2(window,sistema,proveedor,contacto)
+    agregar_proveedor_2(window, sistema, proveedor, contacto)
 }
 #[tauri::command]
 fn agregar_rubro(
@@ -87,8 +104,8 @@ fn agregar_rubro(
     sistema: State<Mutex<Sistema>>,
     codigo: &str,
     descripcion: &str,
-) -> Res<String>{
-    agregar_rubro_2(window,sistema,codigo,descripcion)
+) -> Res<String> {
+    agregar_rubro_2(window, sistema, codigo, descripcion)
 }
 #[tauri::command]
 fn agregar_rub_o_pes_a_venta(
@@ -97,7 +114,7 @@ fn agregar_rub_o_pes_a_venta(
     val: V,
     pos: bool,
 ) -> Res<()> {
-    agregar_rub_o_pes_a_venta_2(sistema,window,val,pos)
+    agregar_rub_o_pes_a_venta_2(sistema, window, val, pos)
 }
 #[tauri::command]
 fn agregar_usuario(
@@ -126,15 +143,15 @@ fn cerrar_caja(
     sistema: State<Mutex<Sistema>>,
     window: tauri::Window,
     monto_actual: f32,
-) -> Res<()>{
+) -> Res<()> {
     cerrar_caja_2(sistema, window, monto_actual)
 }
 #[tauri::command]
-async fn check_codes(code: i64) -> Res<bool>{
+async fn check_codes(code: i64) -> Res<bool> {
     check_codes_2(code).await
 }
 #[tauri::command]
-fn close_window(window: tauri::Window) -> Res<()>{
+fn close_window(window: tauri::Window) -> Res<()> {
     close_window_2(window)
 }
 #[tauri::command]
@@ -142,15 +159,15 @@ fn descontar_producto_de_venta(
     sistema: State<Mutex<Sistema>>,
     index: usize,
     pos: bool,
-) -> Res<Venta>{
+) -> Res<Venta> {
     descontar_producto_de_venta_2(sistema, index, pos)
 }
 #[tauri::command]
-fn editar_producto(sistema: State<Mutex<Sistema>>, prod: V) -> Res<()>{
+fn editar_producto(sistema: State<Mutex<Sistema>>, prod: V) -> Res<()> {
     editar_producto_2(sistema, prod)
 }
 #[tauri::command]
-fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>>{
+fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>> {
     eliminar_pago_2(sistema, pos, id)
 }
 #[tauri::command]
@@ -163,15 +180,15 @@ fn eliminar_producto_de_venta(
     window: tauri::Window,
     index: usize,
     pos: bool,
-) -> Res<Venta>{
+) -> Res<Venta> {
     eliminar_producto_de_venta_2(sistema, window, index, pos)
 }
 #[tauri::command]
-fn eliminar_usuario(sistema: State<Mutex<Sistema>>, user: User) -> Res<()>{
+fn eliminar_usuario(sistema: State<Mutex<Sistema>>, user: User) -> Res<()> {
     eliminar_usuario_2(sistema, user)
 }
 #[tauri::command]
-fn get_caja(sistema: State<Mutex<Sistema>>) -> Res<Caja>{
+fn get_caja(sistema: State<Mutex<Sistema>>) -> Res<Caja> {
     get_caja_2(sistema)
 }
 #[tauri::command]
@@ -187,11 +204,11 @@ fn get_descripciones(prods: Vec<V>, conf: Config) -> Vec<(String, Option<f32>)> 
     get_descripciones_2(prods, conf)
 }
 #[tauri::command]
-fn get_descripcion_valuable(prod: V, conf: Config) -> String{
+fn get_descripcion_valuable(prod: V, conf: Config) -> String {
     get_descripcion_valuable_2(prod, conf)
 }
 #[tauri::command]
-fn get_deuda(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<f32>{
+fn get_deuda(sistema: State<Mutex<Sistema>>, cliente: Cli) -> Res<f32> {
     get_deuda_2(sistema, cliente)
 }
 #[tauri::command]
@@ -203,35 +220,35 @@ fn get_filtrado(
     sistema: State<Mutex<Sistema>>,
     filtro: &str,
     tipo_filtro: &str,
-) -> Res<Vec<String>>{
+) -> Res<Vec<String>> {
     get_filtrado_2(sistema, filtro, tipo_filtro)
 }
 #[tauri::command]
-fn get_log_state(sistema: State<Mutex<Sistema>>) -> Res<bool>{
+fn get_log_state(sistema: State<Mutex<Sistema>>) -> Res<bool> {
     get_log_state_2(sistema)
 }
 #[tauri::command]
-fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>>{
+fn get_medios_pago(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
     get_medios_pago_2(sistema)
 }
 #[tauri::command]
-fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>>{
+fn get_productos_filtrado(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>> {
     get_productos_filtrado_2(sistema, filtro)
 }
 #[tauri::command]
-fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Res<Vec<String>>{
+fn get_proveedores(sistema: State<'_, Mutex<Sistema>>) -> Res<Vec<String>> {
     get_proveedores_2(sistema)
 }
 #[tauri::command]
-fn get_rango(sistema: State<Mutex<Sistema>>) -> Res<Rango>{
+fn get_rango(sistema: State<Mutex<Sistema>>) -> Res<Rango> {
     get_rango_2(sistema)
 }
 #[tauri::command]
-fn get_stash(sistema: State<Mutex<Sistema>>) -> Res<Vec<Venta>>{
+fn get_stash(sistema: State<Mutex<Sistema>>) -> Res<Vec<Venta>> {
     get_stash_2(sistema)
 }
 #[tauri::command]
-fn get_user(sistema: State<Mutex<Sistema>>) -> Res<User>{
+fn get_user(sistema: State<Mutex<Sistema>>) -> Res<User> {
     get_user_2(sistema)
 }
 #[tauri::command]
@@ -243,19 +260,11 @@ fn get_venta_actual(
     get_venta_actual_2(sistema, window, pos)
 }
 #[tauri::command]
-fn hacer_egreso(
-    sistema: State<Mutex<Sistema>>,
-    monto: f32,
-    descripcion: Option<&str>,
-) -> Res<()>{
+fn hacer_egreso(sistema: State<Mutex<Sistema>>, monto: f32, descripcion: Option<&str>) -> Res<()> {
     hacer_egreso_2(sistema, monto, descripcion)
 }
 #[tauri::command]
-fn hacer_ingreso(
-    sistema: State<Mutex<Sistema>>,
-    monto: f32,
-    descripcion: Option<&str>,
-) -> Res<()>{
+fn hacer_ingreso(sistema: State<Mutex<Sistema>>, monto: f32, descripcion: Option<&str>) -> Res<()> {
     hacer_ingreso_2(sistema, monto, descripcion)
 }
 #[tauri::command]
@@ -271,7 +280,7 @@ async fn open_add_prov(handle: tauri::AppHandle) -> Res<()> {
     open_add_prov_2(handle).await
 }
 #[tauri::command]
-async fn open_add_product(handle: tauri::AppHandle) -> Res<()>{
+async fn open_add_product(handle: tauri::AppHandle) -> Res<()> {
     open_add_product_2(handle).await
 }
 #[tauri::command]
@@ -295,15 +304,15 @@ async fn open_confirm_stash(handle: tauri::AppHandle, act: bool) -> Res<()> {
     open_confirm_stash_2(handle, act).await
 }
 #[tauri::command]
-async fn open_edit_settings(handle: tauri::AppHandle) -> Res<()>{
+async fn open_edit_settings(handle: tauri::AppHandle) -> Res<()> {
     open_edit_settings_2(handle).await
 }
 #[tauri::command]
-async fn open_login(handle: tauri::AppHandle) -> Res<()>{
+async fn open_login(handle: tauri::AppHandle) -> Res<()> {
     open_login_2(handle).await
 }
 #[tauri::command]
-async fn open_select_amount(handle: tauri::AppHandle, val: V, pos: bool) -> Res<()>{
+async fn open_select_amount(handle: tauri::AppHandle, val: V, pos: bool) -> Res<()> {
     open_select_amount_2(handle, val, pos).await
 }
 #[tauri::command]
@@ -319,11 +328,11 @@ fn pagar_deuda_especifica(
     sistema: State<Mutex<Sistema>>,
     cliente: i32,
     venta: Venta,
-) -> Res<Venta>{
+) -> Res<Venta> {
     pagar_deuda_especifica_2(sistema, cliente, venta)
 }
 #[tauri::command]
-fn pagar_deuda_general(sistema: State<Mutex<Sistema>>, cliente: i32, monto: f32) -> Res<f32>{
+fn pagar_deuda_general(sistema: State<Mutex<Sistema>>, cliente: i32, monto: f32) -> Res<f32> {
     pagar_deuda_general_2(sistema, cliente, monto)
 }
 #[tauri::command]
@@ -332,23 +341,19 @@ fn set_cantidad_producto_venta(
     index: usize,
     cantidad: &str,
     pos: bool,
-) -> Res<Venta>{
+) -> Res<Venta> {
     set_cantidad_producto_venta_2(sistema, index, cantidad, pos)
 }
 #[tauri::command]
-fn set_cliente(sistema: State<Mutex<Sistema>>, id: i32, pos: bool) -> Res<Venta>{
+fn set_cliente(sistema: State<Mutex<Sistema>>, id: i32, pos: bool) -> Res<Venta> {
     set_cliente_2(sistema, id, pos)
 }
 #[tauri::command]
-fn set_configs(
-    window: tauri::Window,
-    sistema: State<Mutex<Sistema>>,
-    configs: Config,
-) -> Res<()>{
+fn set_configs(window: tauri::Window, sistema: State<Mutex<Sistema>>, configs: Config) -> Res<()> {
     set_configs_2(window, sistema, configs)
 }
 #[tauri::command]
-fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()>{
+fn stash_n_close(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()> {
     stash_n_close_2(window, sistema, pos)
 }
 #[tauri::command]
@@ -357,7 +362,7 @@ fn try_login(
     window: tauri::Window,
     id: &str,
     pass: &str,
-) -> Res<()>{
+) -> Res<()> {
     try_login_2(sistema, window, id, pass)
 }
 #[tauri::command]
@@ -366,7 +371,7 @@ fn unstash_sale(
     window: tauri::Window,
     pos: bool,
     index: &str,
-) -> Res<()>{
+) -> Res<()> {
     unstash_sale_2(sistema, window, pos, index)
 }
 fn main() {
@@ -451,10 +456,7 @@ fn main() {
                     if w2
                         .emit(
                             "main",
-                            Payload::new(Some(String::from("confirm stash")),
-                                None,
-                                None,
-                            ),
+                            Payload::new(Some(String::from("confirm stash")), None, None),
                         )
                         .is_ok()
                     {
@@ -468,9 +470,7 @@ fn main() {
                     if w2
                         .emit(
                             "main",
-                            Payload::new(Some(String::from("cerrar sesion")),
-                            None,
-                            None),
+                            Payload::new(Some(String::from("cerrar sesion")), None, None),
                         )
                         .is_ok()
                     {
@@ -485,9 +485,7 @@ fn main() {
                     if w2
                         .emit(
                             "main",
-                            Payload::new(Some(String::from("open stash")),
-                            None,
-                            None),
+                            Payload::new(Some(String::from("open stash")), None, None),
                         )
                         .is_ok()
                     {

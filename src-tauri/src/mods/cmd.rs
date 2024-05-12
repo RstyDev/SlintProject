@@ -1,8 +1,8 @@
-use entity::prelude::{CodeDB, PesDB, RubDB};
 use super::{
-    get_hash ,Caja, Cli, Config, Pago, Pesable, Rango, Result as Res, Rubro, Sistema, User,
+    get_hash, Caja, Cli, Config, Pago, Pesable, Rango, Result as Res, Rubro, Sistema, User,
     Valuable as V, Venta,
 };
+use entity::prelude::{CodeDB, PesDB, RubDB};
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
 use std::sync::Arc;
@@ -20,12 +20,10 @@ pub struct Payload {
     pos: Option<bool>,
     val: Option<V>,
 }
-impl Payload{
-    pub fn new(message: Option<String>,
-        pos: Option<bool>,
-        val: Option<V>)->Payload{
-            Payload { message, pos, val }
-        }
+impl Payload {
+    pub fn new(message: Option<String>, pos: Option<bool>, val: Option<V>) -> Payload {
+        Payload { message, pos, val }
+    }
 }
 pub fn get_menu() -> Menu {
     let cerrar_caja_menu = CustomMenuItem::new(String::from("cerrar caja"), "Cerrar caja");
@@ -188,7 +186,6 @@ pub fn agregar_producto_2(
     presentacion: &str,
 ) -> Res<String> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
-    sis.access();
     match sis.arc_user().rango() {
         Rango::Admin => {
             let prod = block_on(sis.agregar_producto(
@@ -1066,7 +1063,11 @@ pub fn set_configs_2(
     }
 }
 
-pub fn stash_n_close_2(window: tauri::Window, sistema: State<Mutex<Sistema>>, pos: bool) -> Res<()> {
+pub fn stash_n_close_2(
+    window: tauri::Window,
+    sistema: State<Mutex<Sistema>>,
+    pos: bool,
+) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.stash_sale(pos)?;

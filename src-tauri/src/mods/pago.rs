@@ -63,23 +63,7 @@ impl Pago {
         &self.pagado
     }
 }
-impl Save for Pago {
-    async fn save(&self) -> Result<(), DbErr> {
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        let medio_id = MedioDB::Entity::find()
-            .filter(MedioDB::Column::Medio.eq(self.medio().to_string()))
-            .one(&db)
-            .await?
-            .unwrap();
-        let model = PagoDB::ActiveModel {
-            medio_pago: Set(medio_id.id),
-            monto: Set(self.monto),
-            ..Default::default()
-        };
-        model.insert(&db).await?;
-        Ok(())
-    }
-}
+
 
 pub async fn medio_from_db(medio: &str) -> MedioDB::Model {
     let db = Database::connect("sqlite://db.sqlite?mode=ro")

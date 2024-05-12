@@ -755,7 +755,7 @@ impl<'a> Sistema {
                     "Ml" => Presentacion::Ml(cantidad.parse().unwrap()),
                     "CC" => Presentacion::CC(cantidad.parse().unwrap()),
                     "Kg" => Presentacion::Kg(cantidad.parse().unwrap()),
-                    _ => panic!("no posible {presentacion}"),
+                    _ => return Err(AppError::IncorrectError(format!("No posible {presentacion}"))),
                 };
                 let prod_model = ProdDB::ActiveModel {
                     precio_de_venta: Set(precio_de_venta),
