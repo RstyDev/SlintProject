@@ -1,5 +1,6 @@
 mod caja;
 mod cliente;
+pub mod cmds;
 mod config;
 mod error;
 mod lib;
@@ -10,6 +11,7 @@ mod proveedor;
 mod relacion_prod_prov;
 mod rubro;
 mod sistema;
+mod tests;
 mod user;
 mod valuable;
 mod venta;
