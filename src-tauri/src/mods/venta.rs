@@ -2,8 +2,8 @@ use chrono::Utc;
 use entity::prelude::{CliDB, PagoDB, VentaDB, VentaPesDB, VentaProdDB, VentaRubDB};
 
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::NotSet, Condition, DatabaseConnection,
-    EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Set,
+    ActiveModelTrait, ActiveValue::NotSet, Condition, DatabaseConnection, EntityTrait,
+    IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Set,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -156,7 +156,12 @@ impl<'a> Venta {
         self.update_monto_total(politica);
         Ok(self.clone())
     }
-    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32,db:&DatabaseConnection) -> Res<f32> {
+    pub fn agregar_pago(
+        &mut self,
+        medio_pago: &str,
+        monto: f32,
+        db: &DatabaseConnection,
+    ) -> Res<f32> {
         let mut es_cred: bool = false;
         match medio_pago {
             CUENTA => match &self.cliente {
@@ -178,7 +183,7 @@ impl<'a> Venta {
                 },
             },
             _ => {
-                let model = async_runtime::block_on(medio_from_db(medio_pago,db));
+                let model = async_runtime::block_on(medio_from_db(medio_pago, db));
                 let medio_pago = MedioPago::new(&model.medio, model.id);
                 self.pagos.push(Pago::new(medio_pago, monto, None));
             }
@@ -237,7 +242,7 @@ impl<'a> Venta {
             }
         }
     }
-    pub fn eliminar_pago(&mut self, id: u32,db:&DatabaseConnection) -> Res<()> {
+    pub fn eliminar_pago(&mut self, id: u32, db: &DatabaseConnection) -> Res<()> {
         let mut pago = Pago::def(db);
         let mut esta = false;
         for i in 0..self.pagos.len() {

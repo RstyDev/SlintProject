@@ -1,6 +1,6 @@
 use entity::prelude::MedioDB;
 use rand::random;
-use sea_orm::{ ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::async_runtime;
@@ -61,8 +61,8 @@ impl Pago {
     pub fn pagado(&self) -> &f32 {
         &self.pagado
     }
-    pub fn def(db:&DatabaseConnection) -> Self {
-        let res = async_runtime::block_on(medio_from_db("Efectivo",db));
+    pub fn def(db: &DatabaseConnection) -> Self {
+        let res = async_runtime::block_on(medio_from_db("Efectivo", db));
         let medio_pago = MedioPago {
             medio: Arc::from(res.medio),
             id: res.id,
@@ -77,9 +77,7 @@ impl Pago {
     }
 }
 
-
-pub async fn medio_from_db(medio: &str,db:&DatabaseConnection) -> MedioDB::Model {
-    
+pub async fn medio_from_db(medio: &str, db: &DatabaseConnection) -> MedioDB::Model {
     MedioDB::Entity::find()
         .filter(MedioDB::Column::Medio.eq(medio))
         .one(db)
@@ -87,4 +85,3 @@ pub async fn medio_from_db(medio: &str,db:&DatabaseConnection) -> MedioDB::Model
         .unwrap()
         .unwrap()
 }
-

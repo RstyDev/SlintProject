@@ -1,8 +1,8 @@
 use chrono::Utc;
 use entity::prelude::RubDB;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait,
-    IntoActiveModel, QueryFilter, Set,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter,
+    Set,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

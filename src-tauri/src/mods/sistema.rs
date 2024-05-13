@@ -71,7 +71,10 @@ impl<'a> Sistema {
                     pagado: monto,
                 });
             } else {
-                res = self.ventas.a.agregar_pago(medio_pago, monto,&self.write_db);
+                res = self
+                    .ventas
+                    .a
+                    .agregar_pago(medio_pago, monto, &self.write_db);
             }
         } else {
             if !medio_pago.eq("Efectivo")
@@ -82,7 +85,10 @@ impl<'a> Sistema {
                     pagado: monto,
                 });
             } else {
-                res = self.ventas.b.agregar_pago(medio_pago, monto,&self.write_db);
+                res = self
+                    .ventas
+                    .b
+                    .agregar_pago(medio_pago, monto, &self.write_db);
             }
         }
         println!("{:#?}", res);
@@ -658,10 +664,10 @@ impl<'a> Sistema {
     pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Vec<Pago>> {
         let res;
         if pos {
-            self.ventas.a.eliminar_pago(id,&self.write_db)?;
+            self.ventas.a.eliminar_pago(id, &self.write_db)?;
             res = self.venta(pos).pagos()
         } else {
-            self.ventas.b.eliminar_pago(id,&self.write_db)?;
+            self.ventas.b.eliminar_pago(id, &self.write_db)?;
             res = self.venta(pos).pagos()
         }
 
@@ -755,7 +761,11 @@ impl<'a> Sistema {
                     "Ml" => Presentacion::Ml(cantidad.parse().unwrap()),
                     "CC" => Presentacion::CC(cantidad.parse().unwrap()),
                     "Kg" => Presentacion::Kg(cantidad.parse().unwrap()),
-                    _ => return Err(AppError::IncorrectError(format!("No posible {presentacion}"))),
+                    _ => {
+                        return Err(AppError::IncorrectError(format!(
+                            "No posible {presentacion}"
+                        )))
+                    }
                 };
                 let prod_model = ProdDB::ActiveModel {
                     precio_de_venta: Set(precio_de_venta),

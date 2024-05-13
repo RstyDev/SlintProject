@@ -435,7 +435,7 @@ mod tests {
         .unwrap();
     }
     #[test]
-    #[should_panic(expected = "no posible")]
+    #[should_panic(expected = "No posible")]
     fn not_presentacion_agregar_producto_test() {
         let (app, window, _) = build(true);
         agregar_producto(
@@ -672,16 +672,16 @@ mod tests {
         .unwrap();
     }
     #[test]
-    #[should_panic(expected="invalid digit")]
-    fn not_code_agregar_rubro_test(){
-        let (app,window,_)=build(true);
-        agregar_rubro(window,app.state::<Mutex<Sistema>>(),INCORRECT,"Desc").unwrap();
+    #[should_panic(expected = "invalid digit")]
+    fn not_code_agregar_rubro_test() {
+        let (app, window, _) = build(true);
+        agregar_rubro(window, app.state::<Mutex<Sistema>>(), INCORRECT, "Desc").unwrap();
     }
     #[test]
-    #[should_panic(expected="None")]
-    fn not_logged_agregar_rubro_test(){
-        let (app,window,_)=build(false);
-        agregar_rubro(window,app.state::<Mutex<Sistema>>(),"5641","Desc").unwrap();
+    #[should_panic(expected = "None")]
+    fn not_logged_agregar_rubro_test() {
+        let (app, window, _) = build(false);
+        agregar_rubro(window, app.state::<Mutex<Sistema>>(), "5641", "Desc").unwrap();
     }
     #[test]
     fn agregar_proveedor_sin_contacto_test() {
@@ -723,21 +723,41 @@ mod tests {
         .unwrap();
     }
     #[test]
-    #[should_panic(expected="None")]
-    fn not_logged_agregar_proveedor_test(){
-        let (app,window,_)=build(false);
-        agregar_proveedor(window,app.state::<Mutex<Sistema>>(),"Prov",Some("64")).unwrap();
+    #[should_panic(expected = "None")]
+    fn not_logged_agregar_proveedor_test() {
+        let (app, window, _) = build(false);
+        agregar_proveedor(window, app.state::<Mutex<Sistema>>(), "Prov", Some("64")).unwrap();
     }
     #[test]
-    fn agregar_pago_test(){
-        let (app,window,_)=build(true);
-        agregar_producto(window.clone(), app.state::<Mutex<Sistema>>(), Vec::new(),
-         Vec::new(), vec!["658651"], "1400",
-          "40", "1000", "tipo_producto",
-           "marca", "variedad", "1", "Un").unwrap();
-        let prod=get_productos_filtrado(app.state::<Mutex<Sistema>>(), "").unwrap()[0].clone();
-        agregar_producto_a_venta(app.state::<Mutex<Sistema>>(), window.clone(), prod, true).unwrap();
-        let pagos=agregar_pago(window, app.state::<Mutex<Sistema>>(), "Efectivo", "1000", true).unwrap();
-        assert!(pagos.len()==1   && pagos[0].monto()==1000.0);
+    fn agregar_pago_test() {
+        let (app, window, _) = build(true);
+        agregar_producto(
+            window.clone(),
+            app.state::<Mutex<Sistema>>(),
+            Vec::new(),
+            Vec::new(),
+            vec!["658651"],
+            "1400",
+            "40",
+            "1000",
+            "tipo_producto",
+            "marca",
+            "variedad",
+            "1",
+            "Un",
+        )
+        .unwrap();
+        let prod = get_productos_filtrado(app.state::<Mutex<Sistema>>(), "").unwrap()[0].clone();
+        agregar_producto_a_venta(app.state::<Mutex<Sistema>>(), window.clone(), prod, true)
+            .unwrap();
+        let pagos = agregar_pago(
+            window,
+            app.state::<Mutex<Sistema>>(),
+            "Efectivo",
+            "1000",
+            true,
+        )
+        .unwrap();
+        assert!(pagos.len() == 1 && pagos[0].monto() == 1000.0);
     }
 }

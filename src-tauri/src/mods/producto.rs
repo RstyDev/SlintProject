@@ -3,9 +3,7 @@ use std::sync::Arc;
 use super::{redondeo, AppError, Presentacion, Res, ValuableTrait};
 use chrono::Utc;
 use entity::prelude::ProdDB;
-use sea_orm::{
-    ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, Set,
-};
+use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, Set};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
