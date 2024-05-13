@@ -1,5 +1,5 @@
-use super::{redondeo, Config, Formato, Pesable, Producto, Res, Rubro, Save};
-use sea_orm::{DatabaseConnection, DbErr};
+use super::{redondeo, Config, Formato, Pesable, Producto, Res, Rubro};
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 use Valuable as V;
@@ -68,15 +68,7 @@ impl Valuable {
         }
     }
 }
-impl Save for Valuable {
-    async fn save(&self) -> Result<(), DbErr> {
-        match self {
-            V::Pes(a) => a.1.save().await,
-            V::Prod(a) => a.1.save().await,
-            V::Rub(a) => a.1.save().await,
-        }
-    }
-}
+
 // impl Default for Valuable {
 //     fn default() -> Self {
 //         V::Prod((1, Producto::default()))

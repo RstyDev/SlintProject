@@ -1,9 +1,9 @@
-use super::{AppError, Res, Save};
+use super::{AppError, Res};
 use chrono::Utc;
 
 use entity::prelude::PesDB;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait,
     IntoActiveModel, QueryFilter, Set,
 };
 use serde::{Deserialize, Serialize};
@@ -135,24 +135,6 @@ impl Pesable {
         model.porcentaje = Set(self.porcentaje);
         model.updated_at = Set(Utc::now().naive_local());
         model.update(db).await?;
-        Ok(())
-    }
-}
-
-impl Save for Pesable {
-    async fn save(&self) -> Result<(), DbErr> {
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        println!("conectado");
-        let model = PesDB::ActiveModel {
-            id: Set(self.id),
-            codigo: Set(self.codigo),
-            precio_peso: Set(self.precio_peso),
-            porcentaje: Set(self.porcentaje),
-            costo_kilo: Set(self.costo_kilo),
-            descripcion: Set(self.descripcion.to_string()),
-            updated_at: Set(Utc::now().naive_local()),
-        };
-        model.insert(&db).await?;
         Ok(())
     }
 }

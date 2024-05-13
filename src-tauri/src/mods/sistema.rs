@@ -71,7 +71,7 @@ impl<'a> Sistema {
                     pagado: monto,
                 });
             } else {
-                res = self.ventas.a.agregar_pago(medio_pago, monto);
+                res = self.ventas.a.agregar_pago(medio_pago, monto,&self.write_db);
             }
         } else {
             if !medio_pago.eq("Efectivo")
@@ -82,7 +82,7 @@ impl<'a> Sistema {
                     pagado: monto,
                 });
             } else {
-                res = self.ventas.b.agregar_pago(medio_pago, monto);
+                res = self.ventas.b.agregar_pago(medio_pago, monto,&self.write_db);
             }
         }
         println!("{:#?}", res);
@@ -658,10 +658,10 @@ impl<'a> Sistema {
     pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Vec<Pago>> {
         let res;
         if pos {
-            self.ventas.a.eliminar_pago(id)?;
+            self.ventas.a.eliminar_pago(id,&self.write_db)?;
             res = self.venta(pos).pagos()
         } else {
-            self.ventas.b.eliminar_pago(id)?;
+            self.ventas.b.eliminar_pago(id,&self.write_db)?;
             res = self.venta(pos).pagos()
         }
 

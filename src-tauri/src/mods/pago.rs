@@ -1,7 +1,6 @@
-use super::Save;
-use entity::prelude::{MedioDB, PagoDB};
+use entity::prelude::MedioDB;
 use rand::random;
-use sea_orm::{ActiveModelTrait, ColumnTrait, Database, DbErr, EntityTrait, QueryFilter, Set};
+use sea_orm::{ ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::async_runtime;
@@ -62,23 +61,8 @@ impl Pago {
     pub fn pagado(&self) -> &f32 {
         &self.pagado
     }
-}
-
-
-pub async fn medio_from_db(medio: &str) -> MedioDB::Model {
-    let db = Database::connect("sqlite://db.sqlite?mode=ro")
-        .await
-        .unwrap();
-    MedioDB::Entity::find()
-        .filter(MedioDB::Column::Medio.eq(medio))
-        .one(&db)
-        .await
-        .unwrap()
-        .unwrap()
-}
-impl Default for Pago {
-    fn default() -> Self {
-        let res = async_runtime::block_on(medio_from_db("Efectivo"));
+    pub fn def(db:&DatabaseConnection) -> Self {
+        let res = async_runtime::block_on(medio_from_db("Efectivo",db));
         let medio_pago = MedioPago {
             medio: Arc::from(res.medio),
             id: res.id,
@@ -92,3 +76,15 @@ impl Default for Pago {
         }
     }
 }
+
+
+pub async fn medio_from_db(medio: &str,db:&DatabaseConnection) -> MedioDB::Model {
+    
+    MedioDB::Entity::find()
+        .filter(MedioDB::Column::Medio.eq(medio))
+        .one(db)
+        .await
+        .unwrap()
+        .unwrap()
+}
+

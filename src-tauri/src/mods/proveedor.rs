@@ -1,13 +1,13 @@
 use chrono::Utc;
 use entity::prelude::ProvDB;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
     Set,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::{AppError, Mapper, Res, Save};
+use super::{AppError, Mapper, Res};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
@@ -61,20 +61,6 @@ impl Proveedor {
     }
     pub fn contacto(&self) -> &Option<i64> {
         &self.contacto
-    }
-}
-impl Save for Proveedor {
-    async fn save(&self) -> Result<(), DbErr> {
-        let model = ProvDB::ActiveModel {
-            id: Set(self.id),
-            nombre: Set(self.nombre.to_string()),
-            contacto: Set(self.contacto),
-            updated_at: Set(Utc::now().naive_local()),
-        };
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        println!("conectado");
-        model.insert(&db).await?;
-        Ok(())
     }
 }
 impl ToString for Proveedor {

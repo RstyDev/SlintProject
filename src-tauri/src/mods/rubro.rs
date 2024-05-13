@@ -1,13 +1,13 @@
 use chrono::Utc;
 use entity::prelude::RubDB;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait,
     IntoActiveModel, QueryFilter, Set,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::{redondeo, valuable::ValuableTrait, AppError, Res, Save};
+use super::{redondeo, valuable::ValuableTrait, AppError, Res};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
@@ -104,21 +104,6 @@ impl Rubro {
         model.descripcion = Set(self.descripcion.to_string());
         model.updated_at = Set(Utc::now().naive_local());
         model.update(db).await?;
-        Ok(())
-    }
-}
-impl Save for Rubro {
-    async fn save(&self) -> Result<(), DbErr> {
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        println!("conectado");
-        let model = RubDB::ActiveModel {
-            id: Set(self.id),
-            monto: Set(self.monto),
-            descripcion: Set(self.descripcion.to_string()),
-            updated_at: Set(Utc::now().naive_local()),
-            codigo: Set(self.codigo),
-        };
-        model.insert(&db).await?;
         Ok(())
     }
 }

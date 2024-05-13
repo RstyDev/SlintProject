@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use super::{redondeo, AppError, Presentacion, Res, Save, ValuableTrait};
+use super::{redondeo, AppError, Presentacion, Res, ValuableTrait};
 use chrono::Utc;
-use entity::prelude::{CodeDB, ProdDB};
+use entity::prelude::ProdDB;
 use sea_orm::{
-    ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set,
+    ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, Set,
 };
 use serde::{Deserialize, Serialize};
 
@@ -148,34 +148,6 @@ impl Producto {
         model.variedad = Set(self.variedad.to_string());
         model.updated_at = Set(Utc::now().naive_local());
         model.update(db).await?;
-        Ok(())
-    }
-}
-impl Save for Producto {
-    async fn save(&self) -> Result<(), DbErr> {
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        println!("Guardando producto en DB");
-        let model = ProdDB::ActiveModel {
-            precio_de_venta: Set(self.precio_de_venta),
-            porcentaje: Set(self.porcentaje),
-            precio_de_costo: Set(self.precio_de_costo),
-            tipo_producto: Set(self.tipo_producto.to_string()),
-            marca: Set(self.marca.to_string()),
-            variedad: Set(self.variedad.to_string()),
-            presentacion: Set(self.presentacion.get_string().to_string()),
-            updated_at: Set(Utc::now().naive_local()),
-            cantidad: Set(self.presentacion().get_cantidad()),
-            ..Default::default()
-        };
-        let res = ProdDB::Entity::insert(model).exec(&db).await?;
-        for codigo in &self.codigos_de_barras {
-            let cod_model = CodeDB::ActiveModel {
-                codigo: Set(*codigo),
-                producto: Set(res.last_insert_id),
-                ..Default::default()
-            };
-            cod_model.insert(&db).await?;
-        }
         Ok(())
     }
 }

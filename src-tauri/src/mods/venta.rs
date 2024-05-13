@@ -1,8 +1,8 @@
 use chrono::Utc;
-use entity::prelude::{CliDB, DeudaDB, PagoDB, VentaDB, VentaPesDB, VentaProdDB, VentaRubDB};
+use entity::prelude::{CliDB, PagoDB, VentaDB, VentaPesDB, VentaProdDB, VentaRubDB};
 
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::NotSet, Condition, Database, DatabaseConnection, DbErr,
+    ActiveModelTrait, ActiveValue::NotSet, Condition, DatabaseConnection,
     EntityTrait, IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Set,
 };
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,7 @@ use crate::mods::pago::medio_from_db;
 
 use super::{
     redondeo, AppError, Cli, Cliente, Cuenta::Auth, Cuenta::Unauth, Mapper, MedioPago, Pago, Res,
-    Save, User, Valuable,
+    User, Valuable,
 };
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -156,7 +156,7 @@ impl<'a> Venta {
         self.update_monto_total(politica);
         Ok(self.clone())
     }
-    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32) -> Res<f32> {
+    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32,db:&DatabaseConnection) -> Res<f32> {
         let mut es_cred: bool = false;
         match medio_pago {
             CUENTA => match &self.cliente {
@@ -178,7 +178,7 @@ impl<'a> Venta {
                 },
             },
             _ => {
-                let model = async_runtime::block_on(medio_from_db(medio_pago));
+                let model = async_runtime::block_on(medio_from_db(medio_pago,db));
                 let medio_pago = MedioPago::new(&model.medio, model.id);
                 self.pagos.push(Pago::new(medio_pago, monto, None));
             }
@@ -237,8 +237,8 @@ impl<'a> Venta {
             }
         }
     }
-    pub fn eliminar_pago(&mut self, id: u32) -> Res<()> {
-        let mut pago = Pago::default();
+    pub fn eliminar_pago(&mut self, id: u32,db:&DatabaseConnection) -> Res<()> {
+        let mut pago = Pago::def(db);
         let mut esta = false;
         for i in 0..self.pagos.len() {
             if self.pagos[i].id() == id {
@@ -478,135 +478,6 @@ impl<'a> Venta {
         {
             println!("Error insert relacionVentaPes {:#?}", e);
         }
-        Ok(())
-    }
-}
-impl Save for Venta {
-    async fn save(&self) -> Result<(), DbErr> {
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        let mut venta = VentaDB::Entity::find_by_id(self.id)
-            .one(&db)
-            .await?
-            .unwrap()
-            .into_active_model();
-        venta.monto_total = Set(self.monto_total);
-        venta.monto_pagado = Set(self.monto_pagado);
-        venta.cerrada = Set(self.cerrada);
-        venta.paga = Set(self.paga);
-        venta.time = Set(Utc::now().naive_local());
-        let mut pay_models = vec![];
-        for pago in &self.pagos {
-            if pago.medio().as_ref().eq(CUENTA) {
-                pay_models.push(PagoDB::ActiveModel {
-                    medio_pago: Set(0),
-                    monto: Set(pago.monto()),
-                    venta: Set(self.id),
-                    ..Default::default()
-                })
-            } else {
-                let model = medio_from_db(&pago.medio().to_string().as_str()).await;
-                pay_models.push(PagoDB::ActiveModel {
-                    medio_pago: Set(model.id),
-                    monto: Set(pago.monto()),
-                    venta: Set(self.id),
-                    ..Default::default()
-                });
-            }
-        }
-        match &self.cliente {
-            Cliente::Final => (),
-            Cliente::Regular(a) => {
-                let deudas = pay_models
-                    .iter()
-                    .filter_map(|p| match p.medio_pago {
-                        NotSet => None,
-                        _ => Some(DeudaDB::ActiveModel {
-                            cliente: Set(*a.id()),
-                            monto: p.monto.clone(),
-                            pago: p.id.clone(),
-                            ..Default::default()
-                        }),
-                    })
-                    .collect::<Vec<DeudaDB::ActiveModel>>();
-                DeudaDB::Entity::insert_many(deudas).exec(&db).await?;
-                venta.cliente = Set(Some(*a.id()))
-            }
-        }
-        venta.update(&db).await?;
-
-        if pay_models.len() > 1 {
-            PagoDB::Entity::insert_many(pay_models).exec(&db).await?;
-        } else {
-            PagoDB::Entity::insert(pay_models[0].clone())
-                .exec(&db)
-                .await?;
-        }
-
-        let prod_models: Vec<VentaProdDB::ActiveModel> = self
-            .productos
-            .iter()
-            .filter_map(|x| match x {
-                V::Prod(a) => Some(VentaProdDB::ActiveModel {
-                    producto: Set(*a.1.id()),
-                    venta: Set(self.id),
-                    cantidad: Set(a.0),
-                    precio: Set(*a.1.precio_de_venta()),
-                    ..Default::default()
-                }),
-                _ => None,
-            })
-            .collect();
-        VentaProdDB::Entity::insert_many(prod_models)
-            .exec(&db)
-            .await?;
-
-        let rub_models: Vec<VentaRubDB::ActiveModel> = self
-            .productos
-            .iter()
-            .filter_map(|x| match x {
-                V::Rub(a) => Some(VentaRubDB::ActiveModel {
-                    cantidad: Set(a.0),
-                    rubro: Set(*a.1.id()),
-                    venta: Set(self.id),
-                    precio: Set(*a.1.monto().unwrap()),
-                    ..Default::default()
-                }),
-                _ => None,
-            })
-            .collect();
-        if rub_models.len() > 1 {
-            VentaRubDB::Entity::insert_many(rub_models)
-                .exec(&db)
-                .await?;
-        } else if rub_models.len() == 1 {
-            VentaRubDB::Entity::insert(rub_models[0].clone())
-                .exec(&db)
-                .await?;
-        }
-        let pes_models: Vec<VentaPesDB::ActiveModel> = self
-            .productos
-            .iter()
-            .filter_map(|x| match x {
-                V::Pes(a) => Some(VentaPesDB::ActiveModel {
-                    cantidad: Set(a.0),
-                    pesable: Set(*a.1.id()),
-                    venta: Set(self.id),
-                    precio: Set(*a.1.precio_peso()),
-                    ..Default::default()
-                }),
-                _ => None,
-            })
-            .collect();
-        if pes_models.len() > 1 {
-            VentaPesDB::Entity::insert_many(pes_models)
-                .exec(&db)
-                .await?;
-        } else if pes_models.len() == 1 {
-            VentaPesDB::Entity::insert(pes_models[0].clone())
-                .exec(&db)
-                .await?;
-        }
-
         Ok(())
     }
 }

@@ -23,9 +23,6 @@ use super::{
 use crate::mods::valuable::Valuable;
 pub struct Db;
 pub struct Mapper;
-pub trait Save {
-    async fn save(&self) -> Result<(), DbErr>;
-}
 pub fn get_hash(pass: &str) -> i64 {
     let mut h = DefaultHasher::new();
     pass.hash(&mut h);
