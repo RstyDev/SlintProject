@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script type="module" src="../scripts/add_product.js" defer></script>
+
+</head>
+
+<body>
+  <section id="form-section">
+    <div id="agregar-producto-container" class="main-screen">
+      <section id="agregar-producto">
+      <form id="agregar-producto-submit">
+          <input id="tipo_producto" list="opciones-tipo-producto" placeholder="Tipo de producto" required />
+          <datalist id="opciones-tipo-producto">
+          </datalist>
+  
+          <input id="marca" list="opciones-marca" placeholder="Marca" required />
+          <datalist id="opciones-marca">
+          </datalist>
+  
+        <input id="variedad" placeholder="Variedad" required />
+  
+        <input type="number" id="cantidad" placeholder="Cantidad" required />
+          <select name="presentacion" id="presentacion" required>
+            <option value="" selected disabled hidden>Elige una opción</option>
+            <option value="Gr">Grs.</option>
+            <option value="Un">Un.</option>
+            <option value="Lt">Lt.</option>
+            <option value="Ml">Ml.</option>
+            <option value="CC">CC.</option>
+            <option value="Kg">Kg.</option>
+          </select>
+  
+  
+          <input type="number" id="precio_de_costo" placeholder="Precio de costo" required />
+  
+  
+          <input type="number" id="porcentaje" placeholder="Porcentaje" value='40' required />
+  
+  
+          <input type="number" id="precio_de_venta" placeholder="Precio de venta" required />
+  
+          <button id="agregar-producto-button">Agregar producto</button>
+      </form>
+      </section>
+      <div>
+        <section id="input-codigo">
+        </section>
+      </div>
+      <section id="agregar-proveedor-producto">
+          <form >
+            
+            <section id="agr-codigo">
+              <select name="Proveedor" id="proveedor" required>
+                <option value="" selected disabled hidden>Seleccione una opción</option>
+              </select>
+              <input type="number" id="codigo_prov" placeholder="Codigo interno del proveedor">
+              
+              <button type="submit">Agregar</button>
+            </section>
+          </form>
+      </section>
+      
+    </div>
+  </section>
+  
+</body>
+
+</html>

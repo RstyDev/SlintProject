@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "nombre": "Silicaro",
+    "contacto": 321654131
+  },
+  {
+    "id": 2,
+    "nombre": "Nini",
+<<<<<<< HEAD
+    "contacto": 6841358416351
+=======
+    "contacto": 1358416351
+>>>>>>> 21fee32d71e5a50e82c19600e3d108291a849ded
+  },
+  {
+    "id": 3,
+    "nombre": "Bajo el Roble",
+<<<<<<< HEAD
+    "contacto": 221324694
+=======
+    "contacto": 2214324694
+>>>>>>> 21fee32d71e5a50e82c19600e3d108291a849ded
+  },
+  {
+    "id": 4,
+    "nombre": "quilmes",
+<<<<<<< HEAD
+    "contacto": 65784635131
+=======
+    "contacto": 3784635131
+>>>>>>> 21fee32d71e5a50e82c19600e3d108291a849ded
+  }
+]

@@ -1,0 +1,15 @@
+form{
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: repeat(11 auto);
+}
+#c1, label{
+    grid-column-start: 1;
+}
+#c2, input{
+    grid-column-start: 2;
+}
+body{
+    display: grid;
+    grid-template-columns: 60% 40%;
+}

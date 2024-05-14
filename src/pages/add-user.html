@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="../scripts/add-user.js" defer></script>
+    <title>Document</title>
+</head>
+<body>
+    <form class="add-form">
+        <input type="text" name="id" id="id" placeholder="Nombre de Usuario" required>
+        <input type="password" name="pass" id="pass" placeholder="Contraseña" required>
+        <input type="text" name="nombre" id="nombre" placeholder="Nombre de Vendedor" required>
+        <select name="rango" id="rango" required>
+            <option value="" selected disabled hidden>Elije una opción</option>
+            <option value="Admin">Admin</option>
+            <option value="Cajero">Cajero</option>
+        </select>
+        <input type="submit" value="Guardar">
+    </form>
+</body>
+</html>

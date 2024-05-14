@@ -2,6 +2,13 @@
 # will have compiled files and executables
 /target/
 
+<<<<<<< HEAD
+/.env
+*target*
+build_rs*
+test/*
+=======
 .history/*
 migration/target/*
 db.sqlite
+>>>>>>> 21fee32d71e5a50e82c19600e3d108291a849ded

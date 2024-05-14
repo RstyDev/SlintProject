@@ -1,0 +1,34 @@
+<<<<<<< HEAD
+/dist/
+/target/
+/Cargo.lock
+=======
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.history
+src-tauri/migration/target/*
+src-tauri/.env
+src-tauri/entity/target/*
+>>>>>>> 21fee32d71e5a50e82c19600e3d108291a849ded
