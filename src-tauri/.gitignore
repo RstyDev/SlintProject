@@ -5,3 +5,4 @@
 .history/*
 migration/target/*
 db.sqlite
+build_rs_cov.profraw
