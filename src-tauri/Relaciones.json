@@ -1,0 +1,22 @@
+[
+  {
+    "id_producto": 300,
+    "id_proveedor": 2,
+    "codigo_interno": 96581
+  },
+  {
+    "id_producto": 615,
+    "id_proveedor": 1,
+    "codigo_interno": 15151
+  },
+  {
+    "id_producto": 102,
+    "id_proveedor": 2,
+    "codigo_interno": 9581
+  },
+  {
+    "id_producto": 6,
+    "id_proveedor": 1,
+    "codigo_interno": 95575
+  }
+]

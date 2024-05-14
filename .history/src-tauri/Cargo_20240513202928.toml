@@ -1,0 +1,46 @@
+[package]
+name = "leptos_cash"
+version = "0.0.0"
+description = "A Tauri App"
+authors = ["Lucas Igarzabal"]
+license = ""
+repository = ""
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[dependencies]
+tauri = { version = "1.4", features = ["shell-open"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[workspace]
+members = [".", "entity", "migration"]
+
+[build-dependencies]
+tauri-build = { version = "1.4", features = [] }
+
+[dependencies]
+entity = { path = "entity" }
+migration = { path = "migration" }
+tauri = { version = "1.4", features = [ "shell-open"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sea-orm = { version = "0.12", features = [
+    "sqlx-sqlite",
+    "runtime-tokio-rustls",
+    "macros",
+] }
+full = "0.1.0"
+async-std = "1.12.0"
+tokio = { version = "1.35.0", features = ["macros"] }
+chrono = "0.4.31"
+thiserror = "1.0.56"
+rand = "0.8.5"
+cargo-tarpaulin = "=0.25.2"
+
+[features]
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]
