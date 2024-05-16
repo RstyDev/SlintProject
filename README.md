@@ -1,7 +1,7 @@
-# Tauri + React
+# Development
 
-This template should help get you started developing with Tauri and React in Vite.
+Run the following command in the root of the project to start the Dioxus dev server:
 
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+```bash
+dx serve --hot-reload --platform desktop
+```
