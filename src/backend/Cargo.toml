@@ -1,25 +1,19 @@
 [package]
-name = "rsty_cash"
+name = "backend"
 version = "0.0.0"
-description = "Tauri Rsty SalePoint"
-authors = ["RstyDev"]
-license = ""
-repository = ""
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "backend"
+path = "src/lib.rs"
 
-[workspace]
-members = [".", "entity", "migration"]
 
-[build-dependencies]
-tauri-build = { version = "1.4", features = [] }
 
 [dependencies]
 entity = { path = "entity" }
 migration = { path = "migration" }
-tauri = { version = "1.4", features = [ "shell-open"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sea-orm = { version = "0.12", features = [
@@ -36,8 +30,3 @@ rand = "0.8.5"
 cargo-tarpaulin = "=0.25.2"
 
 
-
-[features]
-# this feature is used for production builds or when `devPath` points to the filesystem
-# DO NOT REMOVE!!
-custom-protocol = ["tauri/custom-protocol"]

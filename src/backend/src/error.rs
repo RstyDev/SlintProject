@@ -32,8 +32,6 @@ pub enum AppError {
     ParseIntError(#[from] ParseIntError),
     #[error("Error de conversion")]
     ParseError,
-    #[error("Error de tauri")]
-    TauriError(#[from] tauri::Error),
     #[error("Error de conversion de fecha")]
     ChronoParseError(#[from] ParseError),
     #[error("Error de inicialización {0}")]

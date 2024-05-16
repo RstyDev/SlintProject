@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-
 use dioxus::prelude::*;
 use tracing::Level;
 
@@ -14,7 +13,7 @@ fn main() {
 fn App() -> Element {
     // Build cool things ✌️
     let mut count = use_signal(|| 0);
-
+  //  let mut sistema = use_signal(|| Sistema::new())
     rsx! {
         div{
         h1 { "style":"color: white", "Aca esta {count}" }

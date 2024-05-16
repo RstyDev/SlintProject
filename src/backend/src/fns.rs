@@ -3,12 +3,14 @@ use entity::prelude::{
     CliDB, CodeDB, MedioDB, PagoDB, PesDB, ProdDB, ProdProvDB, ProvDB, RubDB, UserDB, VentaDB,
     VentaPesDB, VentaProdDB, VentaRubDB,
 };
+use tokio::runtime::Runtime;
 
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, Database, DatabaseConnection, DbErr, EntityTrait,
     IntoActiveModel, QueryFilter, Set,
 };
 use serde::{de::DeserializeOwned, Serialize};
+use tokio::runtime::Builder;
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
@@ -16,11 +18,11 @@ use std::io::{Read, Write};
 use std::sync::Arc;
 use Valuable as V;
 
-use super::{
+use crate::{
     AppError, Cli, Cliente, MedioPago, Pago, Pesable, Presentacion, Producto, Proveedor,
     RelacionProdProv, Res, Rubro, User, Venta,
 };
-use crate::mods::valuable::Valuable;
+use crate::valuable::Valuable;
 pub struct Db;
 pub struct Mapper;
 pub fn get_hash(pass: &str) -> i64 {
@@ -35,7 +37,9 @@ pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result
     write!(f, "{}", buf)?;
     Ok(())
 }
-
+pub fn get_thread()->Runtime{
+    Builder::new_multi_thread().enable_all().build().unwrap()
+}
 pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     buf: &mut T,
     path: &str,

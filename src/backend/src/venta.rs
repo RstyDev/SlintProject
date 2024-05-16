@@ -7,12 +7,11 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tauri::async_runtime;
 
 use Valuable as V;
 const CUENTA: &str = "Cuenta Corriente";
 
-use crate::mods::pago::medio_from_db;
+use crate::{get_thread, pago::medio_from_db};
 
 use super::{
     redondeo, AppError, Cli, Cliente, Cuenta::Auth, Cuenta::Unauth, Mapper, MedioPago, Pago, Res,
@@ -183,7 +182,7 @@ impl<'a> Venta {
                 },
             },
             _ => {
-                let model = async_runtime::block_on(medio_from_db(medio_pago, db));
+                let model = get_thread().block_on(medio_from_db(medio_pago, db));
                 let medio_pago = MedioPago::new(&model.medio, model.id);
                 self.pagos.push(Pago::new(medio_pago, monto, None));
             }

@@ -3,7 +3,7 @@ use rand::random;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tauri::async_runtime;
+use super::get_thread;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MedioPago {
     medio: Arc<str>,
@@ -62,7 +62,7 @@ impl Pago {
         &self.pagado
     }
     pub fn def(db: &DatabaseConnection) -> Self {
-        let res = async_runtime::block_on(medio_from_db("Efectivo", db));
+        let res = get_thread().block_on(medio_from_db("Efectivo", db));
         let medio_pago = MedioPago {
             medio: Arc::from(res.medio),
             id: res.id,
