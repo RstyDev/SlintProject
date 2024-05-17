@@ -26,7 +26,7 @@ impl Payload {
     }
 }
 
-pub fn agregar_cliente_2(
+pub async fn agregar_cliente_2(
     sistema: ReadOnlySignal<Sistema>,
     nombre: &str,
     dni: &str,

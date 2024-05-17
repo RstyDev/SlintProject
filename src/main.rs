@@ -12,11 +12,14 @@ fn main() {
 }
 
 #[component]
-fn App() -> Element {
+async fn App() -> Element {
     // Build cool things ✌️
     let mut count: Signal<i32> = use_signal(|| 0);
     let mut sistema = use_signal(|| Sistema::new().unwrap());
-    let algo=agregar_cliente_2(sistema.into(),"Nombre","3641641",None).unwrap();
+    let algo= use_future(cx,(),|_|async move{
+        agregar_cliente_2(sistema.into(),"Nombre","3641641",None).await.unwrap();
+    })
+    
     rsx! {
         div{
             h1 { "style":"color: white", "Aca esta {count}" }

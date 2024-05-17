@@ -44,21 +44,21 @@ impl<'a> Sistema {
             panic!("Sesión no iniciada");
         }
     }
-    pub fn agregar_cliente(
+    pub async fn agregar_cliente(
         &self,
         nombre: &str,
         dni: i32,
         activo: bool,
         limite: Option<f32>,
     ) -> Res<Cli> {
-        get_thread().block_on(Cli::new_to_db(
+        Cli::new_to_db(
             self.write_db(),
             nombre,
             dni,
             activo,
             Utc::now().naive_local(),
             limite,
-        ))
+        ).await
     }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32, pos: bool) -> Res<f32> {
         let res;
