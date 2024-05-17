@@ -1,7 +1,9 @@
 #![allow(non_snake_case)]
 use dioxus::prelude::*;
 use tracing::Level;
-
+use backend::Sistema;
+use std::sync::{Arc,Mutex};
+use backend::agregar_cliente_2;
 fn main() {
     // Init logger
     dioxus_logger::init(Level::INFO).expect("failed to init logger");
@@ -12,14 +14,17 @@ fn main() {
 #[component]
 fn App() -> Element {
     // Build cool things ✌️
-    let mut count = use_signal(|| 0);
-  //  let mut sistema = use_signal(|| Sistema::new())
+    let mut count: Signal<i32> = use_signal(|| 0);
+    let mut sistema = use_signal(|| Sistema::new().unwrap());
+    let algo=agregar_cliente_2(sistema.into(),"Nombre","3641641",None).unwrap();
     rsx! {
         div{
-        h1 { "style":"color: white", "Aca esta {count}" }
-        button { onclick: move |_| count += 1, "Up high!" }
-        button { onclick: move |_| count -= 1, "Down low!" }
-    }
+            h1 { "style":"color: white", "Aca esta {count}" }
+            h2 { "style":"color: white", "Desde sistema: {algo:#?}"}
+            //h3 { "{sistema}"}
+            button { onclick: move |_| count += 1, "Up high!" }
+            button { onclick: move |_| count -= 1, "Down low!" }
+        }
         link { rel: "stylesheet", href: "main.css" }
         img { src: "header.svg", id: "header" }
         div { id: "links",

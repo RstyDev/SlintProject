@@ -8,7 +8,7 @@ edition = "2021"
 [workspace]
 members = [".", "src/backend"]
 [dependencies]
-
+backend ={ path = "src/backend"}
 dioxus = { version = "0.5", features = ["desktop"] }
 
 # Debug

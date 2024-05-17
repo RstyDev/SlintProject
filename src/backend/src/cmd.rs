@@ -3,6 +3,8 @@ use super::{
     User, Valuable as V, Venta,
 };
 
+use dioxus::signals::ReadOnlySignal;
+use dioxus::signals::Readable;
 use entity::prelude::{CodeDB, PesDB, RubDB};
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
@@ -10,7 +12,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use tokio::runtime::Builder;
 
-const INDEX: &str = "index.html";
+const _INDEX: &str = "index.html";
 const DENEGADO: &str = "Permiso denegado";
 #[derive(Clone, Serialize)]
 pub struct Payload {
@@ -25,19 +27,19 @@ impl Payload {
 }
 
 pub fn agregar_cliente_2(
-    sistema: Arc<Mutex<Sistema>>,
+    sistema: ReadOnlySignal<Sistema>,
     nombre: &str,
     dni: &str,
     limite: Option<&str>,
 ) -> Res<Cli> {
     let dni = dni.parse::<i32>().map_err(|e| e.to_string())?;
-    let sistema = sistema.lock().map_err(|e| e.to_string())?;
     let limite = match limite {
         Some(l) => Some(l.parse::<f32>().map_err(|e| e.to_string())?),
         None => None,
     };
-    sistema.access();
-    let cli = sistema.agregar_cliente(nombre, dni, true, limite)?;
+    let sis=sistema.peek();
+    sis.access();
+    let cli = sis.agregar_cliente(nombre, dni, true, limite)?;
     Ok(cli)
 }
 
@@ -138,14 +140,14 @@ pub fn agregar_producto_a_venta_2(sistema: Arc<Mutex<Sistema>>, prod: V, pos: bo
         V::Prod(_) => {
             get_thread().block_on(sis.agregar_producto_a_venta(prod, pos))?;
         }
-        V::Pes(a) => {
+        V::Pes(_) => {
             // get_thread().spawn(open_select_amount_2(
             //     window.app_handle(),
             //     V::Pes(a.clone()),
             //     pos,
             // ));
         }
-        V::Rub(a) => {
+        V::Rub(_) => {
             // get_thread().spawn(open_select_amount_2(
             //     window.app_handle(),
             //     V::Rub(a.clone()),

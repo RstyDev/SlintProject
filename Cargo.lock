@@ -503,6 +503,7 @@ dependencies = [
  "async-std",
  "cargo-tarpaulin",
  "chrono",
+ "dioxus",
  "entity",
  "full",
  "migration",
@@ -1344,6 +1345,7 @@ dependencies = [
 name = "dioxi-cash"
 version = "0.1.0"
 dependencies = [
+ "backend",
  "dioxus",
  "dioxus-logger",
  "tracing",
