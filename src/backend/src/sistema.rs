@@ -12,14 +12,15 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, Database, DatabaseConnection, DbErr, EntityTrait,
     IntoActiveModel, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
 };
-use tokio::task::JoinHandle;
 use std::{collections::HashSet, sync::Arc};
+use tokio::task::JoinHandle;
 use Valuable as V;
 const CUENTA: &str = "Cuenta Corriente";
+#[derive(Clone)]
 pub struct Sistema {
     user: Option<Arc<User>>,
-    write_db: Arc<DatabaseConnection>,
-    read_db: Arc<DatabaseConnection>,
+    write_db: Option<Arc<DatabaseConnection>>,
+    read_db: Option<Arc<DatabaseConnection>>,
     caja: Caja,
     configs: Config,
     ventas: Ventas,
@@ -28,13 +29,13 @@ pub struct Sistema {
     stash: Vec<Venta>,
     registro: Vec<Venta>,
 }
-
+#[derive(Clone)]
 pub struct Ventas {
     pub a: Venta,
     pub b: Venta,
 }
 
-async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
+pub async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
     Database::connect(path).await
 }
 
@@ -58,7 +59,8 @@ impl<'a> Sistema {
             activo,
             Utc::now().naive_local(),
             limite,
-        ).await
+        )
+        .await
     }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32, pos: bool) -> Res<f32> {
         let res;
@@ -71,10 +73,10 @@ impl<'a> Sistema {
                     pagado: monto,
                 });
             } else {
-                res = self
-                    .ventas
-                    .a
-                    .agregar_pago(medio_pago, monto, &self.write_db);
+                res =
+                    self.ventas
+                        .a
+                        .agregar_pago(medio_pago, monto, &self.write_db.as_ref().unwrap());
             }
         } else {
             if !medio_pago.eq("Efectivo")
@@ -85,10 +87,10 @@ impl<'a> Sistema {
                     pagado: monto,
                 });
             } else {
-                res = self
-                    .ventas
-                    .b
-                    .agregar_pago(medio_pago, monto, &self.write_db);
+                res =
+                    self.ventas
+                        .b
+                        .agregar_pago(medio_pago, monto, &self.write_db.as_ref().unwrap());
             }
         }
         println!("{:#?}", res);
@@ -125,8 +127,8 @@ impl<'a> Sistema {
         let r2 = Arc::clone(&read_db);
         let sis = Sistema {
             user,
-            write_db,
-            read_db,
+            write_db: Some(write_db),
+            read_db: Some(read_db),
             caja,
             configs,
             ventas: Ventas {
@@ -142,18 +144,11 @@ impl<'a> Sistema {
         Ok(sis)
     }
     pub fn new() -> Res<Sistema> {
-        let write_db = Arc::from(get_thread().block_on(get_db("sqlite://db.sqlite?mode=rwc"))?);
-        let read_db = Arc::from(get_thread().block_on(get_db("sqlite://db.sqlite?mode=ro"))?);
+        // let write_db = Arc::from(get_thread().block_on(get_db("sqlite://db.sqlite?mode=rwc"))?);
+        // let read_db = Arc::from(get_thread().block_on(get_db("sqlite://db.sqlite?mode=ro"))?);
+        let write_db = None;
+        let read_db = None;
 
-        get_thread()
-            .block_on(async {
-                if let Err(_) = CajaDB::Entity::find().one(read_db.as_ref()).await {
-                    Migrator::fresh(write_db.as_ref()).await
-                } else {
-                    Ok(())
-                }
-            })
-            .unwrap();
         let path_proveedores = "Proveedores.json";
         let path_relaciones = "Relaciones.json";
         let mut relaciones = Vec::new();
@@ -161,15 +156,17 @@ impl<'a> Sistema {
         let mut proveedores: Vec<Proveedor> = Vec::new();
         leer_file(&mut proveedores, path_proveedores)?;
 
-        let aux = Arc::clone(&write_db);
-        let db = Arc::clone(&write_db);
-        let configs = get_thread().block_on(Config::get_or_def(db.as_ref()))?;
-        let caja = get_thread().block_on(Caja::new(aux, Some(0.0), &configs))?;
+        // let aux = Arc::clone(&write_db);
+        // let db = Arc::clone(&write_db);
+        // let configs = get_thread().block_on(Config::get_or_def(db.as_ref()))?;
+        // let caja = get_thread().block_on(Caja::new(aux, Some(0.0), &configs))?;
+        let configs = Config::default();
+        let caja = Caja::default();
         let stash = Vec::new();
         let registro = Vec::new();
 
-        println!("{:#?}", caja);
-        let w1 = Arc::clone(&write_db);
+        //println!("{:#?}", caja);
+        // let w1 = Arc::clone(&write_db);
         let sis = Sistema {
             user: None,
             write_db,
@@ -177,20 +174,22 @@ impl<'a> Sistema {
             caja,
             configs,
             ventas: Ventas {
-                a: get_thread().block_on(Venta::get_or_new(None, w1.as_ref(), true))?,
-                b: get_thread().block_on(Venta::get_or_new(None, w1.as_ref(), false))?,
+                // a: get_thread().block_on(Venta::get_or_new(None, w1.as_ref(), true))?,
+                // b: get_thread().block_on(Venta::get_or_new(None, w1.as_ref(), false))?,
+                a: Venta::default(),
+                b: Venta::default(),
             },
             proveedores: proveedores.clone(),
             relaciones,
             stash,
             registro,
         };
-        Sistema::procesar(
-            Arc::clone(&sis.write_db),
-            Arc::clone(&sis.read_db),
-            sis.proveedores.clone(),
-            sis.relaciones.clone(),
-        )?;
+        // Sistema::procesar(
+        //     Arc::clone(&sis.write_db),
+        //     Arc::clone(&sis.read_db),
+        //     sis.proveedores.clone(),
+        //     sis.relaciones.clone(),
+        // )?;
         Ok(sis)
     }
     fn generar_reporte_caja(&self) {
@@ -203,7 +202,10 @@ impl<'a> Sistema {
             None => None,
         }
     }
-
+    pub async fn set_dbs(&mut self, write: DatabaseConnection, read: DatabaseConnection) {
+        self.write_db = Some(Arc::from(write));
+        self.read_db = Some(Arc::from(read));
+    }
     pub fn cancelar_venta(&mut self, pos: bool) -> Res<()> {
         if pos {
             self.ventas.a.empty();
@@ -214,18 +216,21 @@ impl<'a> Sistema {
     }
     pub fn cerrar_caja(&mut self, monto_actual: f32) -> Res<()> {
         self.caja.set_cajero(self.user().unwrap().nombre());
-        let db = Arc::clone(&self.write_db);
+        let db = Arc::clone(&self.write_db.as_ref().unwrap());
         get_thread().block_on(self.caja.set_n_save(db.as_ref(), monto_actual))?;
         self.generar_reporte_caja();
         self.caja = get_thread().block_on(Caja::new(
-            Arc::clone(&self.write_db),
+            Arc::clone(&self.write_db.as_ref().unwrap()),
             Some(monto_actual),
             &self.configs,
         ))?;
         Ok(())
     }
     pub fn eliminar_usuario(&self, user: User) -> Res<()> {
-        get_thread().spawn(Db::eliminar_usuario(user, Arc::clone(&self.read_db)));
+        get_thread().spawn(Db::eliminar_usuario(
+            user,
+            Arc::clone(&self.read_db.as_ref().unwrap()),
+        ));
         Ok(())
     }
 
@@ -401,8 +406,8 @@ impl<'a> Sistema {
                     user.rango.as_str(),
                 )));
                 self.ventas = Ventas {
-                    a: Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
-                    b: Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
+                    a: Venta::get_or_new(Some(self.arc_user()), self.write_db(), true).await?,
+                    b: Venta::get_or_new(Some(self.arc_user()), self.write_db(), false).await?,
                 };
                 Ok(self.user().unwrap().rango().clone())
             }
@@ -660,10 +665,14 @@ impl<'a> Sistema {
     pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Vec<Pago>> {
         let res;
         if pos {
-            self.ventas.a.eliminar_pago(id, &self.write_db)?;
+            self.ventas
+                .a
+                .eliminar_pago(id, &self.write_db.as_ref().unwrap())?;
             res = self.venta(pos).pagos()
         } else {
-            self.ventas.b.eliminar_pago(id, &self.write_db)?;
+            self.ventas
+                .b
+                .eliminar_pago(id, &self.write_db.as_ref().unwrap())?;
             res = self.venta(pos).pagos()
         }
 
@@ -688,13 +697,13 @@ impl<'a> Sistema {
     pub fn pagar_deuda_especifica(&self, cliente: i32, venta: Venta) -> Res<Venta> {
         get_thread().block_on(Cli::pagar_deuda_especifica(
             cliente,
-            &self.write_db,
+            self.write_db(),
             venta,
             &self.user,
         ))
     }
     pub fn pagar_deuda_general(&self, cliente: i32, monto: f32) -> Res<f32> {
-        get_thread().block_on(Cli::pagar_deuda_general(cliente, &self.write_db, monto))
+        get_thread().block_on(Cli::pagar_deuda_general(cliente, self.write_db(), monto))
     }
     // pub async fn get_cliente(&self, id: i64) -> Res<Cliente> {
     //     let model = CliDB::Entity::find_by_id(id)
@@ -996,10 +1005,10 @@ impl<'a> Sistema {
         })
     }
     pub fn write_db(&self) -> &DatabaseConnection {
-        &self.write_db
+        self.write_db.as_ref().unwrap()
     }
     pub fn read_db(&self) -> &DatabaseConnection {
-        &self.read_db
+        self.read_db.as_ref().unwrap()
     }
     fn set_venta(&mut self, pos: bool, venta: Venta) {
         if pos {
@@ -1026,23 +1035,23 @@ impl<'a> Sistema {
     }
     pub fn hacer_ingreso(&self, monto: f32, descripcion: Option<Arc<str>>) -> Res<()> {
         let mov = Movimiento::Ingreso { descripcion, monto };
-        get_thread().block_on(self.caja.hacer_movimiento(mov, &self.write_db))
+        get_thread().block_on(self.caja.hacer_movimiento(mov, self.write_db()))
     }
     pub fn hacer_egreso(&self, monto: f32, descripcion: Option<Arc<str>>) -> Res<()> {
         let mov = Movimiento::Egreso { descripcion, monto };
-        get_thread().block_on(self.caja.hacer_movimiento(mov, &self.write_db))
+        get_thread().block_on(self.caja.hacer_movimiento(mov, self.write_db()))
     }
     pub fn get_deuda(&self, cliente: Cli) -> Res<f32> {
-        get_thread().block_on(cliente.get_deuda(&self.read_db))
+        get_thread().block_on(cliente.get_deuda(self.read_db()))
     }
     pub fn get_deuda_detalle(&self, cliente: Cli) -> Res<Vec<Venta>> {
-        get_thread().block_on(cliente.get_deuda_detalle(&self.read_db, self.user()))
+        get_thread().block_on(cliente.get_deuda_detalle(self.read_db(), self.user()))
     }
     pub fn eliminar_valuable(&self, val: V) {
-        get_thread().spawn(val.eliminar(self.write_db.as_ref().clone()));
+        get_thread().spawn(val.eliminar(self.write_db().clone()));
     }
     pub fn editar_valuable(&self, val: V) {
-        get_thread().spawn(val.editar(self.write_db.as_ref().clone()));
+        get_thread().spawn(val.editar(self.write_db().clone()));
     }
     pub fn arc_user(&self) -> Arc<User> {
         Arc::clone(&self.user.as_ref().unwrap())
@@ -1084,9 +1093,17 @@ impl<'a> Sistema {
     }
     pub fn set_cliente(&mut self, id: i32, pos: bool) -> Res<()> {
         if pos {
-            get_thread().block_on(self.ventas.a.set_cliente(id, &self.read_db))
+            get_thread().block_on(
+                self.ventas
+                    .a
+                    .set_cliente(id, &self.read_db.as_ref().unwrap()),
+            )
         } else {
-            get_thread().block_on(self.ventas.b.set_cliente(id, &self.read_db))
+            get_thread().block_on(
+                self.ventas
+                    .b
+                    .set_cliente(id, &self.read_db.as_ref().unwrap()),
+            )
         }
     }
     pub fn unstash_sale(&mut self, pos: bool, index: usize) -> Res<()> {
@@ -1105,6 +1122,8 @@ impl<'a> Sistema {
         &self.stash
     }
     pub async fn update_total(&mut self, monto: f32, pagos: &Vec<Pago>) -> Result<(), AppError> {
-        self.caja.update_total(&self.write_db, monto, pagos).await
+        self.caja
+            .update_total(self.write_db.as_ref().unwrap(), monto, pagos)
+            .await
     }
 }

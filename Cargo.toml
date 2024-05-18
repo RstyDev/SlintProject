@@ -10,7 +10,11 @@ members = [".", "src/backend"]
 [dependencies]
 backend ={ path = "src/backend"}
 dioxus = { version = "0.5", features = ["desktop"] }
-
+sea-orm = { version = "0.12", features = [
+    "sqlx-sqlite",
+    "runtime-tokio-rustls",
+    "macros",
+] }
 # Debug
 tracing = "0.1.40"
 dioxus-logger = "0.5.0"

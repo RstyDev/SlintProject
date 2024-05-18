@@ -47,7 +47,20 @@ impl fmt::Debug for Caja {
             .finish()
     }
 }
-
+impl Default for Caja {
+    fn default() -> Self {
+        Caja {
+            id: 0,
+            inicio: Utc::now().naive_local(),
+            cierre: None,
+            ventas_totales: 0.0,
+            monto_inicio: 0.0,
+            monto_cierre: None,
+            cajero: None,
+            totales: HashMap::new(),
+        }
+    }
+}
 impl Caja {
     pub async fn new(
         db: Arc<DatabaseConnection>,

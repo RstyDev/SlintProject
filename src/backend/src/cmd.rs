@@ -1,13 +1,21 @@
+use crate::sistema::get_db;
+
 use super::{
     get_hash, get_thread, Caja, Cli, Config, Pago, Pesable, Rango, Result as Res, Rubro, Sistema,
     User, Valuable as V, Venta,
 };
 
+use dioxus::signals::GlobalSignal;
 use dioxus::signals::ReadOnlySignal;
 use dioxus::signals::Readable;
-use entity::prelude::{CodeDB, PesDB, RubDB};
+use dioxus::signals::Signal;
+use dioxus::signals::Writable;
+use dioxus::signals::WritableOptionExt;
+use entity::prelude::{CajaDB, CodeDB, PesDB, RubDB};
+use migration::Migrator;
 use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
+use std::borrow::BorrowMut;
 use std::sync::Arc;
 use std::sync::Mutex;
 use tokio::runtime::Builder;
@@ -25,7 +33,18 @@ impl Payload {
         Payload { message, pos, val }
     }
 }
+pub async fn system_build(mut sistema: Signal<Sistema>) {
+    // let sis=sistema.take();
 
+    // sistema.with_mut(|sis|async {
+    //     sis.set_dbs(get_db("sqlite://db.sqlite?mode=rwc").await.unwrap(),get_db("sqlite://db.sqlite?mode=ro").await.unwrap()).await
+    // })
+
+    // // if let Err(_) = CajaDB::Entity::find().one(sis.read_db()).await {
+    // //     Migrator::fresh(sis.write_db()).await;
+    // // }
+    // sis.set_dbs(get_db("sqlite://db.sqlite?mode=rwc").await.unwrap(),get_db("sqlite://db.sqlite?mode=ro").await.unwrap()).await;
+}
 pub async fn agregar_cliente_2(
     sistema: ReadOnlySignal<Sistema>,
     nombre: &str,
@@ -37,9 +56,9 @@ pub async fn agregar_cliente_2(
         Some(l) => Some(l.parse::<f32>().map_err(|e| e.to_string())?),
         None => None,
     };
-    let sis=sistema.peek();
-    sis.access();
-    let cli = sis.agregar_cliente(nombre, dni, true, limite)?;
+    let sis = sistema.peek();
+    //sis.access();
+    let cli = sis.agregar_cliente(nombre, dni, true, limite).await?;
     Ok(cli)
 }
 

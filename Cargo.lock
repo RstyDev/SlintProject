@@ -1348,6 +1348,7 @@ dependencies = [
  "backend",
  "dioxus",
  "dioxus-logger",
+ "sea-orm",
  "tracing",
 ]
 

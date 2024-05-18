@@ -1,9 +1,9 @@
+use super::get_thread;
 use entity::prelude::MedioDB;
 use rand::random;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use super::get_thread;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MedioPago {
     medio: Arc<str>,
