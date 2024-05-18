@@ -1348,6 +1348,7 @@ dependencies = [
  "backend",
  "dioxus",
  "dioxus-logger",
+ "frontend",
  "sea-orm",
  "tracing",
 ]
@@ -1959,6 +1960,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e13624c2627564efccf4934284bdd98cbaa14e79b0b5a141218e507b3a823456"
 dependencies = [
  "percent-encoding",
+]
+
+[[package]]
+name = "frontend"
+version = "0.0.0"
+dependencies = [
+ "backend",
+ "dioxus",
+ "dioxus-logger",
+ "tracing",
 ]
 
 [[package]]

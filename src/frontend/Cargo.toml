@@ -1,0 +1,15 @@
+[package]
+name = "frontend"
+version = "0.0.0"
+edition = "2021"
+[lib]
+name = "frontend"
+path = "src/lib.rs"
+
+[dependencies]
+backend = { path = "../backend"}
+dioxus = { version = "0.5", features = ["desktop"] }
+
+# Debug
+tracing = "0.1.40"
+dioxus-logger = "0.5.0"

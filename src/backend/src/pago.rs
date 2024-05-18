@@ -4,7 +4,7 @@ use rand::random;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize,PartialEq, Deserialize)]
 pub struct MedioPago {
     medio: Arc<str>,
     id: i32,
@@ -24,7 +24,7 @@ impl MedioPago {
         Arc::clone(&self.medio)
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone,PartialEq, Serialize, Deserialize)]
 pub struct Pago {
     int_id: u32,
     medio_pago: MedioPago,

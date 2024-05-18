@@ -1,8 +1,10 @@
 #![allow(non_snake_case)]
+use backend::MedioPago;
 use backend::{Presentacion, Producto, Valuable, Venta};
 use dioxus::prelude::*;
 use std::sync::{Arc,Mutex};
-use backend::Sistema;
+use backend::{Sistema,Pago as BPago};
+use frontend::Pago;
 use sea_orm::Database;
 use sea_orm::DatabaseConnection;
 use sea_orm::DbErr;
@@ -23,14 +25,18 @@ fn App() -> Element {
     let mut count: Signal<i32> = use_signal(|| 0);
     //let mut venta = use_signal(Venta::default);
     let sistema= Arc::new(use_signal(||Mutex::new(Sistema::new().unwrap())));
-    
+    let pago=BPago::new(MedioPago::new("Ef", 0), 0.0, None);
     let sis=Arc::clone(&sistema);
-
+    let propsis=Arc::clone(&sistema);
+    let propsis2=Arc::clone(&sistema);
     rsx! {
         div{
-            h1 { "style":"color: white", "Aca esta {count}" }
-            h2 { "style":"color: white", "Desde sistema: {sis.read().lock().unwrap().venta(true):#?}"}
-            //h3 { "{sistema}"}
+            h1 {  "Aca esta {count}" }
+            h2 {  "Desde sistema: {sis.read().lock().unwrap().venta(true):#?}"}
+            h2 { "Aca el pago: {pago:#?}" }
+            
+            Pago{ pago:Some(BPago::new(MedioPago::new("Ef", 0), 0.0, None)),sistema:propsis}
+            Pago{pago:None,sistema:propsis2}
             button { onclick: move |_| {count += 1;
                 let sist= Arc::clone(&sistema);
                 spawn(async move{
@@ -42,15 +48,6 @@ fn App() -> Element {
         }
         link { rel: "stylesheet", href: "main.css" }
         img { src: "header.svg", id: "header" }
-        div { id: "links",
-            a { href: "https://dioxuslabs.com/learn/0.5/", "📚 Learn Dioxus" }
-            a { href: "https://dioxuslabs.com/awesome", "🚀 Awesome Dioxus" }
-            a { href: "https://github.com/dioxus-community/", "📡 Community Libraries" }
-            a { href: "https://github.com/DioxusLabs/dioxus-std", "⚙️ Dioxus Standard Library" }
-            a { href: "https://marketplace.visualstudio.com/items?itemName=DioxusLabs.dioxus",
-                "💫 VSCode Extension"
-            }
-            a { href: "https://discord.gg/XgGxMSkvUM", "👋 Community Discord" }
-        }
+        
     }
 }

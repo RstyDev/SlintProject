@@ -33,6 +33,7 @@ pub struct Sistema {
 pub struct Ventas {
     pub a: Venta,
     pub b: Venta,
+    pub pos: bool,
 }
 
 pub async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
@@ -134,6 +135,7 @@ impl<'a> Sistema {
             ventas: Ventas {
                 a: get_thread().block_on(Venta::get_or_new(None, w2.as_ref(), true))?,
                 b: get_thread().block_on(Venta::get_or_new(None, w3.as_ref(), false))?,
+                pos: true,
             },
             proveedores: Vec::new(),
             relaciones: Vec::new(),
@@ -178,6 +180,7 @@ impl<'a> Sistema {
                 // b: get_thread().block_on(Venta::get_or_new(None, w1.as_ref(), false))?,
                 a: Venta::default(),
                 b: Venta::default(),
+                pos: true,
             },
             proveedores: proveedores.clone(),
             relaciones,
@@ -408,6 +411,7 @@ impl<'a> Sistema {
                 self.ventas = Ventas {
                     a: Venta::get_or_new(Some(self.arc_user()), self.write_db(), true).await?,
                     b: Venta::get_or_new(Some(self.arc_user()), self.write_db(), false).await?,
+                    pos:true,
                 };
                 Ok(self.user().unwrap().rango().clone())
             }
