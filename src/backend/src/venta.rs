@@ -18,7 +18,7 @@ use super::{
     User, Valuable,
 };
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize,PartialEq)]
 pub struct Venta {
     id: i32,
     monto_total: f32,

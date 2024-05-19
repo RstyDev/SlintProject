@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize,PartialEq)]
 pub struct RelacionProdProv {
     id_producto: i32,
     id_proveedor: i32,

@@ -11,7 +11,7 @@ use std::{collections::HashMap, sync::Arc};
 use super::{AppError, Config, Pago, Res};
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Totales(HashMap<String, f64>);
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize,PartialEq)]
 pub struct Caja {
     id: i32,
     inicio: NaiveDateTime,
@@ -63,7 +63,7 @@ impl Default for Caja {
 }
 impl Caja {
     pub async fn new(
-        db: Arc<DatabaseConnection>,
+        db: &DatabaseConnection,
         monto_inicio: Option<f32>,
         config: &Config,
     ) -> Result<Caja, AppError> {
@@ -75,7 +75,7 @@ impl Caja {
 
         caja = match CajaDB::Entity::find()
             .order_by_desc(CajaDB::Column::Id)
-            .one(db.as_ref())
+            .one(db)
             .await?
         {
             Some(res) => match res.cierre {
@@ -126,7 +126,7 @@ impl Caja {
             Err(e) => return Err(e),
         };
         if CajaDB::Entity::find_by_id(aux.id)
-            .one(db.as_ref())
+            .one(db)
             .await?
             .is_none()
         {
@@ -145,7 +145,7 @@ impl Caja {
                     None => NotSet,
                 },
             };
-            model.insert(db.as_ref()).await?;
+            model.insert(db).await?;
         }
         Ok(aux)
     }

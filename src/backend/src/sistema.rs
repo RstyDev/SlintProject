@@ -16,11 +16,9 @@ use std::{collections::HashSet, sync::Arc};
 use tokio::task::JoinHandle;
 use Valuable as V;
 const CUENTA: &str = "Cuenta Corriente";
-#[derive(Clone)]
+#[derive(Clone,PartialEq)]
 pub struct Sistema {
     user: Option<Arc<User>>,
-    write_db: Option<Arc<DatabaseConnection>>,
-    read_db: Option<Arc<DatabaseConnection>>,
     caja: Caja,
     configs: Config,
     ventas: Ventas,
@@ -29,7 +27,7 @@ pub struct Sistema {
     stash: Vec<Venta>,
     registro: Vec<Venta>,
 }
-#[derive(Clone)]
+#[derive(Clone,PartialEq)]
 pub struct Ventas {
     pub a: Venta,
     pub b: Venta,
@@ -52,9 +50,10 @@ impl<'a> Sistema {
         dni: i32,
         activo: bool,
         limite: Option<f32>,
+        write_db:&DatabaseConnection,
     ) -> Res<Cli> {
         Cli::new_to_db(
-            self.write_db(),
+            write_db,
             nombre,
             dni,
             activo,
@@ -63,7 +62,7 @@ impl<'a> Sistema {
         )
         .await
     }
-    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32, pos: bool) -> Res<f32> {
+    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32, pos: bool,write_db:&DatabaseConnection) -> Res<f32> {
         let res;
         if pos {
             if !medio_pago.eq("Efectivo")
@@ -77,7 +76,7 @@ impl<'a> Sistema {
                 res =
                     self.ventas
                         .a
-                        .agregar_pago(medio_pago, monto, &self.write_db.as_ref().unwrap());
+                        .agregar_pago(medio_pago, monto, write_db);
             }
         } else {
             if !medio_pago.eq("Efectivo")
@@ -91,50 +90,41 @@ impl<'a> Sistema {
                 res =
                     self.ventas
                         .b
-                        .agregar_pago(medio_pago, monto, &self.write_db.as_ref().unwrap());
+                        .agregar_pago(medio_pago, monto, write_db);
             }
         }
         println!("{:#?}", res);
         if let Ok(a) = res {
             if a <= 0.0 {
-                self.cerrar_venta(pos)?
+                self.cerrar_venta(pos,write_db)?
             }
         }
         println!("Aca esta la caja {:#?} -----****", self.caja);
         res
     }
-    pub fn agregar_usuario(&self, id: &str, nombre: &str, pass: &str, rango: &str) -> Res<User> {
+    pub fn agregar_usuario(&self, id: &str, nombre: &str, pass: &str, rango: &str,write_db:&DatabaseConnection) -> Res<User> {
         get_thread().block_on(User::new_to_db(
             Arc::from(id),
             Arc::from(nombre),
             get_hash(pass),
             rango,
-            self.write_db(),
+            write_db,
         ))
     }
     #[cfg(test)]
-    pub fn test(user: Option<Arc<User>>) -> Res<Sistema> {
-        let write_db =
-            Arc::from(get_thread().block_on(get_db("sqlite://test/db.sqlite?mode=rwc"))?);
-        let read_db = Arc::from(get_thread().block_on(get_db("sqlite://test/db.sqlite?mode=ro"))?);
-        let w1 = Arc::clone(&write_db);
-        get_thread().block_on(Migrator::fresh(w1.as_ref())).unwrap();
+    pub fn test(user: Option<Arc<User>>,write_db:Arc<DatabaseConnection>,read_db:Arc<DatabaseConnection>) -> Res<Sistema> {
+        get_thread().block_on(Migrator::fresh(write_db.as_ref())).unwrap();
         let configs = get_thread()
-            .block_on(Config::get_or_def(&write_db.as_ref()))
+            .block_on(Config::get_or_def(&write_db))
             .unwrap();
-        let caja = get_thread().block_on(Caja::new(Arc::clone(&write_db), Some(0.0), &configs))?;
-        let w2 = Arc::clone(&write_db);
-        let w3 = Arc::clone(&write_db);
-        let r2 = Arc::clone(&read_db);
+        let caja = get_thread().block_on(Caja::new(write_db.as_ref(), Some(0.0), &configs))?;
         let sis = Sistema {
             user,
-            write_db: Some(write_db),
-            read_db: Some(read_db),
             caja,
             configs,
             ventas: Ventas {
-                a: get_thread().block_on(Venta::get_or_new(None, w2.as_ref(), true))?,
-                b: get_thread().block_on(Venta::get_or_new(None, w3.as_ref(), false))?,
+                a: get_thread().block_on(Venta::get_or_new(None, write_db.as_ref(), true))?,
+                b: get_thread().block_on(Venta::get_or_new(None, write_db.as_ref(), false))?,
                 pos: true,
             },
             proveedores: Vec::new(),
@@ -142,15 +132,12 @@ impl<'a> Sistema {
             stash: Vec::new(),
             registro: Vec::new(),
         };
-        Sistema::procesar_test(Arc::clone(&w2), r2)?;
+        Sistema::procesar_test(write_db, read_db)?;
         Ok(sis)
     }
     pub fn new() -> Res<Sistema> {
         // let write_db = Arc::from(get_thread().block_on(get_db("sqlite://db.sqlite?mode=rwc"))?);
         // let read_db = Arc::from(get_thread().block_on(get_db("sqlite://db.sqlite?mode=ro"))?);
-        let write_db = None;
-        let read_db = None;
-
         let path_proveedores = "Proveedores.json";
         let path_relaciones = "Relaciones.json";
         let mut relaciones = Vec::new();
@@ -171,8 +158,6 @@ impl<'a> Sistema {
         // let w1 = Arc::clone(&write_db);
         let sis = Sistema {
             user: None,
-            write_db,
-            read_db,
             caja,
             configs,
             ventas: Ventas {
@@ -205,10 +190,7 @@ impl<'a> Sistema {
             None => None,
         }
     }
-    pub async fn set_dbs(&mut self, write: DatabaseConnection, read: DatabaseConnection) {
-        self.write_db = Some(Arc::from(write));
-        self.read_db = Some(Arc::from(read));
-    }
+    
     pub fn cancelar_venta(&mut self, pos: bool) -> Res<()> {
         if pos {
             self.ventas.a.empty();
@@ -217,23 +199,22 @@ impl<'a> Sistema {
         }
         Ok(())
     }
-    pub fn cerrar_caja(&mut self, monto_actual: f32) -> Res<()> {
+    pub fn cerrar_caja(&mut self, monto_actual: f32,write_db:&DatabaseConnection) -> Res<()> {
         self.caja.set_cajero(self.user().unwrap().nombre());
-        let db = Arc::clone(&self.write_db.as_ref().unwrap());
-        get_thread().block_on(self.caja.set_n_save(db.as_ref(), monto_actual))?;
+        get_thread().block_on(self.caja.set_n_save(write_db, monto_actual))?;
         self.generar_reporte_caja();
         self.caja = get_thread().block_on(Caja::new(
-            Arc::clone(&self.write_db.as_ref().unwrap()),
+            write_db,
             Some(monto_actual),
             &self.configs,
         ))?;
         Ok(())
     }
-    pub fn eliminar_usuario(&self, user: User) -> Res<()> {
-        get_thread().spawn(Db::eliminar_usuario(
+    pub async fn eliminar_usuario(&self, user: User,write_db:&DatabaseConnection) -> Res<()> {
+        Db::eliminar_usuario(
             user,
-            Arc::clone(&self.read_db.as_ref().unwrap()),
-        ));
+            write_db,
+        ).await;
         Ok(())
     }
 
@@ -245,8 +226,8 @@ impl<'a> Sistema {
         write_db: Arc<DatabaseConnection>,
         read_db: Arc<DatabaseConnection>,
     ) -> Res<()> {
-        let write_db2 = Arc::clone(&write_db);
-        let read_db2 = Arc::clone(&read_db);
+        let write_db2=Arc::clone(&write_db);
+        let read_db2=Arc::clone(&read_db);
         let _: JoinHandle<Result<(), AppError>> = get_thread().spawn(async move {
             let medios = vec!["Efectivo", "Crédito", "Débito"];
             for medio in medios {
@@ -254,11 +235,11 @@ impl<'a> Sistema {
                     medio: Set(medio.to_string()),
                     ..Default::default()
                 };
-                model.insert(write_db2.as_ref()).await?;
+                model.insert(write_db.as_ref()).await?;
             }
             if MedioDB::Entity::find()
                 .filter(MedioDB::Column::Medio.eq(CUENTA))
-                .one(read_db2.as_ref())
+                .one(read_db.as_ref())
                 .await?
                 .is_none()
             {
@@ -266,13 +247,13 @@ impl<'a> Sistema {
                     medio: Set(CUENTA.to_string()),
                     id: Set(0),
                 };
-                model.insert(write_db2.as_ref()).await?;
+                model.insert(write_db.as_ref()).await?;
             }
             return Ok(());
         });
-        if get_thread().block_on(UserDB::Entity::find().count(read_db.as_ref()))? == 0 {
+        
+        if get_thread().block_on(UserDB::Entity::find().count(read_db2.as_ref()))? == 0 {
             get_thread().block_on(async move {
-                let db = Arc::clone(&write_db);
                 let model = UserDB::ActiveModel {
                     user_id: Set("test".to_owned()),
                     pass: Set(get_hash("9876")),
@@ -280,7 +261,7 @@ impl<'a> Sistema {
                     nombre: Set("Admin".to_owned()),
                     ..Default::default()
                 };
-                model.insert(db.as_ref()).await.unwrap();
+                model.insert(write_db2.as_ref()).await.unwrap();
             });
         }
         Ok(())
@@ -374,9 +355,9 @@ impl<'a> Sistema {
         Ok(())
     }
 
-    pub async fn get_clientes(&self) -> Res<Vec<Cli>> {
+    pub async fn get_clientes(&self,read_db:&DatabaseConnection) -> Res<Vec<Cli>> {
         Ok(CliDB::Entity::find()
-            .all(self.read_db())
+            .all(read_db)
             .await?
             .iter()
             .map(|model| {
@@ -391,14 +372,14 @@ impl<'a> Sistema {
             })
             .collect::<Vec<Cli>>())
     }
-    pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<Rango> {
+    pub async fn try_login(&mut self, id: &str, pass: i64,write_db:&DatabaseConnection,read_db:&DatabaseConnection) -> Res<Rango> {
         match UserDB::Entity::find()
             .filter(
                 Condition::all()
                     .add(UserDB::Column::UserId.eq(id.to_string()))
                     .add(UserDB::Column::Pass.eq(pass)),
             )
-            .one(self.read_db())
+            .one(read_db)
             .await?
         {
             Some(user) => {
@@ -409,15 +390,15 @@ impl<'a> Sistema {
                     user.rango.as_str(),
                 )));
                 self.ventas = Ventas {
-                    a: Venta::get_or_new(Some(self.arc_user()), self.write_db(), true).await?,
-                    b: Venta::get_or_new(Some(self.arc_user()), self.write_db(), false).await?,
+                    a: Venta::get_or_new(Some(self.arc_user()), write_db, true).await?,
+                    b: Venta::get_or_new(Some(self.arc_user()), write_db, false).await?,
                     pos:true,
                 };
                 Ok(self.user().unwrap().rango().clone())
             }
             None => match UserDB::Entity::find()
                 .filter(UserDB::Column::UserId.eq(id))
-                .one(self.read_db())
+                .one(read_db)
                 .await?
             {
                 Some(_) => Err(AppError::IncorrectError("Contraseña".to_string())),
@@ -428,11 +409,11 @@ impl<'a> Sistema {
     pub async fn val_filtrado(
         &self,
         filtro: &str,
-        db: &DatabaseConnection,
+        read_db: &DatabaseConnection,
     ) -> Result<Vec<Valuable>, AppError> {
         let mut res: Vec<Valuable>;
         res = self
-            .prods_filtrado(filtro, db)
+            .prods_filtrado(filtro, read_db)
             .await?
             .iter()
             .cloned()
@@ -440,7 +421,7 @@ impl<'a> Sistema {
             .collect();
         res.append(
             &mut self
-                .pes_filtrado(filtro, db)
+                .pes_filtrado(filtro, read_db)
                 .await?
                 .iter()
                 .cloned()
@@ -449,7 +430,7 @@ impl<'a> Sistema {
         );
         res.append(
             &mut self
-                .rub_filtrado(filtro, db)
+                .rub_filtrado(filtro, read_db)
                 .await?
                 .iter()
                 .cloned()
@@ -468,7 +449,7 @@ impl<'a> Sistema {
     pub async fn pes_filtrado(
         &self,
         filtro: &str,
-        db: &DatabaseConnection,
+        read_db: &DatabaseConnection,
     ) -> Result<Vec<(f32, Pesable)>, AppError> {
         let (cant, filtro) = Sistema::splitx(filtro)?;
         let mut prods = Vec::new();
@@ -476,7 +457,7 @@ impl<'a> Sistema {
             Ok(code) => {
                 if let Some(model) = PesDB::Entity::find()
                     .filter(PesDB::Column::Codigo.eq(code))
-                    .one(db)
+                    .one(read_db)
                     .await?
                 {
                     prods.push((cant, Mapper::map_model_pes(&model)))
@@ -492,7 +473,7 @@ impl<'a> Sistema {
                             .filter(PesDB::Column::Descripcion.contains(filtros[i]))
                             .order_by_asc(PesDB::Column::Id)
                             .limit(Some(*self.configs().cantidad_productos() as u64))
-                            .all(self.read_db())
+                            .all(read_db)
                             .await?;
                     } else {
                         res = res
@@ -518,7 +499,7 @@ impl<'a> Sistema {
     pub async fn rub_filtrado(
         &self,
         filtro: &str,
-        db: &DatabaseConnection,
+        read_db: &DatabaseConnection,
     ) -> Result<Vec<(u8, Rubro)>, AppError> {
         let mut prods = Vec::new();
         let (cant, filtro) = Sistema::splitx(filtro)?;
@@ -526,7 +507,7 @@ impl<'a> Sistema {
             Ok(code) => {
                 if let Some(model) = RubDB::Entity::find()
                     .filter(RubDB::Column::Codigo.eq(code))
-                    .one(db)
+                    .one(read_db)
                     .await?
                 {
                     prods.push((cant as u8, Mapper::map_model_rub(&model, 0.0)))
@@ -541,7 +522,7 @@ impl<'a> Sistema {
                             .filter(RubDB::Column::Descripcion.contains(filtros[i]))
                             .order_by_asc(RubDB::Column::Id)
                             .limit(Some(*self.configs().cantidad_productos() as u64))
-                            .all(self.read_db())
+                            .all(read_db)
                             .await?;
                     } else {
                         res = res
@@ -567,7 +548,7 @@ impl<'a> Sistema {
     pub async fn prods_filtrado(
         &self,
         filtro: &str,
-        db: &DatabaseConnection,
+        read_db: &DatabaseConnection,
     ) -> Result<Vec<(u8, Producto)>, AppError> {
         let (cant, filtro) = Sistema::splitx(filtro)?;
         let mut prods = Vec::new();
@@ -575,17 +556,17 @@ impl<'a> Sistema {
             Ok(code) => {
                 if let Some(id) = CodeDB::Entity::find()
                     .filter(CodeDB::Column::Codigo.eq(code))
-                    .one(db)
+                    .one(read_db)
                     .await?
                 {
                     prods.push({
                         let model = ProdDB::Entity::find_by_id(id.producto)
-                            .one(db)
+                            .one(read_db)
                             .await?
                             .unwrap();
                         (
                             cant as u8,
-                            Mapper::map_model_prod(&model, db)
+                            Mapper::map_model_prod(&model, read_db)
                                 .await?
                                 .redondear(&self.configs().politica()),
                         )
@@ -606,7 +587,7 @@ impl<'a> Sistema {
                             )
                             .order_by_asc(ProdDB::Column::Id)
                             .limit(Some(*self.configs().cantidad_productos() as u64))
-                            .all(self.read_db())
+                            .all(read_db)
                             .await?;
                     } else {
                         res = res
@@ -633,7 +614,7 @@ impl<'a> Sistema {
                 for model in &res {
                     prods.push((
                         cant as u8,
-                        Mapper::map_model_prod(model, self.read_db())
+                        Mapper::map_model_prod(model, read_db)
                             .await?
                             .redondear(&self.configs().politica()),
                     ));
@@ -650,8 +631,8 @@ impl<'a> Sistema {
             _ => Err(AppError::ParseError),
         }
     }
-    pub async fn proveedores(&self) -> Vec<Proveedor> {
-        match ProvDB::Entity::find().all(self.read_db()).await {
+    pub async fn proveedores(&self,read_db:&DatabaseConnection) -> Vec<Proveedor> {
+        match ProvDB::Entity::find().all(read_db).await {
             Ok(a) => {
                 let res = a
                     .iter()
@@ -666,27 +647,27 @@ impl<'a> Sistema {
         &self.configs
     }
 
-    pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Vec<Pago>> {
+    pub fn eliminar_pago(&mut self, pos: bool, id: u32,write_db:&DatabaseConnection) -> Res<Vec<Pago>> {
         let res;
         if pos {
             self.ventas
                 .a
-                .eliminar_pago(id, &self.write_db.as_ref().unwrap())?;
+                .eliminar_pago(id, write_db)?;
             res = self.venta(pos).pagos()
         } else {
             self.ventas
                 .b
-                .eliminar_pago(id, &self.write_db.as_ref().unwrap())?;
+                .eliminar_pago(id, write_db)?;
             res = self.venta(pos).pagos()
         }
 
         Ok(res)
     }
-    pub fn set_configs(&mut self, configs: Config) {
+    pub fn set_configs(&mut self, configs: Config,read_db:&DatabaseConnection,write_db:&DatabaseConnection) {
         self.configs = configs;
         get_thread().block_on(async {
             let mut res = ConfDB::Entity::find()
-                .one(self.read_db())
+                .one(read_db)
                 .await
                 .unwrap()
                 .unwrap()
@@ -695,19 +676,19 @@ impl<'a> Sistema {
             res.formato_producto = Set(self.configs().formato().to_string());
             res.modo_mayus = Set(self.configs().modo_mayus().to_string());
             res.politica_redondeo = Set(self.configs().politica());
-            res.update(self.write_db()).await.unwrap();
+            res.update(write_db).await.unwrap();
         });
     }
-    pub fn pagar_deuda_especifica(&self, cliente: i32, venta: Venta) -> Res<Venta> {
+    pub fn pagar_deuda_especifica(&self, cliente: i32, venta: Venta,write_db:&DatabaseConnection) -> Res<Venta> {
         get_thread().block_on(Cli::pagar_deuda_especifica(
             cliente,
-            self.write_db(),
+            write_db,
             venta,
             &self.user,
         ))
     }
-    pub fn pagar_deuda_general(&self, cliente: i32, monto: f32) -> Res<f32> {
-        get_thread().block_on(Cli::pagar_deuda_general(cliente, self.write_db(), monto))
+    pub fn pagar_deuda_general(&self, cliente: i32, monto: f32,write_db:&DatabaseConnection) -> Res<f32> {
+        get_thread().block_on(Cli::pagar_deuda_general(cliente, write_db, monto))
     }
     // pub async fn get_cliente(&self, id: i64) -> Res<Cliente> {
     //     let model = CliDB::Entity::find_by_id(id)
@@ -729,6 +710,8 @@ impl<'a> Sistema {
         variedad: &str,
         cantidad: &str,
         presentacion: &str,
+        write_db:&DatabaseConnection,
+        read_db:&DatabaseConnection
     ) -> Res<Producto> {
         match ProdDB::Entity::find()
             .filter(
@@ -739,7 +722,7 @@ impl<'a> Sistema {
                     .add(ProdDB::Column::Presentacion.eq(presentacion))
                     .add(ProdDB::Column::Cantidad.eq(cantidad)),
             )
-            .one(self.read_db())
+            .one(read_db)
             .await?
         {
             Some(_) => {
@@ -789,7 +772,7 @@ impl<'a> Sistema {
                     ..Default::default()
                 };
                 let res_prod = ProdDB::Entity::insert(prod_model)
-                    .exec(self.write_db())
+                    .exec(write_db)
                     .await?;
                 let codigos_model: Vec<CodeDB::ActiveModel> = codigos_de_barras
                     .iter()
@@ -801,7 +784,7 @@ impl<'a> Sistema {
                     .collect();
 
                 CodeDB::Entity::insert_many(codigos_model)
-                    .exec(self.write_db())
+                    .exec(write_db)
                     .await?;
                 for i in 0..codigos_prov.len() {
                     let codigo = if codigos_prov[i].len() == 0 {
@@ -811,7 +794,7 @@ impl<'a> Sistema {
                     };
                     if let Some(prov) = ProvDB::Entity::find()
                         .filter(Condition::all().add(ProvDB::Column::Nombre.eq(proveedores[i])))
-                        .one(self.write_db())
+                        .one(write_db)
                         .await?
                     {
                         let relacion_model = ProdProvDB::ActiveModel {
@@ -821,7 +804,7 @@ impl<'a> Sistema {
                             ..Default::default()
                         };
                         ProdProvDB::Entity::insert(relacion_model)
-                            .exec(self.write_db())
+                            .exec(write_db)
                             .await?;
                     }
                 }
@@ -860,23 +843,23 @@ impl<'a> Sistema {
         }
     }
 
-    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i64>) -> Res<()> {
-        get_thread().block_on(Proveedor::new_to_db(proveedor, contacto, self.write_db()))?;
+    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i64>,write_db:&DatabaseConnection) -> Res<()> {
+        get_thread().block_on(Proveedor::new_to_db(proveedor, contacto, write_db))?;
         Ok(())
     }
 
-    pub async fn agregar_producto_a_venta(&mut self, prod: V, pos: bool) -> Res<()> {
+    pub async fn agregar_producto_a_venta(&mut self, prod: V, pos: bool,read_db:&DatabaseConnection) -> Res<()> {
         let existe = match &prod {
             Valuable::Prod(a) => ProdDB::Entity::find_by_id(*a.1.id())
-                .one(self.read_db())
+                .one(read_db)
                 .await?
                 .is_some(),
             Valuable::Pes(a) => PesDB::Entity::find_by_id(*a.1.id())
-                .one(self.read_db())
+                .one(read_db)
                 .await?
                 .is_some(),
             Valuable::Rub(a) => RubDB::Entity::find_by_id(*a.1.id())
-                .one(self.read_db())
+                .one(read_db)
                 .await?
                 .is_some(),
         };
@@ -975,13 +958,13 @@ impl<'a> Sistema {
             self.ventas.b.clone()
         }
     }
-    pub fn filtrar_marca(&self, filtro: &str) -> Res<Vec<String>> {
+    pub fn filtrar_marca(&self, filtro: &str,read_db:&DatabaseConnection) -> Res<Vec<String>> {
         let mut hash = HashSet::new();
         get_thread().block_on(async {
             ProdDB::Entity::find()
                 .filter(ProdDB::Column::Marca.contains(filtro))
                 .order_by(ProdDB::Column::Marca, sea_orm::Order::Asc)
-                .all(self.read_db())
+                .all(read_db)
                 .await?
                 .iter()
                 .for_each(|x| {
@@ -993,13 +976,13 @@ impl<'a> Sistema {
     // pub fn get_deuda_cliente(&self, cliente: Cli)->Res<f64>{
 
     // }
-    pub fn filtrar_tipo_producto(&self, filtro: &str) -> Res<Vec<String>> {
+    pub fn filtrar_tipo_producto(&self, filtro: &str,read_db:&DatabaseConnection) -> Res<Vec<String>> {
         let mut hash = HashSet::new();
         get_thread().block_on(async {
             ProdDB::Entity::find()
                 .filter(ProdDB::Column::TipoProducto.contains(filtro))
                 .order_by(ProdDB::Column::TipoProducto, sea_orm::Order::Asc)
-                .all(self.read_db())
+                .all(read_db)
                 .await?
                 .iter()
                 .for_each(|x| {
@@ -1008,12 +991,7 @@ impl<'a> Sistema {
             Ok(hash.into_iter().collect::<Vec<String>>())
         })
     }
-    pub fn write_db(&self) -> &DatabaseConnection {
-        self.write_db.as_ref().unwrap()
-    }
-    pub fn read_db(&self) -> &DatabaseConnection {
-        self.read_db.as_ref().unwrap()
-    }
+    
     fn set_venta(&mut self, pos: bool, venta: Venta) {
         if pos {
             self.ventas.a = venta;
@@ -1021,52 +999,52 @@ impl<'a> Sistema {
             self.ventas.b = venta;
         }
     }
-    fn cerrar_venta(&mut self, pos: bool) -> Res<()> {
-        get_thread().block_on(self.venta(pos).guardar(pos, self.write_db()))?;
+    fn cerrar_venta(&mut self, pos: bool,write_db:&DatabaseConnection) -> Res<()> {
+        get_thread().block_on(self.venta(pos).guardar(pos, write_db))?;
         self.registro.push(self.venta(pos).clone());
         println!("{:#?}", self.venta(pos));
         get_thread()
-            .block_on(self.update_total(self.venta(pos).monto_total(), &self.venta(pos).pagos()))?;
+            .block_on(self.update_total(self.venta(pos).monto_total(), &self.venta(pos).pagos(),write_db))?;
         self.set_venta(
             pos,
             get_thread().block_on(Venta::get_or_new(
                 Some(self.arc_user()),
-                self.write_db(),
+                write_db,
                 pos,
             ))?,
         );
         Ok(())
     }
-    pub fn hacer_ingreso(&self, monto: f32, descripcion: Option<Arc<str>>) -> Res<()> {
+    pub fn hacer_ingreso(&self, monto: f32, descripcion: Option<Arc<str>>,write_db:&DatabaseConnection) -> Res<()> {
         let mov = Movimiento::Ingreso { descripcion, monto };
-        get_thread().block_on(self.caja.hacer_movimiento(mov, self.write_db()))
+        get_thread().block_on(self.caja.hacer_movimiento(mov, write_db))
     }
-    pub fn hacer_egreso(&self, monto: f32, descripcion: Option<Arc<str>>) -> Res<()> {
+    pub fn hacer_egreso(&self, monto: f32, descripcion: Option<Arc<str>>,write_db:&DatabaseConnection) -> Res<()> {
         let mov = Movimiento::Egreso { descripcion, monto };
-        get_thread().block_on(self.caja.hacer_movimiento(mov, self.write_db()))
+        get_thread().block_on(self.caja.hacer_movimiento(mov, write_db))
     }
-    pub fn get_deuda(&self, cliente: Cli) -> Res<f32> {
-        get_thread().block_on(cliente.get_deuda(self.read_db()))
+    pub fn get_deuda(&self, cliente: Cli,read_db:&DatabaseConnection) -> Res<f32> {
+        get_thread().block_on(cliente.get_deuda(read_db))
     }
-    pub fn get_deuda_detalle(&self, cliente: Cli) -> Res<Vec<Venta>> {
-        get_thread().block_on(cliente.get_deuda_detalle(self.read_db(), self.user()))
+    pub fn get_deuda_detalle(&self, cliente: Cli,read_db: &DatabaseConnection) -> Res<Vec<Venta>> {
+        get_thread().block_on(cliente.get_deuda_detalle(read_db, self.user()))
     }
-    pub fn eliminar_valuable(&self, val: V) {
-        get_thread().spawn(val.eliminar(self.write_db().clone()));
+    pub fn eliminar_valuable(&self, val: V,write_db:&DatabaseConnection) {
+        get_thread().spawn(val.eliminar(write_db.clone()));
     }
-    pub fn editar_valuable(&self, val: V) {
-        get_thread().spawn(val.editar(self.write_db().clone()));
+    pub fn editar_valuable(&self, val: V,write_db:&DatabaseConnection) {
+        get_thread().spawn(val.editar(write_db.clone()));
     }
     pub fn arc_user(&self) -> Arc<User> {
         Arc::clone(&self.user.as_ref().unwrap())
     }
-    pub fn stash_sale(&mut self, pos: bool) -> Res<()> {
+    pub fn stash_sale(&mut self, pos: bool,write_db:&DatabaseConnection) -> Res<()> {
         self.stash.push(self.venta(pos));
         self.set_venta(
             pos,
             get_thread().block_on(Venta::get_or_new(
                 Some(self.arc_user()),
-                self.write_db(),
+                write_db,
                 pos,
             ))?,
         );
@@ -1095,18 +1073,18 @@ impl<'a> Sistema {
             })
         }
     }
-    pub fn set_cliente(&mut self, id: i32, pos: bool) -> Res<()> {
+    pub fn set_cliente(&mut self, id: i32, pos: bool,read_db: &DatabaseConnection) -> Res<()> {
         if pos {
             get_thread().block_on(
                 self.ventas
                     .a
-                    .set_cliente(id, &self.read_db.as_ref().unwrap()),
+                    .set_cliente(id, read_db),
             )
         } else {
             get_thread().block_on(
                 self.ventas
                     .b
-                    .set_cliente(id, &self.read_db.as_ref().unwrap()),
+                    .set_cliente(id, read_db),
             )
         }
     }
@@ -1125,9 +1103,9 @@ impl<'a> Sistema {
     pub fn stash(&self) -> &Vec<Venta> {
         &self.stash
     }
-    pub async fn update_total(&mut self, monto: f32, pagos: &Vec<Pago>) -> Result<(), AppError> {
+    pub async fn update_total(&mut self, monto: f32, pagos: &Vec<Pago>,write_db:&DatabaseConnection) -> Result<(), AppError> {
         self.caja
-            .update_total(self.write_db.as_ref().unwrap(), monto, pagos)
+            .update_total(write_db, monto, pagos)
             .await
     }
 }

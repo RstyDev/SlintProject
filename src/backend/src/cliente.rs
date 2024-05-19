@@ -9,13 +9,13 @@ use std::sync::Arc;
 
 use super::{AppError, Mapper, Res, User, Venta};
 
-#[derive(Serialize, Clone, Debug, Deserialize)]
+#[derive(Serialize, Clone, Debug, Deserialize,PartialEq)]
 pub enum Cliente {
     Final,
     Regular(Cli),
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug,PartialEq)]
 pub struct Cli {
     id: i32,
     nombre: Arc<str>,
@@ -24,7 +24,7 @@ pub struct Cli {
     created: NaiveDateTime,
     limite: Cuenta,
 }
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug,PartialEq)]
 pub enum Cuenta {
     Auth(f32),
     Unauth,

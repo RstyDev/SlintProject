@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use super::Res;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize,PartialEq)]
 pub struct Config {
     politica_redondeo: f32,
     formato_producto: Formato,
@@ -87,7 +87,7 @@ impl Default for Config {
     }
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize,PartialEq)]
 pub enum Formato {
     #[default]
     Tmv,
@@ -102,7 +102,7 @@ impl ToString for Formato {
     }
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize,PartialEq)]
 pub enum Mayusculas {
     #[default]
     Upper,

@@ -257,14 +257,14 @@ impl Mapper {
 }
 
 impl Db {
-    pub async fn eliminar_usuario(user: User, db: Arc<DatabaseConnection>) -> Res<()> {
+    pub async fn eliminar_usuario(user: User, db: &DatabaseConnection) -> Res<()> {
         let model = UserDB::Entity::find()
             .filter(UserDB::Column::UserId.eq(user.id()))
-            .one(db.as_ref())
+            .one(db)
             .await?;
         match model {
             Some(a) => {
-                a.into_active_model().delete(db.as_ref()).await?;
+                a.into_active_model().delete(db).await?;
             }
             None => {
                 return Err(AppError::NotFound {
