@@ -10,7 +10,7 @@ members = [".", "src/backend","src/frontend"]
 [dependencies]
 backend ={ path = "src/backend"}
 frontend = { path = "src/frontend"}
-dioxus = { version = "0.5", features = ["desktop"] }
+dioxus = { version = "0.5", features = ["desktop","router"] }
 sea-orm = { version = "0.12", features = [
     "sqlx-sqlite",
     "runtime-tokio-rustls",
