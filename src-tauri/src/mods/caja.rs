@@ -1,14 +1,14 @@
 use chrono::{NaiveDateTime, Utc};
+use sqlx::{sqlite::SqliteConnectOptions, Connection, SqliteConnection};
+use tauri::async_runtime::block_on;
 use core::fmt;
-use entity::prelude::{CajaDB, MovDB};
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::NotSet, DatabaseConnection, EntityTrait, IntoActiveModel,
-    QueryOrder, Set,
-};
+
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
-type Res<T> = std::result::Result<T, AppError>;
-use super::{config::Config, error::AppError, pago::Pago};
+
+use super::{AppError 
+//    ,Config, Pago, Res
+};
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Totales(HashMap<String, f64>);
 #[derive(Clone, Serialize, Deserialize)]
@@ -50,10 +50,14 @@ impl fmt::Debug for Caja {
 
 impl Caja {
     pub async fn new(
-        db: Arc<DatabaseConnection>,
+   //     db: Arc<DatabaseConnection>,
         monto_inicio: Option<f32>,
-        config: &Config,
+        //config: &Config,
     ) -> Result<Caja, AppError> {
+        let options=SqliteConnectOptions::new();
+        let connection = block_on(SqliteConnection::connect("url")).unwrap();
+        
+        
         let caja;
         let mut totales = HashMap::new();
         for medio in config.medios_pago() {
@@ -200,11 +204,7 @@ impl Caja {
         monto: f32,
         pagos: &Vec<Pago>,
     ) -> Result<(), AppError> {
-        // let act=self.totales.remove(&medio).unwrap();
-        // self.totales.insert(medio,act+monto);
-
         for pago in pagos {
-            //     println!("{:#?}",pago.medio_pago());
             let act = self.totales.remove(&pago.medio_pago().desc()).unwrap();
             self.totales
                 .insert(pago.medio_pago().desc(), pago.monto() + act);

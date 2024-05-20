@@ -1,41 +1,24 @@
 [package]
-name = "rsty_cash"
+name = "leptoscash"
 version = "0.0.0"
-description = "Tauri Rsty SalePoint"
+description = "A Tauri App"
 authors = ["RstyDev"]
-license = ""
-repository = ""
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-
-[workspace]
-members = [".", "entity", "migration"]
-
 [build-dependencies]
-tauri-build = { version = "1.4", features = [] }
+tauri-build = { version = "1", features = [] }
 
 [dependencies]
-entity = { path = "entity" }
-migration = { path = "migration" }
-tauri = { version = "1.4", features = [ "shell-open"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-sea-orm = { version = "0.12", features = [
-    "sqlx-sqlite",
-    "runtime-tokio-rustls",
-    "macros",
-] }
-full = "0.1.0"
-async-std = "1.12.0"
-tokio = "1.35.0"
-chrono = "0.4.31"
-thiserror = "1.0.56"
-rand = "0.8.5"
-
+tauri = { version = "1", features = ["shell-open"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sqlx = { version= "0.7.4", features = ["sqlite", "runtime-tokio", "tls-rustls", "macros"] }
+chrono = {version= "0.4.38" ,features = ["serde"] }
+thiserror = "1.0.61"
+dotenvy = "0.15.7"
 
 [features]
-# this feature is used for production builds or when `devPath` points to the filesystem
-# DO NOT REMOVE!!
+# This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]

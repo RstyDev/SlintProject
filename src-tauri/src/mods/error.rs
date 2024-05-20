@@ -1,8 +1,9 @@
 use chrono::ParseError;
 use core::num::ParseIntError;
-use sea_orm::DbErr;
 use std::{io, num::ParseFloatError, time::SystemTimeError};
 use thiserror::Error;
+pub type Res<T> = std::result::Result<T, AppError>;
+pub type Result<T> = std::result::Result<T, String>;
 
 #[derive(Debug, Error)]
 pub enum AppError {
@@ -22,8 +23,6 @@ pub enum AppError {
     FileSystemError(#[from] io::Error),
     #[error("Error de hora del sistema")]
     SystemTimeError(#[from] SystemTimeError),
-    #[error("Error de bases de datos")]
-    DbError(#[from] DbErr),
     #[error("Error de conversion de flotante")]
     ParseFloatError(#[from] ParseFloatError),
     #[error("Error de conversion de enteros")]

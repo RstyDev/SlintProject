@@ -1,9 +1,10 @@
-use super::{error::AppError, lib::Save};
+use super::{AppError, Res};
 use chrono::Utc;
-type Res<T> = std::result::Result<T, AppError>;
+
 use entity::prelude::PesDB;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter, Set
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter,
+    Set,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -51,7 +52,7 @@ impl Pesable {
             Some(_) => {
                 return Err(AppError::ExistingError {
                     objeto: "Pesable".to_string(),
-                    instancia: format!("{}", codigo),
+                    instancia: codigo.to_string(),
                 })
             }
             None => {
@@ -94,48 +95,46 @@ impl Pesable {
     pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
     }
-    pub async fn eliminar(self, db: &DatabaseConnection)->Res<()>{
-        let model=match PesDB::Entity::find_by_id(self.id).one(db).await?{
+    pub async fn eliminar(self, db: &DatabaseConnection) -> Res<()> {
+        let model = match PesDB::Entity::find_by_id(self.id).one(db).await? {
             Some(model) => model.into_active_model(),
-            None => return Err(AppError::NotFound { objeto: String::from("Pesable"), instancia: format!("{}",self.id) }),
+            None => {
+                return Err(AppError::NotFound {
+                    objeto: String::from("Pesable"),
+                    instancia: self.id.to_string(),
+                })
+            }
         };
         model.delete(db).await?;
         Ok(())
     }
-    pub async fn editar(self, db: &DatabaseConnection)->Res<()>{
-        let mut model = match PesDB::Entity::find_by_id(self.id).one(db).await?{
-            Some(model) => model.into_active_model(),
-            None => return Err(AppError::NotFound { objeto: String::from("Pesable"), instancia: format!("{}",self.id) }),
-        };
-        if self.precio_peso==self.costo_kilo*(1.0+self.porcentaje/100.0){
-            model.precio_peso=Set(self.precio_peso);
-        }else{
-            return Err(AppError::IncorrectError(String::from("Cálculo de precio incorrecto")));
-        }
-        model.codigo=Set(self.codigo);
-        model.costo_kilo=Set(self.costo_kilo);
-        model.descripcion=Set(self.descripcion.to_string());
-        model.porcentaje=Set(self.porcentaje);
-        model.updated_at=Set(Utc::now().naive_local());
-        model.update(db).await?;
-        Ok(())
+    #[cfg(test)]
+    pub fn desc(&self) -> String {
+        self.descripcion.to_string()
     }
-}
-
-impl Save for Pesable {
-    async fn save(&self) -> Result<(), DbErr> {
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        println!("conectado");
-        let model = PesDB::ActiveModel {
-            id: Set(self.id),
-            codigo: Set(self.codigo),
-            precio_peso: Set(self.precio_peso),
-            porcentaje: Set(self.porcentaje),
-            costo_kilo: Set(self.costo_kilo),
-            descripcion: Set(self.descripcion.to_string()),
-            updated_at: Set(Utc::now().naive_local()),
+    pub async fn editar(self, db: &DatabaseConnection) -> Res<()> {
+        let mut model = match PesDB::Entity::find_by_id(self.id).one(db).await? {
+            Some(model) => model.into_active_model(),
+            None => {
+                return Err(AppError::NotFound {
+                    objeto: String::from("Pesable"),
+                    instancia: self.id.to_string(),
+                })
+            }
         };
-        model.insert(&db).await?;
+        if self.precio_peso == self.costo_kilo * (1.0 + self.porcentaje / 100.0) {
+            model.precio_peso = Set(self.precio_peso);
+        } else {
+            return Err(AppError::IncorrectError(String::from(
+                "Cálculo de precio incorrecto",
+            )));
+        }
+        model.codigo = Set(self.codigo);
+        model.costo_kilo = Set(self.costo_kilo);
+        model.descripcion = Set(self.descripcion.to_string());
+        model.porcentaje = Set(self.porcentaje);
+        model.updated_at = Set(Utc::now().naive_local());
+        model.update(db).await?;
         Ok(())
     }
 }

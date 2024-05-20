@@ -1,19 +1,7 @@
-type Res<T> = std::result::Result<T, AppError>;
 use super::{
-    caja::{Caja, Movimiento},
-    cliente::Cli,
-    config::Config,
-    error::AppError,
-    lib::{crear_file, get_hash, leer_file, Db, Mapper},
-    pago::Pago,
-    pesable::Pesable,
-    producto::Producto,
-    proveedor::Proveedor,
-    relacion_prod_prov::RelacionProdProv,
-    rubro::Rubro,
-    user::{Rango, User},
-    valuable::{Presentacion, Valuable, ValuableTrait},
-    venta::Venta,
+    crear_file, get_hash, leer_file, AppError, Caja, Cli, Config, Db, Mapper, Movimiento, Pago,
+    Pesable, Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User,
+    Valuable, ValuableTrait, Venta,
 };
 use chrono::Utc;
 use entity::prelude::{
@@ -34,11 +22,16 @@ pub struct Sistema {
     read_db: Arc<DatabaseConnection>,
     caja: Caja,
     configs: Config,
-    ventas: (Venta, Venta),
+    ventas: Ventas,
     proveedores: Vec<Proveedor>,
     relaciones: Vec<RelacionProdProv>,
     stash: Vec<Venta>,
     registro: Vec<Venta>,
+}
+
+pub struct Ventas {
+    pub a: Venta,
+    pub b: Venta,
 }
 
 async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
@@ -55,7 +48,6 @@ impl<'a> Sistema {
         &self,
         nombre: &str,
         dni: i32,
-        credito: bool,
         activo: bool,
         limite: Option<f32>,
     ) -> Res<Cli> {
@@ -63,7 +55,6 @@ impl<'a> Sistema {
             self.write_db(),
             nombre,
             dni,
-            credito,
             activo,
             Utc::now().naive_local(),
             limite,
@@ -73,25 +64,31 @@ impl<'a> Sistema {
         let res;
         if pos {
             if !medio_pago.eq("Efectivo")
-                && self.ventas.0.monto_pagado() + monto > self.ventas.0.monto_total()
+                && self.ventas.a.monto_pagado() + monto > self.ventas.a.monto_total()
             {
                 return Err(AppError::AmountError {
-                    a_pagar: self.ventas.0.monto_total() - self.ventas.0.monto_pagado(),
+                    a_pagar: self.ventas.a.monto_total() - self.ventas.a.monto_pagado(),
                     pagado: monto,
                 });
             } else {
-                res = self.ventas.0.agregar_pago(medio_pago, monto);
+                res = self
+                    .ventas
+                    .a
+                    .agregar_pago(medio_pago, monto, &self.write_db);
             }
         } else {
             if !medio_pago.eq("Efectivo")
-                && self.ventas.1.monto_pagado() + monto > self.ventas.1.monto_total()
+                && self.ventas.b.monto_pagado() + monto > self.ventas.b.monto_total()
             {
                 return Err(AppError::AmountError {
-                    a_pagar: self.ventas.1.monto_total() - self.ventas.1.monto_pagado(),
+                    a_pagar: self.ventas.b.monto_total() - self.ventas.b.monto_pagado(),
                     pagado: monto,
                 });
             } else {
-                res = self.ventas.1.agregar_pago(medio_pago, monto);
+                res = self
+                    .ventas
+                    .b
+                    .agregar_pago(medio_pago, monto, &self.write_db);
             }
         }
         println!("{:#?}", res);
@@ -111,6 +108,39 @@ impl<'a> Sistema {
             rango,
             self.write_db(),
         ))
+    }
+    #[cfg(test)]
+    pub fn test(user: Option<Arc<User>>) -> Res<Sistema> {
+        let write_db = Arc::from(async_runtime::block_on(get_db(
+            "sqlite://test/db.sqlite?mode=rwc",
+        ))?);
+        let read_db = Arc::from(async_runtime::block_on(get_db(
+            "sqlite://test/db.sqlite?mode=ro",
+        ))?);
+        let w1 = Arc::clone(&write_db);
+        async_runtime::block_on(Migrator::fresh(w1.as_ref())).unwrap();
+        let configs = async_runtime::block_on(Config::get_or_def(&write_db.as_ref())).unwrap();
+        let caja = async_runtime::block_on(Caja::new(Arc::clone(&write_db), Some(0.0), &configs))?;
+        let w2 = Arc::clone(&write_db);
+        let w3 = Arc::clone(&write_db);
+        let r2 = Arc::clone(&read_db);
+        let sis = Sistema {
+            user,
+            write_db,
+            read_db,
+            caja,
+            configs,
+            ventas: Ventas {
+                a: async_runtime::block_on(Venta::get_or_new(None, w2.as_ref(), true))?,
+                b: async_runtime::block_on(Venta::get_or_new(None, w3.as_ref(), false))?,
+            },
+            proveedores: Vec::new(),
+            relaciones: Vec::new(),
+            stash: Vec::new(),
+            registro: Vec::new(),
+        };
+        Sistema::procesar_test(Arc::clone(&w2), r2)?;
+        Ok(sis)
     }
     pub fn new() -> Res<Sistema> {
         let write_db = Arc::from(async_runtime::block_on(get_db(
@@ -150,10 +180,10 @@ impl<'a> Sistema {
             read_db,
             caja,
             configs,
-            ventas: (
-                async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), true))?,
-                async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), false))?,
-            ),
+            ventas: Ventas {
+                a: async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), true))?,
+                b: async_runtime::block_on(Venta::get_or_new(None, w1.as_ref(), false))?,
+            },
             proveedores: proveedores.clone(),
             relaciones,
             stash,
@@ -180,9 +210,9 @@ impl<'a> Sistema {
 
     pub fn cancelar_venta(&mut self, pos: bool) -> Res<()> {
         if pos {
-            self.ventas.0.empty();
+            self.ventas.a.empty();
         } else {
-            self.ventas.1.empty();
+            self.ventas.b.empty();
         }
         Ok(())
     }
@@ -205,6 +235,51 @@ impl<'a> Sistema {
 
     pub fn caja(&self) -> &Caja {
         &self.caja
+    }
+    #[cfg(test)]
+    fn procesar_test(
+        write_db: Arc<DatabaseConnection>,
+        read_db: Arc<DatabaseConnection>,
+    ) -> Res<()> {
+        let write_db2 = Arc::clone(&write_db);
+        let read_db2 = Arc::clone(&read_db);
+        let _: JoinHandle<Result<(), AppError>> = async_runtime::spawn(async move {
+            let medios = vec!["Efectivo", "Crédito", "Débito"];
+            for medio in medios {
+                let model = MedioDB::ActiveModel {
+                    medio: Set(medio.to_string()),
+                    ..Default::default()
+                };
+                model.insert(write_db2.as_ref()).await?;
+            }
+            if MedioDB::Entity::find()
+                .filter(MedioDB::Column::Medio.eq(CUENTA))
+                .one(read_db2.as_ref())
+                .await?
+                .is_none()
+            {
+                let model = MedioDB::ActiveModel {
+                    medio: Set(CUENTA.to_string()),
+                    id: Set(0),
+                };
+                model.insert(write_db2.as_ref()).await?;
+            }
+            return Ok(());
+        });
+        if async_runtime::block_on(UserDB::Entity::find().count(read_db.as_ref()))? == 0 {
+            async_runtime::block_on(async move {
+                let db = Arc::clone(&write_db);
+                let model = UserDB::ActiveModel {
+                    user_id: Set("test".to_owned()),
+                    pass: Set(get_hash("9876")),
+                    rango: Set(Rango::Admin.to_string()),
+                    nombre: Set("Admin".to_owned()),
+                    ..Default::default()
+                };
+                model.insert(db.as_ref()).await.unwrap();
+            });
+        }
+        Ok(())
     }
     fn procesar(
         write_db: Arc<DatabaseConnection>,
@@ -305,7 +380,6 @@ impl<'a> Sistema {
                     model.id,
                     Arc::from(model.nombre.as_str()),
                     model.dni,
-                    model.credito,
                     model.activo,
                     model.created,
                     model.limite,
@@ -330,10 +404,10 @@ impl<'a> Sistema {
                     user.pass,
                     user.rango.as_str(),
                 )));
-                self.ventas = (
-                    Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
-                    Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
-                );
+                self.ventas = Ventas {
+                    a: Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
+                    b: Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
+                };
                 Ok(self.user().unwrap().rango().clone())
             }
             None => match UserDB::Entity::find()
@@ -377,7 +451,11 @@ impl<'a> Sistema {
                 .map(|x| V::Rub(x))
                 .collect(),
         );
-        Ok(res.iter().cloned().take(*self.configs.cantidad_productos() as usize).collect())
+        Ok(res
+            .iter()
+            .cloned()
+            .take(*self.configs.cantidad_productos() as usize)
+            .collect())
     }
     pub fn cerrar_sesion(&mut self) {
         self.user = None;
@@ -586,10 +664,10 @@ impl<'a> Sistema {
     pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Vec<Pago>> {
         let res;
         if pos {
-            self.ventas.0.eliminar_pago(id)?;
+            self.ventas.a.eliminar_pago(id, &self.write_db)?;
             res = self.venta(pos).pagos()
         } else {
-            self.ventas.1.eliminar_pago(id)?;
+            self.ventas.b.eliminar_pago(id, &self.write_db)?;
             res = self.venta(pos).pagos()
         }
 
@@ -643,104 +721,134 @@ impl<'a> Sistema {
         cantidad: &str,
         presentacion: &str,
     ) -> Res<Producto> {
-        let tipo_producto = tipo_producto.to_lowercase();
-        let marca = marca.to_lowercase();
-        let variedad = variedad.to_lowercase();
+        match ProdDB::Entity::find()
+            .filter(
+                Condition::all()
+                    .add(ProdDB::Column::TipoProducto.eq(tipo_producto))
+                    .add(ProdDB::Column::Marca.eq(marca))
+                    .add(ProdDB::Column::Variedad.eq(variedad))
+                    .add(ProdDB::Column::Presentacion.eq(presentacion))
+                    .add(ProdDB::Column::Cantidad.eq(cantidad)),
+            )
+            .one(self.read_db())
+            .await?
+        {
+            Some(_) => {
+                return Err(AppError::ExistingError {
+                    objeto: String::from("Prodcuto"),
+                    instancia: format!(
+                        "{} {} {} {} {}",
+                        tipo_producto, marca, variedad, cantidad, presentacion
+                    ),
+                })
+            }
+            None => {
+                let tipo_producto = tipo_producto.to_lowercase();
+                let marca = marca.to_lowercase();
+                let variedad = variedad.to_lowercase();
 
-        let precio_de_venta = precio_de_venta.parse::<f32>()?;
-        let porcentaje = porcentaje.parse::<f32>()?;
-        let precio_de_costo = precio_de_costo.parse::<f32>()?;
-        let codigos_de_barras: Vec<i64> = codigos_de_barras
-            .iter()
-            .map(|x| x.parse::<i64>().unwrap())
-            .collect();
-        let presentacion = match presentacion {
-            "Gr" => Presentacion::Gr(cantidad.parse().unwrap()),
-            "Un" => Presentacion::Un(cantidad.parse().unwrap()),
-            "Lt" => Presentacion::Lt(cantidad.parse().unwrap()),
-            "Ml" => Presentacion::Ml(cantidad.parse().unwrap()),
-            "CC" => Presentacion::CC(cantidad.parse().unwrap()),
-            "Kg" => Presentacion::Kg(cantidad.parse().unwrap()),
-            _ => panic!("no posible {presentacion}"),
-        };
-        let prod_model = ProdDB::ActiveModel {
-            precio_de_venta: Set(precio_de_venta),
-            porcentaje: Set(porcentaje),
-            precio_de_costo: Set(precio_de_costo),
-            tipo_producto: Set(tipo_producto.to_string()),
-            marca: Set(marca.to_owned()),
-            variedad: Set(variedad.to_owned()),
-            presentacion: Set(presentacion.get_string()),
-            updated_at: Set(Utc::now().naive_local()),
-            cantidad: Set(presentacion.get_cantidad()),
-            ..Default::default()
-        };
-        let res_prod = ProdDB::Entity::insert(prod_model)
-            .exec(self.write_db())
-            .await?;
-        let codigos_model: Vec<CodeDB::ActiveModel> = codigos_de_barras
-            .iter()
-            .map(|x| CodeDB::ActiveModel {
-                codigo: Set(*x),
-                producto: Set(res_prod.last_insert_id),
-                ..Default::default()
-            })
-            .collect();
-
-        CodeDB::Entity::insert_many(codigos_model)
-            .exec(self.write_db())
-            .await?;
-        for i in 0..codigos_prov.len() {
-            let codigo = if codigos_prov[i].len() == 0 {
-                None
-            } else {
-                Some(codigos_prov[i].parse::<i64>()?)
-            };
-            if let Some(prov) = ProvDB::Entity::find()
-                .filter(Condition::all().add(ProvDB::Column::Nombre.eq(proveedores[i])))
-                .one(self.write_db())
-                .await?
-            {
-                let relacion_model = ProdProvDB::ActiveModel {
-                    producto: Set(res_prod.last_insert_id),
-                    proveedor: Set(prov.id),
-                    codigo: Set(codigo),
+                let precio_de_venta = precio_de_venta.parse::<f32>()?;
+                let porcentaje = porcentaje.parse::<f32>()?;
+                let precio_de_costo = precio_de_costo.parse::<f32>()?;
+                let codigos_de_barras: Vec<i64> = codigos_de_barras
+                    .iter()
+                    .map(|x| x.parse::<i64>().unwrap())
+                    .collect();
+                let presentacion = match presentacion {
+                    "Gr" => Presentacion::Gr(cantidad.parse().unwrap()),
+                    "Un" => Presentacion::Un(cantidad.parse().unwrap()),
+                    "Lt" => Presentacion::Lt(cantidad.parse().unwrap()),
+                    "Ml" => Presentacion::Ml(cantidad.parse().unwrap()),
+                    "CC" => Presentacion::CC(cantidad.parse().unwrap()),
+                    "Kg" => Presentacion::Kg(cantidad.parse().unwrap()),
+                    _ => {
+                        return Err(AppError::IncorrectError(format!(
+                            "No posible {presentacion}"
+                        )))
+                    }
+                };
+                let prod_model = ProdDB::ActiveModel {
+                    precio_de_venta: Set(precio_de_venta),
+                    porcentaje: Set(porcentaje),
+                    precio_de_costo: Set(precio_de_costo),
+                    tipo_producto: Set(tipo_producto.to_string()),
+                    marca: Set(marca.to_owned()),
+                    variedad: Set(variedad.to_owned()),
+                    presentacion: Set(presentacion.get_string()),
+                    updated_at: Set(Utc::now().naive_local()),
+                    cantidad: Set(presentacion.get_cantidad()),
                     ..Default::default()
                 };
-                ProdProvDB::Entity::insert(relacion_model)
+                let res_prod = ProdDB::Entity::insert(prod_model)
                     .exec(self.write_db())
                     .await?;
+                let codigos_model: Vec<CodeDB::ActiveModel> = codigos_de_barras
+                    .iter()
+                    .map(|x| CodeDB::ActiveModel {
+                        codigo: Set(*x),
+                        producto: Set(res_prod.last_insert_id),
+                        ..Default::default()
+                    })
+                    .collect();
+
+                CodeDB::Entity::insert_many(codigos_model)
+                    .exec(self.write_db())
+                    .await?;
+                for i in 0..codigos_prov.len() {
+                    let codigo = if codigos_prov[i].len() == 0 {
+                        None
+                    } else {
+                        Some(codigos_prov[i].parse::<i64>()?)
+                    };
+                    if let Some(prov) = ProvDB::Entity::find()
+                        .filter(Condition::all().add(ProvDB::Column::Nombre.eq(proveedores[i])))
+                        .one(self.write_db())
+                        .await?
+                    {
+                        let relacion_model = ProdProvDB::ActiveModel {
+                            producto: Set(res_prod.last_insert_id),
+                            proveedor: Set(prov.id),
+                            codigo: Set(codigo),
+                            ..Default::default()
+                        };
+                        ProdProvDB::Entity::insert(relacion_model)
+                            .exec(self.write_db())
+                            .await?;
+                    }
+                }
+
+                let producto = Producto::new(
+                    res_prod.last_insert_id,
+                    codigos_de_barras,
+                    precio_de_venta,
+                    porcentaje,
+                    precio_de_costo,
+                    tipo_producto.as_str(),
+                    marca.as_str(),
+                    variedad.as_str(),
+                    presentacion,
+                );
+
+                let result = Ok(producto.clone());
+
+                for i in 0..proveedores.len() {
+                    match codigos_prov[i].parse::<i64>() {
+                        Ok(a) => self.relaciones.push(RelacionProdProv::new(
+                            *producto.id(),
+                            i as i32,
+                            Some(a),
+                        )),
+                        Err(_) => self.relaciones.push(RelacionProdProv::new(
+                            *producto.id(),
+                            i as i32,
+                            None,
+                        )),
+                    };
+                }
+
+                result
             }
         }
-
-        let producto = Producto::new(
-            res_prod.last_insert_id,
-            codigos_de_barras,
-            precio_de_venta,
-            porcentaje,
-            precio_de_costo,
-            tipo_producto.as_str(),
-            marca.as_str(),
-            variedad.as_str(),
-            presentacion,
-        );
-
-        let result = Ok(producto.clone());
-
-        for i in 0..proveedores.len() {
-            match codigos_prov[i].parse::<i64>() {
-                Ok(a) => {
-                    self.relaciones
-                        .push(RelacionProdProv::new(*producto.id(), i as i32, Some(a)))
-                }
-                Err(_) => {
-                    self.relaciones
-                        .push(RelacionProdProv::new(*producto.id(), i as i32, None))
-                }
-            };
-        }
-
-        result
     }
 
     pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i64>) -> Res<()> {
@@ -769,18 +877,18 @@ impl<'a> Sistema {
             if pos {
                 result = Ok(self
                     .ventas
-                    .0
+                    .a
                     .agregar_producto(prod, &self.configs().politica()))
             } else {
                 result = Ok(self
                     .ventas
-                    .1
+                    .b
                     .agregar_producto(prod, &self.configs().politica()))
             }
         } else {
             return Err(AppError::NotFound {
-                objeto: String::from("Producto"),
-                instancia: format!("{}", prod.descripcion(&self.configs())),
+                objeto: String::from("producto"),
+                instancia: prod.descripcion(&self.configs()),
             });
         }
 
@@ -793,11 +901,11 @@ impl<'a> Sistema {
     ) -> Result<Venta, AppError> {
         Ok(if pos {
             self.ventas
-                .0
+                .a
                 .restar_producto(index, &self.configs().politica())?
         } else {
             self.ventas
-                .1
+                .b
                 .restar_producto(index, &self.configs().politica())?
         })
     }
@@ -810,12 +918,12 @@ impl<'a> Sistema {
         if pos {
             result = self
                 .ventas
-                .0
+                .a
                 .incrementar_producto(index, &self.configs().politica());
         } else {
             result = self
                 .ventas
-                .1
+                .b
                 .incrementar_producto(index, &self.configs().politica());
         }
 
@@ -828,24 +936,24 @@ impl<'a> Sistema {
     ) -> Result<Venta, AppError> {
         let result;
         if pos {
-            if self.ventas.0.productos().len() > 1 {
+            if self.ventas.a.productos().len() > 1 {
                 result = self
                     .ventas
-                    .0
+                    .a
                     .eliminar_producto(index, &self.configs().politica());
             } else {
-                self.ventas.0.empty();
-                result = Ok(self.ventas.0.clone());
+                self.ventas.a.empty();
+                result = Ok(self.ventas.a.clone());
             }
         } else {
-            if self.ventas.1.productos().len() > 1 {
+            if self.ventas.b.productos().len() > 1 {
                 result = self
                     .ventas
-                    .1
+                    .b
                     .eliminar_producto(index, &self.configs().politica());
             } else {
-                self.ventas.1.empty();
-                result = Ok(self.ventas.1.clone());
+                self.ventas.b.empty();
+                result = Ok(self.ventas.b.clone());
             }
         }
 
@@ -853,9 +961,9 @@ impl<'a> Sistema {
     }
     pub fn venta(&self, pos: bool) -> Venta {
         if pos {
-            self.ventas.0.clone()
+            self.ventas.a.clone()
         } else {
-            self.ventas.1.clone()
+            self.ventas.b.clone()
         }
     }
     pub fn filtrar_marca(&self, filtro: &str) -> Res<Vec<String>> {
@@ -899,9 +1007,9 @@ impl<'a> Sistema {
     }
     fn set_venta(&mut self, pos: bool, venta: Venta) {
         if pos {
-            self.ventas.0 = venta;
+            self.ventas.a = venta;
         } else {
-            self.ventas.1 = venta;
+            self.ventas.b = venta;
         }
     }
     fn cerrar_venta(&mut self, pos: bool) -> Res<()> {
@@ -935,10 +1043,10 @@ impl<'a> Sistema {
     pub fn get_deuda_detalle(&self, cliente: Cli) -> Res<Vec<Venta>> {
         async_runtime::block_on(cliente.get_deuda_detalle(&self.read_db, self.user()))
     }
-    pub fn eliminar_valuable(&self, val:V){
+    pub fn eliminar_valuable(&self, val: V) {
         async_runtime::spawn(val.eliminar(self.write_db.as_ref().clone()));
     }
-    pub fn editar_valuable(&self, val:V){
+    pub fn editar_valuable(&self, val: V) {
         async_runtime::spawn(val.editar(self.write_db.as_ref().clone()));
     }
     pub fn arc_user(&self) -> Arc<User> {
@@ -956,11 +1064,34 @@ impl<'a> Sistema {
         );
         Ok(())
     }
+    pub fn set_cantidad_producto_venta(
+        &mut self,
+        index: usize,
+        cantidad: f32,
+        pos: bool,
+    ) -> Res<Venta> {
+        if index < self.venta(pos).productos().len() {
+            if pos {
+                self.ventas
+                    .a
+                    .set_cantidad_producto(index, cantidad, &self.configs.politica())
+            } else {
+                self.ventas
+                    .b
+                    .set_cantidad_producto(index, cantidad, &self.configs.politica())
+            }
+        } else {
+            Err(AppError::NotFound {
+                objeto: String::from("Producto"),
+                instancia: index.to_string(),
+            })
+        }
+    }
     pub fn set_cliente(&mut self, id: i32, pos: bool) -> Res<()> {
         if pos {
-            async_runtime::block_on(self.ventas.0.set_cliente(id, &self.read_db))
+            async_runtime::block_on(self.ventas.a.set_cliente(id, &self.read_db))
         } else {
-            async_runtime::block_on(self.ventas.1.set_cliente(id, &self.read_db))
+            async_runtime::block_on(self.ventas.b.set_cliente(id, &self.read_db))
         }
     }
     pub fn unstash_sale(&mut self, pos: bool, index: usize) -> Res<()> {

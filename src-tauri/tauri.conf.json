@@ -1,13 +1,13 @@
 {
   "build": {
-    "beforeDevCommand": "",
-    "beforeBuildCommand": "",
-    "devPath": "../src",
-    "distDir": "../src",
+    "beforeDevCommand": "trunk serve",
+    "beforeBuildCommand": "trunk build",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist",
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "rsty_cash",
+    "productName": "leptoscash",
     "version": "0.0.0"
   },
   "tauri": {
@@ -18,10 +18,20 @@
         "open": true
       }
     },
+    "windows": [
+      {
+        "title": "leptoscash",
+        "width": 800,
+        "height": 600
+      }
+    ],
+    "security": {
+      "csp": null
+    },
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "rsty.cash",
+      "identifier": "com.tauri.dev",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -29,19 +39,6 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ]
-    },
-    "security": {
-      "csp": null
-    },
-    "windows": [
-      {
-        "fullscreen": false,
-        "resizable": true,
-        "title": "Rsty Cash",
-        "width": 800,
-        "height": 600,
-        "maximized": false
-      }
-    ]
+    }
   }
 }

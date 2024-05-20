@@ -3,8 +3,7 @@ use sea_orm::{DatabaseConnection, EntityTrait, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::error::AppError;
-type Res<T> = std::result::Result<T, AppError>;
+use super::Res;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {

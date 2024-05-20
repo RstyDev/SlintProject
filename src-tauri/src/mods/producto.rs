@@ -1,13 +1,10 @@
 use std::sync::Arc;
 
-use super::{
-    error::AppError, lib::{redondeo, Save}, valuable::{Presentacion, ValuableTrait}
-};
+use super::{redondeo, AppError, Presentacion, Res, ValuableTrait};
 use chrono::Utc;
-use entity::prelude::{CodeDB, ProdDB};
-use sea_orm::{ActiveModelTrait, Database, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set};
+use entity::prelude::ProdDB;
+use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, Set};
 use serde::{Deserialize, Serialize};
-type Res<T> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
@@ -99,23 +96,46 @@ impl Producto {
     //         i+=1;
     //     }
     // }
-    pub async fn eliminar(self,db:&DatabaseConnection)->Res<()>{
-        let model=match ProdDB::Entity::find_by_id(self.id).one(db).await?{
-            Some(model)=>model.into_active_model(),
-            None=>return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",self.id) }),
+    pub async fn eliminar(self, db: &DatabaseConnection) -> Res<()> {
+        let model = match ProdDB::Entity::find_by_id(self.id).one(db).await? {
+            Some(model) => model.into_active_model(),
+            None => {
+                return Err(AppError::NotFound {
+                    objeto: String::from("Producto"),
+                    instancia: self.id.to_string(),
+                })
+            }
         };
         model.delete(db).await?;
         Ok(())
     }
-    pub async fn editar(self,db:&DatabaseConnection)->Res<()>{
-        let mut model = match ProdDB::Entity::find_by_id(self.id).one(db).await?{
+    #[cfg(test)]
+    pub fn desc(&self) -> String {
+        format!(
+            "{} {} {} {} {}",
+            self.tipo_producto,
+            self.marca,
+            self.variedad,
+            self.presentacion.get_cantidad(),
+            self.presentacion.get_string()
+        )
+    }
+    pub async fn editar(self, db: &DatabaseConnection) -> Res<()> {
+        let mut model = match ProdDB::Entity::find_by_id(self.id).one(db).await? {
             Some(model) => model.into_active_model(),
-            None => return Err(AppError::NotFound { objeto: String::from("Producto"), instancia: format!("{}",self.id) }),
+            None => {
+                return Err(AppError::NotFound {
+                    objeto: String::from("Producto"),
+                    instancia: self.id.to_string(),
+                })
+            }
         };
-        if self.precio_de_venta == self.precio_de_costo * (1.0+self.porcentaje/100.0){
-            model.precio_de_venta=Set(self.precio_de_venta);
-        }else{
-            return Err(AppError::IncorrectError(String::from("Cálculo de precio incorrecto")));
+        if self.precio_de_venta == self.precio_de_costo * (1.0 + self.porcentaje / 100.0) {
+            model.precio_de_venta = Set(self.precio_de_venta);
+        } else {
+            return Err(AppError::IncorrectError(String::from(
+                "Cálculo de precio incorrecto",
+            )));
         }
         model.cantidad = Set(self.presentacion.get_cantidad());
         model.marca = Set(self.marca.to_string());
@@ -126,34 +146,6 @@ impl Producto {
         model.variedad = Set(self.variedad.to_string());
         model.updated_at = Set(Utc::now().naive_local());
         model.update(db).await?;
-        Ok(())
-    }
-}
-impl Save for Producto {
-    async fn save(&self) -> Result<(), DbErr> {
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        println!("Guardando producto en DB");
-        let model = ProdDB::ActiveModel {
-            precio_de_venta: Set(self.precio_de_venta),
-            porcentaje: Set(self.porcentaje),
-            precio_de_costo: Set(self.precio_de_costo),
-            tipo_producto: Set(self.tipo_producto.to_string()),
-            marca: Set(self.marca.to_string()),
-            variedad: Set(self.variedad.to_string()),
-            presentacion: Set(format!("{}", self.presentacion.get_string())),
-            updated_at: Set(Utc::now().naive_local()),
-            cantidad: Set(self.presentacion().get_cantidad()),
-            ..Default::default()
-        };
-        let res = ProdDB::Entity::insert(model).exec(&db).await?;
-        for codigo in &self.codigos_de_barras {
-            let cod_model = CodeDB::ActiveModel {
-                codigo: Set(*codigo),
-                producto: Set(res.last_insert_id),
-                ..Default::default()
-            };
-            cod_model.insert(&db).await?;
-        }
         Ok(())
     }
 }

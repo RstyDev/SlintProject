@@ -1,17 +1,10 @@
 use chrono::Utc;
 use entity::prelude::ProvDB;
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Database, DatabaseConnection, DbErr, EntityTrait, QueryFilter,
-    Set,
-};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-type Res<T> = std::result::Result<T, AppError>;
 
-use super::{
-    error::AppError,
-    lib::{Mapper, Save},
-};
+use super::{AppError, Mapper, Res};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
@@ -67,26 +60,12 @@ impl Proveedor {
         &self.contacto
     }
 }
-impl Save for Proveedor {
-    async fn save(&self) -> Result<(), DbErr> {
-        let model = ProvDB::ActiveModel {
-            id: Set(self.id),
-            nombre: Set(self.nombre.to_string()),
-            contacto: Set(self.contacto),
-            updated_at: Set(Utc::now().naive_local()),
-        };
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        println!("conectado");
-        model.insert(&db).await?;
-        Ok(())
-    }
-}
 impl ToString for Proveedor {
     fn to_string(&self) -> String {
         let res;
         match self.contacto {
-            Some(a) => res = format!("{} {}", self.nombre, a),
-            None => res = format!("{}", self.nombre),
+            Some(a) => res = format!("{} {a}", self.nombre),
+            None => res = self.nombre.to_string(),
         }
         res
     }

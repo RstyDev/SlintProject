@@ -1,9 +1,9 @@
-use super::error::AppError;
+use super::Res;
 use entity::prelude::UserDB;
 use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-type Res<T> = std::result::Result<T, AppError>;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     id: Arc<str>,

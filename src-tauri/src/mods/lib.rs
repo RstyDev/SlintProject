@@ -16,44 +16,23 @@ use std::io::{Read, Write};
 use std::sync::Arc;
 use Valuable as V;
 
-type Res<T> = std::result::Result<T, AppError>;
-
+use super::{
+    AppError, Cli, Cliente, MedioPago, Pago, Pesable, Presentacion, Producto, Proveedor,
+    RelacionProdProv, Res, Rubro, User, Venta,
+};
 use crate::mods::valuable::Valuable;
-
-use super::cliente::{Cli, Cliente};
-use super::error::AppError;
-use super::pago::{MedioPago, Pago};
-use super::pesable::Pesable;
-use super::producto::Producto;
-use super::proveedor::Proveedor;
-use super::relacion_prod_prov::RelacionProdProv;
-use super::rubro::Rubro;
-use super::user::User;
-use super::valuable::Presentacion;
-use super::venta::Venta;
 pub struct Db;
 pub struct Mapper;
-pub trait Save {
-    async fn save(&self) -> Result<(), DbErr>;
-}
 pub fn get_hash(pass: &str) -> i64 {
     let mut h = DefaultHasher::new();
     pass.hash(&mut h);
     h.finish() as i64
 }
-
-// pub async fn save_many<T: Save>(datos: Vec<T>) -> Result<(), DbErr> {
-//     for dato in datos {
-//         dato.save().await?;
-//     }
-//     Ok(())
-// }
-
 pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
     println!("Path que se actualiza: {}", path);
     let buf = serde_json::to_string_pretty(escritura)?;
-    write!(f, "{}", format!("{}", buf))?;
+    write!(f, "{}", buf)?;
     Ok(())
 }
 
@@ -79,10 +58,6 @@ pub fn leer_file<T: DeserializeOwned + Clone + Serialize>(
     }
     Ok(())
 }
-
-// pub fn push(pr: Producto, path: &String) {
-//     let mut prods = Vec::new();
-
 pub fn redondeo(politica: &f32, numero: f32) -> f32 {
     let mut res = numero;
     let dif = numero % politica;
@@ -255,7 +230,6 @@ impl Mapper {
                     model.id,
                     Arc::from(model.nombre.as_str()),
                     model.dni,
-                    model.credito,
                     model.activo,
                     model.created,
                     model.limite,
@@ -276,18 +250,6 @@ impl Mapper {
         );
         Ok(venta)
     }
-    // pub async fn map_model_cli(cliente: CliDB::Model) -> Cliente {
-    //     let cli = Cli::new(
-    //         cliente.id,
-    //         cliente.nombre.into(),
-    //         cliente.dni,
-    //         cliente.credito,
-    //         cliente.activo,
-    //         cliente.created,
-    //         cliente.limite,
-    //     );
-    //     Cliente::new(Some(cli))
-    // }
 }
 
 impl Db {
@@ -303,7 +265,7 @@ impl Db {
             None => {
                 return Err(AppError::NotFound {
                     objeto: String::from("Usuario"),
-                    instancia: format!("{}", user.id()),
+                    instancia: user.id().to_string(),
                 })
             }
         }

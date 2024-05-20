@@ -1,11 +1,8 @@
-use super::{
-    config::{Config, Formato}, error::AppError, lib::{redondeo, Save}, pesable::Pesable, producto::Producto, rubro::Rubro
-};
-use sea_orm::{DatabaseConnection, DbErr};
+use super::{redondeo, Config, Formato, Pesable, Producto, Res, Rubro};
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display};
 use Valuable as V;
-type Res<T> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {
@@ -22,88 +19,56 @@ impl Valuable {
             V::Rub(a) => a.1.redondear(politica).monto().cloned(),
         }
     }
-    
+
     pub fn descripcion(&self, conf: &Config) -> String {
         let res = match self {
             V::Pes(a) => a.1.descripcion().to_string(),
             V::Rub(a) => a.1.descripcion().to_string(),
             V::Prod(a) => match conf.formato() {
-                Formato::Mtv => match a.1.presentacion() {
-                    Presentacion::Gr(cant) => format!(
-                        "{} {} {} {} Gr",
-                        a.1.marca(),
-                        a.1.tipo_producto(),
-                        a.1.variedad(),
-                        cant
-                    ),
-                    Presentacion::CC(cant) => format!(
-                        "{} {} {} {} CC",
-                        a.1.marca(),
-                        a.1.tipo_producto(),
-                        a.1.variedad(),
-                        cant
-                    ),
-                    Presentacion::Kg(cant) => format!(
-                        "{} {} {} {} Kg",
-                        a.1.marca(),
-                        a.1.tipo_producto(),
-                        a.1.variedad(),
-                        cant
-                    ),
-                    Presentacion::Lt(cant) => format!(
-                        "{} {} {} {} Lt",
-                        a.1.marca(),
-                        a.1.tipo_producto(),
-                        a.1.variedad(),
-                        cant
-                    ),
-                    Presentacion::Ml(cant) => format!(
-                        "{} {} {} {} Ml",
-                        a.1.marca(),
-                        a.1.tipo_producto(),
-                        a.1.variedad(),
-                        cant
-                    ),
-                    Presentacion::Un(cant) => format!(
-                        "{} {} {} {} Un",
-                        a.1.marca(),
-                        a.1.tipo_producto(),
-                        a.1.variedad(),
-                        cant
-                    ),
-                },
-                Formato::Tmv => {
-                    format!("{} {} {}", a.1.tipo_producto(), a.1.marca(), a.1.variedad())
-                }
+                Formato::Mtv => format!(
+                    "{} {} {} {} {}",
+                    a.1.marca(),
+                    a.1.tipo_producto(),
+                    a.1.variedad(),
+                    a.1.presentacion().get_cantidad(),
+                    a.1.presentacion().get_string()
+                ),
+                Formato::Tmv => format!(
+                    "{} {} {} {} {}",
+                    a.1.tipo_producto(),
+                    a.1.marca(),
+                    a.1.variedad(),
+                    a.1.presentacion().get_cantidad(),
+                    a.1.presentacion().get_string()
+                ),
             },
         };
-
         res
     }
-    pub async fn eliminar(self,db:DatabaseConnection)->Res<()>{
-        match self{
-            Valuable::Prod((_,prod)) => prod.eliminar(&db).await,
-            Valuable::Pes((_,pes)) => pes.eliminar(&db).await,
-            Valuable::Rub((_,rub)) => rub.eliminar(&db).await,
-        }
-    }
-    pub async fn editar(self,db:DatabaseConnection)->Res<()>{
-        match self{
-            Valuable::Prod((_,prod)) => prod.editar(&db).await,
-            Valuable::Pes((_,pes)) => pes.editar(&db).await,
-            Valuable::Rub((_,rub)) => rub.editar(&db).await,
-        }
-    }
-}
-impl Save for Valuable {
-    async fn save(&self) -> Result<(), DbErr> {
+    #[cfg(test)]
+    pub fn desc(&self) -> String {
         match self {
-            V::Pes(a) => a.1.save().await,
-            V::Prod(a) => a.1.save().await,
-            V::Rub(a) => a.1.save().await,
+            Valuable::Prod(prod) => prod.1.desc(),
+            Valuable::Pes(pes) => pes.1.desc(),
+            Valuable::Rub(rub) => rub.1.desc(),
+        }
+    }
+    pub async fn eliminar(self, db: DatabaseConnection) -> Res<()> {
+        match self {
+            Valuable::Prod((_, prod)) => prod.eliminar(&db).await,
+            Valuable::Pes((_, pes)) => pes.eliminar(&db).await,
+            Valuable::Rub((_, rub)) => rub.eliminar(&db).await,
+        }
+    }
+    pub async fn editar(self, db: DatabaseConnection) -> Res<()> {
+        match self {
+            Valuable::Prod((_, prod)) => prod.editar(&db).await,
+            Valuable::Pes((_, pes)) => pes.editar(&db).await,
+            Valuable::Rub((_, rub)) => rub.editar(&db).await,
         }
     }
 }
+
 // impl Default for Valuable {
 //     fn default() -> Self {
 //         V::Prod((1, Producto::default()))
