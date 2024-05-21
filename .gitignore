@@ -8,3 +8,4 @@ src-tauri/.env
 src-tauri/.sqlx/
 *.history*
 *.env*
+*node_modules*

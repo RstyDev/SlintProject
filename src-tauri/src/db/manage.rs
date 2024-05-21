@@ -37,22 +37,42 @@ pub fn up(db: &Pool<Sqlite>) {
             activo boolean not null,
             time datetime not null
         )",)));
+    spawn(db.execute(sqlx::query!(
+    "CREATE TABLE IF NOT EXISTS config (
+            id integer PRIMARY KEY AUTOINCREMENT not null,
+            politica real not null,
+            formato string not null,
+            mayus string not null,
+            cantidad integer not null
+        )",)));
+    spawn(db.execute(sqlx::query!(
+    "CREATE TABLE IF NOT EXISTS medio_pago (
+            id integer PRIMARY KEY AUTOINCREMENT not null,
+            medio string not null
+        )",)));
+    spawn(db.execute(sqlx::query!(
+    "CREATE TABLE IF NOT EXISTS proveedor (
+            id integer PRIMARY KEY AUTOINCREMENT not null,
+            nombre string not null,
+            contacto bigint,
+            updated datetime not null,
+            config integer,
+            foreign key (config) references config(id)
+        )",)));
+        
+//    spawn(db.execute(sqlx::query!(
+    //    "CREATE TABLE IF NOT EXISTS codigo (
+//            id integer PRIMARY KEY AUTOINCREMENT not null,
+//            codigo bigint not null,
+//            producto integer,
+//            foreign key (producto) references producto(id),
+//            pesable integer,
+//            foreign key (pesable) references pesable(id),
+//            rubro integer,
+//            foreign key (rubro) references rubro(id)
+//        )",)));
+    
 }
-enum Config {
-    Table,
-    Id,
-    PoliticaRedondeo,
-    FormatoProducto,
-    ModoMayus,
-    CantidadProductos,
-}
-
-pub enum MedioPago {
-    Table,
-    Id,
-    Medio,
-}
-
 
 enum CodigoBarras {
     Table,
@@ -116,13 +136,6 @@ pub enum Producto {
     UpdatedAt,
 }
 
-pub enum Proveedor {
-    Table,
-    Id,
-    Nombre,
-    Contacto,
-    UpdatedAt,
-}
 
 enum RelacionProdProv {
     Table,
