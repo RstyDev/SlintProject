@@ -10,6 +10,7 @@ use tauri::async_runtime::block_on;
 pub fn db()->Pool<Sqlite>{
     println!("{:#?}",dotenv().unwrap());
     println!("{:#?}",env::current_dir().unwrap().display());
+    println!("{:#?}",env::var("DATABASE_URL").expect("DATABASE must be set").as_str());
     dotenv().unwrap();
     block_on(SqlitePool::connect(env::var("DATABASE_URL").expect("DATABASE must be set").as_str())).expect("Error connectando a la DB")
 }

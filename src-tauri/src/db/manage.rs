@@ -10,16 +10,28 @@ pub fn fresh(db: &Pool<Sqlite>) {
 
 pub fn down(db: &Pool<Sqlite>) {
     dotenv().ok();
-    block_on(db.execute(sqlx::query(
-        "drop table if exists cajas
-        ",
-    )))
-    .unwrap();
+    block_on(async {
+        db.execute(sqlx::query("drop table if exists cajas"))
+            .await
+            .unwrap();
+        db.execute(sqlx::query("drop table if exists clientes"))
+            .await
+            .unwrap();
+        db.execute(sqlx::query("drop table if exists config"))
+            .await
+            .unwrap();
+        db.execute(sqlx::query("drop table if exists medio_pago"))
+            .await
+            .unwrap();
+        db.execute(sqlx::query("drop table if exists proveedor"))
+            .await
+            .unwrap();
+    });
 }
 pub fn up(db: &Pool<Sqlite>) {
     dotenv().ok();
     spawn(db.execute(sqlx::query!(
-    "CREATE TABLE IF NOT EXISTS cajas (
+        "CREATE TABLE IF NOT EXISTS cajas (
             id integer PRIMARY KEY AUTOINCREMENT not null,
             inicio datetime not null,
             cierre datetime,
@@ -27,51 +39,74 @@ pub fn up(db: &Pool<Sqlite>) {
             monto_cierre real,
             ventas_totales real not null,
             cajero string
-        )",)));
+        )",
+    )));
     spawn(db.execute(sqlx::query!(
-    "CREATE TABLE IF NOT EXISTS clientes (
+        "CREATE TABLE IF NOT EXISTS clientes (
             id integer PRIMARY KEY AUTOINCREMENT not null,
             nombre string not null,
             dni integer not null,
             limite real,
             activo boolean not null,
             time datetime not null
-        )",)));
-    spawn(db.execute(sqlx::query!(
-    "CREATE TABLE IF NOT EXISTS config (
+        )",
+    )));
+    block_on(db.execute(sqlx::query!(
+        "CREATE TABLE IF NOT EXISTS config (
             id integer PRIMARY KEY AUTOINCREMENT not null,
             politica real not null,
             formato string not null,
             mayus string not null,
             cantidad integer not null
-        )",)));
+        )",
+    )));
     spawn(db.execute(sqlx::query!(
-    "CREATE TABLE IF NOT EXISTS medio_pago (
+        "CREATE TABLE IF NOT EXISTS medio_pago (
             id integer PRIMARY KEY AUTOINCREMENT not null,
             medio string not null
-        )",)));
-    spawn(db.execute(sqlx::query!(
-    "CREATE TABLE IF NOT EXISTS proveedor (
+        )",
+    )));
+    block_on(db.execute(sqlx::query!(
+        "CREATE TABLE IF NOT EXISTS proveedor (
             id integer PRIMARY KEY AUTOINCREMENT not null,
             nombre string not null,
             contacto bigint,
-            updated datetime not null,
+            updated datetime,
             config integer,
             foreign key (config) references config(id)
-        )",)));
-        
-//    spawn(db.execute(sqlx::query!(
-    //    "CREATE TABLE IF NOT EXISTS codigo (
-//            id integer PRIMARY KEY AUTOINCREMENT not null,
-//            codigo bigint not null,
-//            producto integer,
-//            foreign key (producto) references producto(id),
-//            pesable integer,
-//            foreign key (pesable) references pesable(id),
-//            rubro integer,
-//            foreign key (rubro) references rubro(id)
-//        )",)));
+        )",
+    )));
+    block_on(sqlx::query!(
+        "CREATE TABLE IF NOT EXISTS proveedor (
+            id integer PRIMARY KEY AUTOINCREMENT not null,
+            nombre string not null,
+            contacto bigint,
+            updated datetime,
+            config integer,
+            foreign key (config) references config(id)
+        )",
+    ).execute(db)).unwrap();
     
+    // let res = block_on(db.execute(sqlx::query!(
+    //     "INSERT INTO proveedor
+    //     (nombre,contacto) VALUES
+    //  (
+    //     'QUILMES',5351354
+    // )",
+    // )));
+    //println!("{:#?}", res);
+
+    //    spawn(db.execute(sqlx::query!(
+    //    "CREATE TABLE IF NOT EXISTS codigo (
+    //            id integer PRIMARY KEY AUTOINCREMENT not null,
+    //            codigo bigint not null,
+    //            producto integer,
+    //            foreign key (producto) references producto(id),
+    //            pesable integer,
+    //            foreign key (pesable) references pesable(id),
+    //            rubro integer,
+    //            foreign key (rubro) references rubro(id)
+    //        )",)));
 }
 
 enum CodigoBarras {
@@ -81,7 +116,6 @@ enum CodigoBarras {
     Producto,
 }
 
-
 enum Deuda {
     Table,
     Id,
@@ -89,8 +123,6 @@ enum Deuda {
     Pago,
     Monto,
 }
-
-
 
 enum Movimiento {
     Table,
@@ -135,7 +167,6 @@ pub enum Producto {
     Cantidad,
     UpdatedAt,
 }
-
 
 enum RelacionProdProv {
     Table,
@@ -202,14 +233,13 @@ pub enum Venta {
     Pos,
 }
 
-    
-    // pub enum Caja {
-    //     Table,
-    //     Id,
-    //     Inicio,
-    //     Cierre,
-    //     MontoInicio,
-    //     MontoCierre,
-    //     VentasTotales,
-    //     Cajero,
-    // }
+// pub enum Caja {
+//     Table,
+//     Id,
+//     Inicio,
+//     Cierre,
+//     MontoInicio,
+//     MontoCierre,
+//     VentasTotales,
+//     Cajero,
+// }
