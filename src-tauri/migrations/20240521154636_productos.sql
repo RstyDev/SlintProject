@@ -1,5 +1,5 @@
 -- Add migration script here
-CREATE TABLE IF NOT EXISTS producto (
+CREATE TABLE IF NOT EXISTS productos (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     precio_venta REAL NOT NULL,
     porcentaje REAL NOT NULL,

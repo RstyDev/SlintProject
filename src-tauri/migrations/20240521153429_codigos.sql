@@ -1,11 +1,11 @@
 -- Add migration script here
-CREATE TABLE IF NOT EXISTS codigo (
+CREATE TABLE IF NOT EXISTS codigos (
                 id integer PRIMARY KEY AUTOINCREMENT not null,
                 codigo bigint not null,
                 producto integer,
-                foreign key (producto) references producto(id),
                 pesable integer,
-                foreign key (pesable) references pesable(id),
                 rubro integer,
-                foreign key (rubro) references rubro(id)
+                foreign key (producto) references productos(id),
+                foreign key (pesable) references pesables(id),
+                foreign key (rubro) references rubros(id)
             )

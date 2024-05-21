@@ -23,103 +23,31 @@ pub async fn fresh(db: &Pool<Sqlite>) {
 
 pub async fn down(db: &Pool<Sqlite>) {
     dotenv().ok();
-    db.execute(sqlx::query("drop table if exists cajas"))
-        .await
-        .unwrap();
-    db.execute(sqlx::query("drop table if exists clientes"))
-        .await
-        .unwrap();
-    db.execute(sqlx::query("drop table if exists config"))
-        .await
-        .unwrap();
-    db.execute(sqlx::query("drop table if exists medio_pago"))
-        .await
-        .unwrap();
-    db.execute(sqlx::query("drop table if exists proveedor"))
-        .await
-        .unwrap();
-}
-
-
-
-enum Deuda {
-    Table,
-    Id,
-    Cliente,
-    Pago,
-    Monto,
-}
-
-enum Movimiento {
-    Table,
-    Id,
-    Caja,
-    Tipo,
-    Monto,
-    Descripcion,
-    Time,
-}
-
-pub enum Pago {
-    Table,
-    Id,
-    MedioPago,
-    Monto,
-    Pagado,
-    Venta,
+    db.execute(sqlx::query("
+    drop table if exists medios_pago;
+    drop table if exists cajas;
+    drop table if exists clientes;
+    drop table if exists config;
+    drop table if exists proveedores;
+    drop table if exists codigos;
+    drop table if exists pesables;
+    drop table if exists rubros;
+    drop table if exists productos;
+    drop table if exists users;
+    drop table if exists deudas;
+    drop table if exists movimientos;
+    drop table if exists pagos;
+    drop table if exists relacion_prod_prov;
+    drop table if exists relacion_venta_pes;
+    drop table if exists relacion_venta_prod;
+    drop table if exists relacion_venta_rub;
+    ")).await.unwrap();
 }
 
 
 
 
 
-enum RelacionProdProv {
-    Table,
-    Id,
-    Producto,
-    Proveedor,
-    Codigo,
-}
-
-enum RelacionVentaPes {
-    Table,
-    Id,
-    Cantidad,
-    Precio,
-    Pesable,
-    Venta,
-}
-
-enum RelacionVentaProd {
-    Table,
-    Id,
-    Cantidad,
-    Precio,
-    Producto,
-    Venta,
-}
-
-enum RelacionVentaRub {
-    Table,
-    Id,
-    Cantidad,
-    Rubro,
-    Precio,
-    Venta,
-}
 
 
-
-
-pub enum Venta {
-    Table,
-    Id,
-    Time,
-    MontoTotal,
-    MontoPagado,
-    Cliente,
-    Cerrada,
-    Paga,
-    Pos,
-}
 

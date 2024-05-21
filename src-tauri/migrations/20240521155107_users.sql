@@ -1,5 +1,5 @@
 -- Add migration script here
-CREATE TABLE IF NOT EXISTS user (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     user_id TEXT NOT NULL,
     nombre TEXT NOT NULL,
@@ -7,11 +7,3 @@ CREATE TABLE IF NOT EXISTS user (
     rango TEXT NOT NULL
 )
 
-enum User {
-    Table,
-    Id,
-    UserId,
-    Nombre,
-    Pass, i64
-    Rango,
-}
