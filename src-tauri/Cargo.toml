@@ -14,7 +14,7 @@ tauri-build = { version = "1", features = [] }
 tauri = { version = "1", features = ["shell-open"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-sqlx = { version= "0.7.4", features = ["sqlite", "runtime-tokio", "tls-rustls", "macros"] }
+sqlx = { version= "0.7.4", features = ["sqlite", "runtime-tokio", "tls-rustls", "macros", "chrono"] }
 chrono = {version= "0.4.38" ,features = ["serde"] }
 thiserror = "1.0.61"
 dotenvy = "0.15.7"

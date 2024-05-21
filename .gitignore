@@ -7,3 +7,4 @@ src-tauri/.env
 *.sqlite
 src-tauri/.sqlx/
 *.history*
+*.env*
