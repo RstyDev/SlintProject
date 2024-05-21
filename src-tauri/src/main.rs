@@ -4,7 +4,7 @@ mod mods;
 mod db;
 use std::env;
 use db::fresh;
-use sqlx::{Executor, Pool, Sqlite, SqlitePool};
+use sqlx::{Pool, Sqlite, SqlitePool};
 use dotenvy::dotenv;
 use tauri::async_runtime::block_on;
 pub fn db()->Pool<Sqlite>{
@@ -12,16 +12,9 @@ pub fn db()->Pool<Sqlite>{
     println!("{:#?}",env::current_dir().unwrap().display());
     println!("{:#?}",env::var("DATABASE_URL").expect("DATABASE must be set").as_str());
     dotenv().unwrap();
-    block_on(SqlitePool::connect(env::var("DATABASE_URL").expect("DATABASE must be set").as_str())).expect("Error connectando a la DB")
+    block_on(SqlitePool::connect("sqlite://src/sqlite.db?mode=rwc")).expect("Error connectando a la DB")
 }
-pub fn qy(){
-    let db= db();
-    let algo=block_on(db.execute(sqlx::query("CREATE TABLE IF NOT EXISTS producto (
-        id inteegr PRIMARY KEY AUTOINCREMENT,
-        nombre string
-    )"))).unwrap();
-    println!("{:#?}",algo);
-}
+
 // use mods::{
 //     cmd::*, Caja, Cli, Config, Pago, Rango, Result as Res, Sistema, User, Valuable as V, Venta,
 // };
@@ -396,7 +389,7 @@ pub fn qy(){
 
 fn main() {
     let db=db();
-    fresh(&db);
+    block_on(fresh(&db));
    // let menu = get_menu();
     let app = tauri::Builder::default()
         //.manage(Mutex::new(Sistema::new().unwrap()))
