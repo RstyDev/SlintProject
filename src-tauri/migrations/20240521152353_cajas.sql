@@ -6,5 +6,5 @@ CREATE TABLE IF NOT EXISTS cajas (
             monto_inicio real not null,
             monto_cierre real,
             ventas_totales real not null,
-            cajero string
+            cajero text
         )

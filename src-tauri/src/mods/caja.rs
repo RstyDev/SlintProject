@@ -1,5 +1,5 @@
 use chrono::{NaiveDateTime, Utc};
-use sqlx::{sqlite::SqliteConnectOptions, Connection, SqliteConnection};
+use sqlx::{query_as, sqlite::SqliteConnectOptions, Connection, Pool, Sqlite, SqliteConnection};
 use tauri::async_runtime::block_on;
 use core::fmt;
 
@@ -7,20 +7,21 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 
 use super::{AppError 
-//    ,Config, Pago, Res
+    ,Config, Pago, Res
 };
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Totales(HashMap<String, f64>);
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Caja {
-    id: i32,
+    id: i64,
     inicio: NaiveDateTime,
     cierre: Option<NaiveDateTime>,
-    ventas_totales: f32,
-    monto_inicio: f32,
-    monto_cierre: Option<f32>,
+    ventas_totales: f64,
+    monto_inicio: f64,
+    monto_cierre: Option<f64>,
     cajero: Option<Arc<str>>,
-    totales: HashMap<Arc<str>, f32>,
+    totales: HashMap<Arc<str>, f64>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -50,9 +51,9 @@ impl fmt::Debug for Caja {
 
 impl Caja {
     pub async fn new(
-   //     db: Arc<DatabaseConnection>,
+        db: Arc<Pool<Sqlite>>,
         monto_inicio: Option<f32>,
-        //config: &Config,
+        config: &Config,
     ) -> Result<Caja, AppError> {
         let options=SqliteConnectOptions::new();
         let connection = block_on(SqliteConnection::connect("url")).unwrap();
@@ -63,7 +64,8 @@ impl Caja {
         for medio in config.medios_pago() {
             totales.insert(Arc::clone(medio), 0.0);
         }
-
+        
+         query_as!(Caja,"select * from cajas where id = ?",1 as i64);
         caja = match CajaDB::Entity::find()
             .order_by_desc(CajaDB::Column::Id)
             .one(db.as_ref())
