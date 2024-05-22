@@ -34,7 +34,9 @@ pub enum AppError {
     #[error("Error de conversion de fecha")]
     ChronoParseError(#[from] ParseError),
     #[error("Error de inicialización {0}")]
-    InicialationError(String),
+    InicializationError(String),
+    #[error("Error de bases de datos")]
+    DbError(#[from] sqlx::Error),
 }
 
 impl From<AppError> for String {

@@ -1,7 +1,62 @@
+use crate::mods::AppError;
+use crate::mods::Res;
 use chrono::NaiveDateTime;
 use sqlx::{query_as, Pool, Sqlite};
-
-
+use std::collections::HashMap;
+use std::sync::Arc;
+#[derive(Clone)]
+pub struct Mapper;
+impl Mapper {
+    pub async fn caja(db: &Pool<Sqlite>, model_caja: Model) -> Res<crate::mods::Caja> {
+        let (id, inicio, cierre, monto_inicio, monto_cierre, ventas_totales, cajero) =
+            match model_caja {
+                Model::Caja {
+                    id,
+                    inicio,
+                    cierre,
+                    monto_inicio,
+                    monto_cierre,
+                    ventas_totales,
+                    cajero,
+                } => (
+                    id,
+                    inicio,
+                    cierre,
+                    monto_inicio,
+                    monto_cierre,
+                    ventas_totales,
+                    cajero,
+                ),
+                _ => return Err(AppError::IncorrectError("Imposible".to_string())),
+            };
+        let totales_mod: sqlx::Result<Vec<Model>> = query_as!(
+            Model::Total,
+            "select medio, monto from totales where caja = ?",
+            id
+        )
+        .fetch_all(db)
+        .await;
+        let mut totales = HashMap::new();
+        for tot in totales_mod? {
+            match tot {
+                Model::Total { medio, monto } => {
+                    totales.insert(Arc::from(medio), monto);
+                }
+                _ => return Err(AppError::IncorrectError("Imposible".to_string())),
+            }
+        }
+        Ok(crate::mods::Caja::build(
+            id,
+            inicio,
+            cierre,
+            ventas_totales,
+            monto_inicio,
+            monto_cierre,
+            cajero.map(|c| Arc::from(c.as_str())),
+            totales,
+        ))
+    }
+}
 pub enum Model {
     MedioPago {
         id: i64,
@@ -124,7 +179,7 @@ pub enum Model {
         precio: f64,
     },
     Venta {
-        id:i64,
+        id: i64,
         time: NaiveDateTime,
         monto_total: f64,
         monto_pagado: f64,
@@ -133,23 +188,15 @@ pub enum Model {
         paga: bool,
         pos: bool,
     },
+    Total {
+        medio: String,
+        monto: f64,
+    },
 }
 
-// CREATE TABLE IF NOT EXISTS ventas (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-//     time DATETIME NOT NULL,
-//     monto_total REAL NOT NULL,
-//     monto_pagado REAL NOT NULL,
-//     cliente INTEGER NOT NULL,
-//     cerrada BOOLEAN NOT NULL,
-//     paga BOOLEAN NOT NULL,
-//     pos BOOLEAN NOT NULL,
-//     FOREIGN KEY (cliente) REFERENCES clientes(id)
-// )
-
-async fn test(db: &Pool<Sqlite>){
-    let res: sqlx::Result<Option<Model>> = query_as!(
-        Model::Venta,
-        "select * from ventas").fetch_optional(db).await;
-    let res= res.unwrap().unwrap();
-}
+// async fn test(db: &Pool<Sqlite>){
+//     let res: sqlx::Result<Option<Model>> = query_as!(
+//         Model::Venta,
+//         "select * from ventas").fetch_optional(db).await;
+//     let res= res.unwrap().unwrap();
+// }

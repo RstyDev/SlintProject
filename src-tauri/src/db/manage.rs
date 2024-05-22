@@ -23,7 +23,8 @@ pub async fn fresh(db: &Pool<Sqlite>) {
 
 pub async fn down(db: &Pool<Sqlite>) {
     dotenv().ok();
-    db.execute(sqlx::query("
+    db.execute(sqlx::query(
+        "
     drop table if exists medios_pago;
     drop table if exists cajas;
     drop table if exists clientes;
@@ -41,13 +42,8 @@ pub async fn down(db: &Pool<Sqlite>) {
     drop table if exists relacion_venta_pes;
     drop table if exists relacion_venta_prod;
     drop table if exists relacion_venta_rub;
-    ")).await.unwrap();
+    ",
+    ))
+    .await
+    .unwrap();
 }
-
-
-
-
-
-
-
-

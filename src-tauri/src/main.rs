@@ -1,18 +1,24 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-mod mods;
 mod db;
-use std::env;
+mod mods;
 use db::fresh;
-use sqlx::{Pool, Sqlite, SqlitePool};
 use dotenvy::dotenv;
+use sqlx::{Pool, Sqlite, SqlitePool};
+use std::env;
 use tauri::async_runtime::block_on;
-pub fn db()->Pool<Sqlite>{
-    println!("{:#?}",dotenv().unwrap());
-    println!("{:#?}",env::current_dir().unwrap().display());
-    println!("{:#?}",env::var("DATABASE_URL").expect("DATABASE must be set").as_str());
+pub fn db() -> Pool<Sqlite> {
+    println!("{:#?}", dotenv().unwrap());
+    println!("{:#?}", env::current_dir().unwrap().display());
+    println!(
+        "{:#?}",
+        env::var("DATABASE_URL")
+            .expect("DATABASE must be set")
+            .as_str()
+    );
     dotenv().unwrap();
-    block_on(SqlitePool::connect("sqlite://src/sqlite.db?mode=rwc")).expect("Error connectando a la DB")
+    block_on(SqlitePool::connect("sqlite://src/sqlite.db?mode=rwc"))
+        .expect("Error connectando a la DB")
 }
 
 // use mods::{
@@ -388,9 +394,9 @@ pub fn db()->Pool<Sqlite>{
 // }
 
 fn main() {
-    let db=db();
+    let db = db();
     block_on(fresh(&db));
-   // let menu = get_menu();
+    // let menu = get_menu();
     let app = tauri::Builder::default()
         //.manage(Mutex::new(Sistema::new().unwrap()))
         .invoke_handler(tauri::generate_handler![
@@ -453,7 +459,7 @@ fn main() {
             // stash_n_close,
             // unstash_sale,
         ])
-      //  .menu(menu)
+        //  .menu(menu)
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
     //let window = app.get_window("main").unwrap();

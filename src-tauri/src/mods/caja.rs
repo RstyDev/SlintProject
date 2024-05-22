@@ -1,14 +1,16 @@
 use chrono::{NaiveDateTime, Utc};
-use sqlx::{query_as, sqlite::SqliteConnectOptions, Connection, Pool, Sqlite, SqliteConnection};
-use tauri::async_runtime::block_on;
 use core::fmt;
+use sqlx::{
+    query, query_as, sqlite::SqliteConnectOptions, Connection, Pool, Sqlite, SqliteConnection,
+};
+use tauri::async_runtime::block_on;
 
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 
-use super::{AppError 
-    ,Config, Pago, Res
-};
+use crate::db::{Mapper, Model};
+
+use super::{AppError, Config, Pago, Res};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Totales(HashMap<String, f64>);
@@ -51,96 +53,100 @@ impl fmt::Debug for Caja {
 
 impl Caja {
     pub async fn new(
-        db: Arc<Pool<Sqlite>>,
-        monto_inicio: Option<f32>,
+        db: &Pool<Sqlite>,
+        monto_de_inicio: Option<f64>,
         config: &Config,
     ) -> Result<Caja, AppError> {
-        let options=SqliteConnectOptions::new();
+        let options = SqliteConnectOptions::new();
         let connection = block_on(SqliteConnection::connect("url")).unwrap();
-        
-        
+
         let caja;
         let mut totales = HashMap::new();
         for medio in config.medios_pago() {
             totales.insert(Arc::clone(medio), 0.0);
         }
-        
-         query_as!(Caja,"select * from cajas where id = ?",1 as i64);
-        caja = match CajaDB::Entity::find()
-            .order_by_desc(CajaDB::Column::Id)
-            .one(db.as_ref())
-            .await?
-        {
-            Some(res) => match res.cierre {
-                Some(_) => match monto_inicio {
-                    Some(monto_inicio) => Ok(Caja {
-                        id: res.id + 1,
-                        inicio: Utc::now().naive_local(),
-                        cierre: None,
-                        ventas_totales: 0.0,
-                        monto_inicio,
-                        monto_cierre: None,
-                        cajero: None,
-                        totales,
-                    }),
-                    None => Err(AppError::InicialationError(
-                        "Nueva caja requiere un monto de inicio".to_string(),
-                    )),
-                },
-                None => Ok(Caja {
-                    id: res.id,
-                    inicio: res.inicio,
-                    cierre: None,
-                    ventas_totales: res.ventas_totales,
-                    monto_inicio: res.monto_inicio,
-                    monto_cierre: None,
-                    cajero: None,
-                    totales,
-                }),
-            },
-            None => match monto_inicio {
-                Some(monto_inicio) => Ok(Caja {
-                    id: 0,
-                    inicio: Utc::now().naive_local(),
-                    cierre: None,
-                    ventas_totales: 0.0,
+        let caja_mod: sqlx::Result<Option<Model>> =
+            query_as!(Model::Caja, "select * from cajas order by id desc")
+                .fetch_optional(db)
+                .await;
+        caja = match caja_mod? {
+            Some(model_caja) => match &model_caja {
+                Model::Caja {
+                    id,
+                    inicio,
+                    cierre,
                     monto_inicio,
-                    monto_cierre: None,
-                    cajero: None,
-                    totales,
-                }),
-                None => Err(AppError::InicialationError(
-                    "Nueva caja requiere monto de inicio".to_string(),
+                    monto_cierre,
+                    ventas_totales,
+                    cajero,
+                } => match cierre {
+                    Some(_) => match monto_de_inicio {
+                        Some(monto) => {
+                           sqlx::query(
+                                    "insert into cajas (inicio, ventas_totales, monto_inicio, cajero) values (?, ?, ?, ?, ?, ?, ?)")
+                                    .bind(Utc::now().naive_local()).bind(ventas_totales).bind(monto).bind(cajero.clone()).execute(db).await?;
+                            Ok(Caja::build(
+                                id+1,
+                                Utc::now().naive_local(),
+                                None,
+                                *ventas_totales,
+                                monto,
+                                None,
+                                cajero.as_ref().map(|c| Arc::from(c.as_str())),
+                                totales,
+                            ))
+                        }
+                        None => Err(AppError::InicializationError(
+                            "Se requiere monto de inicio".to_string(),
+                        )),
+                    },
+                    None => Mapper::caja(db, model_caja).await,
+                },
+                _ => Err(AppError::IncorrectError("No posible".to_string())),
+            },
+            None => match monto_de_inicio {
+                Some(monto) => {
+                    let inicio=Utc::now().naive_local();
+                    sqlx::query("insert into cajas (inicio, ventas_totales, monto_inicio) values (?, ?, ?, ?)")
+                    .bind(inicio).bind(0.0).bind(monto).execute(db).await?;
+                    Ok(Caja::build(
+                    0,
+                    Utc::now().naive_local(),
+                    None,
+                    0.0,
+                    monto,
+                    None,
+                    None,
+                    HashMap::new(),
+                ))},
+                None => Err(AppError::InicializationError(
+                    "Se requiere monto de inicio".to_string(),
                 )),
             },
         };
-        let aux = match caja {
-            Ok(a) => a,
-            Err(e) => return Err(e),
-        };
-        if CajaDB::Entity::find_by_id(aux.id)
-            .one(db.as_ref())
-            .await?
-            .is_none()
-        {
-            let model = CajaDB::ActiveModel {
-                id: Set(aux.id),
-                inicio: Set(aux.inicio),
-                cierre: Set(match aux.cierre {
-                    Some(a) => Some(a),
-                    None => None,
-                }),
-                monto_inicio: Set(aux.monto_inicio),
-                monto_cierre: Set(aux.monto_cierre),
-                ventas_totales: Set(aux.ventas_totales),
-                cajero: match &aux.cajero {
-                    Some(a) => Set(Some(a.to_string())),
-                    None => NotSet,
-                },
-            };
-            model.insert(db.as_ref()).await?;
+
+        Ok(caja?)
+    }
+    pub fn build(
+        id: i64,
+        inicio: NaiveDateTime,
+        cierre: Option<NaiveDateTime>,
+        ventas_totales: f64,
+        monto_inicio: f64,
+        monto_cierre: Option<f64>,
+        cajero: Option<Arc<str>>,
+        totales: HashMap<Arc<str>, f64>,
+    ) -> Caja {
+        Caja {
+            id,
+            inicio,
+            cierre,
+            ventas_totales,
+            monto_inicio,
+            monto_cierre,
+            cajero,
+            totales,
         }
-        Ok(aux)
     }
     pub async fn hacer_movimiento(&self, mov: Movimiento, db: &DatabaseConnection) -> Res<()> {
         let monto_model;
