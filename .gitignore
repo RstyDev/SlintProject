@@ -5,6 +5,7 @@
 .taurignore
 src-tauri/.env
 *.sqlite
+*sqlite.db
 src-tauri/.sqlx/
 *.history*
 *.env*
