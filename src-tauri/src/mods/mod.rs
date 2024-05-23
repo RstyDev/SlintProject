@@ -31,7 +31,7 @@ pub use error::Res;
 // pub use lib::redondeo;
 // pub use lib::Db;
 //pub use lib::Mapper;
-//pub use pago::MedioPago;
+pub use pago::MedioPago;
 pub use pago::Pago;
 // pub use pesable::Pesable;
 // pub use producto::Producto;

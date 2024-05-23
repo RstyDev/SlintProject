@@ -1,14 +1,14 @@
-use crate::mods::AppError;
+use crate::mods::Res;
+use crate::mods::{AppError, Caja, Config, MedioPago};
 use chrono::NaiveDateTime;
 use sqlx::{query_as, Pool, Sqlite};
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::mods::Res;
 
 #[derive(Clone)]
 pub struct Mapper;
 impl Mapper {
-    pub async fn caja(db: &Pool<Sqlite>, model_caja: Model) -> Res<crate::mods::Caja> {
+    pub async fn caja(db: &Pool<Sqlite>, model_caja: Model) -> Res<Caja> {
         let (id, inicio, cierre, monto_inicio, monto_cierre, ventas_totales, cajero) =
             match model_caja {
                 Model::Caja {
@@ -46,7 +46,7 @@ impl Mapper {
                 _ => return Err(AppError::IncorrectError("Imposible".to_string())),
             }
         }
-        Ok(crate::mods::Caja::build(
+        Ok(Caja::build(
             id,
             inicio,
             cierre,
@@ -56,6 +56,28 @@ impl Mapper {
             cajero.map(|c| Arc::from(c.as_str())),
             totales,
         ))
+    }
+    pub async fn config(db: &Pool<Sqlite>, model: Model) -> Res<Config> {
+        match model {
+            Model::Config {
+                id,
+                politica,
+                formato,
+                mayus,
+                cantidad,
+            } => {
+                let medios: sqlx::Result<Vec<Model>> =
+                    sqlx::query_as!(Model::MedioPago, "select * from medios_pago")
+                        .fetch_all(db)
+                        .await;
+                let medios= medios?.iter().map(|model| match model {
+                    Model::MedioPago { id, medio } => Arc::from(medio.to_owned()),
+                    _ => panic!("Se esperaba MedioPago"),
+                }).collect::<Vec<Arc<str>>>();
+                Ok(Config::build(politica, formato, mayus, cantidad, medios))
+            }
+            _ => Err(AppError::IncorrectError(String::from("Se esperaba config"))),
+        }
     }
 }
 pub enum Model {

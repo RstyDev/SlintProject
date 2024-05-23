@@ -1,13 +1,12 @@
-use entity::prelude::{ConfDB, MedioDB};
-use sea_orm::{DatabaseConnection, EntityTrait, Set};
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-
 use super::Res;
+use crate::db::Model;
+use serde::{Deserialize, Serialize};
+use sqlx::{Pool, Sqlite};
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
-    politica_redondeo: f32,
+    politica_redondeo: f64,
     formato_producto: Formato,
     modo_mayus: Mayusculas,
     cantidad_productos: u8,
@@ -15,7 +14,15 @@ pub struct Config {
 }
 
 impl Config {
-    pub async fn get_or_def(db: &DatabaseConnection) -> Res<Config> {
+    pub async fn get_or_def(db: &Pool<Sqlite>) -> Res<Config> {
+        let res: sqlx::Result<Option<Model>> =
+            sqlx::query_as!(Model::Config, "select * from config")
+                .fetch_optional(db)
+                .await;
+        match res? {
+            Some(conf) => todo!(),
+            None => todo!(),
+        }
         match ConfDB::Entity::find().one(db).await? {
             Some(a) => {
                 let medios = MedioDB::Entity::find()
@@ -53,6 +60,21 @@ impl Config {
                 ConfDB::Entity::insert(model).exec(db).await?;
                 Ok(conf)
             }
+        }
+    }
+    pub fn build(
+        politica_redondeo: f64,
+        formato_producto: Formato,
+        modo_mayus: Mayusculas,
+        cantidad_productos: u8,
+        medios_pago: Vec<Arc<str>>,
+    ) -> Config {
+        Config {
+            politica_redondeo,
+            formato_producto,
+            modo_mayus,
+            cantidad_productos,
+            medios_pago,
         }
     }
     pub fn cantidad_productos(&self) -> &u8 {

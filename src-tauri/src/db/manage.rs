@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS cajas (
 );
 CREATE TABLE IF NOT EXISTS clientes (
     id integer PRIMARY KEY AUTOINCREMENT not null,
-    nombre string not null,
+    nombre TEXT not null,
     dni integer not null,
     limite real,
     activo boolean not null,
@@ -76,13 +76,13 @@ CREATE TABLE IF NOT EXISTS clientes (
 CREATE TABLE IF NOT EXISTS config (
     id integer PRIMARY KEY AUTOINCREMENT not null,
     politica real not null,
-    formato string not null,
-    mayus string not null,
+    formato TEXT not null,
+    mayus TEXT not null,
     cantidad integer not null
 );
 CREATE TABLE IF NOT EXISTS proveedores (
     id integer PRIMARY KEY AUTOINCREMENT not null,
-    nombre string not null,
+    nombre TEXT not null,
     contacto bigint,
     updated datetime,
     config integer,

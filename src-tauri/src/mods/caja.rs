@@ -59,10 +59,12 @@ impl Caja {
         for medio in config.medios_pago() {
             totales.insert(Arc::clone(medio), 0.0);
         }
-        let caja_mod: sqlx::Result<Option<Model>> =
-            query_as!(Model::CajaParcial, "select id, cierre, ventas_totales, cajero from cajas order by id desc")
-                .fetch_optional(db)
-                .await;
+        let caja_mod: sqlx::Result<Option<Model>> = query_as!(
+            Model::CajaParcial,
+            "select id, cierre, ventas_totales, cajero from cajas order by id desc"
+        )
+        .fetch_optional(db)
+        .await;
         caja = match caja_mod? {
             Some(model_caja) => match &model_caja {
                 Model::CajaParcial {
