@@ -82,11 +82,11 @@ impl Caja {
                 } => match cierre {
                     Some(_) => match monto_de_inicio {
                         Some(monto) => {
-                           sqlx::query(
+                            sqlx::query(
                                     "insert into cajas (inicio, ventas_totales, monto_inicio, cajero) values (?, ?, ?, ?, ?, ?, ?)")
                                     .bind(Utc::now().naive_local()).bind(ventas_totales).bind(monto).bind(cajero.clone()).execute(db).await?;
                             Ok(Caja::build(
-                                id+1,
+                                id + 1,
                                 Utc::now().naive_local(),
                                 None,
                                 *ventas_totales,
@@ -106,19 +106,20 @@ impl Caja {
             },
             None => match monto_de_inicio {
                 Some(monto) => {
-                    let inicio=Utc::now().naive_local();
+                    let inicio = Utc::now().naive_local();
                     sqlx::query("insert into cajas (inicio, ventas_totales, monto_inicio) values (?, ?, ?, ?)")
                     .bind(inicio).bind(0.0).bind(monto).execute(db).await?;
                     Ok(Caja::build(
-                    0,
-                    Utc::now().naive_local(),
-                    None,
-                    0.0,
-                    monto,
-                    None,
-                    None,
-                    HashMap::new(),
-                ))},
+                        0,
+                        Utc::now().naive_local(),
+                        None,
+                        0.0,
+                        monto,
+                        None,
+                        None,
+                        HashMap::new(),
+                    ))
+                }
                 None => Err(AppError::InicializationError(
                     "Se requiere monto de inicio".to_string(),
                 )),
@@ -149,9 +150,6 @@ impl Caja {
         }
     }
     pub async fn hacer_movimiento(&self, mov: Movimiento, db: &Pool<Sqlite>) -> Res<()> {
-        let monto_model;
-        let tipo;
-        let desc;
         match mov {
             Movimiento::Ingreso { descripcion, monto } => {
                 sqlx::query(
@@ -163,47 +161,41 @@ impl Caja {
                     .bind(Utc::now().naive_local()).execute(db).await?;
             }
             Movimiento::Egreso { descripcion, monto } => {
-                monto_model = Set(monto);
-                tipo = Set(false);
-                desc = match descripcion {
-                    Some(d) => Set(Some(d.to_string())),
-                    None => Set(None),
-                }
+                sqlx::query(
+                    "insert into movimientos (caja, tipo, monto, descripcion, time) values (?, ?, ?, ?, ?))")
+                    .bind(self.id)
+                    .bind(false)
+                    .bind(monto)
+                    .bind(descripcion.map(|d|d.to_string()))
+                    .bind(Utc::now().naive_local()).execute(db).await?;
             }
         }
-        MovDB::ActiveModel {
-            caja: Set(self.id),
-            tipo,
-            monto: monto_model,
-            time: Set(Utc::now().naive_local()),
-            descripcion: desc,
-            ..Default::default()
-        }
-        .insert(db)
-        .await?;
-
         Ok(())
     }
     pub fn set_cajero(&mut self, cajero: Arc<str>) {
         self.cajero = Some(cajero);
     }
-    pub async fn set_n_save(&mut self, db: &DatabaseConnection, monto: f32) -> Res<()> {
+    pub async fn set_n_save(&mut self, db: &Pool<Sqlite>, monto: f64) -> Res<()> {
         self.monto_cierre = Some(monto);
         self.cierre = Some(Utc::now().naive_local());
-        match CajaDB::Entity::find_by_id(self.id).one(db).await? {
-            Some(model) => {
-                let mut model = model.into_active_model();
-                model.cierre = Set(self.cierre);
-                model.monto_cierre = Set(Some(monto));
-                model.update(db).await?;
+        let res: sqlx::Result<Option<Model>> =
+            sqlx::query_as!(Model::Id, "select id from cajas where id = ?", self.id)
+                .fetch_optional(db)
+                .await;
+        match res? {
+            Some(_) => {
+                sqlx::query("update (cierre, monto_cierre) from cajas where id = (?)")
+                    .bind(self.cierre)
+                    .bind(self.monto_cierre)
+                    .bind(self.id)
+                    .execute(db)
+                    .await?;
                 Ok(())
             }
-            None => {
-                return Err(AppError::NotFound {
-                    objeto: String::from("Caja"),
-                    instancia: self.id.to_string(),
-                })
-            }
+            None => Err(AppError::NotFound {
+                objeto: String::from("Caja"),
+                instancia: self.id.to_string(),
+            }),
         }
     }
 

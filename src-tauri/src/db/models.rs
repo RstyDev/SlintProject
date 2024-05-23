@@ -1,63 +1,69 @@
-use crate::mods::AppError;
-use crate::mods::Res;
+// use crate::mods::AppError;
+// use crate::mods::Res;
 use chrono::NaiveDateTime;
 use sqlx::{query_as, Pool, Sqlite};
 use std::collections::HashMap;
 use std::sync::Arc;
-#[derive(Clone)]
-pub struct Mapper;
-impl Mapper {
-    pub async fn caja(db: &Pool<Sqlite>, model_caja: Model) -> Res<crate::mods::Caja> {
-        let (id, inicio, cierre, monto_inicio, monto_cierre, ventas_totales, cajero) =
-            match model_caja {
-                Model::Caja {
-                    id,
-                    inicio,
-                    cierre,
-                    monto_inicio,
-                    monto_cierre,
-                    ventas_totales,
-                    cajero,
-                } => (
-                    id,
-                    inicio,
-                    cierre,
-                    monto_inicio,
-                    monto_cierre,
-                    ventas_totales,
-                    cajero,
-                ),
-                _ => return Err(AppError::IncorrectError("Imposible".to_string())),
-            };
-        let totales_mod: sqlx::Result<Vec<Model>> = query_as!(
-            Model::Total,
-            "select medio, monto from totales where caja = ?",
-            id
-        )
-        .fetch_all(db)
-        .await;
-        let mut totales = HashMap::new();
-        for tot in totales_mod? {
-            match tot {
-                Model::Total { medio, monto } => {
-                    totales.insert(Arc::from(medio), monto);
-                }
-                _ => return Err(AppError::IncorrectError("Imposible".to_string())),
-            }
-        }
-        Ok(crate::mods::Caja::build(
-            id,
-            inicio,
-            cierre,
-            ventas_totales,
-            monto_inicio,
-            monto_cierre,
-            cajero.map(|c| Arc::from(c.as_str())),
-            totales,
-        ))
-    }
-}
+// #[derive(Clone)]
+// pub struct Mapper;
+// impl Mapper {
+//     pub async fn caja(db: &Pool<Sqlite>, model_caja: Model) -> Res<crate::mods::Caja> {
+//         let (id, inicio, cierre, monto_inicio, monto_cierre, ventas_totales, cajero) =
+//             match model_caja {
+//                 Model::Caja {
+//                     id,
+//                     inicio,
+//                     cierre,
+//                     monto_inicio,
+//                     monto_cierre,
+//                     ventas_totales,
+//                     cajero,
+//                 } => (
+//                     id,
+//                     inicio,
+//                     cierre,
+//                     monto_inicio,
+//                     monto_cierre,
+//                     ventas_totales,
+//                     cajero,
+//                 ),
+//                 _ => return Err(AppError::IncorrectError("Imposible".to_string())),
+//             };
+//         let totales_mod: sqlx::Result<Vec<Model>> = query_as!(
+//             Model::Total,
+//             "select medio, monto from totales where caja = ?",
+//             id
+//         )
+//         .fetch_all(db)
+//         .await;
+//         let mut totales = HashMap::new();
+//         for tot in totales_mod? {
+//             match tot {
+//                 Model::Total { medio, monto } => {
+//                     totales.insert(Arc::from(medio), monto);
+//                 }
+//                 _ => return Err(AppError::IncorrectError("Imposible".to_string())),
+//             }
+//         }
+//         Ok(crate::mods::Caja::build(
+//             id,
+//             inicio,
+//             cierre,
+//             ventas_totales,
+//             monto_inicio,
+//             monto_cierre,
+//             cajero.map(|c| Arc::from(c.as_str())),
+//             totales,
+//         ))
+//     }
+// }
 pub enum Model {
+    Id {
+        id: i64,
+    },
+    Bool {
+        val: bool,
+    },
     MedioPago {
         id: i64,
         medio: String,

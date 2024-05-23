@@ -2,11 +2,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod db;
 mod mods;
+use chrono::Utc;
 use db::fresh;
 use dotenvy::dotenv;
 use sqlx::{Pool, Sqlite, SqlitePool};
 use std::env;
 use tauri::async_runtime::block_on;
+
 pub fn db() -> Pool<Sqlite> {
     println!("{:#?}", dotenv().unwrap());
     println!("{:#?}", env::current_dir().unwrap().display());
@@ -396,6 +398,16 @@ pub fn db() -> Pool<Sqlite> {
 fn main() {
     let db = db();
     block_on(fresh(&db));
+    block_on(async {
+        match sqlx::query("insert into medios_pago (medio) values (?)")
+            .bind(Some("Efectivo"))
+            .execute(&db)
+            .await
+        {
+            Ok(a) => println!("{:#?}", a),
+            Err(e) => println!("{:#?}", e),
+        }
+    });
     // let menu = get_menu();
     let app = tauri::Builder::default()
         //.manage(Mutex::new(Sistema::new().unwrap()))
