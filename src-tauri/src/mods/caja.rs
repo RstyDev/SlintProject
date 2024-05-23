@@ -1,9 +1,6 @@
 use chrono::{NaiveDateTime, Utc};
 use core::fmt;
-use sqlx::{
-    query, query_as, sqlite::SqliteConnectOptions, Connection, Pool, Sqlite, SqliteConnection,
-};
-use tauri::async_runtime::block_on;
+use sqlx::{query_as, Pool, Sqlite};
 
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
@@ -57,26 +54,20 @@ impl Caja {
         monto_de_inicio: Option<f64>,
         config: &Config,
     ) -> Result<Caja, AppError> {
-        let options = SqliteConnectOptions::new();
-        let connection = block_on(SqliteConnection::connect("url")).unwrap();
-
         let caja;
         let mut totales = HashMap::new();
         for medio in config.medios_pago() {
             totales.insert(Arc::clone(medio), 0.0);
         }
         let caja_mod: sqlx::Result<Option<Model>> =
-            query_as!(Model::Caja, "select * from cajas order by id desc")
+            query_as!(Model::CajaParcial, "select id, cierre, ventas_totales, cajero from cajas order by id desc")
                 .fetch_optional(db)
                 .await;
         caja = match caja_mod? {
             Some(model_caja) => match &model_caja {
-                Model::Caja {
+                Model::CajaParcial {
                     id,
-                    inicio,
                     cierre,
-                    monto_inicio,
-                    monto_cierre,
                     ventas_totales,
                     cajero,
                 } => match cierre {
@@ -201,8 +192,8 @@ impl Caja {
 
     pub async fn update_total(
         &mut self,
-        db: &DatabaseConnection,
-        monto: f32,
+        db: &Pool<Sqlite>,
+        monto: f64,
         pagos: &Vec<Pago>,
     ) -> Result<(), AppError> {
         for pago in pagos {
@@ -211,10 +202,11 @@ impl Caja {
                 .insert(pago.medio_pago().desc(), pago.monto() + act);
         }
         self.ventas_totales += monto;
-        let model = CajaDB::Entity::find_by_id(self.id).one(db).await?.unwrap();
-        let mut model = model.into_active_model();
-        model.ventas_totales = Set(self.ventas_totales);
-        model.update(db).await?;
+        sqlx::query("update (ventas_totales) from cajas where id = ? values (?)")
+            .bind(self.id)
+            .bind(self.ventas_totales)
+            .execute(db)
+            .await?;
         Ok(())
     }
 }

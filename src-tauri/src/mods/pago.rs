@@ -26,14 +26,14 @@ impl MedioPago {
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pago {
-    int_id: u32,
+    int_id: i64,
     medio_pago: MedioPago,
-    monto: f32,
-    pagado: f32,
+    monto: f64,
+    pagado: f64,
 }
 
 impl Pago {
-    pub fn new(medio_pago: MedioPago, monto: f32, pagado: Option<f32>) -> Pago {
+    pub fn new(medio_pago: MedioPago, monto: f64, pagado: Option<f64>) -> Pago {
         let int_id = random();
 
         Pago {
@@ -52,13 +52,13 @@ impl Pago {
     pub fn medio(&self) -> Arc<str> {
         Arc::clone(&self.medio_pago.medio)
     }
-    pub fn monto(&self) -> f32 {
+    pub fn monto(&self) -> f64 {
         self.monto
     }
-    pub fn id(&self) -> u32 {
+    pub fn id(&self) -> i64 {
         self.int_id
     }
-    pub fn pagado(&self) -> &f32 {
+    pub fn pagado(&self) -> &f64 {
         &self.pagado
     }
     pub fn def(db: &DatabaseConnection) -> Self {
