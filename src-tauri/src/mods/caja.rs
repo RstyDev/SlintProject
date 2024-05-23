@@ -148,18 +148,19 @@ impl Caja {
             totales,
         }
     }
-    pub async fn hacer_movimiento(&self, mov: Movimiento, db: &DatabaseConnection) -> Res<()> {
+    pub async fn hacer_movimiento(&self, mov: Movimiento, db: &Pool<Sqlite>) -> Res<()> {
         let monto_model;
         let tipo;
         let desc;
         match mov {
             Movimiento::Ingreso { descripcion, monto } => {
-                monto_model = Set(monto);
-                tipo = Set(true);
-                desc = match descripcion {
-                    Some(d) => Set(Some(d.to_string())),
-                    None => Set(None),
-                }
+                sqlx::query(
+                    "insert into movimientos (caja, tipo, monto, descripcion, time) values (?, ?, ?, ?, ?))")
+                    .bind(self.id)
+                    .bind(true)
+                    .bind(monto)
+                    .bind(descripcion.map(|d|d.to_string()))
+                    .bind(Utc::now().naive_local()).execute(db).await?;
             }
             Movimiento::Egreso { descripcion, monto } => {
                 monto_model = Set(monto);
