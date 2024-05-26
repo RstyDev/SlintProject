@@ -2,8 +2,6 @@ use super::{
     get_hash, Caja, Cli, Config, Pago, Pesable, Rango, Result as Res, Rubro, Sistema, User,
     Valuable as V, Venta,
 };
-use entity::prelude::{CodeDB, PesDB, RubDB};
-use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 use serde::Serialize;
 use std::sync::Arc;
 use std::sync::Mutex;

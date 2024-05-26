@@ -1,6 +1,7 @@
 use super::{redondeo, Config, Formato, Pesable, Producto, Res, Rubro};
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
+use serde_json::Number;
 use std::fmt::{self, Display};
 use Valuable as V;
 

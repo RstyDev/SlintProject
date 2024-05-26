@@ -1,5 +1,5 @@
-use crate::mods::Res;
 use crate::mods::{AppError, Caja, Config, MedioPago};
+use crate::mods::{Pago, Presentacion, Producto, Res, Venta};
 use chrono::NaiveDateTime;
 use sqlx::{query_as, Pool, Sqlite};
 use std::collections::HashMap;
@@ -70,19 +70,134 @@ impl Mapper {
                     sqlx::query_as!(Model::MedioPago, "select * from medios_pago")
                         .fetch_all(db)
                         .await;
-                let medios= medios?.iter().map(|model| match model {
-                    Model::MedioPago { id, medio } => Arc::from(medio.to_owned()),
-                    _ => panic!("Se esperaba MedioPago"),
-                }).collect::<Vec<Arc<str>>>();
-                Ok(Config::build(politica, formato, mayus, cantidad, medios))
+                let medios = medios?
+                    .iter()
+                    .map(|model| match model {
+                        Model::MedioPago { id, medio } => Arc::from(medio.to_owned()),
+                        _ => panic!("Se esperaba MedioPago"),
+                    })
+                    .collect::<Vec<Arc<str>>>();
+                Ok(Config::build(
+                    politica,
+                    formato.as_str(),
+                    mayus.as_str(),
+                    cantidad as u8,
+                    medios,
+                ))
             }
             _ => Err(AppError::IncorrectError(String::from("Se esperaba config"))),
         }
     }
+    pub async fn producto(db: &Pool<Sqlite>, model: Model) -> Res<Producto> {
+        match model {
+            Model::Producto {
+                id,
+                precio_venta,
+                porcentaje,
+                precio_costo,
+                tipo,
+                marca,
+                variedad,
+                presentacion,
+                cantidad,
+                updated_at,
+            } => {
+                let models: sqlx::Result<Vec<Model>> = sqlx::query_as!(
+                    Model::Codigo,
+                    "select codigo from codigos where producto = ?",
+                    id
+                )
+                .fetch_all(db)
+                .await;
+                let codigos = models?
+                    .iter()
+                    .map(|model| match model {
+                        Model::Codigo { codigo } => *codigo,
+                        _ => panic!("Se esperaba codigo"),
+                    })
+                    .collect::<Vec<i64>>();
+                let presentacion = match presentacion.as_str() {
+                    "Gr" => Presentacion::Gr(cantidad as f32),
+                    "Un" => Presentacion::Un(cantidad as i16),
+                    "Lt" => Presentacion::Lt(cantidad as f32),
+                    "Ml" => Presentacion::Ml(cantidad as i16),
+                    "CC" => Presentacion::CC(cantidad as i16),
+                    "Kg" => Presentacion::Kg(cantidad as f32),
+                    a => return Err(AppError::SizeSelection(a.to_string())),
+                };
+                Ok(Producto::new(
+                    id,
+                    codigos,
+                    precio_venta as f32,
+                    porcentaje as f32,
+                    precio_costo as f32,
+                    tipo.as_str(),
+                    marca.as_str(),
+                    variedad.as_str(),
+                    presentacion,
+                ))
+            }
+            _ => Err(AppError::IncorrectError("Se esperaba Producto".to_string())),
+        }
+    }
+    pub async fn pago(db: &Pool<Sqlite>, model: Model) -> Res<Pago> {
+        match model {
+            Model::Pago {
+                id,
+                medio_pago,
+                monto,
+                pagado,
+                venta: _,
+            } => {
+                let medio: sqlx::Result<Option<Model>> = sqlx::query_as!(
+                    Model::MedioPago,
+                    "select * from medios_pago where id = ?",
+                    medio_pago
+                )
+                .fetch_optional(db)
+                .await;
+                let int_id = id;
+                match medio? {
+                    Some(med) => match med {
+                        Model::MedioPago { id, medio } => Ok(Pago::build(
+                            int_id,
+                            MedioPago::new(medio.as_str(), id),
+                            monto,
+                            pagado,
+                        )),
+                        _ => Err(AppError::IncorrectError(String::from(
+                            "se esperaba MedioPago",
+                        ))),
+                    },
+                    None => Err(AppError::IncorrectError(String::from(
+                        "No se encontro el medio pago correspondiente",
+                    ))),
+                }
+            }
+            _ => Err(AppError::IncorrectError("Se esperaba Pago".to_string())),
+        }
+    }
+    // pub async fn venta(db: &Pool<Sqlite>,model: Model)->Res<Venta>{
+    //     match model{
+    //         Model::Venta { id, time, monto_total, monto_pagado, cliente, cerrada, paga, pos }=>{
+
+    //             Venta::build(id, monto_total, productos, pagos, monto_pagado, vendedor, cliente, paga, cerrada);
+
+    //         },
+    //         _=>panic!("se esperaba Venta"),
+    //     }
+    //     Err(AppError::IncorrectError("asfd".to_string()))
+    // }
 }
 pub enum Model {
     Id {
         id: i64,
+    },
+    Monto {
+        monto: f64,
+    },
+    Codigo {
+        codigo: i64,
     },
     Bool {
         val: bool,
@@ -108,7 +223,7 @@ pub enum Model {
     },
     Cliente {
         id: i64,
-        nombre: Option<String>,
+        nombre: String,
         dni: i64,
         limite: Option<f64>,
         activo: bool,
@@ -152,10 +267,11 @@ pub enum Model {
         precio_venta: f64,
         porcentaje: f64,
         precio_costo: f64,
+        tipo: String,
         marca: String,
         variedad: String,
         presentacion: String,
-        cantidad: i64,
+        cantidad: f64,
         updated_at: NaiveDateTime,
     },
     User {
@@ -183,7 +299,7 @@ pub enum Model {
         id: i64,
         medio_pago: i64,
         monto: f64,
-        pagado: bool,
+        pagado: f64,
         venta: i64,
     },
     RelacionProdProv {

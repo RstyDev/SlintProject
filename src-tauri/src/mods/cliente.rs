@@ -1,13 +1,12 @@
 use chrono::NaiveDateTime;
-use entity::prelude::{CliDB, DeudaDB, PagoDB, VentaDB};
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait, IntoActiveModel,
-    QueryFilter, QueryOrder, QuerySelect, Set,
-};
+
 use serde::{Deserialize, Serialize};
+use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
 
-use super::{AppError, Mapper, Res, User, Venta};
+use crate::db::Model;
+
+use super::{AppError, Res, User, Venta};
 
 #[derive(Serialize, Clone, Debug, Deserialize)]
 pub enum Cliente {
@@ -31,44 +30,43 @@ pub enum Cuenta {
 }
 impl Cli {
     pub async fn new_to_db(
-        db: &DatabaseConnection,
+        db: &Pool<Sqlite>,
         nombre: &str,
         dni: i32,
         activo: bool,
         created: NaiveDateTime,
         limite: Option<f32>,
     ) -> Res<Cli> {
-        match CliDB::Entity::find()
-            .filter(CliDB::Column::Dni.eq(dni))
-            .one(db)
-            .await?
-        {
-            Some(_) => {
+        let model: Option<Model> =
+            sqlx::query_as!(Model::Cliente, "select * from clientes where dni = ?", dni)
+                .fetch_optional(db)
+                .await?;
+        match model {
+            Some(model) => {
                 return Err(AppError::ExistingError {
                     objeto: "Cliente".to_string(),
                     instancia: dni.to_string(),
                 })
             }
             None => {
-                let model = CliDB::ActiveModel {
-                    nombre: Set(nombre.to_string()),
-                    dni: Set(dni),
-                    activo: Set(activo),
-                    created: Set(created),
-                    limite: Set(limite),
-                    ..Default::default()
-                };
-                let res = CliDB::Entity::insert(model).exec(db).await?;
+                let qres = sqlx::query("insert into clientes values (?, ?, ?, ?, ?)")
+                    .bind(nombre)
+                    .bind(dni)
+                    .bind(limite)
+                    .bind(activo)
+                    .bind(created)
+                    .execute(db)
+                    .await?;
                 Ok(Cli {
-                    id: res.last_insert_id,
+                    id: qres.last_insert_rowid() as i32,
                     nombre: Arc::from(nombre),
                     dni,
-                    activo,
-                    created,
                     limite: match limite {
                         Some(limit) => Cuenta::Auth(limit),
                         None => Cuenta::Unauth,
                     },
+                    activo,
+                    created,
                 })
             }
         }
@@ -107,23 +105,29 @@ impl Cli {
     pub fn nombre(&self) -> &str {
         self.nombre.as_ref()
     }
-    pub async fn get_deuda(&self, db: &DatabaseConnection) -> Res<f32> {
-        Ok(DeudaDB::Entity::find()
-            .select_only()
-            .column(DeudaDB::Column::Monto)
-            .filter(Condition::all().add(DeudaDB::Column::Cliente.eq(self.id)))
-            .all(db)
-            .await?
+    pub async fn get_deuda(&self, db: &Pool<Sqlite>) -> Res<f32> {
+        let model: sqlx::Result<Vec<Model>> = sqlx::query_as!(
+            Model::Monto,
+            "select monto from deudas where id = ?",
+            self.id
+        )
+        .fetch_all(db)
+        .await;
+        Ok(model?
             .iter()
-            .map(|m| m.monto)
-            .sum::<f32>())
+            .map(|e| match e {
+                Model::Monto { monto } => monto,
+                _ => panic!("Se esperaba monto"),
+            })
+            .sum::<f64>() as f32)
     }
     pub async fn get_deuda_detalle(
         &self,
-        db: &DatabaseConnection,
+        db: &Pool<Sqlite>,
         user: Option<Arc<User>>,
     ) -> Res<Vec<Venta>> {
         let mut ventas = Vec::new();
+
         let models = VentaDB::Entity::find()
             .filter(
                 Condition::all()

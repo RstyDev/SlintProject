@@ -1,4 +1,4 @@
-use super::Res;
+use super::{AppError, Res};
 use crate::db::Model;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
@@ -20,55 +20,66 @@ impl Config {
                 .fetch_optional(db)
                 .await;
         match res? {
-            Some(conf) => todo!(),
-            None => todo!(),
-        }
-        match ConfDB::Entity::find().one(db).await? {
-            Some(a) => {
-                let medios = MedioDB::Entity::find()
-                    .all(db)
-                    .await?
+            Some(conf) => {
+                let medios: sqlx::Result<Vec<Model>> =
+                    sqlx::query_as!(Model::MedioPago, "select * from medios_pago")
+                        .fetch_all(db)
+                        .await;
+                let medios = medios?
                     .iter()
-                    .map(|x| Arc::from(x.medio.as_str()))
+                    .map(|med| match med {
+                        Model::MedioPago { id: _, medio } => Arc::from(medio.as_str()),
+                        _ => panic!("Imposible, se esperaba medio pago"),
+                    })
                     .collect::<Vec<Arc<str>>>();
-                Ok(Config {
-                    politica_redondeo: a.politica_redondeo,
-                    formato_producto: match a.formato_producto.as_str() {
-                        "Mtv" => Formato::Mtv,
-                        "Tmv" => Formato::Tmv,
-                        _ => panic!("no existe mas que mtv y tmv"),
-                    },
-                    modo_mayus: match a.modo_mayus.as_str() {
-                        "Upper" => Mayusculas::Upper,
-                        "Lower" => Mayusculas::Lower,
-                        "Camel" => Mayusculas::Camel,
-                        _ => panic!("no existe mas que lower, camel y upper"),
-                    },
-                    cantidad_productos: a.cantidad_productos,
-                    medios_pago: medios,
-                })
+                match conf {
+                    Model::Config {
+                        id: _,
+                        politica,
+                        formato,
+                        mayus,
+                        cantidad,
+                    } => Ok(Config::build(
+                        politica,
+                        formato.as_str(),
+                        mayus.as_str(),
+                        cantidad as u8,
+                        medios,
+                    )),
+                    _ => Err(AppError::IncorrectError(String::from("Se esperaba Config"))),
+                }
             }
             None => {
                 let conf = Config::default();
-                let model = ConfDB::ActiveModel {
-                    cantidad_productos: Set(conf.cantidad_productos),
-                    formato_producto: Set(conf.formato_producto.to_string()),
-                    id: Set(0),
-                    modo_mayus: Set(conf.modo_mayus.to_string()),
-                    politica_redondeo: Set(conf.politica_redondeo),
-                };
-                ConfDB::Entity::insert(model).exec(db).await?;
+                sqlx::query("insert into config values (?, ?, ?, ?)")
+                    .bind(conf.politica())
+                    .bind(conf.formato().to_string())
+                    .bind(conf.modo_mayus().to_string())
+                    .bind(conf.cantidad_productos())
+                    .execute(db)
+                    .await?;
                 Ok(conf)
             }
         }
     }
     pub fn build(
         politica_redondeo: f64,
-        formato_producto: Formato,
-        modo_mayus: Mayusculas,
+        formato_producto: &str,
+        modo_mayus: &str,
         cantidad_productos: u8,
         medios_pago: Vec<Arc<str>>,
     ) -> Config {
+        let formato_producto = match formato_producto {
+            "Tmv" => Formato::Tmv,
+            "Mtv" => Formato::Mtv,
+            _ => panic!("solo hay Tmv y Mtv"),
+        };
+        let modo_mayus = match modo_mayus {
+            "Upper" => Mayusculas::Upper,
+            "Lower" => Mayusculas::Lower,
+            "Camel" => Mayusculas::Camel,
+            _ => panic!("solo hay Upper, Lower y Camel"),
+        };
         Config {
             politica_redondeo,
             formato_producto,
@@ -83,7 +94,7 @@ impl Config {
     pub fn medios_pago(&self) -> &Vec<Arc<str>> {
         &self.medios_pago
     }
-    pub fn politica(&self) -> f32 {
+    pub fn politica(&self) -> f64 {
         self.politica_redondeo
     }
     pub fn formato(&self) -> &Formato {

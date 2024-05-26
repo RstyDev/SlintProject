@@ -1,18 +1,14 @@
-use chrono::Utc;
-use entity::prelude::{CliDB, PagoDB, VentaDB, VentaPesDB, VentaProdDB, VentaRubDB};
+use chrono::{NaiveDateTime, Utc};
 
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::NotSet, Condition, DatabaseConnection, EntityTrait,
-    IntoActiveModel, IntoSimpleExpr, QueryFilter, QueryOrder, Set,
-};
 use serde::{Deserialize, Serialize};
+use sqlx::{query, Pool, Sqlite};
 use std::sync::Arc;
 use tauri::async_runtime;
 
 use Valuable as V;
 const CUENTA: &str = "Cuenta Corriente";
 
-use crate::mods::pago::medio_from_db;
+use crate::{db::Model, mods::pago::medio_from_db};
 
 use super::{
     redondeo, AppError, Cli, Cliente, Cuenta::Auth, Cuenta::Unauth, Mapper, MedioPago, Pago, Res,
@@ -21,7 +17,7 @@ use super::{
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Venta {
-    id: i32,
+    id: i64,
     monto_total: f32,
     productos: Vec<Valuable>,
     pagos: Vec<Pago>,
@@ -30,24 +26,17 @@ pub struct Venta {
     cliente: Cliente,
     paga: bool,
     cerrada: bool,
+    time: NaiveDateTime,
 }
 
 impl<'a> Venta {
-    pub async fn new(
-        vendedor: Option<Arc<User>>,
-        db: &DatabaseConnection,
-        pos: bool,
-    ) -> Res<Venta> {
-        let venta = VentaDB::Entity::find()
-            .order_by_desc(VentaDB::Column::Id)
-            .one(db)
-            .await?;
-        let id = match venta {
-            Some(a) => a.id + 1,
-            None => 0,
-        };
+    pub async fn new(vendedor: Option<Arc<User>>, db: &Pool<Sqlite>, pos: bool) -> Res<Venta> {
+        let time=Utc::now().naive_local();
+        let res= query(
+            "insert into ventas (time, monto_total, monto_pagado, cliente, cerrada, paga, pos ) values (?, ?, ?, ?, ?, ?, ?)").bind(time).bind(0.0).bind(0.0).bind(None::<i64>).bind(false).bind(false).bind(pos).execute(db).await?;
+        let id = res.last_insert_rowid();
         let cliente = Cliente::new(None);
-        let venta = Venta {
+        Ok(Venta {
             monto_total: 0.0,
             productos: Vec::new(),
             pagos: Vec::new(),
@@ -57,47 +46,30 @@ impl<'a> Venta {
             paga: false,
             cliente,
             cerrada: false,
-        };
-        VentaDB::ActiveModel {
-            id: Set(venta.id),
-            monto_total: Set(venta.monto_total),
-            monto_pagado: Set(venta.monto_pagado),
-            time: Set(Utc::now().naive_local()),
-            cliente: match &venta.cliente {
-                Cliente::Final => NotSet,
-                Cliente::Regular(a) => Set(Some(*a.id())),
-            },
-            cerrada: Set(false),
-            paga: Set(false),
-            pos: Set(pos),
-        }
-        .insert(db)
-        .await?;
-        Ok(venta)
+            time,
+        })
     }
     pub async fn get_or_new(
         vendedor: Option<Arc<User>>,
-        db: &DatabaseConnection,
+        db: &Pool<Sqlite>,
         pos: bool,
     ) -> Res<Venta> {
-        match VentaDB::Entity::find()
-            .filter(
-                Condition::all()
-                    .add(VentaDB::Column::Pos.into_simple_expr().eq(pos))
-                    .add(VentaDB::Column::Cerrada.into_simple_expr().eq(false)),
-            )
-            .one(db)
-            .await?
-        {
-            Some(model) => match model.cerrada {
-                true => Venta::new(vendedor, db, pos).await,
-                false => Mapper::map_model_sale(&model, db, &vendedor).await,
+        let qres:Option<Model>=sqlx::query_as!(Model::Venta,"select * from ventas where pos = ? and cerrada = ?",pos, false).fetch_optional(db).await?;
+        match qres{
+            Some(model) => match model{
+                Model::Venta { id, time, monto_total, monto_pagado, cliente, cerrada, paga, pos }=>{
+                    match cerrada {
+                        true => Venta::new(vendedor, db, pos).await,
+                        false => Mapper::map_model_sale(&model, db, &vendedor).await,
+                    }
+                },
+                _=>Err(AppError::IncorrectError(String::from("Se esperaba Venta")))
             },
             None => Venta::new(vendedor, db, pos).await,
         }
     }
     pub fn build(
-        id: i32,
+        id: i64,
         monto_total: f32,
         productos: Vec<Valuable>,
         pagos: Vec<Pago>,
@@ -106,6 +78,7 @@ impl<'a> Venta {
         cliente: Cliente,
         paga: bool,
         cerrada: bool,
+        time: NaiveDateTime
     ) -> Venta {
         Venta {
             id,
@@ -117,9 +90,10 @@ impl<'a> Venta {
             paga,
             cliente,
             cerrada,
+            time,
         }
     }
-    pub fn id(&self) -> &i32 {
+    pub fn id(&self) -> &i64 {
         &self.id
     }
     pub fn empty(&mut self) {
@@ -160,7 +134,7 @@ impl<'a> Venta {
         &mut self,
         medio_pago: &str,
         monto: f32,
-        db: &DatabaseConnection,
+        db: &Pool<Sqlite>,
     ) -> Res<f32> {
         let mut es_cred: bool = false;
         match medio_pago {
@@ -242,7 +216,7 @@ impl<'a> Venta {
             }
         }
     }
-    pub fn eliminar_pago(&mut self, id: u32, db: &DatabaseConnection) -> Res<()> {
+    pub fn eliminar_pago(&mut self, id: u32, db: &Pool<Sqlite>) -> Res<()> {
         let mut pago = Pago::def(db);
         let mut esta = false;
         for i in 0..self.pagos.len() {
@@ -312,23 +286,20 @@ impl<'a> Venta {
             })
         }
     }
-    pub async fn set_cliente(&mut self, id: i32, db: &DatabaseConnection) -> Res<()> {
+    pub async fn set_cliente(&mut self, id: i64, db: &Pool<Sqlite>) -> Res<()> {
         if id == 0 {
             self.cliente = Cliente::Final;
             Ok(())
         } else {
-            match CliDB::Entity::find_by_id(id).one(db).await? {
-                Some(model) => {
-                    self.cliente = Cliente::Regular(Cli::new(
-                        model.id,
-                        Arc::from(model.nombre),
-                        model.dni,
-                        model.activo,
-                        model.created,
-                        model.limite,
-                    ));
-                    Ok(())
-                }
+            let qres:Option<Model>=sqlx::query_as!(Model::Cliente,"select * from clientes where id = ?", id).fetch_optional(db).await?;
+            match qres{
+                Some(model) => match model{
+                    Model::Cliente { id, nombre, dni, limite, activo, time }=>{
+                        self.cliente = Cliente::Regular(Cli::new(id as i32, Arc::from(nombre), dni as i32, activo, time, limite.map(|l|l as f32)));
+                        Ok(())
+                    },
+                    _=>Err(AppError::IncorrectError(String::from("Se esperaba Cliente")))
+                },
                 None => Err(AppError::NotFound {
                     objeto: String::from("Cliente"),
                     instancia: id.to_string(),

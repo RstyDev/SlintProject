@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS cajas (
 );
 CREATE TABLE IF NOT EXISTS clientes (
     id integer PRIMARY KEY AUTOINCREMENT not null,
-    nombre TEXT not null,
+    nombre TEXT,
     dni integer not null,
     limite real,
     activo boolean not null,
@@ -116,10 +116,11 @@ CREATE TABLE IF NOT EXISTS productos (
     precio_venta REAL NOT NULL,
     porcentaje REAL NOT NULL,
     precio_costo REAL NOT NULL,
+    tipo TEXT NOT NULL,
     marca TEXT NOT NULL,
     variedad TEXT NOT NULL,
     presentacion TEXT NOT NULL,
-    cantidad INTEGER NOT NULL,
+    cantidad REAL NOT NULL,
     updated_at DATETIME NOT NULL
 );
 CREATE TABLE IF NOT EXISTS users (
@@ -149,7 +150,7 @@ CREATE TABLE IF NOT EXISTS pagos (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     medio_pago INTEGER NOT NULL,
     monto REAL NOT NULL,
-    pagado BOOLEAN NOT NULL,
+    pagado REAL NOT NULL,
     venta INTEGER NOT NULL,
     FOREIGN KEY (medio_pago) REFERENCES medios_pago(id),
     FOREIGN KEY (venta) REFERENCES ventas(id)

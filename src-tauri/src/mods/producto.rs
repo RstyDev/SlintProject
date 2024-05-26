@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
-    id: i32,
+    id: i64,
     codigos_de_barras: Vec<i64>,
     precio_de_venta: f32,
     porcentaje: f32,
@@ -21,7 +21,7 @@ pub struct Producto {
 
 impl Producto {
     pub fn new(
-        id: i32,
+        id: i64,
         codigos_de_barras: Vec<i64>,
         precio_de_venta: f32,
         porcentaje: f32,
@@ -43,7 +43,7 @@ impl Producto {
             presentacion,
         }
     }
-    pub fn id(&self) -> &i32 {
+    pub fn id(&self) -> &i64 {
         &self.id
     }
     pub fn codigos_de_barras(&self) -> &Vec<i64> {
