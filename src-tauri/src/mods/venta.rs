@@ -1,7 +1,7 @@
 use chrono::{NaiveDateTime, Utc};
 
 use serde::{Deserialize, Serialize};
-use sqlx::{query, Pool, Sqlite};
+use sqlx::{query, Executor, Pool, Sqlite};
 use std::sync::Arc;
 use tauri::async_runtime;
 
@@ -31,7 +31,7 @@ pub struct Venta {
 
 impl<'a> Venta {
     pub async fn new(vendedor: Option<Arc<User>>, db: &Pool<Sqlite>, pos: bool) -> Res<Venta> {
-        let time=Utc::now().naive_local();
+        let time = Utc::now().naive_local();
         let res= query(
             "insert into ventas (time, monto_total, monto_pagado, cliente, cerrada, paga, pos ) values (?, ?, ?, ?, ?, ?, ?)").bind(time).bind(0.0).bind(0.0).bind(None::<i64>).bind(false).bind(false).bind(pos).execute(db).await?;
         let id = res.last_insert_rowid();
@@ -54,16 +54,30 @@ impl<'a> Venta {
         db: &Pool<Sqlite>,
         pos: bool,
     ) -> Res<Venta> {
-        let qres:Option<Model>=sqlx::query_as!(Model::Venta,"select * from ventas where pos = ? and cerrada = ?",pos, false).fetch_optional(db).await?;
-        match qres{
-            Some(model) => match model{
-                Model::Venta { id, time, monto_total, monto_pagado, cliente, cerrada, paga, pos }=>{
-                    match cerrada {
-                        true => Venta::new(vendedor, db, pos).await,
-                        false => Mapper::map_model_sale(&model, db, &vendedor).await,
-                    }
+        let qres: Option<Model> = sqlx::query_as!(
+            Model::Venta,
+            "select * from ventas where pos = ? and cerrada = ?",
+            pos,
+            false
+        )
+        .fetch_optional(db)
+        .await?;
+        match qres {
+            Some(model) => match model {
+                Model::Venta {
+                    id,
+                    time,
+                    monto_total,
+                    monto_pagado,
+                    cliente,
+                    cerrada,
+                    paga,
+                    pos,
+                } => match cerrada {
+                    true => Venta::new(vendedor, db, pos).await,
+                    false => Mapper::map_model_sale(&model, db, &vendedor).await,
                 },
-                _=>Err(AppError::IncorrectError(String::from("Se esperaba Venta")))
+                _ => Err(AppError::IncorrectError(String::from("Se esperaba Venta"))),
             },
             None => Venta::new(vendedor, db, pos).await,
         }
@@ -78,7 +92,7 @@ impl<'a> Venta {
         cliente: Cliente,
         paga: bool,
         cerrada: bool,
-        time: NaiveDateTime
+        time: NaiveDateTime,
     ) -> Venta {
         Venta {
             id,
@@ -130,12 +144,7 @@ impl<'a> Venta {
         self.update_monto_total(politica);
         Ok(self.clone())
     }
-    pub fn agregar_pago(
-        &mut self,
-        medio_pago: &str,
-        monto: f32,
-        db: &Pool<Sqlite>,
-    ) -> Res<f32> {
+    pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32, db: &Pool<Sqlite>) -> Res<f32> {
         let mut es_cred: bool = false;
         match medio_pago {
             CUENTA => match &self.cliente {
@@ -156,11 +165,13 @@ impl<'a> Venta {
                     }
                 },
             },
-            _ => {
-                let model = async_runtime::block_on(medio_from_db(medio_pago, db));
-                let medio_pago = MedioPago::new(&model.medio, model.id);
-                self.pagos.push(Pago::new(medio_pago, monto, None));
-            }
+            _ => match async_runtime::block_on(medio_from_db(medio_pago, db)) {
+                Model::MedioPago { id, medio } => {
+                    let medio_pago = MedioPago::new(&medio, id);
+                    self.pagos.push(Pago::new(medio_pago, monto, None));
+                }
+                _ => return Err(AppError::IncorrectError(String::from("Se esperaba medio"))),
+            },
         }
 
         self.monto_pagado += monto;
@@ -216,7 +227,7 @@ impl<'a> Venta {
             }
         }
     }
-    pub fn eliminar_pago(&mut self, id: u32, db: &Pool<Sqlite>) -> Res<()> {
+    pub fn eliminar_pago(&mut self, id: i64, db: &Pool<Sqlite>) -> Res<()> {
         let mut pago = Pago::def(db);
         let mut esta = false;
         for i in 0..self.pagos.len() {
@@ -291,14 +302,33 @@ impl<'a> Venta {
             self.cliente = Cliente::Final;
             Ok(())
         } else {
-            let qres:Option<Model>=sqlx::query_as!(Model::Cliente,"select * from clientes where id = ?", id).fetch_optional(db).await?;
-            match qres{
-                Some(model) => match model{
-                    Model::Cliente { id, nombre, dni, limite, activo, time }=>{
-                        self.cliente = Cliente::Regular(Cli::new(id as i32, Arc::from(nombre), dni as i32, activo, time, limite.map(|l|l as f32)));
+            let qres: Option<Model> =
+                sqlx::query_as!(Model::Cliente, "select * from clientes where id = ?", id)
+                    .fetch_optional(db)
+                    .await?;
+            match qres {
+                Some(model) => match model {
+                    Model::Cliente {
+                        id,
+                        nombre,
+                        dni,
+                        limite,
+                        activo,
+                        time,
+                    } => {
+                        self.cliente = Cliente::Regular(Cli::new(
+                            id as i32,
+                            Arc::from(nombre),
+                            dni as i32,
+                            activo,
+                            time,
+                            limite.map(|l| l as f32),
+                        ));
                         Ok(())
-                    },
-                    _=>Err(AppError::IncorrectError(String::from("Se esperaba Cliente")))
+                    }
+                    _ => Err(AppError::IncorrectError(String::from(
+                        "Se esperaba Cliente",
+                    ))),
                 },
                 None => Err(AppError::NotFound {
                     objeto: String::from("Cliente"),
@@ -319,141 +349,110 @@ impl<'a> Venta {
             })
         }
     }
-    pub async fn guardar(&self, pos: bool, db: &DatabaseConnection) -> Res<()> {
-        match VentaDB::Entity::find_by_id(self.id).one(db).await? {
-            Some(model) => {
-                let mut model = model.into_active_model();
-                model.monto_pagado = Set(self.monto_pagado);
-                model.monto_total = Set(self.monto_total);
-                model.time = Set(Utc::now().naive_local());
+    pub async fn guardar(&self, pos: bool, db: &Pool<Sqlite>) -> Res<()> {
+        let qres: Option<Model> =
+            sqlx::query_as!(Model::Id, "select id from ventas where id = ?", self.id)
+                .fetch_optional(db)
+                .await?;
+        match qres {
+            Some(_) => {
+                let paga;
+                let cliente;
                 match &self.cliente {
                     Cliente::Final => {
-                        model.paga = Set(true);
-                        model.cliente = Set(None)
+                        paga = true;
+                        cliente = None;
                     }
                     Cliente::Regular(cli) => {
-                        model.paga = Set(self.paga);
-                        model.cliente = Set(Some(*cli.id()));
+                        paga = self.paga;
+                        cliente = Some(*cli.id());
                     }
                 }
-                model.cerrada = Set(self.cerrada);
-                model.pos = Set(pos);
-                if let Err(e) = model.update(db).await {
-                    println!("Error update venta {:#?}", e);
-                    return Err(e.into());
-                }
+                sqlx::query("update ventas set time = ?, monto_total = ?, monto_pagado = ?, cliente = ?, cerrada = ?, paga = ?, pos = ? where id = ?")
+                .bind(Utc::now().naive_local()).bind(self.monto_total)
+                .bind(self.monto_pagado).bind(cliente).bind(self.cerrada).bind(paga).bind(pos).bind(self.id).execute(db).await?;
             }
             None => {
                 let paga;
                 let cliente;
                 match &self.cliente {
                     Cliente::Final => {
-                        paga = Set(true);
-                        cliente = Set(None)
+                        paga = true;
+                        cliente = None;
                     }
                     Cliente::Regular(cli) => {
-                        paga = Set(self.paga);
-                        cliente = Set(Some(*cli.id()));
+                        paga = self.paga;
+                        cliente = Some(*cli.id());
                     }
                 }
-                let venta_model = VentaDB::ActiveModel {
-                    id: Set(self.id),
-                    monto_total: Set(self.monto_total),
-                    monto_pagado: Set(self.monto_pagado),
-                    time: Set(Utc::now().naive_local()),
-                    cliente,
-                    cerrada: Set(self.cerrada),
-                    paga,
-                    pos: Set(pos),
-                };
-                if let Err(e) = venta_model.insert(db).await {
-                    println!("Error de insert venta: {:#?}", e);
-                    return Err(e.into());
+                sqlx::query("insert into ventas (time, monto_total, monto_pagado, cliente, cerrada, paga, pos)
+                values (?, ?, ?, ?, ?, ?, ?)").bind(Utc::now().naive_local()).bind(self.monto_total).bind(self.monto_pagado).bind(cliente).bind(self.cerrada)
+                .bind(paga).bind(pos).execute(db).await?;
+            }
+        }
+        let mut pagos_sql = String::from(
+            "INSERT INTO pagos (medio_pago, monto, pagado, venta) VALUES (?, ?, ?, ?)",
+        );
+        let mut venta_prod_sql = String::from("INSERT INTO relacion_venta_prod (venta, producto, cantidad, precio) VALUES (?, ?, ?, ?)");
+        let mut venta_pes_sql = String::from("INSERT INTO relacion_venta_pes (venta, pesable, cantidad, precio_kilo) VALUES (?, ?, ?, ?)");
+        let mut venta_rub_sql = String::from(
+            "INSERT INTO relacion_venta_rub (venta, rubro, cantidad, precio) VALUES (?, ?, ?, ?)",
+        );
+        let row = ", (?, ?, ?, ?)";
+        for _ in 1..self.pagos.len() {
+            pagos_sql.push_str(row);
+        }
+        for prod in &self.productos {
+            match prod {
+                Valuable::Prod(_) => venta_prod_sql.push_str(row),
+                Valuable::Pes(_) => venta_pes_sql.push_str(row),
+                Valuable::Rub(_) => venta_rub_sql.push_str(row),
+            }
+        }
+        let mut pagos_query = sqlx::query(pagos_sql.as_str());
+        let mut prod_query = sqlx::query(venta_prod_sql.as_str());
+        let mut pes_query = sqlx::query(venta_pes_sql.as_str());
+        let mut rub_query = sqlx::query(venta_rub_sql.as_str());
+        for pago in &self.pagos {
+            let aux=pagos_query;
+            pagos_query=aux
+                .bind(*pago.medio_pago().id())
+                .bind(pago.monto())
+                .bind(*pago.pagado())
+                .bind(self.id);
+        }
+        for prod in &self.productos {
+            match prod {
+                Valuable::Prod((c, p)) => {
+                    let aux=prod_query;
+                    prod_query=aux
+                        .bind(self.id)
+                        .bind(*p.id())
+                        .bind(*c)
+                        .bind(*p.precio_de_venta());
+                }
+                Valuable::Pes((c, p)) => {
+                    let aux=pes_query;
+                    pes_query=aux
+                        .bind(self.id)
+                        .bind(*p.id())
+                        .bind(*c)
+                        .bind(*p.precio_peso());
+                }
+                Valuable::Rub((c, r)) => {
+                    let aux=rub_query;
+                    rub_query=aux
+                        .bind(self.id)
+                        .bind(*r.id())
+                        .bind(*c)
+                        .bind(r.monto());
                 }
             }
-        };
-
-        let pagos_model = self
-            .pagos
-            .iter()
-            .map(|pago| PagoDB::ActiveModel {
-                medio_pago: Set(*pago.medio_pago().id()),
-                monto: Set(pago.monto()),
-                venta: Set(self.id),
-                pagado: Set(*pago.pagado()),
-                ..Default::default()
-            })
-            .collect::<Vec<PagoDB::ActiveModel>>();
-        if let Err(e) = PagoDB::Entity::insert_many(pagos_model).exec(db).await {
-            println!("Error insert pagos: {:#?}", e);
-            return Err(e.into());
         }
-        let relaciones_prod_model = self
-            .productos
-            .iter()
-            .filter_map(|prod| match prod {
-                Valuable::Prod(p) => Some(VentaProdDB::ActiveModel {
-                    producto: Set(*p.1.id()),
-                    cantidad: Set(p.0),
-                    precio: Set(*p.1.precio_de_venta()),
-                    venta: Set(self.id),
-                    ..Default::default()
-                }),
-                _ => None,
-            })
-            .collect::<Vec<VentaProdDB::ActiveModel>>();
-        if let Err(e) = VentaProdDB::Entity::insert_many(relaciones_prod_model)
-            .exec(db)
-            .await
-        {
-            println!("Error insert relacionVentaProd {:#?}", e);
-        }
-        let relaciones_rub_model = self
-            .productos
-            .iter()
-            .filter_map(|prod| match prod {
-                Valuable::Rub(rub) => {
-                    let precio = match rub.1.monto() {
-                        Some(a) => Set(*a),
-                        None => NotSet,
-                    };
-                    Some(VentaRubDB::ActiveModel {
-                        cantidad: Set(rub.0),
-                        precio: precio,
-                        rubro: Set(*rub.1.id()),
-                        venta: Set(self.id),
-                        ..Default::default()
-                    })
-                }
-                _ => None,
-            })
-            .collect::<Vec<VentaRubDB::ActiveModel>>();
-        if let Err(e) = VentaRubDB::Entity::insert_many(relaciones_rub_model)
-            .exec(db)
-            .await
-        {
-            println!("Error insert relacionVentaRub {:#?}", e);
-        }
-        let relaciones_pes_model = self
-            .productos
-            .iter()
-            .filter_map(|prod| match prod {
-                Valuable::Pes(pes) => Some(VentaPesDB::ActiveModel {
-                    cantidad: Set(pes.0),
-                    precio: Set(*pes.1.precio_peso()),
-                    pesable: Set(*pes.1.id()),
-                    venta: Set(self.id),
-                    ..Default::default()
-                }),
-                _ => None,
-            })
-            .collect::<Vec<VentaPesDB::ActiveModel>>();
-        if let Err(e) = VentaPesDB::Entity::insert_many(relaciones_pes_model)
-            .exec(db)
-            .await
-        {
-            println!("Error insert relacionVentaPes {:#?}", e);
-        }
+        pagos_query.execute(db).await?;
+        prod_query.execute(db).await?;
+        pes_query.execute(db).await?;
+        rub_query.execute(db).await?;
         Ok(())
     }
 }
