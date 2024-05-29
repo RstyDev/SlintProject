@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS relacion_venta_rub (
     rubro INTEGER NOT NULL,
     cantidad INTEGER NOT NULL,
     precio REAL NOT NULL,
+    pos INTEGER NOT NULL,
     FOREIGN KEY (venta) REFERENCES ventas(id),
     FOREIGN KEY (rubro) REFERENCES rubros(id)
 )

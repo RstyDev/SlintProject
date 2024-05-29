@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS productos (
     marca TEXT NOT NULL,
     variedad TEXT NOT NULL,
     presentacion TEXT NOT NULL,
-    cantidad REAL NOT NULL,
+    size REAL NOT NULL,
     updated_at DATETIME NOT NULL
 )
 

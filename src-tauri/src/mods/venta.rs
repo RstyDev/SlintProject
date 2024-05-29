@@ -414,8 +414,8 @@ impl<'a> Venta {
         let mut pes_query = sqlx::query(venta_pes_sql.as_str());
         let mut rub_query = sqlx::query(venta_rub_sql.as_str());
         for pago in &self.pagos {
-            let aux=pagos_query;
-            pagos_query=aux
+            let aux = pagos_query;
+            pagos_query = aux
                 .bind(*pago.medio_pago().id())
                 .bind(pago.monto())
                 .bind(*pago.pagado())
@@ -424,28 +424,24 @@ impl<'a> Venta {
         for prod in &self.productos {
             match prod {
                 Valuable::Prod((c, p)) => {
-                    let aux=prod_query;
-                    prod_query=aux
+                    let aux = prod_query;
+                    prod_query = aux
                         .bind(self.id)
                         .bind(*p.id())
                         .bind(*c)
                         .bind(*p.precio_de_venta());
                 }
                 Valuable::Pes((c, p)) => {
-                    let aux=pes_query;
-                    pes_query=aux
+                    let aux = pes_query;
+                    pes_query = aux
                         .bind(self.id)
                         .bind(*p.id())
                         .bind(*c)
                         .bind(*p.precio_peso());
                 }
                 Valuable::Rub((c, r)) => {
-                    let aux=rub_query;
-                    rub_query=aux
-                        .bind(self.id)
-                        .bind(*r.id())
-                        .bind(*c)
-                        .bind(r.monto());
+                    let aux = rub_query;
+                    rub_query = aux.bind(self.id).bind(*r.id()).bind(*c).bind(r.monto());
                 }
             }
         }

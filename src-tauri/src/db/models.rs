@@ -1,4 +1,4 @@
-use crate::mods::{AppError, Caja, Config, MedioPago};
+use crate::mods::{AppError, Caja, Config, MedioPago, Valuable};
 use crate::mods::{Pago, Presentacion, Producto, Res, Venta};
 use chrono::NaiveDateTime;
 use sqlx::{query_as, Pool, Sqlite};
@@ -41,7 +41,7 @@ impl Mapper {
         for tot in totales_mod? {
             match tot {
                 Model::Total { medio, monto } => {
-                    totales.insert(Arc::from(medio), monto);
+                    totales.insert(Arc::from(medio), monto as f32);
                 }
                 _ => return Err(AppError::IncorrectError("Imposible".to_string())),
             }
@@ -50,9 +50,9 @@ impl Mapper {
             id,
             inicio,
             cierre,
-            ventas_totales,
-            monto_inicio,
-            monto_cierre,
+            ventas_totales as f32,
+            monto_inicio as f32,
+            monto_cierre.map(|m| m as f32),
             cajero.map(|c| Arc::from(c.as_str())),
             totales,
         ))
@@ -60,7 +60,7 @@ impl Mapper {
     pub async fn config(db: &Pool<Sqlite>, model: Model) -> Res<Config> {
         match model {
             Model::Config {
-                id,
+                id:_,
                 politica,
                 formato,
                 mayus,
@@ -73,12 +73,12 @@ impl Mapper {
                 let medios = medios?
                     .iter()
                     .map(|model| match model {
-                        Model::MedioPago { id, medio } => Arc::from(medio.to_owned()),
+                        Model::MedioPago { id:_, medio } => Arc::from(medio.to_owned()),
                         _ => panic!("Se esperaba MedioPago"),
                     })
                     .collect::<Vec<Arc<str>>>();
                 Ok(Config::build(
-                    politica,
+                    politica as f32,
                     formato.as_str(),
                     mayus.as_str(),
                     cantidad as u8,
@@ -99,7 +99,7 @@ impl Mapper {
                 marca,
                 variedad,
                 presentacion,
-                cantidad,
+                size,
                 updated_at,
             } => {
                 let models: sqlx::Result<Vec<Model>> = sqlx::query_as!(
@@ -117,12 +117,12 @@ impl Mapper {
                     })
                     .collect::<Vec<i64>>();
                 let presentacion = match presentacion.as_str() {
-                    "Gr" => Presentacion::Gr(cantidad as f32),
-                    "Un" => Presentacion::Un(cantidad as i16),
-                    "Lt" => Presentacion::Lt(cantidad as f32),
-                    "Ml" => Presentacion::Ml(cantidad as i16),
-                    "CC" => Presentacion::CC(cantidad as i16),
-                    "Kg" => Presentacion::Kg(cantidad as f32),
+                    "Gr" => Presentacion::Gr(size as f32),
+                    "Un" => Presentacion::Un(size as u16),
+                    "Lt" => Presentacion::Lt(size as f32),
+                    "Ml" => Presentacion::Ml(size as u16),
+                    "CC" => Presentacion::CC(size as u16),
+                    "Kg" => Presentacion::Kg(size as f32),
                     a => return Err(AppError::SizeSelection(a.to_string())),
                 };
                 Ok(Producto::new(
@@ -162,8 +162,8 @@ impl Mapper {
                         Model::MedioPago { id, medio } => Ok(Pago::build(
                             int_id,
                             MedioPago::new(medio.as_str(), id),
-                            monto,
-                            pagado,
+                            monto as f32,
+                            pagado as f32,
                         )),
                         _ => Err(AppError::IncorrectError(String::from(
                             "se esperaba MedioPago",
@@ -177,17 +177,42 @@ impl Mapper {
             _ => Err(AppError::IncorrectError("Se esperaba Pago".to_string())),
         }
     }
-    // pub async fn venta(db: &Pool<Sqlite>,model: Model)->Res<Venta>{
-    //     match model{
-    //         Model::Venta { id, time, monto_total, monto_pagado, cliente, cerrada, paga, pos }=>{
-
-    //             Venta::build(id, monto_total, productos, pagos, monto_pagado, vendedor, cliente, paga, cerrada);
-
-    //         },
-    //         _=>panic!("se esperaba Venta"),
-    //     }
-    //     Err(AppError::IncorrectError("asfd".to_string()))
-    // }
+    pub async fn venta(db: &Pool<Sqlite>, model: Model) -> Res<Venta> {
+        match model {
+            Model::Venta {
+                id,
+                time,
+                monto_total,
+                monto_pagado,
+                cliente,
+                cerrada,
+                paga,
+                pos,
+            } => {
+                let qres:Vec<Model>=sqlx::query_as!(Model::RelatedProd,"select productos.id as id,
+                    precio, porcentaje, precio_costo, tipo, marca, variedad, presentacion, size, cantidad
+                    from relacion_venta_prod inner join productos on relacion_venta_prod.id = productos.id where venta = ?
+                    ",id).fetch_all(db).await?;
+                let mut productos=Vec::new();
+                for model in qres{
+                    match model{
+                        Model::RelatedProd { id, precio, porcentaje, precio_costo, tipo, marca, variedad, presentacion, size, cantidad }        =>{
+                            let qres:Vec<Model>=sqlx::query_as!(Model::Codigo,"select codigo from codigos where producto = ?",id).fetch_all(db).await?;
+                            let codes = qres.iter().map(|c|match c{
+                                Model::Codigo { codigo }=>*codigo,
+                                _=>panic!("Se esperana codigo")
+                            }).collect::<Vec<i64>>();
+                            productos.push(Valuable::Prod((cantidad as u8,Producto::new(id, codes, precio as f32, porcentaje as f32, precio_costo as f32, tipo.as_str(), marca.as_str(), variedad.as_str(), Presentacion::build(presentacion.as_str(),size)))))
+                        },
+                        _=>return Err(AppError::IncorrectError(String::from("Se esperaba related prod")))
+                    }
+                }
+                
+            }
+            _ => panic!("se esperaba Venta"),
+        }
+        Err(AppError::IncorrectError("asfd".to_string()))
+    }
 }
 pub enum Model {
     Id {
@@ -271,8 +296,20 @@ pub enum Model {
         marca: String,
         variedad: String,
         presentacion: String,
-        cantidad: f64,
+        size: f64,
         updated_at: NaiveDateTime,
+    },
+    RelatedProd {
+        id: i64,
+        precio: f64,
+        porcentaje: f64,
+        precio_costo: f64,
+        tipo: String,
+        marca: String,
+        variedad: String,
+        presentacion: String,
+        size: f64,
+        cantidad: i64,
     },
     User {
         id: i64,
@@ -345,9 +382,9 @@ pub enum Model {
     },
 }
 
-// async fn test(db: &Pool<Sqlite>){
-//     let res: sqlx::Result<Option<Model>> = query_as!(
-//         Model::Venta,
-//         "select * from ventas").fetch_optional(db).await;
-//     let res= res.unwrap().unwrap();
-// }
+async fn test(db: &Pool<Sqlite>){
+    let res: sqlx::Result<Option<Model>> = query_as!(
+        Model::Venta,
+        "select * from ventas").fetch_optional(db).await;
+    let res= res.unwrap().unwrap();
+}

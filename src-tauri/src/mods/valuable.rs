@@ -1,5 +1,4 @@
 use super::{redondeo, Config, Formato, Pesable, Producto, Res, Rubro};
-use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
 use std::fmt::{self, Display};
@@ -115,17 +114,17 @@ impl Display for Presentacion {
 
 impl Default for Presentacion {
     fn default() -> Self {
-        Presentacion::Un(i16::default())
+        Presentacion::Un(u16::default())
     }
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Presentacion {
     Gr(f32),
-    Un(i16),
+    Un(u16),
     Lt(f32),
-    Ml(i16),
-    CC(i16),
+    Ml(u16),
+    CC(u16),
     Kg(f32),
 }
 
@@ -148,6 +147,16 @@ impl Presentacion {
             Presentacion::Ml(_) => String::from("Ml"),
             Presentacion::CC(_) => String::from("CC"),
             Presentacion::Kg(_) => String::from("Kg"),
+        }
+    }
+    pub fn build(presentacion: &str, cantidad: f64) -> Presentacion {
+        match presentacion {
+            "Gr" => Presentacion::Gr(cantidad as f32),
+            "Un" => Presentacion::Un(cantidad as u16),
+            "Lt" => Presentacion::Lt(cantidad as f32),
+            "Ml" => Presentacion::ML(cantidad as u16),
+            "CC" => Presentacion::CC(cantidad as u16),
+            "Kg" => Presentacion::Kg(cantidad as f32),
         }
     }
 }

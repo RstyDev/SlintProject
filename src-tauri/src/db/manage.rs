@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS cajas (
 );
 CREATE TABLE IF NOT EXISTS clientes (
     id integer PRIMARY KEY AUTOINCREMENT not null,
-    nombre TEXT,
+    nombre TEXT not null,
     dni integer not null,
     limite real,
     activo boolean not null,
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS productos (
     marca TEXT NOT NULL,
     variedad TEXT NOT NULL,
     presentacion TEXT NOT NULL,
-    cantidad REAL NOT NULL,
+    size REAL NOT NULL,
     updated_at DATETIME NOT NULL
 );
 CREATE TABLE IF NOT EXISTS users (
@@ -169,6 +169,7 @@ CREATE TABLE IF NOT EXISTS relacion_venta_pes (
     pesable INTEGER NOT NULL,
     cantidad REAL NOT NULL,
     precio_kilo REAL NOT NULL,
+    pos INTEGER NOT NULL,
     FOREIGN KEY (venta) REFERENCES ventas(id),
     FOREIGN KEY (pesable) REFERENCES pesables(id)
 );
@@ -178,6 +179,7 @@ CREATE TABLE IF NOT EXISTS relacion_venta_prod (
     producto INTEGER NOT NULL,
     cantidad INTEGER NOT NULL,
     precio REAL NOT NULL,
+    pos INTEGER NOT NULL,
     FOREIGN KEY (venta) REFERENCES ventas(id),
     FOREIGN KEY (producto) REFERENCES productos(id)
 );
@@ -187,6 +189,7 @@ CREATE TABLE IF NOT EXISTS relacion_venta_rub (
     rubro INTEGER NOT NULL,
     cantidad INTEGER NOT NULL,
     precio REAL NOT NULL,
+    pos INTEGER NOT NULL,
     FOREIGN KEY (venta) REFERENCES ventas(id),
     FOREIGN KEY (rubro) REFERENCES rubros(id)
 );

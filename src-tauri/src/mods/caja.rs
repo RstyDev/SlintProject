@@ -16,11 +16,11 @@ pub struct Caja {
     id: i64,
     inicio: NaiveDateTime,
     cierre: Option<NaiveDateTime>,
-    ventas_totales: f64,
-    monto_inicio: f64,
-    monto_cierre: Option<f64>,
+    ventas_totales: f32,
+    monto_inicio: f32,
+    monto_cierre: Option<f32>,
     cajero: Option<Arc<str>>,
-    totales: HashMap<Arc<str>, f64>,
+    totales: HashMap<Arc<str>, f32>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -51,7 +51,7 @@ impl fmt::Debug for Caja {
 impl Caja {
     pub async fn new(
         db: &Pool<Sqlite>,
-        monto_de_inicio: Option<f64>,
+        monto_de_inicio: Option<f32>,
         config: &Config,
     ) -> Result<Caja, AppError> {
         let caja;
@@ -82,7 +82,7 @@ impl Caja {
                                 id + 1,
                                 Utc::now().naive_local(),
                                 None,
-                                *ventas_totales,
+                                *ventas_totales as f32,
                                 monto,
                                 None,
                                 cajero.as_ref().map(|c| Arc::from(c.as_str())),
@@ -125,11 +125,11 @@ impl Caja {
         id: i64,
         inicio: NaiveDateTime,
         cierre: Option<NaiveDateTime>,
-        ventas_totales: f64,
-        monto_inicio: f64,
-        monto_cierre: Option<f64>,
+        ventas_totales: f32,
+        monto_inicio: f32,
+        monto_cierre: Option<f32>,
         cajero: Option<Arc<str>>,
-        totales: HashMap<Arc<str>, f64>,
+        totales: HashMap<Arc<str>, f32>,
     ) -> Caja {
         Caja {
             id,
@@ -168,7 +168,7 @@ impl Caja {
     pub fn set_cajero(&mut self, cajero: Arc<str>) {
         self.cajero = Some(cajero);
     }
-    pub async fn set_n_save(&mut self, db: &Pool<Sqlite>, monto: f64) -> Res<()> {
+    pub async fn set_n_save(&mut self, db: &Pool<Sqlite>, monto: f32) -> Res<()> {
         self.monto_cierre = Some(monto);
         self.cierre = Some(Utc::now().naive_local());
         let res: sqlx::Result<Option<Model>> =
@@ -195,7 +195,7 @@ impl Caja {
     pub async fn update_total(
         &mut self,
         db: &Pool<Sqlite>,
-        monto: f64,
+        monto: f32,
         pagos: &Vec<Pago>,
     ) -> Result<(), AppError> {
         for pago in pagos {
