@@ -1,4 +1,4 @@
-use crate::mods::{AppError, Caja, Config, MedioPago, Valuable};
+use crate::mods::{AppError, Caja, Config, MedioPago, Pesable, Valuable};
 use crate::mods::{Pago, Presentacion, Producto, Res, Venta};
 use chrono::NaiveDateTime;
 use sqlx::{query_as, Pool, Sqlite};
@@ -207,7 +207,27 @@ impl Mapper {
                         _=>return Err(AppError::IncorrectError(String::from("Se esperaba related prod")))
                     }
                 }
-                
+                let qres:Vec<Model>=sqlx::query_as!(Model::RelatedPes,"select pesables.id as id,
+                    precio_peso, porcentaje, costo_kilo, descripcion, cantidad, updated_at
+                    from relacion_venta_pes inner join pesables on relacion_venta_pes.id = pesables.id where venta = ?
+                    ",id).fetch_all(db).await?;
+                for model in qres{
+                    match model{
+                        Model::RelatedPes { id, precio_peso, porcentaje, costo_kilo, descripcion, updated_at, cantidad }=>{
+                            let qres:Option<Model>=sqlx::query_as!(Model::Codigo,"select codigo from codigos where pesable = ?",id).fetch_optional(db).await?;
+                            match qres{
+                                Some(model) => match model{
+                                    Model::Codigo { codigo }=>{
+                                        productos.push(Valuable::Pes((cantidad as f32,Pesable::build(id, codigo, precio_peso as f32, porcentaje as f32, costo_kilo as f32, descripcion.as_str()))))
+                                    },
+                                    _=>return Err(AppError::IncorrectError(String::from("se esperaba codigo")))
+                                },
+                                None => return Err(AppError::IncorrectError(String::from("No se encontro codigo de pesable"))),
+                            }
+                        },
+                        _=>return Err(AppError::IncorrectError(String::from("se esperaba RelatedPes")))
+                    }
+                }
             }
             _ => panic!("se esperaba Venta"),
         }
@@ -281,6 +301,15 @@ pub enum Model {
         costo_kilo: f64,
         descripcion: String,
         updated_at: NaiveDateTime,
+    },
+    RelatedPes{
+        id: i64,
+        precio_peso: f64,
+        porcentaje: f64,
+        costo_kilo: f64,
+        descripcion: String,
+        updated_at: NaiveDateTime,
+        cantidad: f64,
     },
     Rubro {
         id: i64,

@@ -42,7 +42,7 @@ impl Cli {
                 .fetch_optional(db)
                 .await?;
         match model {
-            Some(model) => {
+            Some(_) => {
                 return Err(AppError::ExistingError {
                     objeto: "Cliente".to_string(),
                     instancia: dni.to_string(),
@@ -127,7 +127,15 @@ impl Cli {
         user: Option<Arc<User>>,
     ) -> Res<Vec<Venta>> {
         let mut ventas = Vec::new();
-
+        let qres:Vec<Model>=sqlx::query_as!(Model::Venta,"select * from ventas where cliente = ? and paga = ?",self.id,false).fetch_all(db).await?;
+        for model in qres{
+            match model{
+                Model::Venta { id, time, monto_total, monto_pagado, cliente, cerrada, paga, pos }=>{
+                    
+                },
+                _=>return Err(AppError::IncorrectError(String::from("se esperaba venta")))
+            }    
+        }
         let models = VentaDB::Entity::find()
             .filter(
                 Condition::all()
