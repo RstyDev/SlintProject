@@ -12,7 +12,7 @@ pub struct MedioPago {
 }
 
 impl MedioPago {
-    pub fn new(medio: &str, id: i64) -> MedioPago {
+    pub fn build(medio: &str, id: i64) -> MedioPago {
         MedioPago {
             medio: Arc::from(medio),
             id,

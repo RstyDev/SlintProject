@@ -16,7 +16,7 @@ pub enum Cliente {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Cli {
-    id: i32,
+    id: i64,
     nombre: Arc<str>,
     dni: i32,
     activo: bool,
@@ -32,7 +32,7 @@ impl Cli {
     pub async fn new_to_db(
         db: &Pool<Sqlite>,
         nombre: &str,
-        dni: i32,
+        dni: i64,
         activo: bool,
         created: NaiveDateTime,
         limite: Option<f32>,
@@ -58,9 +58,9 @@ impl Cli {
                     .execute(db)
                     .await?;
                 Ok(Cli {
-                    id: qres.last_insert_rowid() as i32,
+                    id: qres.last_insert_rowid(),
                     nombre: Arc::from(nombre),
-                    dni,
+                    dni:dni as i32,
                     limite: match limite {
                         Some(limit) => Cuenta::Auth(limit),
                         None => Cuenta::Unauth,
@@ -71,8 +71,8 @@ impl Cli {
             }
         }
     }
-    pub fn new(
-        id: i32,
+    pub fn build(
+        id: i64,
         nombre: Arc<str>,
         dni: i32,
         activo: bool,
@@ -91,7 +91,7 @@ impl Cli {
             created,
         }
     }
-    pub fn id(&self) -> &i32 {
+    pub fn id(&self) -> &i64 {
         &self.id
     }
     #[cfg(test)]
@@ -131,7 +131,7 @@ impl Cli {
         for model in qres{
             match model{
                 Model::Venta { id, time, monto_total, monto_pagado, cliente, cerrada, paga, pos }=>{
-                    
+
                 },
                 _=>return Err(AppError::IncorrectError(String::from("se esperaba venta")))
             }    

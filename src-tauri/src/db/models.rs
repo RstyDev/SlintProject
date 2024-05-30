@@ -1,4 +1,4 @@
-use crate::mods::{AppError, Caja, Config, MedioPago, Pesable, Valuable};
+use crate::mods::{AppError, Caja, Cli, Cliente, Config, MedioPago, Pesable, Rubro, User, Valuable};
 use crate::mods::{Pago, Presentacion, Producto, Res, Venta};
 use chrono::NaiveDateTime;
 use sqlx::{query_as, Pool, Sqlite};
@@ -161,7 +161,7 @@ impl Mapper {
                     Some(med) => match med {
                         Model::MedioPago { id, medio } => Ok(Pago::build(
                             int_id,
-                            MedioPago::new(medio.as_str(), id),
+                            MedioPago::build(medio.as_str(), id),
                             monto as f32,
                             pagado as f32,
                         )),
@@ -177,7 +177,7 @@ impl Mapper {
             _ => Err(AppError::IncorrectError("Se esperaba Pago".to_string())),
         }
     }
-    pub async fn venta(db: &Pool<Sqlite>, model: Model) -> Res<Venta> {
+    pub async fn venta(db: &Pool<Sqlite>, model: Model, user: &Option<Arc<User>>) -> Res<Venta> {
         match model {
             Model::Venta {
                 id,
@@ -213,7 +213,7 @@ impl Mapper {
                     ",id).fetch_all(db).await?;
                 for model in qres{
                     match model{
-                        Model::RelatedPes { id, precio_peso, porcentaje, costo_kilo, descripcion, updated_at, cantidad }=>{
+                        Model::RelatedPes { id, precio_peso, porcentaje, costo_kilo, descripcion, updated_at:_, cantidad }=>{
                             let qres:Option<Model>=sqlx::query_as!(Model::Codigo,"select codigo from codigos where pesable = ?",id).fetch_optional(db).await?;
                             match qres{
                                 Some(model) => match model{
@@ -228,10 +228,63 @@ impl Mapper {
                         _=>return Err(AppError::IncorrectError(String::from("se esperaba RelatedPes")))
                     }
                 }
+                let qres:Vec<Model>=sqlx::query_as!(Model::RelatedRub,"select rubros.id as id, descripcion, updated_at, cantidad, precio
+                    from relacion_venta_rub inner join rubros on relacion_venta_rub.id = rubros.id where venta = ?
+                    ",id).fetch_all(db).await?;
+                for model in qres{
+                    match model{
+                        Model::RelatedRub { id, descripcion, updated_at:_, cantidad, precio }=>{
+                            let qres:Option<Model>=sqlx::query_as!(Model::Codigo,"select codigo from codigos where pesable = ?",id).fetch_optional(db).await?;
+                            match qres{
+                                Some(model) => match model{
+                                    Model::Codigo { codigo }=>{
+                                        productos.push(Valuable::Rub((cantidad as u8,Rubro::build(id, codigo, Some(precio as f32), Arc::from(descripcion.as_str())))))
+                                    },
+                                    _=>return Err(AppError::IncorrectError(String::from("se esperaba codigo")))
+                                },
+                                None => return Err(AppError::IncorrectError(String::from("No se encontro codigo de pesable"))),
+                            }
+                        },
+                        _=>return Err(AppError::IncorrectError(String::from("se esperaba RelatedPes")))
+                    }
+                }
+                let qres:Vec<Model>=sqlx::query_as!(Model::Pago,"select * from pagos where venta = ?",id).fetch_all(db).await?;
+                let mut pagos=Vec::new();
+                for pago in qres{
+                    match pago{
+                        Model::Pago { id, medio_pago, monto, pagado, venta:_ }=>{
+                            let qres:Option<Model>=sqlx::query_as!(Model::MedioPago,"select * from medios_pago where id = ?",medio_pago).fetch_optional(db).await?;
+                            let medio=match qres{
+                                Some(model)=>{
+                                    match model{
+                                        Model::MedioPago { id, medio }=>{
+                                            MedioPago::build(medio.as_str(),id)
+                                        },
+                                        _=>return Err(AppError::IncorrectError(String::from("se esperaba Medio Pago")))
+                                    }
+                                },
+                                None=>return Err(AppError::IncorrectError(String::from("no es encontro medio_pago de pago")))
+                            };
+                            pagos.push(Pago::build(id, medio, monto as f32, pagado as f32))
+                        },
+                        _=>return Err(AppError::IncorrectError(String::from("se esperaba pago")))
+                    }
+                }
+                let qres:Option<Model>=sqlx::query_as!(Model::Cliente, "select * from clientes where id = ?",cliente).fetch_optional(db).await?;
+                let cliente=match qres{
+                    Some(model)=>match model{
+                        Model::Cliente { id, nombre, dni, limite, activo, time }=>{
+                            Cliente::Regular(Cli::build(id, Arc::from(nombre.as_str()), dni as i32, activo, time, limite.map(|l|l as f32)))
+                        },
+                        _=>return Err(AppError::IncorrectError(String::from("Se esperaba cliente")))
+                    },
+                    None=>Cliente::Final,
+                };
+                Ok(Venta::build(id, monto_total as f32, productos, pagos, monto_pagado as f32, user.clone(), cliente, paga, cerrada, time))
             }
-            _ => panic!("se esperaba Venta"),
+            _ => Err(AppError::IncorrectError("Se esperaba Venta".to_string())),
         }
-        Err(AppError::IncorrectError("asfd".to_string()))
+        
     }
 }
 pub enum Model {
@@ -315,6 +368,13 @@ pub enum Model {
         id: i64,
         descripcion: String,
         updated_at: NaiveDateTime,
+    },
+    RelatedRub{
+        id: i64,
+        descripcion: String,
+        updated_at: NaiveDateTime,
+        cantidad: i64,
+        precio: f64,
     },
     Producto {
         id: i64,

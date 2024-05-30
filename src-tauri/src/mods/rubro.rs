@@ -11,14 +11,14 @@ use super::{redondeo, valuable::ValuableTrait, AppError, Res};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
-    id: i32,
+    id: i64,
     codigo: i64,
     monto: Option<f32>,
     descripcion: Arc<str>,
 }
 
 impl Rubro {
-    pub fn new(id: i32, codigo: i64, monto: Option<f32>, descripcion: Arc<str>) -> Rubro {
+    pub fn build(id: i64, codigo: i64, monto: Option<f32>, descripcion: Arc<str>) -> Rubro {
         Rubro {
             id,
             codigo,

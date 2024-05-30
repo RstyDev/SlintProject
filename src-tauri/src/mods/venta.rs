@@ -155,7 +155,7 @@ impl<'a> Venta {
                 }
                 Cliente::Regular(cli) => match cli.limite() {
                     Auth(_) => {
-                        let medio_pago = MedioPago::new(CUENTA, 0);
+                        let medio_pago = MedioPago::build(CUENTA, 0);
                         self.pagos.push(Pago::new(medio_pago, monto, Some(0.0)));
                     }
                     Unauth => {
@@ -167,7 +167,7 @@ impl<'a> Venta {
             },
             _ => match async_runtime::block_on(medio_from_db(medio_pago, db)) {
                 Model::MedioPago { id, medio } => {
-                    let medio_pago = MedioPago::new(&medio, id);
+                    let medio_pago = MedioPago::build(&medio, id);
                     self.pagos.push(Pago::new(medio_pago, monto, None));
                 }
                 _ => return Err(AppError::IncorrectError(String::from("Se esperaba medio"))),
@@ -316,8 +316,8 @@ impl<'a> Venta {
                         activo,
                         time,
                     } => {
-                        self.cliente = Cliente::Regular(Cli::new(
-                            id as i32,
+                        self.cliente = Cliente::Regular(Cli::build(
+                            id,
                             Arc::from(nombre),
                             dni as i32,
                             activo,
