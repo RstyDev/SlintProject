@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
 
-use crate::db::Model;
+use crate::db::{Mapper, Model};
 
 use super::{AppError, Res, User, Venta};
 
@@ -130,22 +130,11 @@ impl Cli {
         let qres:Vec<Model>=sqlx::query_as!(Model::Venta,"select * from ventas where cliente = ? and paga = ?",self.id,false).fetch_all(db).await?;
         for model in qres{
             match model{
-                Model::Venta { id, time, monto_total, monto_pagado, cliente, cerrada, paga, pos }=>{
-
+                Model::Venta { id:_, time:_, monto_total:_, monto_pagado:_, cliente:_, cerrada:_, paga:_, pos:_ }=>{
+                    ventas.push(Mapper::venta(db, model, &user).await?)
                 },
                 _=>return Err(AppError::IncorrectError(String::from("se esperaba venta")))
             }    
-        }
-        let models = VentaDB::Entity::find()
-            .filter(
-                Condition::all()
-                    .add(VentaDB::Column::Cliente.eq(self.id))
-                    .add(VentaDB::Column::Paga.eq(false)),
-            )
-            .all(db)
-            .await?;
-        for model in models {
-            ventas.push(Mapper::map_model_sale(&model, db, &user).await?);
         }
         Ok(ventas)
     }
