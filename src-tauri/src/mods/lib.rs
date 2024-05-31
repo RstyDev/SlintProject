@@ -70,187 +70,187 @@ pub fn redondeo(politica: &f32, numero: f32) -> f32 {
     }
     res
 }
-impl Mapper {
-    pub async fn map_model_prod(prod: &ProdDB::Model, db: &DatabaseConnection) -> Res<Producto> {
-        let cods = CodeDB::Entity::find()
-            .filter(CodeDB::Column::Producto.eq(prod.id))
-            .all(db)
-            .await?
-            .iter()
-            .map(|c| c.codigo)
-            .collect();
+// impl Mapper {
+//     pub async fn map_model_prod(prod: &ProdDB::Model, db: &DatabaseConnection) -> Res<Producto> {
+//         let cods = CodeDB::Entity::find()
+//             .filter(CodeDB::Column::Producto.eq(prod.id))
+//             .all(db)
+//             .await?
+//             .iter()
+//             .map(|c| c.codigo)
+//             .collect();
 
-        let presentacion = match prod.presentacion.as_str() {
-            "Gr" => Presentacion::Gr(prod.cantidad),
-            "Un" => Presentacion::Un(prod.cantidad as i16),
-            "Lt" => Presentacion::Lt(prod.cantidad),
-            "Ml" => Presentacion::Ml(prod.cantidad as i16),
-            "CC" => Presentacion::CC(prod.cantidad as i16),
-            "Kg" => Presentacion::Kg(prod.cantidad),
-            a => return Err(AppError::SizeSelection(a.to_string())),
-        };
-        Ok(Producto::new(
-            prod.id,
-            cods,
-            prod.precio_de_venta,
-            prod.porcentaje,
-            prod.precio_de_costo,
-            prod.tipo_producto.as_str(),
-            prod.marca.as_str(),
-            prod.variedad.as_str(),
-            presentacion,
-        ))
-    }
-    pub fn map_model_rub(rub: &RubDB::Model, monto: f32) -> Rubro {
-        Rubro::new(
-            rub.id,
-            rub.codigo,
-            Some(monto),
-            Arc::from(rub.descripcion.as_str()),
-        )
-    }
+//         let presentacion = match prod.presentacion.as_str() {
+//             "Gr" => Presentacion::Gr(prod.cantidad),
+//             "Un" => Presentacion::Un(prod.cantidad as i16),
+//             "Lt" => Presentacion::Lt(prod.cantidad),
+//             "Ml" => Presentacion::Ml(prod.cantidad as i16),
+//             "CC" => Presentacion::CC(prod.cantidad as i16),
+//             "Kg" => Presentacion::Kg(prod.cantidad),
+//             a => return Err(AppError::SizeSelection(a.to_string())),
+//         };
+//         Ok(Producto::new(
+//             prod.id,
+//             cods,
+//             prod.precio_de_venta,
+//             prod.porcentaje,
+//             prod.precio_de_costo,
+//             prod.tipo_producto.as_str(),
+//             prod.marca.as_str(),
+//             prod.variedad.as_str(),
+//             presentacion,
+//         ))
+//     }
+//     pub fn map_model_rub(rub: &RubDB::Model, monto: f32) -> Rubro {
+//         Rubro::new(
+//             rub.id,
+//             rub.codigo,
+//             Some(monto),
+//             Arc::from(rub.descripcion.as_str()),
+//         )
+//     }
 
-    pub fn map_model_pes(pes: &PesDB::Model) -> Pesable {
-        Pesable::new(
-            pes.id,
-            pes.codigo,
-            pes.precio_peso,
-            pes.porcentaje,
-            pes.costo_kilo,
-            pes.descripcion.as_str(),
-        )
-    }
-    pub fn map_model_prov(prov: &ProvDB::Model) -> Proveedor {
-        Proveedor::new(prov.id, prov.nombre.as_str(), prov.contacto)
-    }
-    pub async fn map_model_sale(
-        venta: &VentaDB::Model,
-        db: &DatabaseConnection,
-        user: &Option<Arc<User>>,
-    ) -> Res<Venta> {
-        let pagos_mod = PagoDB::Entity::find()
-            .filter(PagoDB::Column::Venta.eq(venta.id))
-            .all(db)
-            .await?;
-        let mut pagos = Vec::new();
-        for pago_mod in pagos_mod {
-            let medio = MedioDB::Entity::find_by_id(pago_mod.medio_pago)
-                .one(db)
-                .await?
-                .unwrap();
+//     pub fn map_model_pes(pes: &PesDB::Model) -> Pesable {
+//         Pesable::new(
+//             pes.id,
+//             pes.codigo,
+//             pes.precio_peso,
+//             pes.porcentaje,
+//             pes.costo_kilo,
+//             pes.descripcion.as_str(),
+//         )
+//     }
+//     pub fn map_model_prov(prov: &ProvDB::Model) -> Proveedor {
+//         Proveedor::new(prov.id, prov.nombre.as_str(), prov.contacto)
+//     }
+//     pub async fn map_model_sale(
+//         venta: &VentaDB::Model,
+//         db: &DatabaseConnection,
+//         user: &Option<Arc<User>>,
+//     ) -> Res<Venta> {
+//         let pagos_mod = PagoDB::Entity::find()
+//             .filter(PagoDB::Column::Venta.eq(venta.id))
+//             .all(db)
+//             .await?;
+//         let mut pagos = Vec::new();
+//         for pago_mod in pagos_mod {
+//             let medio = MedioDB::Entity::find_by_id(pago_mod.medio_pago)
+//                 .one(db)
+//                 .await?
+//                 .unwrap();
 
-            pagos.push(Pago::new(
-                MedioPago::new(&medio.medio, medio.id),
-                pago_mod.monto,
-                Some(pago_mod.pagado),
-            ));
-        }
-        let mut prods = Vec::new();
-        for model in VentaPesDB::Entity::find()
-            .filter(VentaPesDB::Column::Venta.eq(venta.id))
-            .all(db)
-            .await?
-        {
-            let pes_mod = PesDB::Entity::find_by_id(model.pesable)
-                .one(db)
-                .await?
-                .unwrap();
-            prods.push(Valuable::Pes((
-                model.cantidad,
-                Pesable::new(
-                    pes_mod.id,
-                    pes_mod.codigo,
-                    pes_mod.precio_peso,
-                    pes_mod.porcentaje,
-                    pes_mod.costo_kilo,
-                    &pes_mod.descripcion,
-                ),
-            )))
-        }
-        for model in VentaProdDB::Entity::find()
-            .filter(VentaProdDB::Column::Venta.eq(venta.id))
-            .all(db)
-            .await?
-        {
-            let prod = ProdDB::Entity::find_by_id(model.producto)
-                .one(db)
-                .await?
-                .unwrap();
-            let codes = CodeDB::Entity::find()
-                .filter(CodeDB::Column::Producto.eq(prod.id))
-                .all(db)
-                .await?
-                .iter()
-                .map(|c| c.codigo)
-                .collect();
-            let prod = Producto::new(
-                prod.id,
-                codes,
-                prod.precio_de_venta,
-                prod.porcentaje,
-                prod.precio_de_costo,
-                prod.tipo_producto.as_str(),
-                prod.marca.as_str(),
-                prod.variedad.as_str(),
-                match prod.presentacion.as_str() {
-                    "CC" => Presentacion::CC(prod.cantidad as i16),
-                    "Gr" => Presentacion::Gr(prod.cantidad),
-                    "Kg" => Presentacion::Kg(prod.cantidad),
-                    "Lt" => Presentacion::Lt(prod.cantidad),
-                    "Ml" => Presentacion::Ml(prod.cantidad as i16),
-                    "Un" => Presentacion::Un(prod.cantidad as i16),
-                    _ => {
-                        return Err(AppError::IncorrectError(
-                            "Error de consistencia en DB".to_string(),
-                        ))
-                    }
-                },
-            );
-            prods.push(Valuable::Prod((model.cantidad, prod)));
-        }
-        for model in VentaRubDB::Entity::find()
-            .filter(VentaRubDB::Column::Venta.eq(venta.id))
-            .all(db)
-            .await?
-        {
-            let rub = RubDB::Entity::find_by_id(model.id).one(db).await?.unwrap();
-            let rub = Rubro::new(
-                rub.id,
-                rub.codigo,
-                rub.monto,
-                Arc::from(rub.descripcion.as_str()),
-            );
-            prods.push(Valuable::Rub((model.cantidad, rub)));
-        }
-        let cliente = match venta.cliente {
-            None => Cliente::Final,
-            Some(c) => {
-                let model = CliDB::Entity::find_by_id(c).one(db).await?.unwrap();
-                Cliente::Regular(Cli::new(
-                    model.id,
-                    Arc::from(model.nombre.as_str()),
-                    model.dni,
-                    model.activo,
-                    model.created,
-                    model.limite,
-                ))
-            }
-        };
+//             pagos.push(Pago::new(
+//                 MedioPago::new(&medio.medio, medio.id),
+//                 pago_mod.monto,
+//                 Some(pago_mod.pagado),
+//             ));
+//         }
+//         let mut prods = Vec::new();
+//         for model in VentaPesDB::Entity::find()
+//             .filter(VentaPesDB::Column::Venta.eq(venta.id))
+//             .all(db)
+//             .await?
+//         {
+//             let pes_mod = PesDB::Entity::find_by_id(model.pesable)
+//                 .one(db)
+//                 .await?
+//                 .unwrap();
+//             prods.push(Valuable::Pes((
+//                 model.cantidad,
+//                 Pesable::new(
+//                     pes_mod.id,
+//                     pes_mod.codigo,
+//                     pes_mod.precio_peso,
+//                     pes_mod.porcentaje,
+//                     pes_mod.costo_kilo,
+//                     &pes_mod.descripcion,
+//                 ),
+//             )))
+//         }
+//         for model in VentaProdDB::Entity::find()
+//             .filter(VentaProdDB::Column::Venta.eq(venta.id))
+//             .all(db)
+//             .await?
+//         {
+//             let prod = ProdDB::Entity::find_by_id(model.producto)
+//                 .one(db)
+//                 .await?
+//                 .unwrap();
+//             let codes = CodeDB::Entity::find()
+//                 .filter(CodeDB::Column::Producto.eq(prod.id))
+//                 .all(db)
+//                 .await?
+//                 .iter()
+//                 .map(|c| c.codigo)
+//                 .collect();
+//             let prod = Producto::new(
+//                 prod.id,
+//                 codes,
+//                 prod.precio_de_venta,
+//                 prod.porcentaje,
+//                 prod.precio_de_costo,
+//                 prod.tipo_producto.as_str(),
+//                 prod.marca.as_str(),
+//                 prod.variedad.as_str(),
+//                 match prod.presentacion.as_str() {
+//                     "CC" => Presentacion::CC(prod.cantidad as i16),
+//                     "Gr" => Presentacion::Gr(prod.cantidad),
+//                     "Kg" => Presentacion::Kg(prod.cantidad),
+//                     "Lt" => Presentacion::Lt(prod.cantidad),
+//                     "Ml" => Presentacion::Ml(prod.cantidad as i16),
+//                     "Un" => Presentacion::Un(prod.cantidad as i16),
+//                     _ => {
+//                         return Err(AppError::IncorrectError(
+//                             "Error de consistencia en DB".to_string(),
+//                         ))
+//                     }
+//                 },
+//             );
+//             prods.push(Valuable::Prod((model.cantidad, prod)));
+//         }
+//         for model in VentaRubDB::Entity::find()
+//             .filter(VentaRubDB::Column::Venta.eq(venta.id))
+//             .all(db)
+//             .await?
+//         {
+//             let rub = RubDB::Entity::find_by_id(model.id).one(db).await?.unwrap();
+//             let rub = Rubro::new(
+//                 rub.id,
+//                 rub.codigo,
+//                 rub.monto,
+//                 Arc::from(rub.descripcion.as_str()),
+//             );
+//             prods.push(Valuable::Rub((model.cantidad, rub)));
+//         }
+//         let cliente = match venta.cliente {
+//             None => Cliente::Final,
+//             Some(c) => {
+//                 let model = CliDB::Entity::find_by_id(c).one(db).await?.unwrap();
+//                 Cliente::Regular(Cli::new(
+//                     model.id,
+//                     Arc::from(model.nombre.as_str()),
+//                     model.dni,
+//                     model.activo,
+//                     model.created,
+//                     model.limite,
+//                 ))
+//             }
+//         };
 
-        let venta = Venta::build(
-            venta.id,
-            venta.monto_total,
-            prods,
-            pagos,
-            venta.monto_pagado,
-            user.clone(),
-            cliente,
-            venta.paga,
-            venta.cerrada,
-        );
-        Ok(venta)
-    }
-}
+//         let venta = Venta::build(
+//             venta.id,
+//             venta.monto_total,
+//             prods,
+//             pagos,
+//             venta.monto_pagado,
+//             user.clone(),
+//             cliente,
+//             venta.paga,
+//             venta.cerrada,
+//         );
+//         Ok(venta)
+//     }
+// }
 
 impl Db {
     pub async fn eliminar_usuario(user: User, db: Arc<DatabaseConnection>) -> Res<()> {

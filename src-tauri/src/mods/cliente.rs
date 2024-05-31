@@ -60,7 +60,7 @@ impl Cli {
                 Ok(Cli {
                     id: qres.last_insert_rowid(),
                     nombre: Arc::from(nombre),
-                    dni:dni as i32,
+                    dni: dni as i32,
                     limite: match limite {
                         Some(limit) => Cuenta::Auth(limit),
                         None => Cuenta::Unauth,
@@ -127,44 +127,93 @@ impl Cli {
         user: Option<Arc<User>>,
     ) -> Res<Vec<Venta>> {
         let mut ventas = Vec::new();
-        let qres:Vec<Model>=sqlx::query_as!(Model::Venta,"select * from ventas where cliente = ? and paga = ?",self.id,false).fetch_all(db).await?;
-        for model in qres{
-            match model{
-                Model::Venta { id:_, time:_, monto_total:_, monto_pagado:_, cliente:_, cerrada:_, paga:_, pos:_ }=>{
-                    ventas.push(Mapper::venta(db, model, &user).await?)
-                },
-                _=>return Err(AppError::IncorrectError(String::from("se esperaba venta")))
-            }    
+        let qres: Vec<Model> = sqlx::query_as!(
+            Model::Venta,
+            "select * from ventas where cliente = ? and paga = ?",
+            self.id,
+            false
+        )
+        .fetch_all(db)
+        .await?;
+        for model in qres {
+            match model {
+                Model::Venta {
+                    id: _,
+                    time: _,
+                    monto_total: _,
+                    monto_pagado: _,
+                    cliente: _,
+                    cerrada: _,
+                    paga: _,
+                    pos: _,
+                } => ventas.push(Mapper::venta(db, model, &user).await?),
+                _ => return Err(AppError::IncorrectError(String::from("se esperaba venta"))),
+            }
         }
         Ok(ventas)
     }
 
     pub async fn pagar_deuda_especifica(
-        id: i32,
-        db: &DatabaseConnection,
+        id_cliente: i64,
+        db: &Pool<Sqlite>,
         venta: Venta,
         user: &Option<Arc<User>>,
     ) -> Res<Venta> {
-        let model = match VentaDB::Entity::find_by_id(*venta.id()).one(db).await? {
+        let qres: Option<Model> = sqlx::query_as!(
+            Model::Venta,
+            "select * from ventas where id = ? and cliente = ?",
+            *venta.id(),
+            id_cliente
+        )
+        .fetch_optional(db)
+        .await?;
+        let model = match qres {
             Some(model) => model,
             None => return Err(AppError::IncorrectError(String::from("Id inexistente"))),
         };
-        match model.cliente {
-            Some(cli) => {
-                if cli == id {
-                    let mut model = model.clone().into_active_model();
-                    model.paga = Set(true);
-                    model.update(db).await?;
+        match model {
+            Model::Venta {
+                id,
+                time: _,
+                monto_total: _,
+                monto_pagado: _,
+                cliente,
+                cerrada: _,
+                paga: _,
+                pos: _,
+            } => {
+                let cli_id = cliente.unwrap();
+                if cli_id == id_cliente {
+                    let venta = Mapper::venta(db, model, user).await?;
+                    sqlx::query!("update ventas set paga = ? where id = ?", id, true)
+                        .execute(db)
+                        .await;
+                    Ok(venta)
                 } else {
-                    return Err(AppError::IncorrectError("Cliente Incorrecto".to_string()));
+                    Err(AppError::IncorrectError(String::from("Cliente Incorrecto")))
                 }
             }
-            None => return Err(AppError::IncorrectError(String::from("Cliente Incorrecto"))),
+            _ => Err(AppError::IncorrectError(String::from("se esperaba venta"))),
         }
-        let venta = Mapper::map_model_sale(&model, db, &user).await?;
-        Ok(venta)
     }
-    pub async fn pagar_deuda_general(id: i32, db: &DatabaseConnection, mut monto: f32) -> Res<f32> {
+    pub async fn pagar_deuda_general(id: i32, db: &Pool<Sqlite>, mut monto: f32) -> Res<f32> {
+        let qres:Vec<Model>=sqlx::query_as!(Model::Venta,"select * from ventas where cliente = ? and paga = ?",id,false).fetch_all(db).await?;
+        let resto = monto - qres.iter().map(|model|{
+            match model{
+                Model::Venta { id, time, monto_total, monto_pagado, cliente, cerrada, paga, pos }=>{
+                    monto_total - monto_pagado
+                },
+                _=>panic!("se esperaba venta"),
+            }
+        }).sum::<f64>() as f32;
+        for model in qres{
+            if monto <= 0.0{
+                break;
+            }
+        }
+
+// TODO!---------------------------------
+
         let models = VentaDB::Entity::find()
             .filter(
                 Condition::all()

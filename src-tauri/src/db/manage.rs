@@ -198,7 +198,7 @@ CREATE TABLE IF NOT EXISTS ventas (
     time DATETIME NOT NULL,
     monto_total REAL NOT NULL,
     monto_pagado REAL NOT NULL,
-    cliente INTEGER NOT NULL,
+    cliente INTEGER,
     cerrada BOOLEAN NOT NULL,
     paga BOOLEAN NOT NULL,
     pos BOOLEAN NOT NULL,
