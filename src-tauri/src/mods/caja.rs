@@ -177,7 +177,7 @@ impl Caja {
                 .await;
         match res? {
             Some(_) => {
-                sqlx::query("update (cierre, monto_cierre) from cajas where id = (?)")
+                sqlx::query("update cajas set cierre = ?, monto_cierre = ? where id = (?)")
                     .bind(self.cierre)
                     .bind(self.monto_cierre)
                     .bind(self.id)
@@ -204,7 +204,7 @@ impl Caja {
                 .insert(pago.medio_pago().desc(), pago.monto() + act);
         }
         self.ventas_totales += monto;
-        sqlx::query("update (ventas_totales) from cajas where id = ? values (?)")
+        sqlx::query("update cajas set ventas_totales = ? where id = ?")
             .bind(self.id)
             .bind(self.ventas_totales)
             .execute(db)

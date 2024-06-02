@@ -197,7 +197,11 @@ impl Cli {
             _ => Err(AppError::IncorrectError(String::from("se esperaba venta"))),
         }
     }
-    pub async fn pagar_deuda_general(id: i32, db: &Pool<Sqlite>, mut monto: f32) -> Res<f32> {
+    pub async fn pagar_deuda_general(
+        id: i32,
+        db: &Pool<Sqlite>,
+        mut monto_a_pagar: f32,
+    ) -> Res<f32> {
         let qres: Vec<Model> = sqlx::query_as!(
             Model::Venta,
             "select * from ventas where cliente = ? and paga = ?",
@@ -206,7 +210,7 @@ impl Cli {
         )
         .fetch_all(db)
         .await?;
-        let resto = monto
+        let resto = monto_a_pagar
             - qres
                 .iter()
                 .map(|model| match model {
@@ -223,83 +227,79 @@ impl Cli {
                     _ => panic!("se esperaba venta"),
                 })
                 .sum::<f64>() as f32;
+        let resto;
         for model in qres {
-            if monto <= 0.0 {
+            if monto_a_pagar <= 0.0 {
                 break;
             }
-            match model{
-                Model::Venta { id, time, monto_total, monto_pagado, cliente, cerrada, paga, pos }=>{
-                    monto=monto+monto_pagado as f32 - monto_total as f32;
-                    let id_venta=id;
-                    let qres:Vec<Model>=sqlx::query_as!(Model::Pago, "select * from pagos where venta = ? and medio_pago = ?",id_venta, 0).fetch_all(db).await?;
-                    for model in qres{
-                        match model{
-                            Model::Pago { id, medio_pago, monto, pagado, venta }=>{
-                                
-                            },
-                            _=>return Err(AppError::IncorrectError(String::from("Se esperaba Pago")))
+            match model {
+                Model::Venta {
+                    id,
+                    time,
+                    monto_total,
+                    monto_pagado,
+                    cliente,
+                    cerrada,
+                    paga,
+                    pos,
+                } => {
+                    let id_venta = id;
+                    let models: Vec<Model> = sqlx::query_as!(
+                        Model::Pago,
+                        "select * from pagos where venta = ? and medio_pago = ?",
+                        id_venta,
+                        0
+                    )
+                    .fetch_all(db)
+                    .await?;
+                    let mut completados: u8 = 0;
+                    for i in 0..models.len() {
+                        match models[i] {
+                            Model::Pago {
+                                id,
+                                medio_pago,
+                                monto,
+                                pagado,
+                                venta,
+                            } => {
+                                if monto_a_pagar <= 0.0 {
+                                    break;
+                                }
+                                if pagado < monto {
+                                    if monto_a_pagar >= (monto - pagado) as f32 {
+                                        monto_a_pagar -= (monto - pagado) as f32;
+                                        completados += 1;
+                                        sqlx::query("update pagos set pagado = ? where id =?")
+                                            .bind(monto)
+                                            .bind(id)
+                                            .execute(db)
+                                            .await?;
+                                    } else {
+                                        sqlx::query("update pagos set pagado = ? where id = ?")
+                                            .bind(pagado + monto_a_pagar)
+                                            .bind(id)
+                                            .execute(db)
+                                            .await?;
+                                        monto_a_pagar = 0.0;
+                                    }
+                                }
+                            }
+                            _ => {
+                                return Err(AppError::IncorrectError(String::from(
+                                    "Se esperaba Pago",
+                                )))
+                            }
                         }
                     }
-                },
-                _=>return Err(AppError::IncorrectError(String::from("Se esperaba venta"))),
-            }
-        }
-
-        // TODO!---------------------------------
-
-        let models = VentaDB::Entity::find()
-            .filter(
-                Condition::all()
-                    .add(VentaDB::Column::Cliente.eq(id))
-                    .add(VentaDB::Column::Paga.eq(false)),
-            )
-            .order_by_asc(VentaDB::Column::Time)
-            .all(db)
-            .await?;
-        println!("{:#?} encontrados {}", models, models.len());
-        let resto = monto
-            - models
-                .iter()
-                .map(|model| model.monto_total - model.monto_pagado)
-                .sum::<f32>();
-        for model in models {
-            if monto <= 0.0 {
-                break;
-            }
-            let mut model = model.into_active_model();
-            let mut pagos = PagoDB::Entity::find()
-                .filter(
-                    Condition::all()
-                        .add(PagoDB::Column::Venta.eq(model.id.clone().unwrap()))
-                        .add(PagoDB::Column::MedioPago.eq(0)),
-                )
-                .all(db)
-                .await?
-                .iter()
-                .cloned()
-                .map(|pago| pago.into_active_model())
-                .collect::<Vec<PagoDB::ActiveModel>>();
-            let mut completados: u8 = 0;
-            for i in 0..pagos.len() {
-                if monto <= 0.0 {
-                    break;
-                }
-                if pagos[i].pagado.as_ref() < pagos[i].monto.as_ref() {
-                    if monto >= pagos[i].monto.as_ref() - pagos[i].pagado.as_ref() {
-                        monto -= pagos[i].monto.as_ref() - pagos[i].pagado.as_ref();
-                        pagos[i].pagado = Set(*pagos[i].monto.as_ref());
-                        completados += 1;
-                        pagos[i].clone().update(db).await?;
-                    } else {
-                        pagos[i].pagado = Set(pagos[i].pagado.as_ref() + monto);
-                        monto = 0.0;
-                        pagos[i].clone().update(db).await?;
+                    if completados == models.len() {
+                        sqlx::query("update ventas set paga = ? where id = ?")
+                            .bind(true)
+                            .bind(id_venta)
+                            .execute(db)
+                            .await?;
                     }
                 }
-            }
-            if completados == pagos.len() as u8 {
-                model.paga = Set(true);
-                model.update(db).await?;
+                _ => return Err(AppError::IncorrectError(String::from("Se esperaba venta"))),
             }
         }
         Ok(resto)

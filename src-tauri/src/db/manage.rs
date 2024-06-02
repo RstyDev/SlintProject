@@ -1,7 +1,7 @@
 use chrono::Utc;
 use dotenvy::dotenv;
 
-use sqlx::{Executor, Pool, Sqlite};
+use sqlx::{query, Executor, Pool, Sqlite};
 use tauri::async_runtime::{self, block_on, spawn};
 
 pub async fn fresh(db: &Pool<Sqlite>) {

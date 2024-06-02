@@ -407,6 +407,14 @@ fn main() {
             Ok(a) => println!("{:#?}", a),
             Err(e) => println!("{:#?}", e),
         }
+        match sqlx::query("update medios_pago set medio = ?")
+            .bind("Credito")
+            .execute(&db)
+            .await
+        {
+            Ok(a) => println!("{:#?}", a),
+            Err(e) => println!("{:#?}", e),
+        }
     });
     // let menu = get_menu();
     let app = tauri::Builder::default()
