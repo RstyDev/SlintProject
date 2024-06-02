@@ -230,7 +230,8 @@ impl Cli {
             match model{
                 Model::Venta { id, time, monto_total, monto_pagado, cliente, cerrada, paga, pos }=>{
                     monto=monto+monto_pagado as f32 - monto_total as f32;
-                    let qres:Vec<Model>=sqlx::query_as!(Model::Pago, "select * from pagos where venta = ? and medio_pago = ?",id, 0).fetch_all(db).await?;
+                    let id_venta=id;
+                    let qres:Vec<Model>=sqlx::query_as!(Model::Pago, "select * from pagos where venta = ? and medio_pago = ?",id_venta, 0).fetch_all(db).await?;
                     for model in qres{
                         match model{
                             Model::Pago { id, medio_pago, monto, pagado, venta }=>{
