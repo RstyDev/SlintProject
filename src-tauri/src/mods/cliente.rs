@@ -107,8 +107,8 @@ impl Cli {
     }
     pub async fn get_deuda(&self, db: &Pool<Sqlite>) -> Res<f32> {
         let model: sqlx::Result<Vec<Model>> = sqlx::query_as!(
-            Model::Monto,
-            "select monto from deudas where id = ?",
+            Model::Float,
+            "select monto as float from deudas where id = ?",
             self.id
         )
         .fetch_all(db)
@@ -116,7 +116,7 @@ impl Cli {
         Ok(model?
             .iter()
             .map(|e| match e {
-                Model::Monto { monto } => monto,
+                Model::Float { float } => float,
                 _ => panic!("Se esperaba monto"),
             })
             .sum::<f64>() as f32)
@@ -227,7 +227,6 @@ impl Cli {
                     _ => panic!("se esperaba venta"),
                 })
                 .sum::<f64>() as f32;
-        let resto;
         for model in qres {
             if monto_a_pagar <= 0.0 {
                 break;
@@ -276,7 +275,7 @@ impl Cli {
                                             .await?;
                                     } else {
                                         sqlx::query("update pagos set pagado = ? where id = ?")
-                                            .bind(pagado + monto_a_pagar)
+                                            .bind(pagado + monto_a_pagar as f64)
                                             .bind(id)
                                             .execute(db)
                                             .await?;
@@ -291,7 +290,7 @@ impl Cli {
                             }
                         }
                     }
-                    if completados == models.len() {
+                    if completados == models.len() as u8 {
                         sqlx::query("update ventas set paga = ? where id = ?")
                             .bind(true)
                             .bind(id_venta)

@@ -40,7 +40,7 @@ impl Config {
                         mayus,
                         cantidad,
                     } => Ok(Config::build(
-                        politica,
+                        politica as f32,
                         formato.as_str(),
                         mayus.as_str(),
                         cantidad as u8,

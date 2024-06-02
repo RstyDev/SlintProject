@@ -172,7 +172,7 @@ impl Caja {
         self.monto_cierre = Some(monto);
         self.cierre = Some(Utc::now().naive_local());
         let res: sqlx::Result<Option<Model>> =
-            sqlx::query_as!(Model::Id, "select id from cajas where id = ?", self.id)
+            sqlx::query_as!(Model::Int, "select id as i64 from cajas where id = ?", self.id)
                 .fetch_optional(db)
                 .await;
         match res? {

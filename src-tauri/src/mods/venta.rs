@@ -351,7 +351,7 @@ impl<'a> Venta {
     }
     pub async fn guardar(&self, pos: bool, db: &Pool<Sqlite>) -> Res<()> {
         let qres: Option<Model> =
-            sqlx::query_as!(Model::Id, "select id from ventas where id = ?", self.id)
+            sqlx::query_as!(Model::Int, "select id as i64 from ventas where id = ?", self.id)
                 .fetch_optional(db)
                 .await?;
         match qres {

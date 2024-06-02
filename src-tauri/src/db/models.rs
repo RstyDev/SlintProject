@@ -105,8 +105,8 @@ impl Mapper {
                 updated_at,
             } => {
                 let models: sqlx::Result<Vec<Model>> = sqlx::query_as!(
-                    Model::Codigo,
-                    "select codigo from codigos where producto = ?",
+                    Model::Int,
+                    "select codigo as int from codigos where producto = ?",
                     id
                 )
                 .fetch_all(db)
@@ -114,7 +114,7 @@ impl Mapper {
                 let codigos = models?
                     .iter()
                     .map(|model| match model {
-                        Model::Codigo { codigo } => *codigo,
+                        Model::Int { int } => *i64,
                         _ => panic!("Se esperaba codigo"),
                     })
                     .collect::<Vec<i64>>();
@@ -211,8 +211,8 @@ impl Mapper {
                             cantidad,
                         } => {
                             let qres: Vec<Model> = sqlx::query_as!(
-                                Model::Codigo,
-                                "select codigo from codigos where producto = ?",
+                                Model::Int,
+                                "select codigo as i64 from codigos where producto = ?",
                                 id
                             )
                             .fetch_all(db)
@@ -220,7 +220,7 @@ impl Mapper {
                             let codes = qres
                                 .iter()
                                 .map(|c| match c {
-                                    Model::Codigo { codigo } => *codigo,
+                                    Model::Int { int } => *i64,
                                     _ => panic!("Se esperana codigo"),
                                 })
                                 .collect::<Vec<i64>>();
@@ -262,19 +262,19 @@ impl Mapper {
                             cantidad,
                         } => {
                             let qres: Option<Model> = sqlx::query_as!(
-                                Model::Codigo,
-                                "select codigo from codigos where pesable = ?",
+                                Model::Int,
+                                "select codigo as int from codigos where pesable = ?",
                                 id
                             )
                             .fetch_optional(db)
                             .await?;
                             match qres {
                                 Some(model) => match model {
-                                    Model::Codigo { codigo } => productos.push(Valuable::Pes((
+                                    Model::Int { int } => productos.push(Valuable::Pes((
                                         cantidad as f32,
                                         Pesable::build(
                                             id,
-                                            codigo,
+                                            i64,
                                             precio_peso as f32,
                                             porcentaje as f32,
                                             costo_kilo as f32,
@@ -314,19 +314,19 @@ impl Mapper {
                             precio,
                         } => {
                             let qres: Option<Model> = sqlx::query_as!(
-                                Model::Codigo,
-                                "select codigo from codigos where pesable = ?",
+                                Model::Int,
+                                "select codigo as int from codigos where pesable = ?",
                                 id
                             )
                             .fetch_optional(db)
                             .await?;
                             match qres {
                                 Some(model) => match model {
-                                    Model::Codigo { codigo } => productos.push(Valuable::Rub((
+                                    Model::Int { int } => productos.push(Valuable::Rub((
                                         cantidad as u8,
                                         Rubro::build(
                                             id,
-                                            codigo,
+                                            i64,
                                             Some(precio as f32),
                                             Arc::from(descripcion.as_str()),
                                         ),
@@ -446,14 +446,11 @@ impl Mapper {
     }
 }
 pub enum Model {
-    Id {
-        id: i64,
+    Int{
+        int: i64,
     },
-    Monto {
-        monto: f64,
-    },
-    Codigo {
-        codigo: i64,
+    Float{
+        float: f64,
     },
     Bool {
         val: bool,
