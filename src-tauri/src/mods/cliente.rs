@@ -161,9 +161,10 @@ impl Cli {
     ) -> Res<Venta> {
         let qres: Option<Model> = sqlx::query_as!(
             Model::Venta,
-            "select * from ventas where id = ? and cliente = ?",
+            "select * from ventas where id = ? and cliente = ? and paga = ?",
             *venta.id(),
-            id_cliente
+            id_cliente,
+            false
         )
         .fetch_optional(db)
         .await?;
@@ -197,22 +198,53 @@ impl Cli {
         }
     }
     pub async fn pagar_deuda_general(id: i32, db: &Pool<Sqlite>, mut monto: f32) -> Res<f32> {
-        let qres:Vec<Model>=sqlx::query_as!(Model::Venta,"select * from ventas where cliente = ? and paga = ?",id,false).fetch_all(db).await?;
-        let resto = monto - qres.iter().map(|model|{
+        let qres: Vec<Model> = sqlx::query_as!(
+            Model::Venta,
+            "select * from ventas where cliente = ? and paga = ?",
+            id,
+            false
+        )
+        .fetch_all(db)
+        .await?;
+        let resto = monto
+            - qres
+                .iter()
+                .map(|model| match model {
+                    Model::Venta {
+                        id,
+                        time,
+                        monto_total,
+                        monto_pagado,
+                        cliente,
+                        cerrada,
+                        paga,
+                        pos,
+                    } => monto_total - monto_pagado,
+                    _ => panic!("se esperaba venta"),
+                })
+                .sum::<f64>() as f32;
+        for model in qres {
+            if monto <= 0.0 {
+                break;
+            }
             match model{
                 Model::Venta { id, time, monto_total, monto_pagado, cliente, cerrada, paga, pos }=>{
-                    monto_total - monto_pagado
+                    monto=monto+monto_pagado as f32 - monto_total as f32;
+                    let qres:Vec<Model>=sqlx::query_as!(Model::Pago, "select * from pagos where venta = ? and medio_pago = ?",id, 0).fetch_all(db).await?;
+                    for model in qres{
+                        match model{
+                            Model::Pago { id, medio_pago, monto, pagado, venta }=>{
+                                
+                            },
+                            _=>return Err(AppError::IncorrectError(String::from("Se esperaba Pago")))
+                        }
+                    }
                 },
-                _=>panic!("se esperaba venta"),
-            }
-        }).sum::<f64>() as f32;
-        for model in qres{
-            if monto <= 0.0{
-                break;
+                _=>return Err(AppError::IncorrectError(String::from("Se esperaba venta"))),
             }
         }
 
-// TODO!---------------------------------
+        // TODO!---------------------------------
 
         let models = VentaDB::Entity::find()
             .filter(
