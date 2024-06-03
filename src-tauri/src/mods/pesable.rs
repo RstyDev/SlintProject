@@ -40,16 +40,24 @@ impl Pesable {
         costo_kilo: f32,
         descripcion: &str,
     ) -> Res<Pesable> {
-        let qres:Option<Model>=sqlx::query_as!(Model::Int,"select pesables.id as i64 from codigos inner join pesables on codigos.pesable = pesables.id where codigo = ?",codigo).fetch_optional(db).await?;
+        let qres:Option<Model>=sqlx::query_as!(Model::Int,"select pesables.id as int from codigos inner join pesables on codigos.pesable = pesables.id where codigo = ?",codigo).fetch_optional(db).await?;
         match qres{
             Some(model)=>return Err(AppError::ExistingError {
                 objeto: "Pesable".to_string(),
                 instancia: codigo.to_string(),
             }),
             None=>{
-                let qres=sqlx::query!("insert into pesables values (?, ?, ?, ?, ?, ?)",codigo,precio_peso,porcentaje,costo_kilo,descripcion,Utc::now().naive_local()).execute(db).await;
+                let qres=sqlx::query(
+                    "insert into pesables values (?, ?, ?, ?, ?, ?)")
+                .bind(codigo)
+                .bind(precio_peso)
+                .bind(porcentaje)
+                .bind(costo_kilo)
+                .bind(descripcion)
+                .bind(Utc::now().naive_local())
+                .execute(db).await?;
                 Ok(Pesable {
-                    id: res.last_insert_id,
+                    id: qres.last_insert_rowid(),
                     codigo,
                     precio_peso,
                     porcentaje,
@@ -78,9 +86,9 @@ impl Pesable {
         Arc::clone(&self.descripcion)
     }
     pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
-        let qres :Option<Model>=sqlx::query_as!(Model::Int, "select id as i64 from pesables where id = ?",self.id).fetch_optional(db).await?;
+        let qres :Option<Model>=sqlx::query_as!(Model::Int, "select id as int from pesables where id = ?",self.id).fetch_optional(db).await?;
         match qres{
-            Some(model)=>sqlx::query("delete from pesables where id = ?").bind(self.id).execute(db).await?,
+            Some(model)=>{sqlx::query("delete from pesables where id = ?").bind(self.id).execute(db).await?;},
             None=>return Err(AppError::NotFound {
                 objeto: String::from("Pesable"),
                 instancia: self.id.to_string(),
@@ -92,7 +100,29 @@ impl Pesable {
     pub fn desc(&self) -> String {
         self.descripcion.to_string()
     }
-    pub async fn editar(self, db: &DatabaseConnection) -> Res<()> {
+    pub async fn editar(self, db: &Pool<Sqlite>) -> Res<()> {
+        let qres:Option<Model>=sqlx::query_as!(Model::Int,"insert id as int from pesables where id = ?",self.id).fetch_optional(db).await?;
+        match qres{
+            Some(model)=>{
+                if self.precio_peso == self.costo_kilo * (1.0 + self.porcentaje / 100.0) {
+                    sqlx::query("update pesables set precio_peso = ?, costo_kilo = ?,
+                    descripcion =?,
+                    porcentaje=?,
+                    updated_at=? where id = ?
+                     ").bind(self.precio_peso)
+                     .bind()
+                    Ok(())
+                } else {
+                    Err(AppError::IncorrectError(String::from(
+                        "Cálculo de precio incorrecto",
+                    )));
+                }
+            },
+            None=>return Err(AppError::NotFound {
+                objeto: String::from("Pesable"),
+                instancia: self.id.to_string(),
+            })
+        }
         let mut model = match PesDB::Entity::find_by_id(self.id).one(db).await? {
             Some(model) => model.into_active_model(),
             None => {

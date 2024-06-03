@@ -114,7 +114,7 @@ impl Mapper {
                 let codigos = models?
                     .iter()
                     .map(|model| match model {
-                        Model::Int { int } => *i64,
+                        Model::Int { int } => *int,
                         _ => panic!("Se esperaba codigo"),
                     })
                     .collect::<Vec<i64>>();
@@ -212,7 +212,7 @@ impl Mapper {
                         } => {
                             let qres: Vec<Model> = sqlx::query_as!(
                                 Model::Int,
-                                "select codigo as i64 from codigos where producto = ?",
+                                "select codigo as int from codigos where producto = ?",
                                 id
                             )
                             .fetch_all(db)
@@ -220,7 +220,7 @@ impl Mapper {
                             let codes = qres
                                 .iter()
                                 .map(|c| match c {
-                                    Model::Int { int } => *i64,
+                                    Model::Int { int } => *int,
                                     _ => panic!("Se esperana codigo"),
                                 })
                                 .collect::<Vec<i64>>();
@@ -274,7 +274,7 @@ impl Mapper {
                                         cantidad as f32,
                                         Pesable::build(
                                             id,
-                                            i64,
+                                            int,
                                             precio_peso as f32,
                                             porcentaje as f32,
                                             costo_kilo as f32,
@@ -326,7 +326,7 @@ impl Mapper {
                                         cantidad as u8,
                                         Rubro::build(
                                             id,
-                                            i64,
+                                            int,
                                             Some(precio as f32),
                                             Arc::from(descripcion.as_str()),
                                         ),
