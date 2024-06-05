@@ -8,11 +8,14 @@ use tauri::async_runtime;
 use Valuable as V;
 const CUENTA: &str = "Cuenta Corriente";
 
-use crate::{db::{Mapper, Model}, mods::pago::medio_from_db};
+use crate::{
+    db::{Mapper, Model},
+    mods::pago::medio_from_db,
+};
 
 use super::{
-    redondeo, AppError, Cli, Cliente, Cuenta::Auth, Cuenta::Unauth, MedioPago, Pago, Res,
-    User, Valuable,
+    redondeo, AppError, Cli, Cliente, Cuenta::Auth, Cuenta::Unauth, MedioPago, Pago, Res, User,
+    Valuable,
 };
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -65,17 +68,17 @@ impl<'a> Venta {
         match qres {
             Some(model) => match model {
                 Model::Venta {
-                    id:_,
-                    time:_,
-                    monto_total:_,
-                    monto_pagado:_,
-                    cliente:_,
+                    id: _,
+                    time: _,
+                    monto_total: _,
+                    monto_pagado: _,
+                    cliente: _,
                     cerrada,
-                    paga:_,
-                    pos:_,
+                    paga: _,
+                    pos: _,
                 } => match cerrada {
                     true => Venta::new(vendedor, db, pos).await,
-                    false => Mapper::venta(db,model, &vendedor).await,
+                    false => Mapper::venta(db, model, &vendedor).await,
                 },
                 _ => Err(AppError::IncorrectError(String::from("Se esperaba Venta"))),
             },
@@ -350,10 +353,13 @@ impl<'a> Venta {
         }
     }
     pub async fn guardar(&self, pos: bool, db: &Pool<Sqlite>) -> Res<()> {
-        let qres: Option<Model> =
-            sqlx::query_as!(Model::Int, "select id as int from ventas where id = ?", self.id)
-                .fetch_optional(db)
-                .await?;
+        let qres: Option<Model> = sqlx::query_as!(
+            Model::Int,
+            "select id as int from ventas where id = ?",
+            self.id
+        )
+        .fetch_optional(db)
+        .await?;
         match qres {
             Some(_) => {
                 let paga;

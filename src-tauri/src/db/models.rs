@@ -446,10 +446,10 @@ impl Mapper {
     }
 }
 pub enum Model {
-    Int{
+    Int {
         int: i64,
     },
-    Float{
+    Float {
         float: f64,
     },
     Bool {

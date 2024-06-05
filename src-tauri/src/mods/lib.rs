@@ -1,7 +1,5 @@
 use chrono::Utc;
 
-
-
 use serde::{de::DeserializeOwned, Serialize};
 use sqlx::{Execute, Pool, Sqlite};
 use std::collections::hash_map::DefaultHasher;
@@ -250,54 +248,61 @@ pub fn redondeo(politica: &f32, numero: f32) -> f32 {
 
 impl Db {
     pub async fn eliminar_usuario(user: User, db: &Pool<Sqlite>) -> Res<()> {
-        let id=user.id();
-        let qres:Option<Model>=sqlx::query_as!(Model::Int,"select id as int from users where id = ?",id).fetch_optional(db).await?;
-        match qres{
-            Some(model) => match model{
-                Model::Int { int }=>{
-                    sqlx::query("delete from users where id = ?").bind(int).execute(db).await?;
+        let id = user.id();
+        let qres: Option<Model> =
+            sqlx::query_as!(Model::Int, "select id as int from users where id = ?", id)
+                .fetch_optional(db)
+                .await?;
+        match qres {
+            Some(model) => match model {
+                Model::Int { int } => {
+                    sqlx::query("delete from users where id = ?")
+                        .bind(int)
+                        .execute(db)
+                        .await?;
                     Ok(())
-                },
-                _=>Err(AppError::IncorrectError(String::from("se esperaba Int")))
+                }
+                _ => Err(AppError::IncorrectError(String::from("se esperaba Int"))),
             },
             None => Err(AppError::NotFound {
-                    objeto: String::from("Usuario"),
-                    instancia: user.id().to_string(),
-                }),
-        }        
+                objeto: String::from("Usuario"),
+                instancia: user.id().to_string(),
+            }),
+        }
     }
     pub async fn cargar_todos_los_productos(
         productos: &Vec<Producto>,
         db: &Pool<Sqlite>,
     ) -> Result<(), AppError> {
-        let mut codigos_query = String::from("insert into codigos (codigo, producto) values (?, ?)");
+        let mut codigos_query =
+            String::from("insert into codigos (codigo, producto) values (?, ?)");
         let mut productos_query = String::from("insert into productos (id, precio_venta, porcentaje, precio_costo, tipo, marca, variedad, presentacion, size, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        let codigos_row=", (?, ?)";
-        let productos_row= ", (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        for _ in 1..productos[0].codigos_de_barras().len(){
+        let codigos_row = ", (?, ?)";
+        let productos_row = ", (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        for _ in 1..productos[0].codigos_de_barras().len() {
             codigos_query.push_str(codigos_row);
         }
-        for i in 1..productos.len(){
+        for i in 1..productos.len() {
             productos_query.push_str(productos_row);
-            for _ in 0..productos[i].codigos_de_barras().len(){
+            for _ in 0..productos[i].codigos_de_barras().len() {
                 codigos_query.push_str(codigos_row);
             }
         }
-        let mut sqlx_productos=sqlx::query(productos_query.as_str());
-        let mut sqlx_codigos=sqlx::query(codigos_query.as_str());
-        for producto in productos{
-            sqlx_productos=sqlx_productos
-            .bind(*producto.id())
-            .bind(*producto.precio_de_venta())
-            .bind(*producto.porcentaje())
-            .bind(*producto.precio_de_costo())
-            .bind(producto.tipo_producto().to_string())
-            .bind(producto.marca().to_string())
-            .bind(producto.variedad().to_string())
-            .bind(producto.presentacion().get_string())
-            .bind(producto.presentacion().get_cantidad())
-            .bind(Utc::now().naive_local());
-            for codigo in producto.codigos_de_barras(){
+        let mut sqlx_productos = sqlx::query(productos_query.as_str());
+        let mut sqlx_codigos = sqlx::query(codigos_query.as_str());
+        for producto in productos {
+            sqlx_productos = sqlx_productos
+                .bind(*producto.id())
+                .bind(*producto.precio_de_venta())
+                .bind(*producto.porcentaje())
+                .bind(*producto.precio_de_costo())
+                .bind(producto.tipo_producto().to_string())
+                .bind(producto.marca().to_string())
+                .bind(producto.variedad().to_string())
+                .bind(producto.presentacion().get_string())
+                .bind(producto.presentacion().get_cantidad())
+                .bind(Utc::now().naive_local());
+            for codigo in producto.codigos_de_barras() {
                 sqlx_codigos = sqlx_codigos.bind(*codigo).bind(*producto.id());
             }
         }
@@ -372,67 +377,64 @@ impl Db {
     //     Ok(())
     // }
     pub async fn cargar_todos_los_pesables(
-        productos: &Vec<Valuable>,
-        db: &DatabaseConnection,
+        pesables: Vec<&Pesable>,
+        db: &Pool<Sqlite>,
     ) -> Result<(), AppError> {
-        for i in productos {
-            match i {
-                V::Pes(a) => {
-                    let model = PesDB::ActiveModel {
-                        codigo: Set(*a.1.codigo()),
-                        precio_peso: Set(*a.1.precio_peso()),
-                        porcentaje: Set(*a.1.porcentaje()),
-                        costo_kilo: Set(*a.1.costo_kilo()),
-                        descripcion: Set(a.1.descripcion().to_string()),
-                        updated_at: Set(Utc::now().naive_local()),
-                        id: Set(*a.1.id()),
-                    };
-                    if PesDB::Entity::find_by_id(*a.1.id())
-                        .one(db)
-                        .await?
-                        .is_some()
-                    {
-                        model.update(db).await?;
-                    } else {
-                        model.insert(db).await?;
-                    }
-                }
-                _ => (),
-            }
+        let mut pesables_inicio=String::from("insert into pesables (id, precio_peso, porcentaje, costo_kilo, descripcion, updated_at) values (?, ?, ?, ?, ?, ?)");
+        let mut codigos_inicio =
+            String::from("insert into codigos (codigo, pesable) values (?, ?)");
+        let pes_row = ", (?, ?, ?, ?, ?, ?)";
+        let codigos_row = ", (?, ?)";
+        for _ in 1..pesables.len() {
+            pesables_inicio.push_str(pes_row);
+            codigos_inicio.push_str(codigos_row);
         }
+        let mut pesables_query = sqlx::query(pesables_inicio.as_str());
+        let mut codigos_query = sqlx::query(codigos_inicio.as_str());
+        for pesable in pesables {
+            pesables_query = pesables_query
+                .bind(*pesable.id())
+                .bind(*pesable.precio_peso())
+                .bind(*pesable.porcentaje())
+                .bind(*pesable.costo_kilo())
+                .bind(pesable.desc())
+                .bind(Utc::now().naive_local());
+            codigos_query = codigos_query.bind(*pesable.codigo()).bind(pesable.id());
+        }
+        pesables_query.execute(db).await?;
+        codigos_query.execute(db).await?;
         Ok(())
     }
     pub async fn cargar_todos_los_rubros(
-        productos: &Vec<Valuable>,
-        db: &DatabaseConnection,
+        rubros: Vec<&Rubro>,
+        db: &Pool<Sqlite>,
     ) -> Result<(), AppError> {
-        for i in productos {
-            match i {
-                V::Rub(a) => {
-                    let model = RubDB::ActiveModel {
-                        id: Set(*a.1.id()),
-                        monto: Set(a.1.monto().copied()),
-                        descripcion: Set(a.1.descripcion().to_string()),
-                        updated_at: Set(Utc::now().naive_local()),
-                        codigo: Set(*a.1.codigo()),
-                    };
-                    if RubDB::Entity::find_by_id(*a.1.id())
-                        .one(db)
-                        .await?
-                        .is_some()
-                    {
-                        model.update(db).await?;
-                    } else {
-                        model.insert(db).await?;
-                    }
-                }
-                _ => (),
-            }
+        let mut rubros_inicio =
+            String::from("insert into rubros (id, descripcion, updated_at) values (?, ?, ?)");
+        let mut codigos_inicio = String::from("insert into codigos (codigo, rubro) values (?, ?)");
+        let rub_row = ", (?, ?, ?)";
+        let codigos_row = ", (?, ?)";
+        for _ in 1..rubros.len() {
+            rubros_inicio.push_str(rub_row);
+            codigos_inicio.push_str(codigos_row);
         }
+        let mut rubros_query = sqlx::query(rubros_inicio.as_str());
+        let mut codigos_query = sqlx::query(codigos_inicio.as_str());
+        for rubro in rubros {
+            rubros_query = rubros_query
+                .bind(*rubro.id())
+                .bind(rubro.descripcion().to_string())
+                .bind(Utc::now().naive_local());
+            codigos_query = codigos_query.bind(*rubro.codigo()).bind(rubro.id());
+        }
+        rubros_query.execute(db).await?;
+        codigos_query.execute(db).await?;
         Ok(())
     }
-    pub async fn cargar_todos_los_valuables(productos: Vec<Valuable>) -> Result<(), AppError> {
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
+    pub async fn cargar_todos_los_valuables(
+        productos: Vec<Valuable>,
+        db: &Pool<Sqlite>,
+    ) -> Result<(), AppError> {
         Db::cargar_todos_los_productos(
             &productos
                 .iter()
@@ -444,8 +446,23 @@ impl Db {
             &db,
         )
         .await?;
-        Db::cargar_todos_los_pesables(&productos, &db).await?;
-        Db::cargar_todos_los_rubros(&productos, &db).await?;
+        Db::cargar_todos_los_pesables(
+            productos
+                .iter()
+                .filter_map(|val| match val {
+                    V::Pes((_, pes)) => Some(pes),
+                    _ => None,
+                })
+                .collect::<Vec<&Pesable>>(),
+            &db,
+        )
+        .await?;
+        Db::cargar_todos_los_rubros(productos.iter().filter_map(|val|{
+            match val{
+                V::Rub((_,rub))=>Some(rub),
+                _=>None,
+            }
+        }).collect::<Vec<&Rubro>>(), &db).await?;
         Ok(())
     }
     pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>) -> Result<(), DbErr> {

@@ -171,10 +171,13 @@ impl Caja {
     pub async fn set_n_save(&mut self, db: &Pool<Sqlite>, monto: f32) -> Res<()> {
         self.monto_cierre = Some(monto);
         self.cierre = Some(Utc::now().naive_local());
-        let res: sqlx::Result<Option<Model>> =
-            sqlx::query_as!(Model::Int, "select id as int from cajas where id = ?", self.id)
-                .fetch_optional(db)
-                .await;
+        let res: sqlx::Result<Option<Model>> = sqlx::query_as!(
+            Model::Int,
+            "select id as int from cajas where id = ?",
+            self.id
+        )
+        .fetch_optional(db)
+        .await;
         match res? {
             Some(_) => {
                 sqlx::query("update cajas set cierre = ?, monto_cierre = ? where id = (?)")
