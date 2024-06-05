@@ -1,14 +1,9 @@
 use chrono::Utc;
-use entity::prelude::{
-    CliDB, CodeDB, MedioDB, PagoDB, PesDB, ProdDB, ProdProvDB, ProvDB, RubDB, UserDB, VentaDB,
-    VentaPesDB, VentaProdDB, VentaRubDB,
-};
 
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, Database, DatabaseConnection, DbErr, EntityTrait,
-    IntoActiveModel, QueryFilter, Set,
-};
+
+
 use serde::{de::DeserializeOwned, Serialize};
+use sqlx::{Pool, Sqlite};
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
@@ -20,6 +15,7 @@ use super::{
     AppError, Cli, Cliente, MedioPago, Pago, Pesable, Presentacion, Producto, Proveedor,
     RelacionProdProv, Res, Rubro, User, Venta,
 };
+use crate::db::Model;
 use crate::mods::valuable::Valuable;
 pub struct Db;
 pub struct Mapper;
@@ -253,23 +249,22 @@ pub fn redondeo(politica: &f32, numero: f32) -> f32 {
 // }
 
 impl Db {
-    pub async fn eliminar_usuario(user: User, db: Arc<DatabaseConnection>) -> Res<()> {
-        let model = UserDB::Entity::find()
-            .filter(UserDB::Column::UserId.eq(user.id()))
-            .one(db.as_ref())
-            .await?;
-        match model {
-            Some(a) => {
-                a.into_active_model().delete(db.as_ref()).await?;
-            }
-            None => {
-                return Err(AppError::NotFound {
+    pub async fn eliminar_usuario(user: User, db: &Pool<Sqlite>) -> Res<()> {
+        let id=user.id();
+        let qres:Option<Model>=sqlx::query_as!(Model::Int,"select id as int from users where id = ?",id).fetch_optional(db).await?;
+        match qres{
+            Some(model) => match model{
+                Model::Int { int }=>{
+                    sqlx::query("delete from users where id = ?").bind(int).execute(db).await?;
+                    Ok(())
+                },
+                _=>Err(AppError::IncorrectError(String::from("se esperaba Int")))
+            },
+            None => Err(AppError::NotFound {
                     objeto: String::from("Usuario"),
                     instancia: user.id().to_string(),
-                })
-            }
-        }
-        Ok(())
+                }),
+        }        
     }
     pub async fn cargar_todos_los_productos(
         productos: &Vec<Producto>,

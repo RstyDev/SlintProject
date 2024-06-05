@@ -101,16 +101,20 @@ impl Pesable {
         self.descripcion.to_string()
     }
     pub async fn editar(self, db: &Pool<Sqlite>) -> Res<()> {
-        let qres:Option<Model>=sqlx::query_as!(Model::Int,"insert id as int from pesables where id = ?",self.id).fetch_optional(db).await?;
+        let qres:Option<Model>=sqlx::query_as!(Model::Int,"select id as int from pesables where id = ?",self.id).fetch_optional(db).await?;
         match qres{
             Some(model)=>{
                 if self.precio_peso == self.costo_kilo * (1.0 + self.porcentaje / 100.0) {
                     sqlx::query("update pesables set precio_peso = ?, costo_kilo = ?,
                     descripcion =?,
                     porcentaje=?,
-                    updated_at=? where id = ?
-                     ").bind(self.precio_peso)
-                     .bind()
+                    updated_at=? where id = ?")
+                    .bind(self.precio_peso)
+                    .bind(self.costo_kilo)
+                    .bind(self.descripcion.as_ref())
+                    .bind(self.porcentaje)
+                    .bind(Utc::now().naive_local())
+                    .execute(db).await?;
                     Ok(())
                 } else {
                     Err(AppError::IncorrectError(String::from(
@@ -123,28 +127,5 @@ impl Pesable {
                 instancia: self.id.to_string(),
             })
         }
-        let mut model = match PesDB::Entity::find_by_id(self.id).one(db).await? {
-            Some(model) => model.into_active_model(),
-            None => {
-                return Err(AppError::NotFound {
-                    objeto: String::from("Pesable"),
-                    instancia: self.id.to_string(),
-                })
-            }
-        };
-        if self.precio_peso == self.costo_kilo * (1.0 + self.porcentaje / 100.0) {
-            model.precio_peso = Set(self.precio_peso);
-        } else {
-            return Err(AppError::IncorrectError(String::from(
-                "Cálculo de precio incorrecto",
-            )));
-        }
-        model.codigo = Set(self.codigo);
-        model.costo_kilo = Set(self.costo_kilo);
-        model.descripcion = Set(self.descripcion.to_string());
-        model.porcentaje = Set(self.porcentaje);
-        model.updated_at = Set(Utc::now().naive_local());
-        model.update(db).await?;
-        Ok(())
     }
 }
