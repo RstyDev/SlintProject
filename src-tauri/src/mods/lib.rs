@@ -3,7 +3,7 @@ use chrono::Utc;
 
 
 use serde::{de::DeserializeOwned, Serialize};
-use sqlx::{Pool, Sqlite};
+use sqlx::{Execute, Pool, Sqlite};
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
@@ -268,56 +268,41 @@ impl Db {
     }
     pub async fn cargar_todos_los_productos(
         productos: &Vec<Producto>,
-        db: &DatabaseConnection,
-    ) -> Result<(), DbErr> {
-        let mut prods = Vec::new();
-        let mut codes = Vec::new();
-        for producto in productos {
-            prods.push(ProdDB::ActiveModel {
-                id: Set(*producto.id()),
-                precio_de_venta: Set(*producto.precio_de_venta()),
-                porcentaje: Set(*producto.porcentaje()),
-                precio_de_costo: Set(*producto.precio_de_costo()),
-                tipo_producto: Set(producto.tipo_producto().to_string()),
-                marca: Set(producto.marca().to_string()),
-                variedad: Set(producto.variedad().to_string()),
-                presentacion: Set(producto.presentacion().get_string()),
-                cantidad: Set(producto.presentacion().get_cantidad()),
-                updated_at: Set(Utc::now().naive_local()),
-            });
-            let mut code_mod = producto
-                .codigos_de_barras()
-                .iter()
-                .map(|code| CodeDB::ActiveModel {
-                    codigo: Set(*code),
-                    producto: Set(*producto.id()),
-                    ..Default::default()
-                })
-                .collect::<Vec<CodeDB::ActiveModel>>();
-            codes.append(&mut code_mod);
-
-            if prods.len() == 165 {
-                if let Err(e) = ProdDB::Entity::insert_many(prods.clone()).exec(db).await {
-                    println!("{:#?}", e);
-                }
-                prods.clear();
-                if let Err(e) = CodeDB::Entity::insert_many(codes.clone()).exec(db).await {
-                    println!("{:#?}", e);
-                }
-                codes.clear();
+        db: &Pool<Sqlite>,
+    ) -> Result<(), AppError> {
+        let mut codigos_query = String::from("insert into codigos (codigo, producto) values (?, ?)");
+        let mut productos_query = String::from("insert into productos (id, precio_venta, porcentaje, precio_costo, tipo, marca, variedad, presentacion, size, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        let codigos_row=", (?, ?)";
+        let productos_row= ", (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        for _ in 1..productos[0].codigos_de_barras().len(){
+            codigos_query.push_str(codigos_row);
+        }
+        for i in 1..productos.len(){
+            productos_query.push_str(productos_row);
+            for _ in 0..productos[i].codigos_de_barras().len(){
+                codigos_query.push_str(codigos_row);
             }
         }
-        if prods.len() > 0 {
-            if let Err(e) = ProdDB::Entity::insert_many(prods.clone()).exec(db).await {
-                println!("{:#?}", e);
+        let mut sqlx_productos=sqlx::query(productos_query.as_str());
+        let mut sqlx_codigos=sqlx::query(codigos_query.as_str());
+        for producto in productos{
+            sqlx_productos=sqlx_productos
+            .bind(*producto.id())
+            .bind(*producto.precio_de_venta())
+            .bind(*producto.porcentaje())
+            .bind(*producto.precio_de_costo())
+            .bind(producto.tipo_producto().to_string())
+            .bind(producto.marca().to_string())
+            .bind(producto.variedad().to_string())
+            .bind(producto.presentacion().get_string())
+            .bind(producto.presentacion().get_cantidad())
+            .bind(Utc::now().naive_local());
+            for codigo in producto.codigos_de_barras(){
+                sqlx_codigos = sqlx_codigos.bind(*codigo).bind(*producto.id());
             }
         }
-        if codes.len() > 0 {
-            if let Err(e) = CodeDB::Entity::insert_many(codes.clone()).exec(db).await {
-                println!("{:#?}", e);
-            }
-        }
-
+        sqlx_productos.execute(db).await?;
+        sqlx_codigos.execute(db).await?;
         Ok(())
     }
     // pub async fn cargar_actualizar_todos_los_productos(
@@ -389,7 +374,7 @@ impl Db {
     pub async fn cargar_todos_los_pesables(
         productos: &Vec<Valuable>,
         db: &DatabaseConnection,
-    ) -> Result<(), DbErr> {
+    ) -> Result<(), AppError> {
         for i in productos {
             match i {
                 V::Pes(a) => {
@@ -420,7 +405,7 @@ impl Db {
     pub async fn cargar_todos_los_rubros(
         productos: &Vec<Valuable>,
         db: &DatabaseConnection,
-    ) -> Result<(), DbErr> {
+    ) -> Result<(), AppError> {
         for i in productos {
             match i {
                 V::Rub(a) => {
@@ -446,7 +431,7 @@ impl Db {
         }
         Ok(())
     }
-    pub async fn cargar_todos_los_valuables(productos: Vec<Valuable>) -> Result<(), DbErr> {
+    pub async fn cargar_todos_los_valuables(productos: Vec<Valuable>) -> Result<(), AppError> {
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
         Db::cargar_todos_los_productos(
             &productos
@@ -487,7 +472,7 @@ impl Db {
 
     pub async fn cargar_todas_las_relaciones_prod_prov(
         relaciones: Vec<RelacionProdProv>,
-    ) -> Result<(), DbErr> {
+    ) -> Result<(), AppError> {
         let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
         for x in relaciones {
             if let Some(rel) = ProdProvDB::Entity::find()

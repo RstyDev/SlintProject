@@ -1,17 +1,17 @@
 use chrono::{NaiveDateTime, Utc};
 
 use serde::{Deserialize, Serialize};
-use sqlx::{query, Executor, Pool, Sqlite};
+use sqlx::{query, Pool, Sqlite};
 use std::sync::Arc;
 use tauri::async_runtime;
 
 use Valuable as V;
 const CUENTA: &str = "Cuenta Corriente";
 
-use crate::{db::Model, mods::pago::medio_from_db};
+use crate::{db::{Mapper, Model}, mods::pago::medio_from_db};
 
 use super::{
-    redondeo, AppError, Cli, Cliente, Cuenta::Auth, Cuenta::Unauth, Mapper, MedioPago, Pago, Res,
+    redondeo, AppError, Cli, Cliente, Cuenta::Auth, Cuenta::Unauth, MedioPago, Pago, Res,
     User, Valuable,
 };
 
@@ -65,17 +65,17 @@ impl<'a> Venta {
         match qres {
             Some(model) => match model {
                 Model::Venta {
-                    id,
-                    time,
-                    monto_total,
-                    monto_pagado,
-                    cliente,
+                    id:_,
+                    time:_,
+                    monto_total:_,
+                    monto_pagado:_,
+                    cliente:_,
                     cerrada,
-                    paga,
-                    pos,
+                    paga:_,
+                    pos:_,
                 } => match cerrada {
                     true => Venta::new(vendedor, db, pos).await,
-                    false => Mapper::map_model_sale(&model, db, &vendedor).await,
+                    false => Mapper::venta(db,model, &vendedor).await,
                 },
                 _ => Err(AppError::IncorrectError(String::from("Se esperaba Venta"))),
             },
@@ -351,7 +351,7 @@ impl<'a> Venta {
     }
     pub async fn guardar(&self, pos: bool, db: &Pool<Sqlite>) -> Res<()> {
         let qres: Option<Model> =
-            sqlx::query_as!(Model::Int, "select id as i64 from ventas where id = ?", self.id)
+            sqlx::query_as!(Model::Int, "select id as int from ventas where id = ?", self.id)
                 .fetch_optional(db)
                 .await?;
         match qres {
