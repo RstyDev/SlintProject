@@ -465,25 +465,17 @@ impl Db {
         }).collect::<Vec<&Rubro>>(), &db).await?;
         Ok(())
     }
-    pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>) -> Result<(), DbErr> {
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        for prov in proveedores {
-            let model = ProvDB::ActiveModel {
-                id: Set(*prov.id()),
-                updated_at: Set(Utc::now().naive_local()),
-                nombre: Set(prov.nombre().to_string()),
-                contacto: Set(prov.contacto().clone()),
-            };
-            if ProvDB::Entity::find_by_id(model.clone().id.unwrap())
-                .one(&db)
-                .await?
-                .is_some()
-            {
-                model.update(&db).await?;
-            } else {
-                model.insert(&db).await?;
-            }
+    pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>,db:&Pool<Sqlite>) -> Result<(), AppError> {
+        let mut query=String::from("insert into proveedores values (?, ?, ?, ?)");//id, nombre, contacto, updated
+        let row=", (?, ?, ?, ?)";
+        for _ in 0..proveedores.len(){
+            query.push_str(row);
         }
+        let mut sql=sqlx::query(query.as_str());
+        for prov in proveedores {
+            sql=sql.bind(*prov.id()).bind(prov.nombre().to_string()).bind(*prov.contacto()).bind(Utc::now().naive_local());
+        }
+        sql.execute(db).await?;
         Ok(())
     }
 

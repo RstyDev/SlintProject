@@ -84,9 +84,7 @@ CREATE TABLE IF NOT EXISTS proveedores (
     id integer PRIMARY KEY AUTOINCREMENT not null,
     nombre TEXT not null,
     contacto bigint,
-    updated datetime,
-    config integer,
-    foreign key (config) references config(id)
+    updated datetime
 );
 CREATE TABLE IF NOT EXISTS codigos (
     id integer PRIMARY KEY AUTOINCREMENT not null,
