@@ -1,8 +1,9 @@
-use std::sync::Arc;
-
 use super::{redondeo, AppError, Presentacion, Res, ValuableTrait};
+use crate::db::Model;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use sqlx::{Pool, Sqlite};
+use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
@@ -94,18 +95,30 @@ impl Producto {
     //         i+=1;
     //     }
     // }
-    pub async fn eliminar(self, db: &DatabaseConnection) -> Res<()> {
-        let model = match ProdDB::Entity::find_by_id(self.id).one(db).await? {
-            Some(model) => model.into_active_model(),
-            None => {
-                return Err(AppError::NotFound {
-                    objeto: String::from("Producto"),
-                    instancia: self.id.to_string(),
-                })
-            }
-        };
-        model.delete(db).await?;
-        Ok(())
+    pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
+        let qres: Option<Model> = sqlx::query_as!(
+            Model::Int,
+            "select id as int from productos where id = ?",
+            self.id
+        )
+        .fetch_optional(db)
+        .await?;
+        match qres {
+            Some(model) => match model {
+                Model::Int { int } => {
+                    sqlx::query("delete from productos where id = ?")
+                        .bind(int)
+                        .execute(db)
+                        .await?;
+                    Ok(())
+                }
+                _ => Err(AppError::IncorrectError(String::from("Se esperaba int"))),
+            },
+            None => Err(AppError::NotFound {
+                objeto: String::from("Producto"),
+                instancia: self.id.to_string(),
+            }),
+        }
     }
     #[cfg(test)]
     pub fn desc(&self) -> String {
@@ -118,33 +131,36 @@ impl Producto {
             self.presentacion.get_string()
         )
     }
-    pub async fn editar(self, db: &DatabaseConnection) -> Res<()> {
-        let mut model = match ProdDB::Entity::find_by_id(self.id).one(db).await? {
-            Some(model) => model.into_active_model(),
-            None => {
-                return Err(AppError::NotFound {
-                    objeto: String::from("Producto"),
-                    instancia: self.id.to_string(),
-                })
-            }
-        };
-        if self.precio_de_venta == self.precio_de_costo * (1.0 + self.porcentaje / 100.0) {
-            model.precio_de_venta = Set(self.precio_de_venta);
-        } else {
-            return Err(AppError::IncorrectError(String::from(
-                "Cálculo de precio incorrecto",
-            )));
+    pub async fn editar(self, db: &Pool<Sqlite>) -> Res<()> {
+        let qres: Option<Model> = sqlx::query_as!(
+            Model::Int,
+            "select id as int from productos where id = ?",
+            self.id
+        )
+        .fetch_optional(db)
+        .await?;
+        match qres {
+            Some(model) => match model {
+                Model::Int { int } => {
+                    if self.precio_de_venta
+                        != self.precio_de_costo * (1.0 + self.porcentaje / 100.0)
+                    {
+                        return Err(AppError::IncorrectError(String::from(
+                            "Cálculo de precio incorrecto",
+                        )));
+                    }
+                    sqlx::query(
+                "update productos set precio_venta = ?, porcentaje = ?, precio_costo = ?, tipo = ?, marca = ?, variedad = ?, presentacion = ?, size = ?, updated_at = ? where id = ?")
+                .bind(self.precio_de_venta).bind(self.porcentaje).bind(self.precio_de_costo).bind(self.tipo_producto.as_ref()).bind(self.marca.as_ref()).bind(self.variedad.as_ref()).bind(self.presentacion.get_string()).bind(self.presentacion.get_cantidad()).bind(Utc::now().naive_local()).bind(int).execute(db).await?;
+                    Ok(())
+                }
+                _ => Err(AppError::IncorrectError(String::from("Se esperaba int"))),
+            },
+            None => Err(AppError::NotFound {
+                objeto: String::from("Producto"),
+                instancia: self.id.to_string(),
+            }),
         }
-        model.cantidad = Set(self.presentacion.get_cantidad());
-        model.marca = Set(self.marca.to_string());
-        model.porcentaje = Set(self.porcentaje);
-        model.precio_de_costo = Set(self.precio_de_costo);
-        model.presentacion = Set(self.presentacion.get_string());
-        model.tipo_producto = Set(self.tipo_producto.to_string());
-        model.variedad = Set(self.variedad.to_string());
-        model.updated_at = Set(Utc::now().naive_local());
-        model.update(db).await?;
-        Ok(())
     }
 }
 

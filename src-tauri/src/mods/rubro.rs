@@ -1,14 +1,9 @@
-use chrono::Utc;
-use entity::prelude::RubDB;
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel, QueryFilter,
-    Set,
-};
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-
 use super::{redondeo, valuable::ValuableTrait, AppError, Res};
-
+use crate::db::Model;
+use chrono::Utc;
+use serde::{Deserialize, Serialize};
+use sqlx::{Pool, Sqlite};
+use std::sync::Arc;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
     id: i64,
@@ -30,38 +25,52 @@ impl Rubro {
         codigo: i64,
         monto: Option<f32>,
         descripcion: &str,
-        db: &DatabaseConnection,
+        db: &Pool<Sqlite>,
     ) -> Res<Rubro> {
-        match RubDB::Entity::find()
-            .filter(RubDB::Column::Codigo.eq(codigo))
-            .one(db)
-            .await?
-        {
-            Some(_) => {
-                return Err(AppError::ExistingError {
-                    objeto: String::from("Rubro"),
-                    instancia: codigo.to_string(),
-                })
-            }
+        let qres: Option<Model> = sqlx::query_as!(
+            Model::Code,
+            "select * from codigos where codigo = ?",
+            codigo
+        )
+        .fetch_optional(db)
+        .await?;
+        match qres {
+            Some(model) => match model {
+                Model::Code {
+                    id: _,
+                    codigo: _,
+                    producto: _,
+                    pesable: _,
+                    rubro,
+                } => match rubro {
+                    Some(_) => Err(AppError::IncorrectError(String::from("rubro existente"))),
+                    None => Err(AppError::IncorrectError(String::from(
+                        "existe el codigo pero no corresponde a un rubro",
+                    ))),
+                },
+                _ => Err(AppError::IncorrectError(String::from("se esperaba codigo"))),
+            },
             None => {
-                let model = RubDB::ActiveModel {
-                    codigo: Set(codigo),
-                    monto: Set(monto),
-                    descripcion: Set(descripcion.to_string()),
-                    updated_at: Set(Utc::now().naive_local()),
-                    ..Default::default()
-                };
-                let res = RubDB::Entity::insert(model).exec(db).await?;
-                Ok(Rubro {
-                    id: res.last_insert_id,
+                let qres = sqlx::query("insert into rubros values (?, ?)")
+                    .bind(descripcion)
+                    .bind(Utc::now().naive_local())
+                    .execute(db)
+                    .await?;
+                sqlx::query("insert into codigos (codigo, rubro) values (?, ?)")
+                    .bind(codigo)
+                    .bind(qres.last_insert_rowid())
+                    .execute(db)
+                    .await?;
+                Ok(Rubro::build(
+                    qres.last_insert_rowid(),
                     codigo,
                     monto,
-                    descripcion: Arc::from(descripcion),
-                })
+                    Arc::from(descripcion),
+                ))
             }
         }
     }
-    pub fn id(&self) -> &i32 {
+    pub fn id(&self) -> &i64 {
         &self.id
     }
     pub fn monto(&self) -> Option<&f32> {
@@ -77,34 +86,52 @@ impl Rubro {
     pub fn desc(&self) -> String {
         self.descripcion.to_string()
     }
-    pub async fn eliminar(self, db: &DatabaseConnection) -> Res<()> {
-        let model = match RubDB::Entity::find_by_id(self.id).one(db).await? {
-            Some(model) => model.into_active_model(),
-            None => {
-                return Err(AppError::NotFound {
-                    objeto: String::from("Rubro"),
-                    instancia: self.id.to_string(),
-                })
+    pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
+        let qres: Option<Model> = sqlx::query_as!(
+            Model::Int,
+            "select id as int from rubros where id = ?",
+            self.id
+        )
+        .fetch_optional(db)
+        .await?;
+        match qres {
+            Some(_) => {
+                sqlx::query("delete from rubros where id = ?")
+                    .bind(self.id)
+                    .execute(db)
+                    .await?;
+                Ok(())
             }
-        };
-        model.delete(db).await?;
-        Ok(())
+            None => Err(AppError::NotFound {
+                objeto: String::from("Rubro"),
+                instancia: self.id.to_string(),
+            }),
+        }
     }
-    pub async fn editar(self, db: &DatabaseConnection) -> Res<()> {
-        let mut model = match RubDB::Entity::find_by_id(self.id).one(db).await? {
-            Some(model) => model.into_active_model(),
-            None => {
-                return Err(AppError::NotFound {
-                    objeto: String::from("Rubro"),
-                    instancia: self.id.to_string(),
-                })
+    pub async fn editar(self, db: &Pool<Sqlite>) -> Res<()> {
+        let qres: Option<Model> = sqlx::query_as!(
+            Model::Int,
+            "select id as int from rubros where id = ?",
+            self.id
+        )
+        .fetch_optional(db)
+        .await?;
+    match qres {
+            Some(_) => {
+                sqlx::query("update codigos set codigo = ? where rubro = ?").bind(self.codigo).bind(self.id).execute(db).await?;
+                sqlx::query("update rubros set descripcion = ?, updated_at = ? where id = ?")
+                    .bind(self.descripcion.as_ref())
+                    .bind(Utc::now().naive_local())
+                    .bind(self.id)
+                    .execute(db)
+                    .await?;
+                Ok(())
             }
-        };
-        model.codigo = Set(self.codigo);
-        model.descripcion = Set(self.descripcion.to_string());
-        model.updated_at = Set(Utc::now().naive_local());
-        model.update(db).await?;
-        Ok(())
+            None => Err(AppError::NotFound {
+                objeto: String::from("Rubro"),
+                instancia: self.id.to_string(),
+            }),
+        }
     }
 }
 impl ValuableTrait for Rubro {

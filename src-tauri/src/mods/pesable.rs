@@ -143,7 +143,7 @@ impl Pesable {
                 } else {
                     Err(AppError::IncorrectError(String::from(
                         "Cálculo de precio incorrecto",
-                    )));
+                    )))
                 }
             }
             None => {

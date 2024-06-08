@@ -457,23 +457,35 @@ impl Db {
             &db,
         )
         .await?;
-        Db::cargar_todos_los_rubros(productos.iter().filter_map(|val|{
-            match val{
-                V::Rub((_,rub))=>Some(rub),
-                _=>None,
-            }
-        }).collect::<Vec<&Rubro>>(), &db).await?;
+        Db::cargar_todos_los_rubros(
+            productos
+                .iter()
+                .filter_map(|val| match val {
+                    V::Rub((_, rub)) => Some(rub),
+                    _ => None,
+                })
+                .collect::<Vec<&Rubro>>(),
+            &db,
+        )
+        .await?;
         Ok(())
     }
-    pub async fn cargar_todos_los_provs(proveedores: Vec<Proveedor>,db:&Pool<Sqlite>) -> Result<(), AppError> {
-        let mut query=String::from("insert into proveedores values (?, ?, ?, ?)");//id, nombre, contacto, updated
-        let row=", (?, ?, ?, ?)";
-        for _ in 0..proveedores.len(){
+    pub async fn cargar_todos_los_provs(
+        proveedores: Vec<Proveedor>,
+        db: &Pool<Sqlite>,
+    ) -> Result<(), AppError> {
+        let mut query = String::from("insert into proveedores values (?, ?, ?, ?)"); //id, nombre, contacto, updated
+        let row = ", (?, ?, ?, ?)";
+        for _ in 0..proveedores.len() {
             query.push_str(row);
         }
-        let mut sql=sqlx::query(query.as_str());
+        let mut sql = sqlx::query(query.as_str());
         for prov in proveedores {
-            sql=sql.bind(*prov.id()).bind(prov.nombre().to_string()).bind(*prov.contacto()).bind(Utc::now().naive_local());
+            sql = sql
+                .bind(*prov.id())
+                .bind(prov.nombre().to_string())
+                .bind(*prov.contacto())
+                .bind(Utc::now().naive_local());
         }
         sql.execute(db).await?;
         Ok(())
@@ -481,36 +493,21 @@ impl Db {
 
     pub async fn cargar_todas_las_relaciones_prod_prov(
         relaciones: Vec<RelacionProdProv>,
+        db: &Pool<Sqlite>,
     ) -> Result<(), AppError> {
-        let db = Database::connect("sqlite://db.sqlite?mode=rwc").await?;
-        for x in relaciones {
-            if let Some(rel) = ProdProvDB::Entity::find()
-                .filter(
-                    Condition::all()
-                        .add(ProdProvDB::Column::Producto.eq(*x.id_producto()))
-                        .add(ProdProvDB::Column::Proveedor.eq(*x.id_proveedor())),
-                )
-                .one(&db)
-                .await?
-            {
-                if rel.codigo != x.codigo_interno() {
-                    let mut act = rel.into_active_model();
-                    act.codigo = Set(x.codigo_interno());
-                    act.clone().update(&db).await?;
-                    println!("updating {:?}", act);
-                }
-            } else {
-                let model = ProdProvDB::ActiveModel {
-                    producto: Set(*x.id_producto()),
-                    proveedor: Set(*x.id_proveedor()),
-                    codigo: Set(x.codigo_interno()),
-                    ..Default::default()
-                };
-                println!("inserting {:?}", model);
-                model.insert(&db).await?;
-            }
+        let mut query = String::from("insert into relacion_prod_prov values (?, ?, ?)"); //producto, proveedor, codigo
+        let row = ", (?, ?, ?)";
+        for _ in 0..relaciones.len() {
+            query.push_str(row);
         }
-
+        let mut sql = sqlx::query(query.as_str());
+        for rel in relaciones {
+            sql = sql
+                .bind(*rel.id_producto())
+                .bind(*rel.id_proveedor())
+                .bind(rel.codigo_interno());
+        }
+        sql.execute(db).await?;
         Ok(())
     }
 }

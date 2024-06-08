@@ -1,8 +1,9 @@
+use super::{AppError, Res};
+use crate::db::Model;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
-
-use super::{AppError, Mapper, Res};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
@@ -15,33 +16,36 @@ impl Proveedor {
     pub async fn new_to_db(
         nombre: &str,
         contacto: Option<i64>,
-        db: &DatabaseConnection,
+        db: &Pool<Sqlite>,
     ) -> Res<Proveedor> {
-        match ProvDB::Entity::find()
-            .filter(ProvDB::Column::Nombre.eq(nombre))
-            .one(db)
-            .await?
-        {
-            Some(_) => {
-                return Err(AppError::ExistingError {
-                    objeto: String::from("Proveedor"),
-                    instancia: nombre.to_string(),
-                })
-            }
+        let qres: Option<Model> = sqlx::query_as!(
+            Model::Int,
+            "select id as int from proveedores where nombre = ?",
+            nombre
+        )
+        .fetch_optional(db)
+        .await?;
+        match qres {
+            Some(_) => Err(AppError::ExistingError {
+                objeto: String::from("Proveedor"),
+                instancia: nombre.to_string(),
+            }),
             None => {
-                let model = ProvDB::ActiveModel {
-                    updated_at: Set(Utc::now().naive_local()),
-                    nombre: Set(nombre.to_string()),
-                    contacto: Set(contacto),
-                    ..Default::default()
-                }
-                .insert(db)
-                .await?;
-                Ok(Mapper::map_model_prov(&model))
+                let qres = sqlx::query("insert into proveedores values (?, ?, ?)")
+                    .bind(nombre)
+                    .bind(contacto)
+                    .bind(Utc::now().naive_local())
+                    .execute(db)
+                    .await?;
+                Ok(Proveedor::build(
+                    qres.last_insert_rowid() as i32,
+                    nombre,
+                    contacto,
+                ))
             }
         }
     }
-    pub fn new(id: i32, nombre: &str, contacto: Option<i64>) -> Self {
+    pub fn build(id: i32, nombre: &str, contacto: Option<i64>) -> Self {
         Proveedor {
             id,
             nombre: Arc::from(nombre),
