@@ -1,6 +1,6 @@
 mod caja;
 mod cliente;
-//pub mod cmd;
+pub mod cmd;
 mod config;
 mod error;
 mod lib;
@@ -24,7 +24,7 @@ pub use config::Config;
 pub use config::Formato;
 pub use error::AppError;
 pub use error::Res;
-//pub use error::Result;
+pub use error::Result;
 pub use lib::crear_file;
 pub use lib::get_hash;
 pub use lib::leer_file;

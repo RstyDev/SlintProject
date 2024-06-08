@@ -1,9 +1,8 @@
 use super::Res;
-use entity::prelude::UserDB;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
+use sqlx::{Pool,Sqlite};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-
+use crate::db::Model;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     id: Arc<str>,
@@ -22,44 +21,24 @@ impl User {
         nombre: Arc<str>,
         pass: i64,
         rango: &str,
-        db: &DatabaseConnection,
+        db: &Pool<Sqlite>,
     ) -> Res<User> {
         let rango2 = match rango {
             "Admin" => Rango::Admin,
             "Cajero" => Rango::Cajero,
             _ => panic!("No existe"),
         };
-        match UserDB::Entity::find()
-            .filter(UserDB::Column::UserId.eq(id.as_ref()))
-            .one(db)
-            .await?
-        {
-            Some(_) => Ok(User {
-                id,
-                nombre,
-                pass,
-                rango: rango2,
-            }),
-            None => {
-                UserDB::ActiveModel {
-                    user_id: Set(id.to_string()),
-                    pass: Set(pass),
-                    rango: Set(rango.to_string()),
-                    nombre: Set(nombre.to_string()),
-                    ..Default::default()
-                }
-                .insert(db)
-                .await?;
-                Ok(User {
-                    id,
-                    nombre,
-                    pass,
-                    rango: rango2,
-                })
+        let qres:Option<Model>=sqlx::query_as!(Model::Int,"select id as int from users where user_id = ?",id.as_ref()).fetch_optional(db).await?;
+        match qres{
+            Some(model)=>Err(AppError::IncorrectError(String::from("Usuario existente"))),
+            None=>{
+                let qres=sqlx::query("insert into users values (?, ?, ?, ?)").bind(id.as_ref()).bind(nombre.as_ref()).bind(pass).bind(rango).execute(db).await?;
+                Ok(User::build(id,nombre,pass,rango))
             }
         }
+        
     }
-    pub fn new(id: Arc<str>, nombre: Arc<str>, pass: i64, rango: &str) -> User {
+    pub fn build(id: Arc<str>, nombre: Arc<str>, pass: i64, rango: &str) -> User {
         let rango = match rango {
             "Admin" => Rango::Admin,
             "Cajero" => Rango::Cajero,

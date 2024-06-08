@@ -7,11 +7,7 @@ use chrono::Utc;
 use entity::prelude::{
     CajaDB, CliDB, CodeDB, ConfDB, MedioDB, PesDB, ProdDB, ProdProvDB, ProvDB, RubDB, UserDB,
 };
-use migration::{Migrator, MigratorTrait};
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, Database, DatabaseConnection, DbErr, EntityTrait,
-    IntoActiveModel, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
-};
+
 use std::{collections::HashSet, sync::Arc};
 use tauri::{async_runtime, async_runtime::JoinHandle};
 use Valuable as V;
@@ -222,14 +218,14 @@ impl<'a> Sistema {
         async_runtime::block_on(self.caja.set_n_save(db.as_ref(), monto_actual))?;
         self.generar_reporte_caja();
         self.caja = async_runtime::block_on(Caja::new(
-            Arc::clone(&self.write_db),
+            self.write_db.as_ref(),
             Some(monto_actual),
             &self.configs,
         ))?;
         Ok(())
     }
     pub fn eliminar_usuario(&self, user: User) -> Res<()> {
-        async_runtime::spawn(Db::eliminar_usuario(user, Arc::clone(&self.read_db)));
+        async_runtime::spawn(Db::eliminar_usuario(user, self.read_db.as_ref()));
         Ok(())
     }
 
@@ -363,9 +359,9 @@ impl<'a> Sistema {
                 };
                 model.insert(db.as_ref()).await.unwrap();
             });
-            async_runtime::spawn(Db::cargar_todos_los_valuables(valuables));
-            async_runtime::spawn(Db::cargar_todos_los_provs(proveedores));
-            async_runtime::spawn(Db::cargar_todas_las_relaciones_prod_prov(relaciones));
+            async_runtime::spawn(Db::cargar_todos_los_valuables(valuables,write_db.as_ref()));
+            async_runtime::spawn(Db::cargar_todos_los_provs(proveedores,write_db.as_ref()));
+            async_runtime::spawn(Db::cargar_todas_las_relaciones_prod_prov(relaciones,write_db.as_ref()));
         }
         Ok(())
     }

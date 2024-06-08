@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Number;
 use std::fmt::{self, Display};
 use Valuable as V;
-
+use sqlx::{Pool, Sqlite};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {
     Prod((u8, Producto)),
@@ -53,18 +53,18 @@ impl Valuable {
             Valuable::Rub(rub) => rub.1.desc(),
         }
     }
-    pub async fn eliminar(self, db: DatabaseConnection) -> Res<()> {
+    pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
         match self {
-            Valuable::Prod((_, prod)) => prod.eliminar(&db).await,
-            Valuable::Pes((_, pes)) => pes.eliminar(&db).await,
-            Valuable::Rub((_, rub)) => rub.eliminar(&db).await,
+            Valuable::Prod((_, prod)) => prod.eliminar(db).await,
+            Valuable::Pes((_, pes)) => pes.eliminar(db).await,
+            Valuable::Rub((_, rub)) => rub.eliminar(db).await,
         }
     }
-    pub async fn editar(self, db: DatabaseConnection) -> Res<()> {
+    pub async fn editar(self, db: &Pool<Sqlite>) -> Res<()> {
         match self {
-            Valuable::Prod((_, prod)) => prod.editar(&db).await,
-            Valuable::Pes((_, pes)) => pes.editar(&db).await,
-            Valuable::Rub((_, rub)) => rub.editar(&db).await,
+            Valuable::Prod((_, prod)) => prod.editar(db).await,
+            Valuable::Pes((_, pes)) => pes.editar(db).await,
+            Valuable::Rub((_, rub)) => rub.editar(db).await,
         }
     }
 }
