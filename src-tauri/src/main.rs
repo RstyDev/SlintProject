@@ -7,7 +7,7 @@ use db::fresh;
 use dotenvy::dotenv;
 use sqlx::{Pool, Sqlite, SqlitePool};
 use std::env;
-use tauri::async_runtime::block_on;
+use tauri::{async_runtime::{self, block_on}, State};
 
 pub fn db() -> Pool<Sqlite> {
     println!("{:#?}", dotenv().unwrap());

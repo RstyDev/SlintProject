@@ -1,17 +1,16 @@
 use chrono::Utc;
 
 use serde::{de::DeserializeOwned, Serialize};
-use sqlx::{Execute, Pool, Sqlite};
+use sqlx::{Pool, Sqlite};
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
-use std::sync::Arc;
 use Valuable as V;
 
 use super::{
-    AppError, Cli, Cliente, MedioPago, Pago, Pesable, Presentacion, Producto, Proveedor,
-    RelacionProdProv, Res, Rubro, User, Venta,
+    AppError, Pesable, Producto, Proveedor,
+    RelacionProdProv, Res, Rubro, User,
 };
 use crate::db::Model;
 use crate::mods::valuable::Valuable;
@@ -397,7 +396,7 @@ impl Db {
                 .bind(*pesable.precio_peso())
                 .bind(*pesable.porcentaje())
                 .bind(*pesable.costo_kilo())
-                .bind(pesable.desc())
+                .bind(pesable.descripcion().to_string())
                 .bind(Utc::now().naive_local());
             codigos_query = codigos_query.bind(*pesable.codigo()).bind(pesable.id());
         }

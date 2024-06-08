@@ -5,14 +5,15 @@ use super::{
 };
 use crate::db::Model;
 use chrono::Utc;
+use sqlx::{Pool, Sqlite};
 use std::{collections::HashSet, sync::Arc};
 use tauri::{async_runtime, async_runtime::JoinHandle};
 use Valuable as V;
 const CUENTA: &str = "Cuenta Corriente";
 pub struct Sistema {
     user: Option<Arc<User>>,
-    write_db: Arc<DatabaseConnection>,
-    read_db: Arc<DatabaseConnection>,
+    write_db: Arc<Pool<Sqlite>>,
+    read_db: Arc<Pool<Sqlite>>,
     caja: Caja,
     configs: Config,
     ventas: Ventas,
@@ -27,7 +28,7 @@ pub struct Ventas {
     pub b: Venta,
 }
 
-async fn get_db(path: &str) -> Result<DatabaseConnection, DbErr> {
+async fn get_db(path: &str) -> Result<Pool<Sqlite>, DbErr> {
     Database::connect(path).await
 }
 
@@ -1047,10 +1048,10 @@ impl<'a> Sistema {
         async_runtime::block_on(cliente.get_deuda_detalle(&self.read_db, self.user()))
     }
     pub fn eliminar_valuable(&self, val: V) {
-        async_runtime::spawn(val.eliminar(self.write_db.as_ref().clone()));
+        async_runtime::spawn(val.eliminar(self.write_db.as_ref()));
     }
     pub fn editar_valuable(&self, val: V) {
-        async_runtime::spawn(val.editar(self.write_db.as_ref().clone()));
+        async_runtime::spawn(val.editar(self.write_db.as_ref()));
     }
     pub fn arc_user(&self) -> Arc<User> {
         Arc::clone(&self.user.as_ref().unwrap())
