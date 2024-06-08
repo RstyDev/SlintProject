@@ -455,6 +455,9 @@ pub enum Model {
     Bool {
         val: bool,
     },
+    String {
+        string: String,
+    },
     MedioPago {
         id: i64,
         medio: String,

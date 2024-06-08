@@ -3,11 +3,8 @@ use super::{
     Pesable, Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User,
     Valuable, ValuableTrait, Venta,
 };
+use crate::db::Model;
 use chrono::Utc;
-use entity::prelude::{
-    CajaDB, CliDB, CodeDB, ConfDB, MedioDB, PesDB, ProdDB, ProdProvDB, ProvDB, RubDB, UserDB,
-};
-
 use std::{collections::HashSet, sync::Arc};
 use tauri::{async_runtime, async_runtime::JoinHandle};
 use Valuable as V;
@@ -359,9 +356,12 @@ impl<'a> Sistema {
                 };
                 model.insert(db.as_ref()).await.unwrap();
             });
-            async_runtime::spawn(Db::cargar_todos_los_valuables(valuables,write_db.as_ref()));
-            async_runtime::spawn(Db::cargar_todos_los_provs(proveedores,write_db.as_ref()));
-            async_runtime::spawn(Db::cargar_todas_las_relaciones_prod_prov(relaciones,write_db.as_ref()));
+            async_runtime::spawn(Db::cargar_todos_los_valuables(valuables, write_db.as_ref()));
+            async_runtime::spawn(Db::cargar_todos_los_provs(proveedores, write_db.as_ref()));
+            async_runtime::spawn(Db::cargar_todas_las_relaciones_prod_prov(
+                relaciones,
+                write_db.as_ref(),
+            ));
         }
         Ok(())
     }
@@ -965,6 +965,13 @@ impl<'a> Sistema {
     pub fn filtrar_marca(&self, filtro: &str) -> Res<Vec<String>> {
         let mut hash = HashSet::new();
         async_runtime::block_on(async {
+            let qres: Vec<Model> = sqlx::query_as!(
+                Model::String,
+                "select marca as string from productos where marca like ?",
+                filtro
+            )
+            .fetch_all(self.read_db())
+            .await;
             ProdDB::Entity::find()
                 .filter(ProdDB::Column::Marca.contains(filtro))
                 .order_by(ProdDB::Column::Marca, sea_orm::Order::Asc)
