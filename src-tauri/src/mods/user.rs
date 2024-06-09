@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use super::{AppError, Res};
 use sqlx::{Pool,Sqlite};
 use serde::{Deserialize, Serialize};
@@ -59,11 +60,12 @@ impl User {
         Arc::clone(&self.nombre)
     }
 }
-impl ToString for Rango {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for Rango {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             Rango::Admin => String::from("Admin"),
             Rango::Cajero => String::from("Cajero"),
-        }
+        };
+        write!(f, "{}", str)
     }
 }

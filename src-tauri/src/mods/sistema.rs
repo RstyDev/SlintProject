@@ -3,10 +3,11 @@ use super::{
     Pesable, Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User,
     Valuable, ValuableTrait, Venta,
 };
-use crate::db::Model;
+use crate::db::{Model,fresh};
 use chrono::Utc;
-use sqlx::{Pool, Sqlite};
-use std::{collections::HashSet, sync::Arc};
+use sqlx::{Pool, Sqlite, SqlitePool};
+use std::{collections::HashSet, env, sync::Arc};
+use dotenvy::dotenv;
 use tauri::{async_runtime, async_runtime::JoinHandle};
 use Valuable as V;
 const CUENTA: &str = "Cuenta Corriente";
@@ -28,9 +29,7 @@ pub struct Ventas {
     pub b: Venta,
 }
 
-async fn get_db(path: &str) -> Result<Pool<Sqlite>, DbErr> {
-    Database::connect(path).await
-}
+
 
 impl<'a> Sistema {
     pub fn access(&self) {
@@ -41,7 +40,7 @@ impl<'a> Sistema {
     pub fn agregar_cliente(
         &self,
         nombre: &str,
-        dni: i32,
+        dni: i64,
         activo: bool,
         limite: Option<f32>,
     ) -> Res<Cli> {
@@ -104,17 +103,11 @@ impl<'a> Sistema {
         ))
     }
     #[cfg(test)]
-    pub fn test(user: Option<Arc<User>>) -> Res<Sistema> {
-        let write_db = Arc::from(async_runtime::block_on(get_db(
-            "sqlite://test/db.sqlite?mode=rwc",
-        ))?);
-        let read_db = Arc::from(async_runtime::block_on(get_db(
-            "sqlite://test/db.sqlite?mode=ro",
-        ))?);
+    pub fn test(user: Option<Arc<User>>,read_db:Arc<Pool<Sqlite>>,write_db:Arc<Pool<Sqlite>>) -> Res<Sistema> {
         let w1 = Arc::clone(&write_db);
-        async_runtime::block_on(Migrator::fresh(w1.as_ref())).unwrap();
+        async_runtime::block_on(fresh(w1.as_ref()));
         let configs = async_runtime::block_on(Config::get_or_def(&write_db.as_ref())).unwrap();
-        let caja = async_runtime::block_on(Caja::new(Arc::clone(&write_db), Some(0.0), &configs))?;
+        let caja = async_runtime::block_on(Caja::new(&write_db.as_ref(), Some(0.0), &configs))?;
         let w2 = Arc::clone(&write_db);
         let w3 = Arc::clone(&write_db);
         let r2 = Arc::clone(&read_db);
@@ -136,20 +129,13 @@ impl<'a> Sistema {
         Sistema::procesar_test(Arc::clone(&w2), r2)?;
         Ok(sis)
     }
-    pub fn new() -> Res<Sistema> {
-        let write_db = Arc::from(async_runtime::block_on(get_db(
-            "sqlite://db.sqlite?mode=rwc",
-        ))?);
-        let read_db = Arc::from(async_runtime::block_on(get_db(
-            "sqlite://db.sqlite?mode=ro",
-        ))?);
-
+    pub fn new(read_db:Arc<Pool<Sqlite>>,write_db:Arc<Pool<Sqlite>>) -> Res<Sistema> {
         async_runtime::block_on(async {
-            if let Err(_) = CajaDB::Entity::find().one(read_db.as_ref()).await {
-                Migrator::fresh(write_db.as_ref()).await
-            } else {
-                Ok(())
+            let qres:Option<Model>=sqlx::query_as!(Model::Int,"select id as int from cajas limit 1").fetch_optional(read_db.as_ref()).await?;
+            if qres.is_none(){
+                fresh(write_db.as_ref()).await
             }
+            Ok(())
         })
         .unwrap();
         let path_proveedores = "Proveedores.json";
@@ -162,7 +148,7 @@ impl<'a> Sistema {
         let aux = Arc::clone(&write_db);
         let db = Arc::clone(&write_db);
         let configs = async_runtime::block_on(Config::get_or_def(db.as_ref()))?;
-        let caja = async_runtime::block_on(Caja::new(aux, Some(0.0), &configs))?;
+        let caja = async_runtime::block_on(Caja::new(aux.as_ref(), Some(0.0), &configs))?;
         let stash = Vec::new();
         let registro = Vec::new();
 
@@ -231,53 +217,28 @@ impl<'a> Sistema {
         &self.caja
     }
     #[cfg(test)]
-    fn procesar_test(
-        write_db: Arc<DatabaseConnection>,
-        read_db: Arc<DatabaseConnection>,
+    async fn procesar_test(
+        write_db: Arc<Pool<Sqlite>>,
+        read_db: Arc<Pool<Sqlite>>,
     ) -> Res<()> {
         let write_db2 = Arc::clone(&write_db);
         let read_db2 = Arc::clone(&read_db);
         let _: JoinHandle<Result<(), AppError>> = async_runtime::spawn(async move {
-            let medios = vec!["Efectivo", "Crédito", "Débito"];
-            for medio in medios {
-                let model = MedioDB::ActiveModel {
-                    medio: Set(medio.to_string()),
-                    ..Default::default()
-                };
-                model.insert(write_db2.as_ref()).await?;
-            }
-            if MedioDB::Entity::find()
-                .filter(MedioDB::Column::Medio.eq(CUENTA))
-                .one(read_db2.as_ref())
-                .await?
-                .is_none()
-            {
-                let model = MedioDB::ActiveModel {
-                    medio: Set(CUENTA.to_string()),
-                    id: Set(0),
-                };
-                model.insert(write_db2.as_ref()).await?;
+            let medios = [CUENTA,"Efectivo", "Crédito", "Débito"];
+            for i in 0..medios.len() {
+                sqlx::query("insert into medios_pago values (?, ?)").bind(i as i64).bind(medios[i]).execute(read_db.as_ref()).await?;
             }
             return Ok(());
         });
-        if async_runtime::block_on(UserDB::Entity::find().count(read_db.as_ref()))? == 0 {
-            async_runtime::block_on(async move {
-                let db = Arc::clone(&write_db);
-                let model = UserDB::ActiveModel {
-                    user_id: Set("test".to_owned()),
-                    pass: Set(get_hash("9876")),
-                    rango: Set(Rango::Admin.to_string()),
-                    nombre: Set("Admin".to_owned()),
-                    ..Default::default()
-                };
-                model.insert(db.as_ref()).await.unwrap();
-            });
+        let qres:Option<Model>=sqlx::query_as!(Model::Int,"select id as int from users limit 1").fetch_optional(read_db.as_ref()).await?;
+        if qres.is_none(){
+            sqlx::query("insert into users values (?, ?, ?, ?)").bind("test".as_ref()).bind(get_hash("9876")).bind(Rango::Admin.to_string()).bind("Admin".as_ref()).execute(write_db).await?;
         }
         Ok(())
     }
-    fn procesar(
-        write_db: Arc<DatabaseConnection>,
-        read_db: Arc<DatabaseConnection>,
+    async fn procesar(
+        write_db: Arc<Pool<Sqlite>>,
+        read_db: Arc<Pool<Sqlite>>,
         proveedores: Vec<Proveedor>,
         relaciones: Vec<RelacionProdProv>,
     ) -> Res<()> {
@@ -298,7 +259,6 @@ impl<'a> Sistema {
         leer_file(&mut rubros, path_rubros)?;
         leer_file(&mut pesables, path_pesables)?;
         leer_file(&mut productos, path_productos)?;
-        // check_codes(&mut productos);
 
         let mut rubros_valuable: Vec<Valuable> =
             rubros.iter().map(|a| V::Rub((0, a.to_owned()))).collect();
@@ -316,111 +276,68 @@ impl<'a> Sistema {
         let write_db2 = Arc::clone(&write_db);
         let read_db2 = Arc::clone(&read_db);
         let _: JoinHandle<Result<(), AppError>> = async_runtime::spawn(async move {
-            let medios = vec!["Efectivo", "Crédito", "Débito"];
-            for medio in medios {
-                if MedioDB::Entity::find()
-                    .filter(MedioDB::Column::Medio.eq(medio))
-                    .one(read_db2.as_ref())
-                    .await?
-                    .is_none()
-                {
-                    let model = MedioDB::ActiveModel {
-                        medio: Set(medio.to_string()),
-                        ..Default::default()
-                    };
-                    model.insert(write_db2.as_ref()).await?;
+            let medios = [CUENTA,"Efectivo", "Crédito", "Débito"];
+            for i in 0..medios.len() {
+                let qres:Option<Model>=sqlx::query_as!(Model::Int,"select id as int from medios_pago where medio = ? limit 1",medios[i]).fetch_optional(read_db.as_ref()).await?;
+                if qres.is_none(){
+                    sqlx::query("insert into medios_pago values (?, ?)").bind(i as i64).bind(medios[i]).execute(write_db.as_ref()).await?;
                 }
-            }
-            if MedioDB::Entity::find()
-                .filter(MedioDB::Column::Medio.eq(CUENTA))
-                .one(read_db2.as_ref())
-                .await?
-                .is_none()
-            {
-                let model = MedioDB::ActiveModel {
-                    medio: Set(CUENTA.to_string()),
-                    id: Set(0),
-                };
-                model.insert(write_db2.as_ref()).await?;
             }
             return Ok(());
         });
-        if async_runtime::block_on(UserDB::Entity::find().count(read_db.as_ref()))? == 0 {
-            async_runtime::spawn(async move {
-                let db = Arc::clone(&write_db);
-                let model = UserDB::ActiveModel {
-                    user_id: Set("admin".to_owned()),
-                    pass: Set(get_hash("1234")),
-                    rango: Set(Rango::Admin.to_string()),
-                    nombre: Set("Admin".to_owned()),
-                    ..Default::default()
-                };
-                model.insert(db.as_ref()).await.unwrap();
-            });
-            async_runtime::spawn(Db::cargar_todos_los_valuables(valuables, write_db.as_ref()));
-            async_runtime::spawn(Db::cargar_todos_los_provs(proveedores, write_db.as_ref()));
-            async_runtime::spawn(Db::cargar_todas_las_relaciones_prod_prov(
+        let qres:Option<Model>=sqlx::query_as!(Model::Int,"select id as int from users limit 1").fetch_optional(read_db.as_ref()).await?;
+        if qres.is_none(){
+            sqlx::query("insert into users values (?, ?, ?, ?)").bind("admin".as_ref()).bind(get_hash("1234")).bind(Rango::Admin.to_string()).bind("Admin".as_ref()).execute(write_db).await?;
+            Db::cargar_todos_los_valuables(valuables, write_db.as_ref());
+            Db::cargar_todos_los_provs(proveedores, write_db.as_ref());
+            Db::cargar_todas_las_relaciones_prod_prov(
                 relaciones,
                 write_db.as_ref(),
-            ));
+            );
         }
         Ok(())
     }
 
     pub async fn get_clientes(&self) -> Res<Vec<Cli>> {
-        Ok(CliDB::Entity::find()
-            .all(self.read_db())
-            .await?
-            .iter()
-            .map(|model| {
-                Cli::new(
-                    model.id,
-                    Arc::from(model.nombre.as_str()),
-                    model.dni,
-                    model.activo,
-                    model.created,
-                    model.limite,
-                )
-            })
-            .collect::<Vec<Cli>>())
+        let qres:Vec<Model>=sqlx::query_as!(Model::Cliente,"select * from clientes ").fetch_all(self.read_db()).await?;
+        Ok(qres.iter().map(|model|{
+            match model{
+                Model::Cliente { id, nombre, dni, limite, activo, time }=>{
+                    Cli::build(*id, Arc::from(nombre.as_str()), *dni as i32, *activo, *time, limite.map(|l|l as f32))
+                },
+                _=>panic!("se esperaba cliente")
+            }
+        }).collect::<Vec<Cli>>())
     }
     pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<Rango> {
-        match UserDB::Entity::find()
-            .filter(
-                Condition::all()
-                    .add(UserDB::Column::UserId.eq(id.to_string()))
-                    .add(UserDB::Column::Pass.eq(pass)),
-            )
-            .one(self.read_db())
-            .await?
-        {
-            Some(user) => {
-                self.user = Some(Arc::from(User::new(
-                    Arc::from(user.user_id),
-                    Arc::from(user.nombre),
-                    user.pass,
-                    user.rango.as_str(),
-                )));
-                self.ventas = Ventas {
-                    a: Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
-                    b: Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
-                };
-                Ok(self.user().unwrap().rango().clone())
+        let qres:Option<Model>=sqlx::query_as!(Model::User,"select * from users where user_id = ? and pass = ? limit 1",id.to_string(),pass).fetch_optional(self.read_db()).await?;
+        match qres{
+            None => {
+                let qres:Option<Model>=sqlx::query_as!(Model::Int, "select id as int from users where user_id = ?",id).fetch_optional(self.read_db.as_ref()).await?;
+                match qres{
+                    Some(_) => Err(AppError::IncorrectError("Contraseña".to_string())),
+                    None => Err(AppError::IncorrectError("Usuario".to_string())),
+                }
             }
-            None => match UserDB::Entity::find()
-                .filter(UserDB::Column::UserId.eq(id))
-                .one(self.read_db())
-                .await?
-            {
-                Some(_) => Err(AppError::IncorrectError("Contraseña".to_string())),
-                None => Err(AppError::IncorrectError("Usuario".to_string())),
-            },
+            Some(model) => {
+                match model{
+                    Model::User { id, user_id, nombre, pass, rango }=>{
+                        self.user = Some(Arc::from(User::new(Arc::from(user_id),Arc::from(nombre),pass,rango)));
+                        self.ventas = Ventas {
+                            a: Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
+                            b: Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
+                        };
+                        Ok(self.user().unwrap().rango().clone())
+                    },
+                    _=>Err(AppError::IncorrectError(String::from("Se esperaba user")))
+                }
+            }
         }
     }
     pub async fn val_filtrado(
         &self,
         filtro: &str,
-        db: &DatabaseConnection,
+        db: &Pool<Sqlite>,
     ) -> Result<Vec<Valuable>, AppError> {
         let mut res: Vec<Valuable>;
         res = self
@@ -460,12 +377,24 @@ impl<'a> Sistema {
     pub async fn pes_filtrado(
         &self,
         filtro: &str,
-        db: &DatabaseConnection,
+        db: &Pool<Sqlite>,
     ) -> Result<Vec<(f32, Pesable)>, AppError> {
         let (cant, filtro) = Sistema::splitx(filtro)?;
         let mut prods = Vec::new();
-        match filtro.parse::<i32>() {
+        match filtro.parse::<i64>() {
             Ok(code) => {
+                let qres:Option<Model>=sqlx::query_as!(Model::Code, "select * from codigos where codigo = ? limit 1",code).fetch_optional(db).await?;
+                match qres{
+                    None => {}
+                    Some(model) => {
+                        match model{
+                            Model::Code { id, codigo, producto, pesable, rubro }=>{
+                                
+                            },
+                            _=>return Err(AppError::IncorrectError(String::from("se esperaba code")))
+                        }
+                    }
+                }
                 if let Some(model) = PesDB::Entity::find()
                     .filter(PesDB::Column::Codigo.eq(code))
                     .one(db)

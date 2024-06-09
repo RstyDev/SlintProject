@@ -306,7 +306,7 @@ impl<'a> Venta {
             Ok(())
         } else {
             let qres: Option<Model> =
-                sqlx::query_as!(Model::Cliente, "select * from clientes where id = ?", id)
+                sqlx::query_as!(Model::Cliente, "select * from clientes where id = ? limit 1", id)
                     .fetch_optional(db)
                     .await?;
             match qres {

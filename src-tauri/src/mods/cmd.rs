@@ -384,44 +384,6 @@ pub fn cerrar_caja_2(
     sis.cerrar_caja(monto_actual)?;
     Ok(close_window_2(window)?)
 }
-pub async fn check_codes_2(code: i64) -> Res<bool> {
-    let db = Database::connect("sqlite://db.sqlite?mode=ro")
-        .await
-        .map_err(|e| e.to_string())?;
-    let disp;
-    let mod_opt = CodeDB::Entity::find()
-        .filter(CodeDB::Column::Codigo.eq(code))
-        .one(&db)
-        .await
-        .map_err(|e| e.to_string())?;
-    disp = match mod_opt {
-        Some(_) => false,
-        None => {
-            match PesDB::Entity::find()
-                .filter(PesDB::Column::Codigo.eq(code))
-                .one(&db)
-                .await
-            {
-                Ok(a) => {
-                    if a.is_none() {
-                        match RubDB::Entity::find()
-                            .filter(RubDB::Column::Codigo.eq(code))
-                            .one(&db)
-                            .await
-                        {
-                            Ok(a) => a.is_none(),
-                            Err(e) => return Err(e.to_string()),
-                        }
-                    } else {
-                        false
-                    }
-                }
-                Err(e) => return Err(e.to_string()),
-            }
-        }
-    };
-    Ok(disp)
-}
 pub fn close_window_2(window: tauri::Window) -> Res<()> {
     loop {
         if window.close().is_ok() {

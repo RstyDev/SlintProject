@@ -1,6 +1,5 @@
 use super::{redondeo, Config, Formato, Pesable, Producto, Res, Rubro};
 use serde::{Deserialize, Serialize};
-use serde_json::Number;
 use std::fmt::{self, Display};
 use Valuable as V;
 use sqlx::{Pool, Sqlite};
@@ -154,9 +153,10 @@ impl Presentacion {
             "Gr" => Presentacion::Gr(cantidad as f32),
             "Un" => Presentacion::Un(cantidad as u16),
             "Lt" => Presentacion::Lt(cantidad as f32),
-            "Ml" => Presentacion::ML(cantidad as u16),
+            "Ml" => Presentacion::Ml(cantidad as u16),
             "CC" => Presentacion::CC(cantidad as u16),
             "Kg" => Presentacion::Kg(cantidad as f32),
+            a => panic!("No existe {}",a)
         }
     }
 }

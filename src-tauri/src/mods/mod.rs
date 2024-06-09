@@ -1,6 +1,6 @@
 mod caja;
 mod cliente;
-pub mod cmd;
+//pub mod cmd;
 mod config;
 mod error;
 mod lib;

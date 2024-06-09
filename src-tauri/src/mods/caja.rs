@@ -173,7 +173,7 @@ impl Caja {
         self.cierre = Some(Utc::now().naive_local());
         let res: sqlx::Result<Option<Model>> = sqlx::query_as!(
             Model::Int,
-            "select id as int from cajas where id = ?",
+            "select id as int from cajas where id = ? limit 1",
             self.id
         )
         .fetch_optional(db)

@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use super::{AppError, Res};
 use crate::db::Model;
 use chrono::Utc;
@@ -62,13 +63,13 @@ impl Proveedor {
         &self.contacto
     }
 }
-impl ToString for Proveedor {
-    fn to_string(&self) -> String {
+impl Display for Proveedor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let res;
         match self.contacto {
             Some(a) => res = format!("{} {a}", self.nombre),
             None => res = self.nombre.to_string(),
         }
-        res
+        write!(f, "{}", res)
     }
 }

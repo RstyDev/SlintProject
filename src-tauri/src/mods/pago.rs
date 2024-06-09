@@ -40,10 +40,7 @@ impl Pago {
             medio_pago,
             monto,
             int_id,
-            pagado: match pagado {
-                Some(a) => a,
-                None => monto,
-            },
+            pagado: pagado.unwrap_or(monto),
         }
     }
     pub fn build(int_id: i64, medio_pago: MedioPago, monto: f32, pagado: f32) -> Pago {

@@ -38,7 +38,7 @@ impl Cli {
         limite: Option<f32>,
     ) -> Res<Cli> {
         let model: Option<Model> =
-            sqlx::query_as!(Model::Cliente, "select * from clientes where dni = ?", dni)
+            sqlx::query_as!(Model::Cliente, "select * from clientes where dni = ? limit 1", dni)
                 .fetch_optional(db)
                 .await?;
         match model {
@@ -108,7 +108,7 @@ impl Cli {
     pub async fn get_deuda(&self, db: &Pool<Sqlite>) -> Res<f32> {
         let model: sqlx::Result<Vec<Model>> = sqlx::query_as!(
             Model::Float,
-            "select monto as float from deudas where id = ?",
+            "select monto as float from deudas where id = ? ",
             self.id
         )
         .fetch_all(db)
@@ -129,7 +129,7 @@ impl Cli {
         let mut ventas = Vec::new();
         let qres: Vec<Model> = sqlx::query_as!(
             Model::Venta,
-            "select * from ventas where cliente = ? and paga = ?",
+            "select * from ventas where cliente = ? and paga = ? ",
             self.id,
             false
         )
@@ -161,7 +161,7 @@ impl Cli {
     ) -> Res<Venta> {
         let qres: Option<Model> = sqlx::query_as!(
             Model::Venta,
-            "select * from ventas where id = ? and cliente = ? and paga = ?",
+            "select * from ventas where id = ? and cliente = ? and paga = ? ",
             *venta.id(),
             id_cliente,
             false
@@ -183,12 +183,11 @@ impl Cli {
                 paga: _,
                 pos: _,
             } => {
-                let cli_id = cliente.unwrap();
-                if cli_id == id_cliente {
+                if cliente.unwrap() == id_cliente {
                     let venta = Mapper::venta(db, model, user).await?;
-                    sqlx::query!("update ventas set paga = ? where id = ?", id, true)
+                    sqlx::query!("update ventas set paga = ? where id = ? ", id, true)
                         .execute(db)
-                        .await;
+                        .await?;
                     Ok(venta)
                 } else {
                     Err(AppError::IncorrectError(String::from("Cliente Incorrecto")))
@@ -204,7 +203,7 @@ impl Cli {
     ) -> Res<f32> {
         let qres: Vec<Model> = sqlx::query_as!(
             Model::Venta,
-            "select * from ventas where cliente = ? and paga = ?",
+            "select * from ventas where cliente = ? and paga = ? ",
             id,
             false
         )
@@ -245,7 +244,7 @@ impl Cli {
                     let id_venta = id;
                     let models: Vec<Model> = sqlx::query_as!(
                         Model::Pago,
-                        "select * from pagos where venta = ? and medio_pago = ?",
+                        "select * from pagos where venta = ? and medio_pago = ? ",
                         id_venta,
                         0
                     )

@@ -34,7 +34,7 @@ impl Mapper {
             };
         let totales_mod: sqlx::Result<Vec<Model>> = query_as!(
             Model::Total,
-            "select medio, monto from totales where caja = ?",
+            "select medio, monto from totales where caja = ? ",
             id
         )
         .fetch_all(db)
@@ -69,7 +69,7 @@ impl Mapper {
                 cantidad,
             } => {
                 let medios: sqlx::Result<Vec<Model>> =
-                    sqlx::query_as!(Model::MedioPago, "select * from medios_pago")
+                    sqlx::query_as!(Model::MedioPago, "select * from medios_pago ")
                         .fetch_all(db)
                         .await;
                 let medios = medios?
@@ -106,7 +106,7 @@ impl Mapper {
             } => {
                 let models: sqlx::Result<Vec<Model>> = sqlx::query_as!(
                     Model::Int,
-                    "select codigo as int from codigos where producto = ?",
+                    "select codigo as int from codigos where producto = ? limit 5",
                     id
                 )
                 .fetch_all(db)
@@ -153,7 +153,7 @@ impl Mapper {
             } => {
                 let medio: sqlx::Result<Option<Model>> = sqlx::query_as!(
                     Model::MedioPago,
-                    "select * from medios_pago where id = ?",
+                    "select * from medios_pago where id = ? limit 1",
                     medio_pago
                 )
                 .fetch_optional(db)
@@ -212,7 +212,7 @@ impl Mapper {
                         } => {
                             let qres: Vec<Model> = sqlx::query_as!(
                                 Model::Int,
-                                "select codigo as int from codigos where producto = ?",
+                                "select codigo as int from codigos where producto = ? limit 5",
                                 id
                             )
                             .fetch_all(db)
@@ -249,7 +249,7 @@ impl Mapper {
                 let qres:Vec<Model>=sqlx::query_as!(Model::RelatedPes,"select pesables.id as id,
                     precio_peso, porcentaje, costo_kilo, descripcion, cantidad, updated_at
                     from relacion_venta_pes inner join pesables on relacion_venta_pes.id = pesables.id where venta = ?
-                    ",id).fetch_all(db).await?;
+                     ",id).fetch_all(db).await?;
                 for model in qres {
                     match model {
                         Model::RelatedPes {
@@ -263,7 +263,7 @@ impl Mapper {
                         } => {
                             let qres: Option<Model> = sqlx::query_as!(
                                 Model::Int,
-                                "select codigo as int from codigos where pesable = ?",
+                                "select codigo as int from codigos where pesable = ? limit 1",
                                 id
                             )
                             .fetch_optional(db)
@@ -303,7 +303,7 @@ impl Mapper {
                 }
                 let qres:Vec<Model>=sqlx::query_as!(Model::RelatedRub,"select rubros.id as id, descripcion, updated_at, cantidad, precio
                     from relacion_venta_rub inner join rubros on relacion_venta_rub.id = rubros.id where venta = ?
-                    ",id).fetch_all(db).await?;
+                     ",id).fetch_all(db).await?;
                 for model in qres {
                     match model {
                         Model::RelatedRub {
@@ -315,7 +315,7 @@ impl Mapper {
                         } => {
                             let qres: Option<Model> = sqlx::query_as!(
                                 Model::Int,
-                                "select codigo as int from codigos where pesable = ?",
+                                "select codigo as int from codigos where pesable = ? limit 1",
                                 id
                             )
                             .fetch_optional(db)
@@ -352,7 +352,7 @@ impl Mapper {
                     }
                 }
                 let qres: Vec<Model> =
-                    sqlx::query_as!(Model::Pago, "select * from pagos where venta = ?", id)
+                    sqlx::query_as!(Model::Pago, "select * from pagos where venta = ? ", id)
                         .fetch_all(db)
                         .await?;
                 let mut pagos = Vec::new();
@@ -367,7 +367,7 @@ impl Mapper {
                         } => {
                             let qres: Option<Model> = sqlx::query_as!(
                                 Model::MedioPago,
-                                "select * from medios_pago where id = ?",
+                                "select * from medios_pago where id = ? limit 1",
                                 medio_pago
                             )
                             .fetch_optional(db)
@@ -398,7 +398,7 @@ impl Mapper {
                 }
                 let qres: Option<Model> = sqlx::query_as!(
                     Model::Cliente,
-                    "select * from clientes where id = ?",
+                    "select * from clientes where id = ? limit 1",
                     cliente
                 )
                 .fetch_optional(db)

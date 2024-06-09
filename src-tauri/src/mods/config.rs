@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use super::{AppError, Res};
 use crate::db::Model;
 use serde::{Deserialize, Serialize};
@@ -16,13 +17,13 @@ pub struct Config {
 impl Config {
     pub async fn get_or_def(db: &Pool<Sqlite>) -> Res<Config> {
         let res: sqlx::Result<Option<Model>> =
-            sqlx::query_as!(Model::Config, "select * from config")
+            sqlx::query_as!(Model::Config, "select * from config limit 1")
                 .fetch_optional(db)
                 .await;
         match res? {
             Some(conf) => {
                 let medios: sqlx::Result<Vec<Model>> =
-                    sqlx::query_as!(Model::MedioPago, "select * from medios_pago")
+                    sqlx::query_as!(Model::MedioPago, "select * from medios_pago ")
                         .fetch_all(db)
                         .await;
                 let medios = medios?
@@ -126,12 +127,13 @@ pub enum Formato {
     Tmv,
     Mtv,
 }
-impl ToString for Formato {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for Formato {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             Formato::Tmv => String::from("Tmv"),
             Formato::Mtv => String::from("Mtv"),
-        }
+        };
+        write!(f, "{}", str)
     }
 }
 
@@ -142,12 +144,13 @@ pub enum Mayusculas {
     Lower,
     Camel,
 }
-impl ToString for Mayusculas {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for Mayusculas {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             Mayusculas::Upper => String::from("Upper"),
             Mayusculas::Lower => String::from("Lower"),
             Mayusculas::Camel => String::from("Camel"),
-        }
+        };
+        write!(f, "{}", str)
     }
 }
