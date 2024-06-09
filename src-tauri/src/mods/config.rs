@@ -1,8 +1,8 @@
-use std::fmt::Display;
 use super::{AppError, Res};
 use crate::db::Model;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
+use std::fmt::Display;
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,10 +41,10 @@ impl Config {
                         mayus,
                         cantidad,
                     } => Ok(Config::build(
-                        politica as f32,
+                        politica,
                         formato.as_str(),
                         mayus.as_str(),
-                        cantidad as u8,
+                        cantidad,
                         medios,
                     )),
                     _ => Err(AppError::IncorrectError(String::from("Se esperaba Config"))),

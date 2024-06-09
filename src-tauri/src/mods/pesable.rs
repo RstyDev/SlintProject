@@ -40,7 +40,7 @@ impl Pesable {
         costo_kilo: f32,
         descripcion: &str,
     ) -> Res<Pesable> {
-        let qres:Option<Model>=sqlx::query_as!(Model::Int,"select pesables.id as int from codigos inner join pesables on codigos.pesable = pesables.id where codigo = ?",codigo).fetch_optional(db).await?;
+        let qres:Option<Model>=sqlx::query_as!(Model::BigInt,"select pesables.id as int from codigos inner join pesables on codigos.pesable = pesables.id where codigo = ?",codigo).fetch_optional(db).await?;
         match qres {
             Some(model) => {
                 return Err(AppError::ExistingError {
@@ -89,7 +89,7 @@ impl Pesable {
     }
     pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
         let qres: Option<Model> = sqlx::query_as!(
-            Model::Int,
+            Model::BigInt,
             "select id as int from pesables where id = ?",
             self.id
         )
@@ -117,7 +117,7 @@ impl Pesable {
     }
     pub async fn editar(self, db: &Pool<Sqlite>) -> Res<()> {
         let qres: Option<Model> = sqlx::query_as!(
-            Model::Int,
+            Model::BigInt,
             "select id as int from pesables where id = ?",
             self.id
         )

@@ -19,7 +19,7 @@ pub struct Producto {
 }
 
 impl Producto {
-    pub fn new(
+    pub fn build(
         id: i64,
         codigos_de_barras: Vec<i64>,
         precio_de_venta: f32,
@@ -97,7 +97,7 @@ impl Producto {
     // }
     pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
         let qres: Option<Model> = sqlx::query_as!(
-            Model::Int,
+            Model::BigInt,
             "select id as int from productos where id = ?",
             self.id
         )
@@ -105,7 +105,7 @@ impl Producto {
         .await?;
         match qres {
             Some(model) => match model {
-                Model::Int { int } => {
+                Model::BigInt { int } => {
                     sqlx::query("delete from productos where id = ?")
                         .bind(int)
                         .execute(db)
@@ -133,7 +133,7 @@ impl Producto {
     }
     pub async fn editar(self, db: &Pool<Sqlite>) -> Res<()> {
         let qres: Option<Model> = sqlx::query_as!(
-            Model::Int,
+            Model::BigInt,
             "select id as int from productos where id = ?",
             self.id
         )
@@ -141,7 +141,7 @@ impl Producto {
         .await?;
         match qres {
             Some(model) => match model {
-                Model::Int { int } => {
+                Model::BigInt { int } => {
                     if self.precio_de_venta
                         != self.precio_de_costo * (1.0 + self.porcentaje / 100.0)
                     {

@@ -105,7 +105,7 @@ impl Mapper {
                 updated_at,
             } => {
                 let models: sqlx::Result<Vec<Model>> = sqlx::query_as!(
-                    Model::Int,
+                    Model::BigInt,
                     "select codigo as int from codigos where producto = ? limit 5",
                     id
                 )
@@ -114,7 +114,7 @@ impl Mapper {
                 let codigos = models?
                     .iter()
                     .map(|model| match model {
-                        Model::Int { int } => *int,
+                        Model::BigInt { int } => *int,
                         _ => panic!("Se esperaba codigo"),
                     })
                     .collect::<Vec<i64>>();
@@ -194,7 +194,7 @@ impl Mapper {
                 let qres:Vec<Model>=sqlx::query_as!(Model::RelatedProd,"select productos.id as id,
                     precio, porcentaje, precio_costo, tipo, marca, variedad, presentacion, size, cantidad
                     from relacion_venta_prod inner join productos on relacion_venta_prod.id = productos.id where venta = ?
-                    ",id).fetch_all(db).await?;
+                     ",id).fetch_all(db).await?;
                 let mut productos = Vec::new();
                 for model in qres {
                     match model {
@@ -211,7 +211,7 @@ impl Mapper {
                             cantidad,
                         } => {
                             let qres: Vec<Model> = sqlx::query_as!(
-                                Model::Int,
+                                Model::BigInt,
                                 "select codigo as int from codigos where producto = ? limit 5",
                                 id
                             )
@@ -220,7 +220,7 @@ impl Mapper {
                             let codes = qres
                                 .iter()
                                 .map(|c| match c {
-                                    Model::Int { int } => *int,
+                                    Model::BigInt { int } => *int,
                                     _ => panic!("Se esperana codigo"),
                                 })
                                 .collect::<Vec<i64>>();
@@ -262,7 +262,7 @@ impl Mapper {
                             cantidad,
                         } => {
                             let qres: Option<Model> = sqlx::query_as!(
-                                Model::Int,
+                                Model::BigInt,
                                 "select codigo as int from codigos where pesable = ? limit 1",
                                 id
                             )
@@ -270,7 +270,7 @@ impl Mapper {
                             .await?;
                             match qres {
                                 Some(model) => match model {
-                                    Model::Int { int } => productos.push(Valuable::Pes((
+                                    Model::BigInt { int } => productos.push(Valuable::Pes((
                                         cantidad as f32,
                                         Pesable::build(
                                             id,
@@ -314,7 +314,7 @@ impl Mapper {
                             precio,
                         } => {
                             let qres: Option<Model> = sqlx::query_as!(
-                                Model::Int,
+                                Model::BigInt,
                                 "select codigo as int from codigos where pesable = ? limit 1",
                                 id
                             )
@@ -322,7 +322,7 @@ impl Mapper {
                             .await?;
                             match qres {
                                 Some(model) => match model {
-                                    Model::Int { int } => productos.push(Valuable::Rub((
+                                    Model::BigInt { int } => productos.push(Valuable::Rub((
                                         cantidad as u8,
                                         Rubro::build(
                                             id,
@@ -446,55 +446,61 @@ impl Mapper {
     }
 }
 pub enum Model {
-    Int {
+    BigInt {
         int: i64,
     },
+    Int {
+        int: i32,
+    },
+    Double {
+        double: f64,
+    },
     Float {
-        float: f64,
+        float: f32,
     },
     Bool {
         val: bool,
     },
     String {
-        string: String,
+        string: &str,
     },
     MedioPago {
         id: i64,
-        medio: String,
+        medio: &str,
     },
     CajaParcial {
         id: i64,
         cierre: Option<NaiveDateTime>,
-        ventas_totales: f64,
-        cajero: Option<String>,
+        ventas_totales: f32,
+        cajero: Option<&str>,
     },
     Caja {
         id: i64,
         inicio: NaiveDateTime,
         cierre: Option<NaiveDateTime>,
-        monto_inicio: f64,
-        monto_cierre: Option<f64>,
-        ventas_totales: f64,
-        cajero: Option<String>,
+        monto_inicio: f32,
+        monto_cierre: Option<f32>,
+        ventas_totales: f32,
+        cajero: Option<&str>,
     },
     Cliente {
         id: i64,
-        nombre: String,
-        dni: i64,
-        limite: Option<f64>,
+        nombre: &str,
+        dni: i32,
+        limite: Option<f32>,
         activo: bool,
         time: NaiveDateTime,
     },
     Config {
         id: i64,
-        politica: f64,
-        formato: String,
-        mayus: String,
-        cantidad: i64,
+        politica: f32,
+        formato: &str,
+        mayus: &str,
+        cantidad: u8,
     },
     Prov {
         id: i64,
-        nombre: String,
+        nombre: &str,
         contacto: Option<i64>,
         updated: NaiveDateTime,
     },
@@ -507,83 +513,83 @@ pub enum Model {
     },
     Pesable {
         id: i64,
-        precio_peso: f64,
-        porcentaje: f64,
-        costo_kilo: f64,
-        descripcion: String,
+        precio_peso: f32,
+        porcentaje: f32,
+        costo_kilo: f32,
+        descripcion: &str,
         updated_at: NaiveDateTime,
     },
     RelatedPes {
         id: i64,
-        precio_peso: f64,
-        porcentaje: f64,
-        costo_kilo: f64,
-        descripcion: String,
+        precio_peso: f32,
+        porcentaje: f32,
+        costo_kilo: f32,
+        descripcion: &str,
         updated_at: NaiveDateTime,
-        cantidad: f64,
+        cantidad: f32,
     },
     Rubro {
         id: i64,
-        descripcion: String,
+        descripcion: &str,
         updated_at: NaiveDateTime,
     },
     RelatedRub {
         id: i64,
-        descripcion: String,
+        descripcion: &str,
         updated_at: NaiveDateTime,
-        cantidad: i64,
-        precio: f64,
+        cantidad: u8,
+        precio: f32,
     },
     Producto {
         id: i64,
-        precio_venta: f64,
-        porcentaje: f64,
-        precio_costo: f64,
-        tipo: String,
-        marca: String,
-        variedad: String,
-        presentacion: String,
-        size: f64,
+        precio_venta: f32,
+        porcentaje: f32,
+        precio_costo: f32,
+        tipo: &str,
+        marca: &str,
+        variedad: &str,
+        presentacion: &str,
+        size: f32,
         updated_at: NaiveDateTime,
     },
     RelatedProd {
         id: i64,
-        precio: f64,
-        porcentaje: f64,
-        precio_costo: f64,
-        tipo: String,
-        marca: String,
-        variedad: String,
-        presentacion: String,
-        size: f64,
-        cantidad: i64,
+        precio: f32,
+        porcentaje: f32,
+        precio_costo: f32,
+        tipo: &str,
+        marca: &str,
+        variedad: &str,
+        presentacion: &str,
+        size: f32,
+        cantidad: u8,
     },
     User {
         id: i64,
-        user_id: String,
-        nombre: String,
+        user_id: &str,
+        nombre: &str,
         pass: i64,
-        rango: String,
+        rango: &str,
     },
     Deuda {
         id: i64,
         cliente: i64,
         pago: i64,
-        monto: f64,
+        monto: f32,
     },
     Movimiento {
         id: i64,
         caja: i64,
         tipo: bool,
-        monto: f64,
-        descripcion: Option<String>,
+        monto: f32,
+        descripcion: Option<&str>,
         time: NaiveDateTime,
     },
     Pago {
         id: i64,
         medio_pago: i64,
-        monto: f64,
-        pagado: f64,
+        monto: f32,
+        pagado: f32,
         venta: i64,
     },
     RelacionProdProv {
@@ -596,36 +602,36 @@ pub enum Model {
         id: i64,
         venta: i64,
         pesable: i64,
-        cantidad: f64,
-        precio_kilo: f64,
+        cantidad: f32,
+        precio_kilo: f32,
     },
     RelacionVentaProd {
         id: i64,
         venta: i64,
         producto: i64,
-        cantidad: i64,
-        precio: f64,
+        cantidad: u8,
+        precio: f32,
     },
     RelacionVentaRub {
         id: i64,
         venta: i64,
         rubro: i64,
-        cantidad: i64,
-        precio: f64,
+        cantidad: u8,
+        precio: f32,
     },
     Venta {
         id: i64,
         time: NaiveDateTime,
-        monto_total: f64,
-        monto_pagado: f64,
+        monto_total: f32,
+        monto_pagado: f32,
         cliente: Option<i64>,
         cerrada: bool,
         paga: bool,
         pos: bool,
     },
     Total {
-        medio: String,
-        monto: f64,
+        medio: &str,
+        monto: f32,
     },
 }
 

@@ -1,9 +1,9 @@
-use std::fmt::Display;
 use super::{AppError, Res};
 use crate::db::Model;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
+use std::fmt::Display;
 use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -20,7 +20,7 @@ impl Proveedor {
         db: &Pool<Sqlite>,
     ) -> Res<Proveedor> {
         let qres: Option<Model> = sqlx::query_as!(
-            Model::Int,
+            Model::BigInt,
             "select id as int from proveedores where nombre = ?",
             nombre
         )

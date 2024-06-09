@@ -82,7 +82,7 @@ impl Caja {
                                 id + 1,
                                 Utc::now().naive_local(),
                                 None,
-                                *ventas_totales as f32,
+                                *ventas_totales,
                                 monto,
                                 None,
                                 cajero.as_ref().map(|c| Arc::from(c.as_str())),
@@ -172,7 +172,7 @@ impl Caja {
         self.monto_cierre = Some(monto);
         self.cierre = Some(Utc::now().naive_local());
         let res: sqlx::Result<Option<Model>> = sqlx::query_as!(
-            Model::Int,
+            Model::BigInt,
             "select id as int from cajas where id = ? limit 1",
             self.id
         )

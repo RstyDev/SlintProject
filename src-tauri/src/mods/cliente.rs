@@ -37,10 +37,13 @@ impl Cli {
         created: NaiveDateTime,
         limite: Option<f32>,
     ) -> Res<Cli> {
-        let model: Option<Model> =
-            sqlx::query_as!(Model::Cliente, "select * from clientes where dni = ? limit 1", dni)
-                .fetch_optional(db)
-                .await?;
+        let model: Option<Model> = sqlx::query_as!(
+            Model::Cliente,
+            "select * from clientes where dni = ? limit 1",
+            dni
+        )
+        .fetch_optional(db)
+        .await?;
         match model {
             Some(_) => {
                 return Err(AppError::ExistingError {
@@ -225,7 +228,7 @@ impl Cli {
                     } => monto_total - monto_pagado,
                     _ => panic!("se esperaba venta"),
                 })
-                .sum::<f64>() as f32;
+                .sum::<f32>();
         for model in qres {
             if monto_a_pagar <= 0.0 {
                 break;
@@ -264,8 +267,8 @@ impl Cli {
                                     break;
                                 }
                                 if pagado < monto {
-                                    if monto_a_pagar >= (monto - pagado) as f32 {
-                                        monto_a_pagar -= (monto - pagado) as f32;
+                                    if monto_a_pagar >= (monto - pagado) {
+                                        monto_a_pagar -= monto - pagado;
                                         completados += 1;
                                         sqlx::query("update pagos set pagado = ? where id =?")
                                             .bind(monto)
@@ -274,7 +277,7 @@ impl Cli {
                                             .await?;
                                     } else {
                                         sqlx::query("update pagos set pagado = ? where id = ?")
-                                            .bind(pagado + monto_a_pagar as f64)
+                                            .bind(pagado + monto_a_pagar)
                                             .bind(id)
                                             .execute(db)
                                             .await?;

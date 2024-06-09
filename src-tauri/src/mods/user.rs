@@ -1,9 +1,9 @@
-use std::fmt::Display;
 use super::{AppError, Res};
-use sqlx::{Pool,Sqlite};
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use crate::db::Model;
+use serde::{Deserialize, Serialize};
+use sqlx::{Pool, Sqlite};
+use std::fmt::Display;
+use std::sync::Arc;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     id: Arc<str>,
@@ -24,15 +24,26 @@ impl User {
         rango: &str,
         db: &Pool<Sqlite>,
     ) -> Res<User> {
-        let qres:Option<Model>=sqlx::query_as!(Model::Int,"select id as int from users where user_id = ?",id.to_string()).fetch_optional(db).await?;
-        match qres{
-            Some(_)=>Err(AppError::IncorrectError(String::from("Usuario existente"))),
-            None=>{
-                sqlx::query("insert into users values (?, ?, ?, ?)").bind(id.as_ref()).bind(nombre.as_ref()).bind(pass).bind(rango).execute(db).await?;
-                Ok(User::build(id,nombre,pass,rango))
+        let qres: Option<Model> = sqlx::query_as!(
+            Model::BigInt,
+            "select id as int from users where user_id = ?",
+            id.to_string()
+        )
+        .fetch_optional(db)
+        .await?;
+        match qres {
+            Some(_) => Err(AppError::IncorrectError(String::from("Usuario existente"))),
+            None => {
+                sqlx::query("insert into users values (?, ?, ?, ?)")
+                    .bind(id.as_ref())
+                    .bind(nombre.as_ref())
+                    .bind(pass)
+                    .bind(rango)
+                    .execute(db)
+                    .await?;
+                Ok(User::build(id, nombre, pass, rango))
             }
         }
-        
     }
     pub fn build(id: Arc<str>, nombre: Arc<str>, pass: i64, rango: &str) -> User {
         let rango = match rango {

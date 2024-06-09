@@ -88,7 +88,7 @@ impl Rubro {
     }
     pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
         let qres: Option<Model> = sqlx::query_as!(
-            Model::Int,
+            Model::BigInt,
             "select id as int from rubros where id = ?",
             self.id
         )
@@ -110,15 +110,19 @@ impl Rubro {
     }
     pub async fn editar(self, db: &Pool<Sqlite>) -> Res<()> {
         let qres: Option<Model> = sqlx::query_as!(
-            Model::Int,
+            Model::BigInt,
             "select id as int from rubros where id = ?",
             self.id
         )
         .fetch_optional(db)
         .await?;
-    match qres {
+        match qres {
             Some(_) => {
-                sqlx::query("update codigos set codigo = ? where rubro = ?").bind(self.codigo).bind(self.id).execute(db).await?;
+                sqlx::query("update codigos set codigo = ? where rubro = ?")
+                    .bind(self.codigo)
+                    .bind(self.id)
+                    .execute(db)
+                    .await?;
                 sqlx::query("update rubros set descripcion = ?, updated_at = ? where id = ?")
                     .bind(self.descripcion.as_ref())
                     .bind(Utc::now().naive_local())

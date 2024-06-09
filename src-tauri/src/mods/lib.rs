@@ -8,10 +8,7 @@ use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
 use Valuable as V;
 
-use super::{
-    AppError, Pesable, Producto, Proveedor,
-    RelacionProdProv, Res, Rubro, User,
-};
+use super::{AppError, Pesable, Producto, Proveedor, RelacionProdProv, Res, Rubro, User};
 use crate::db::Model;
 use crate::mods::valuable::Valuable;
 pub struct Db;
@@ -68,12 +65,12 @@ impl Db {
     pub async fn eliminar_usuario(user: User, db: &Pool<Sqlite>) -> Res<()> {
         let id = user.id();
         let qres: Option<Model> =
-            sqlx::query_as!(Model::Int, "select id as int from users where id = ?", id)
+            sqlx::query_as!(Model::BigInt, "select id as int from users where id = ?", id)
                 .fetch_optional(db)
                 .await?;
         match qres {
             Some(model) => match model {
-                Model::Int { int } => {
+                Model::BigInt { int } => {
                     sqlx::query("delete from users where id = ?")
                         .bind(int)
                         .execute(db)
@@ -128,7 +125,7 @@ impl Db {
         sqlx_codigos.execute(db).await?;
         Ok(())
     }
-    
+
     pub async fn cargar_todos_los_pesables(
         pesables: Vec<&Pesable>,
         db: &Pool<Sqlite>,

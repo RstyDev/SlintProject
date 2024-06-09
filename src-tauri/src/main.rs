@@ -22,7 +22,6 @@ pub fn db() -> Pool<Sqlite> {
         .expect("Error connectando a la DB")
 }
 
-
 // use mods::{
 //     cmd::*, Caja, Cli, Config, Pago, Rango, Result as Res, Sistema, User, Valuable as V, Venta,
 // };
@@ -473,7 +472,7 @@ fn main() {
         //     stash_n_close,
         //     unstash_sale,
         // ])
-         // .menu(menu)
+        // .menu(menu)
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
     // let window = app.get_window("main").unwrap();

@@ -305,10 +305,13 @@ impl<'a> Venta {
             self.cliente = Cliente::Final;
             Ok(())
         } else {
-            let qres: Option<Model> =
-                sqlx::query_as!(Model::Cliente, "select * from clientes where id = ? limit 1", id)
-                    .fetch_optional(db)
-                    .await?;
+            let qres: Option<Model> = sqlx::query_as!(
+                Model::Cliente,
+                "select * from clientes where id = ? limit 1",
+                id
+            )
+            .fetch_optional(db)
+            .await?;
             match qres {
                 Some(model) => match model {
                     Model::Cliente {
@@ -322,10 +325,10 @@ impl<'a> Venta {
                         self.cliente = Cliente::Regular(Cli::build(
                             id,
                             Arc::from(nombre),
-                            dni as i32,
+                            dni,
                             activo,
                             time,
-                            limite.map(|l| l as f32),
+                            limite,
                         ));
                         Ok(())
                     }
@@ -354,7 +357,7 @@ impl<'a> Venta {
     }
     pub async fn guardar(&self, pos: bool, db: &Pool<Sqlite>) -> Res<()> {
         let qres: Option<Model> = sqlx::query_as!(
-            Model::Int,
+            Model::BigInt,
             "select id as int from ventas where id = ?",
             self.id
         )
