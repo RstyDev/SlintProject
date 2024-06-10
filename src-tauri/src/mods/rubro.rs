@@ -1,9 +1,12 @@
 use super::{redondeo, valuable::ValuableTrait, AppError, Res};
-use crate::db::Model;
+use crate::db::{Model,map::CodeDB};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
+use crate::db::map::BigIntDB;
+
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
     id: i64,
@@ -27,8 +30,8 @@ impl Rubro {
         descripcion: &str,
         db: &Pool<Sqlite>,
     ) -> Res<Rubro> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::Code,
+        let qres: Option<CodeDB> = sqlx::query_as!(
+            CodeDB,
             "select * from codigos where codigo = ?",
             codigo
         )
@@ -87,8 +90,8 @@ impl Rubro {
         self.descripcion.to_string()
     }
     pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::BigInt,
+        let qres: Option<BigIntDB> = sqlx::query_as!(
+            BigIntDB,
             "select id as int from rubros where id = ?",
             self.id
         )
@@ -109,8 +112,8 @@ impl Rubro {
         }
     }
     pub async fn editar(self, db: &Pool<Sqlite>) -> Res<()> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::BigInt,
+        let qres: Option<BigIntDB> = sqlx::query_as!(
+            BigIntDB,
             "select id as int from rubros where id = ?",
             self.id
         )

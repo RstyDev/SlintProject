@@ -3,198 +3,119 @@ use crate::mods::{
 };
 use crate::mods::{Pago, Presentacion, Producto, Res, Venta};
 use chrono::NaiveDateTime;
-use sqlx::{query_as, Pool, Sqlite};
+use sqlx::{query_as, FromRow, Pool, Sqlite};
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::db;
+use crate::db::map::{BigIntDB, RelatedPesDB, CajaDB, RelatedProdDB, RelatedRubDB, TotalDB, VentaDB, PagoDB, ClienteDB, ConfigDB, MedioPagoDB, ProductoDB};
 
 #[derive(Clone)]
 pub struct Mapper;
 impl Mapper {
-    pub async fn caja(db: &Pool<Sqlite>, model_caja: Model) -> Res<Caja> {
-        let (id, inicio, cierre, monto_inicio, monto_cierre, ventas_totales, cajero) =
-            match model_caja {
-                Model::Caja {
-                    id,
-                    inicio,
-                    cierre,
-                    monto_inicio,
-                    monto_cierre,
-                    ventas_totales,
-                    cajero,
-                } => (
-                    id,
-                    inicio,
-                    cierre,
-                    monto_inicio,
-                    monto_cierre,
-                    ventas_totales,
-                    cajero,
-                ),
-                _ => return Err(AppError::IncorrectError("Imposible".to_string())),
-            };
-        let totales_mod: sqlx::Result<Vec<Model>> = query_as!(
-            Model::Total,
+    pub async fn caja(db: &Pool<Sqlite>, caja: CajaDB) -> Res<Caja> {
+        let totales_mod: sqlx::Result<Vec<TotalDB>> = query_as!(
+            TotalDB,
             "select medio, monto from totales where caja = ? ",
-            id
+            caja.id
         )
         .fetch_all(db)
         .await;
         let mut totales = HashMap::new();
         for tot in totales_mod? {
-            match tot {
-                Model::Total { medio, monto } => {
-                    totales.insert(Arc::from(medio), monto as f32);
-                }
-                _ => return Err(AppError::IncorrectError("Imposible".to_string())),
-            }
+            totales.insert(Arc::from(tot.medio), tot.monto);
         }
         Ok(Caja::build(
-            id,
-            inicio,
-            cierre,
-            ventas_totales as f32,
-            monto_inicio as f32,
-            monto_cierre.map(|m| m as f32),
-            cajero.map(|c| Arc::from(c.as_str())),
+            caja.id,
+            caja.inicio,
+            caja.cierre,
+            caja.ventas_totales,
+            caja.monto_inicio,
+            caja.monto_cierre,
+            caja.cajero.map(|c| Arc::from(c)),
             totales,
         ))
     }
-    pub async fn config(db: &Pool<Sqlite>, model: Model) -> Res<Config> {
-        match model {
-            Model::Config {
-                id: _,
-                politica,
-                formato,
-                mayus,
-                cantidad,
-            } => {
-                let medios: sqlx::Result<Vec<Model>> =
-                    sqlx::query_as!(Model::MedioPago, "select * from medios_pago ")
+    pub async fn config(db: &Pool<Sqlite>, config: ConfigDB) -> Res<Config> {
+
+                let medios: sqlx::Result<Vec<MedioPagoDB>> =
+                    sqlx::query_as!(MedioPagoDB, "select * from medios_pago ")
                         .fetch_all(db)
                         .await;
                 let medios = medios?
                     .iter()
-                    .map(|model| match model {
-                        Model::MedioPago { id: _, medio } => Arc::from(medio.to_owned()),
-                        _ => panic!("Se esperaba MedioPago"),
-                    })
+                    .map(|model| Arc::from(model.medio.to_owned()))
                     .collect::<Vec<Arc<str>>>();
                 Ok(Config::build(
-                    politica as f32,
-                    formato.as_str(),
-                    mayus.as_str(),
-                    cantidad as u8,
+                    config.politica,
+                    config.formato.as_str(),
+                    config.mayus.as_str(),
+                    config.cantidad,
                     medios,
                 ))
-            }
-            _ => Err(AppError::IncorrectError(String::from("Se esperaba config"))),
-        }
+
     }
-    pub async fn producto(db: &Pool<Sqlite>, model: Model) -> Res<Producto> {
-        match model {
-            Model::Producto {
-                id,
-                precio_venta,
-                porcentaje,
-                precio_costo,
-                tipo,
-                marca,
-                variedad,
-                presentacion,
-                size,
-                updated_at,
-            } => {
-                let models: sqlx::Result<Vec<Model>> = sqlx::query_as!(
-                    Model::BigInt,
+    pub async fn producto(db: &Pool<Sqlite>, prod: ProductoDB) -> Res<Producto> {
+
+        let models: sqlx::Result<Vec<BigIntDB>> = sqlx::query_as!(
+                    BigIntDB,
                     "select codigo as int from codigos where producto = ? limit 5",
-                    id
+                    prod.id
                 )
-                .fetch_all(db)
-                .await;
-                let codigos = models?
-                    .iter()
-                    .map(|model| match model {
-                        Model::BigInt { int } => *int,
-                        _ => panic!("Se esperaba codigo"),
-                    })
-                    .collect::<Vec<i64>>();
-                let presentacion = match presentacion.as_str() {
-                    "Gr" => Presentacion::Gr(size as f32),
-                    "Un" => Presentacion::Un(size as u16),
-                    "Lt" => Presentacion::Lt(size as f32),
-                    "Ml" => Presentacion::Ml(size as u16),
-                    "CC" => Presentacion::CC(size as u16),
-                    "Kg" => Presentacion::Kg(size as f32),
-                    a => return Err(AppError::SizeSelection(a.to_string())),
-                };
-                Ok(Producto::new(
-                    id,
-                    codigos,
-                    precio_venta as f32,
-                    porcentaje as f32,
-                    precio_costo as f32,
-                    tipo.as_str(),
-                    marca.as_str(),
-                    variedad.as_str(),
-                    presentacion,
-                ))
-            }
-            _ => Err(AppError::IncorrectError("Se esperaba Producto".to_string())),
-        }
+            .fetch_all(db)
+            .await;
+        let codigos = models?
+            .iter()
+            .map(|model| *model.int
+            )
+            .collect::<Vec<i64>>();
+        let presentacion = match prod.presentacion.as_str() {
+            "Gr" => Presentacion::Gr(prod.size),
+            "Un" => Presentacion::Un(prod.size as u16),
+            "Lt" => Presentacion::Lt(prod.size),
+            "Ml" => Presentacion::Ml(prod.size as u16),
+            "CC" => Presentacion::CC(prod.size as u16),
+            "Kg" => Presentacion::Kg(prod.size),
+            a => return Err(AppError::SizeSelection(a.to_string())),
+        };
+        Ok(Producto::new(
+            prod.id,
+            codigos,
+            prod.precio_venta,
+            prod.porcentaje,
+            prod.precio_costo,
+            prod.tipo.as_str(),
+            prod.marca.as_str(),
+            prod.variedad.as_str(),
+            presentacion,
+        ))
     }
-    pub async fn pago(db: &Pool<Sqlite>, model: Model) -> Res<Pago> {
-        match model {
-            Model::Pago {
-                id,
-                medio_pago,
-                monto,
-                pagado,
-                venta: _,
-            } => {
-                let medio: sqlx::Result<Option<Model>> = sqlx::query_as!(
-                    Model::MedioPago,
+    pub async fn pago(db: &Pool<Sqlite>, pago: PagoDB) -> Res<Pago> {
+        let medio: sqlx::Result<Option<MedioPagoDB>> = sqlx::query_as!(
+                    MedioPagoDB,
                     "select * from medios_pago where id = ? limit 1",
-                    medio_pago
+                    pago.medio_pago
                 )
-                .fetch_optional(db)
-                .await;
-                let int_id = id;
-                match medio? {
-                    Some(med) => match med {
-                        Model::MedioPago { id, medio } => Ok(Pago::build(
-                            int_id,
-                            MedioPago::build(medio.as_str(), id),
-                            monto as f32,
-                            pagado as f32,
-                        )),
-                        _ => Err(AppError::IncorrectError(String::from(
-                            "se esperaba MedioPago",
-                        ))),
-                    },
-                    None => Err(AppError::IncorrectError(String::from(
-                        "No se encontro el medio pago correspondiente",
-                    ))),
-                }
-            }
-            _ => Err(AppError::IncorrectError("Se esperaba Pago".to_string())),
+            .fetch_optional(db)
+            .await;
+        let int_id = pago.id;
+        match medio? {
+            Some(med) => Ok(Pago::build(
+                int_id,
+                MedioPago::build(medio.as_str(), med.id),
+                pago.monto,
+                pago.pagado,
+            )),
+            None => Err(AppError::IncorrectError(String::from(
+                "No se encontro el medio pago correspondiente",
+            ))),
         }
     }
-    pub async fn venta(db: &Pool<Sqlite>, model: Model, user: &Option<Arc<User>>) -> Res<Venta> {
-        match model {
-            Model::Venta {
-                id,
-                time,
-                monto_total,
-                monto_pagado,
-                cliente,
-                cerrada,
-                paga,
-                pos,
-            } => {
-                let qres:Vec<Model>=sqlx::query_as!(Model::RelatedProd,"select productos.id as id,
+    pub async fn venta(db: &Pool<Sqlite>, venta: VentaDB, user: &Option<Arc<User>>) -> Res<Venta> {
+        {
+                let qres:Vec<RelatedProdDB>=sqlx::query_as!(RelatedProdDB,"select productos.id as id,
                     precio, porcentaje, precio_costo, tipo, marca, variedad, presentacion, size, cantidad
                     from relacion_venta_prod inner join productos on relacion_venta_prod.id = productos.id where venta = ?
-                     ",id).fetch_all(db).await?;
+                     ",venta.id).fetch_all(db).await?;
                 let mut productos = Vec::new();
                 for model in qres {
                     match model {
@@ -210,8 +131,8 @@ impl Mapper {
                             size,
                             cantidad,
                         } => {
-                            let qres: Vec<Model> = sqlx::query_as!(
-                                Model::BigInt,
+                            let qres: Vec<BigIntDB> = sqlx::query_as!(
+                                BigIntDB,
                                 "select codigo as int from codigos where producto = ? limit 5",
                                 id
                             )
@@ -225,13 +146,13 @@ impl Mapper {
                                 })
                                 .collect::<Vec<i64>>();
                             productos.push(Valuable::Prod((
-                                cantidad as u8,
+                                cantidad,
                                 Producto::new(
                                     id,
                                     codes,
-                                    precio as f32,
-                                    porcentaje as f32,
-                                    precio_costo as f32,
+                                    precio,
+                                    porcentaje,
+                                    precio_costo,
                                     tipo.as_str(),
                                     marca.as_str(),
                                     variedad.as_str(),
@@ -246,10 +167,10 @@ impl Mapper {
                         }
                     }
                 }
-                let qres:Vec<Model>=sqlx::query_as!(Model::RelatedPes,"select pesables.id as id,
+                let qres:Vec<RelatedPesDB>=sqlx::query_as!(RelatedPesDB,"select pesables.id as id,
                     precio_peso, porcentaje, costo_kilo, descripcion, cantidad, updated_at
                     from relacion_venta_pes inner join pesables on relacion_venta_pes.id = pesables.id where venta = ?
-                     ",id).fetch_all(db).await?;
+                     ",venta.id).fetch_all(db).await?;
                 for model in qres {
                     match model {
                         Model::RelatedPes {
@@ -261,8 +182,8 @@ impl Mapper {
                             updated_at: _,
                             cantidad,
                         } => {
-                            let qres: Option<Model> = sqlx::query_as!(
-                                Model::BigInt,
+                            let qres: Option<BigIntDB> = sqlx::query_as!(
+                                BigIntDB,
                                 "select codigo as int from codigos where pesable = ? limit 1",
                                 id
                             )
@@ -271,14 +192,14 @@ impl Mapper {
                             match qres {
                                 Some(model) => match model {
                                     Model::BigInt { int } => productos.push(Valuable::Pes((
-                                        cantidad as f32,
+                                        cantidad,
                                         Pesable::build(
                                             id,
                                             int,
-                                            precio_peso as f32,
-                                            porcentaje as f32,
-                                            costo_kilo as f32,
-                                            descripcion.as_str(),
+                                            precio_peso,
+                                            porcentaje,
+                                            costo_kilo,
+                                            descripcion,
                                         ),
                                     ))),
                                     _ => {
@@ -301,9 +222,9 @@ impl Mapper {
                         }
                     }
                 }
-                let qres:Vec<Model>=sqlx::query_as!(Model::RelatedRub,"select rubros.id as id, descripcion, updated_at, cantidad, precio
+                let qres:Vec<RelatedRubDB>=sqlx::query_as!(RelatedRubDB,"select rubros.id as id, descripcion, updated_at, cantidad, precio
                     from relacion_venta_rub inner join rubros on relacion_venta_rub.id = rubros.id where venta = ?
-                     ",id).fetch_all(db).await?;
+                     ",venta.id).fetch_all(db).await?;
                 for model in qres {
                     match model {
                         Model::RelatedRub {
@@ -313,8 +234,8 @@ impl Mapper {
                             cantidad,
                             precio,
                         } => {
-                            let qres: Option<Model> = sqlx::query_as!(
-                                Model::BigInt,
+                            let qres: Option<BigIntDB> = sqlx::query_as!(
+                                BigIntDB,
                                 "select codigo as int from codigos where pesable = ? limit 1",
                                 id
                             )
@@ -323,11 +244,11 @@ impl Mapper {
                             match qres {
                                 Some(model) => match model {
                                     Model::BigInt { int } => productos.push(Valuable::Rub((
-                                        cantidad as u8,
+                                        cantidad,
                                         Rubro::build(
                                             id,
                                             int,
-                                            Some(precio as f32),
+                                            Some(precio),
                                             Arc::from(descripcion.as_str()),
                                         ),
                                     ))),
@@ -351,8 +272,8 @@ impl Mapper {
                         }
                     }
                 }
-                let qres: Vec<Model> =
-                    sqlx::query_as!(Model::Pago, "select * from pagos where venta = ? ", id)
+                let qres: Vec<PagoDB> =
+                    sqlx::query_as!(PagoDB, "select * from pagos where venta = ? ", venta.id)
                         .fetch_all(db)
                         .await?;
                 let mut pagos = Vec::new();
@@ -365,8 +286,8 @@ impl Mapper {
                             pagado,
                             venta: _,
                         } => {
-                            let qres: Option<Model> = sqlx::query_as!(
-                                Model::MedioPago,
+                            let qres: Option<MedioPago> = sqlx::query_as!(
+                                MedioPago,
                                 "select * from medios_pago where id = ? limit 1",
                                 medio_pago
                             )
@@ -389,17 +310,17 @@ impl Mapper {
                                     )))
                                 }
                             };
-                            pagos.push(Pago::build(id, medio, monto as f32, pagado as f32))
+                            pagos.push(Pago::build(id, medio, monto, pagado))
                         }
                         _ => {
                             return Err(AppError::IncorrectError(String::from("se esperaba pago")))
                         }
                     }
                 }
-                let qres: Option<Model> = sqlx::query_as!(
-                    Model::Cliente,
+                let qres: Option<ClienteDB> = sqlx::query_as!(
+                    ClienteDB,
                     "select * from clientes where id = ? limit 1",
-                    cliente
+                    venta.cliente
                 )
                 .fetch_optional(db)
                 .await?;
@@ -415,10 +336,10 @@ impl Mapper {
                         } => Cliente::Regular(Cli::build(
                             id,
                             Arc::from(nombre.as_str()),
-                            dni as i32,
+                            dni,
                             activo,
                             time,
-                            limite.map(|l| l as f32),
+                            limite,
                         )),
                         _ => {
                             return Err(AppError::IncorrectError(String::from(
@@ -429,215 +350,256 @@ impl Mapper {
                     None => Cliente::Final,
                 };
                 Ok(Venta::build(
-                    id,
-                    monto_total as f32,
+                    venta.id,
+                    venta.monto_total,
                     productos,
                     pagos,
-                    monto_pagado as f32,
+                    venta.monto_pagado,
                     user.clone(),
                     cliente,
-                    paga,
-                    cerrada,
-                    time,
+                    venta.paga,
+                    venta.cerrada,
+                    venta.time,
                 ))
-            }
-            _ => Err(AppError::IncorrectError("Se esperaba Venta".to_string())),
+
+
         }
     }
 }
-pub enum Model {
-    BigInt {
-        int: i64,
-    },
-    Int {
-        int: i32,
-    },
-    Double {
-        double: f64,
-    },
-    Float {
-        float: f32,
-    },
-    Bool {
-        val: bool,
-    },
-    String {
-        string: &str,
-    },
-    MedioPago {
-        id: i64,
-        medio: &str,
-    },
-    CajaParcial {
-        id: i64,
-        cierre: Option<NaiveDateTime>,
-        ventas_totales: f32,
-        cajero: Option<&str>,
-    },
-    Caja {
-        id: i64,
-        inicio: NaiveDateTime,
-        cierre: Option<NaiveDateTime>,
-        monto_inicio: f32,
-        monto_cierre: Option<f32>,
-        ventas_totales: f32,
-        cajero: Option<&str>,
-    },
-    Cliente {
-        id: i64,
-        nombre: &str,
-        dni: i32,
-        limite: Option<f32>,
-        activo: bool,
-        time: NaiveDateTime,
-    },
-    Config {
-        id: i64,
-        politica: f32,
-        formato: &str,
-        mayus: &str,
-        cantidad: u8,
-    },
-    Prov {
-        id: i64,
-        nombre: &str,
-        contacto: Option<i64>,
-        updated: NaiveDateTime,
-    },
-    Code {
-        id: i64,
-        codigo: i64,
-        producto: Option<i64>,
-        pesable: Option<i64>,
-        rubro: Option<i64>,
-    },
-    Pesable {
-        id: i64,
-        precio_peso: f32,
-        porcentaje: f32,
-        costo_kilo: f32,
-        descripcion: &str,
-        updated_at: NaiveDateTime,
-    },
-    RelatedPes {
-        id: i64,
-        precio_peso: f32,
-        porcentaje: f32,
-        costo_kilo: f32,
-        descripcion: &str,
-        updated_at: NaiveDateTime,
-        cantidad: f32,
-    },
-    Rubro {
-        id: i64,
-        descripcion: &str,
-        updated_at: NaiveDateTime,
-    },
-    RelatedRub {
-        id: i64,
-        descripcion: &str,
-        updated_at: NaiveDateTime,
-        cantidad: u8,
-        precio: f32,
-    },
-    Producto {
-        id: i64,
-        precio_venta: f32,
-        porcentaje: f32,
-        precio_costo: f32,
-        tipo: &str,
-        marca: &str,
-        variedad: &str,
-        presentacion: &str,
-        size: f32,
-        updated_at: NaiveDateTime,
-    },
-    RelatedProd {
-        id: i64,
-        precio: f32,
-        porcentaje: f32,
-        precio_costo: f32,
-        tipo: &str,
-        marca: &str,
-        variedad: &str,
-        presentacion: &str,
-        size: f32,
-        cantidad: u8,
-    },
-    User {
-        id: i64,
-        user_id: &str,
-        nombre: &str,
-        pass: i64,
-        rango: &str,
-    },
-    Deuda {
-        id: i64,
-        cliente: i64,
-        pago: i64,
-        monto: f32,
-    },
-    Movimiento {
-        id: i64,
-        caja: i64,
-        tipo: bool,
-        monto: f32,
-        descripcion: Option<&str>,
-        time: NaiveDateTime,
-    },
-    Pago {
-        id: i64,
-        medio_pago: i64,
-        monto: f32,
-        pagado: f32,
-        venta: i64,
-    },
-    RelacionProdProv {
-        id: i64,
-        producto: i64,
-        proveedor: i64,
-        codigo: i64,
-    },
-    RelacionVentaPes {
-        id: i64,
-        venta: i64,
-        pesable: i64,
-        cantidad: f32,
-        precio_kilo: f32,
-    },
-    RelacionVentaProd {
-        id: i64,
-        venta: i64,
-        producto: i64,
-        cantidad: u8,
-        precio: f32,
-    },
-    RelacionVentaRub {
-        id: i64,
-        venta: i64,
-        rubro: i64,
-        cantidad: u8,
-        precio: f32,
-    },
-    Venta {
-        id: i64,
-        time: NaiveDateTime,
-        monto_total: f32,
-        monto_pagado: f32,
-        cliente: Option<i64>,
-        cerrada: bool,
-        paga: bool,
-        pos: bool,
-    },
-    Total {
-        medio: &str,
-        monto: f32,
-    },
+
+pub mod map {
+    use chrono::NaiveDateTime;
+    use sqlx::FromRow;
+
+    #[derive(FromRow)]
+    pub struct BigIntDB {
+        pub int: i64,
+    }
+    #[derive(FromRow)]
+    pub struct IntDB {
+        pub int: i32,
+    }
+
+    #[derive(FromRow)]
+    pub struct DoubleDB {
+        pub double: f64,
+    }
+
+    #[derive(FromRow)]
+    pub struct FloatDB {
+        pub float: f32,
+    }
+
+    #[derive(FromRow)]
+    pub struct BoolDB {
+        pub val: bool,
+    }
+
+    #[derive(FromRow)]
+    pub struct StringDB<'a> {
+        pub string: &'a str,
+    }
+
+    #[derive(FromRow)]
+    pub struct MedioPagoDB<'a> {
+        pub id: i64,
+        pub medio: &'a str,
+    }
+    #[derive(FromRow)]
+    pub struct CajaParcialDB<'a> {
+        pub id: i64,
+        pub cierre: Option<NaiveDateTime>,
+        pub ventas_totales: f32,
+        pub cajero: Option<&'a str>,
+    }
+
+    #[derive(FromRow)]
+    pub struct CajaDB<'a> {
+        pub id: i64,
+        pub inicio: NaiveDateTime,
+        pub cierre: Option<NaiveDateTime>,
+        pub monto_inicio: f32,
+        pub monto_cierre: Option<f32>,
+        pub ventas_totales: f32,
+        pub cajero: Option<&'a str>,
+    }
+
+    #[derive(FromRow)]
+    pub struct ClienteDB<'a> {
+        pub id: i64,
+        pub nombre: &'a str,
+        pub dni: i32,
+        pub limite: Option<f32>,
+        pub activo: bool,
+        pub time: NaiveDateTime,
+    }
+    #[derive(FromRow)]
+    pub struct ConfigDB<'a> {
+        pub id: i64,
+        pub politica: f32,
+        pub formato: &'a str,
+        pub mayus: &'a str,
+        pub cantidad: u8,
+    }
+    #[derive(FromRow)]
+    pub struct ProvDB<'a> {
+        pub id: i64,
+        pub nombre: &'a str,
+        pub contacto: Option<i64>,
+        pub updated: NaiveDateTime,
+    }
+    #[derive(FromRow)]
+    pub struct CodeDB {
+        pub id: i64,
+        pub codigo: i64,
+        pub producto: Option<i64>,
+        pub pesable: Option<i64>,
+        pub rubro: Option<i64>,
+    }
+    #[derive(FromRow)]
+    pub struct PesableDB<'a> {
+        pub id: i64,
+        pub precio_peso: f32,
+        pub porcentaje: f32,
+        pub costo_kilo: f32,
+        pub descripcion: &'a str,
+        pub updated_at: NaiveDateTime,
+    }
+    #[derive(FromRow)]
+    pub struct RelatedPesDB<'a> {
+        pub id: i64,
+        pub precio_peso: f32,
+        pub porcentaje: f32,
+        pub costo_kilo: f32,
+        pub descripcion: &'a str,
+        pub updated_at: NaiveDateTime,
+        pub cantidad: f32,
+    }
+    #[derive(FromRow)]
+    pub struct RubroDB<'a> {
+        pub id: i64,
+        pub descripcion: &'a str,
+        pub updated_at: NaiveDateTime,
+    }
+    #[derive(FromRow)]
+    pub struct RelatedRubDB<'a> {
+        pub id: i64,
+        pub descripcion: &'a str,
+        pub updated_at: NaiveDateTime,
+        pub cantidad: u8,
+        pub precio: f32,
+    }
+    #[derive(FromRow)]
+    pub struct ProductoDB<'a> {
+        pub id: i64,
+        pub precio_venta: f32,
+        pub porcentaje: f32,
+        pub precio_costo: f32,
+        pub tipo: &'a str,
+        pub marca: &'a str,
+        pub variedad: &'a str,
+        pub presentacion: &'a str,
+        pub size: f32,
+        pub updated_at: NaiveDateTime,
+    }
+    #[derive(FromRow)]
+    pub struct RelatedProdDB<'a> {
+        pub id: i64,
+        pub precio: f32,
+        pub porcentaje: f32,
+        pub precio_costo: f32,
+        pub tipo: &'a str,
+        pub marca: &'a str,
+        pub variedad: &'a str,
+        pub presentacion: &'a str,
+        pub size: f32,
+        pub cantidad: u8,
+    }
+    #[derive(FromRow)]
+    pub struct UserDB<'a> {
+        pub id: i64,
+        pub user_id: &'a str,
+        pub nombre: &'a str,
+        pub pass: i64,
+        pub rango: &'a str,
+    }
+    #[derive(FromRow)]
+    pub struct DeudaDB {
+        pub id: i64,
+        pub cliente: i64,
+        pub pago: i64,
+        pub monto: f32,
+    }
+    #[derive(FromRow)]
+    pub struct MovimientoDB<'a> {
+        pub id: i64,
+        pub caja: i64,
+        pub tipo: bool,
+        pub monto: f32,
+        pub descripcion: Option<&'a str>,
+        pub time: NaiveDateTime,
+    }
+    #[derive(FromRow)]
+    pub struct PagoDB {
+        pub id: i64,
+        pub medio_pago: i64,
+        pub monto: f32,
+        pub pagado: f32,
+        pub venta: i64,
+    }
+    #[derive(FromRow)]
+    pub struct RelacionProdProvDB {
+        pub id: i64,
+        pub producto: i64,
+        pub proveedor: i64,
+        pub codigo: i64,
+    }
+    #[derive(FromRow)]
+    pub struct RelacionVentaPesDB {
+        pub id: i64,
+        pub venta: i64,
+        pub pesable: i64,
+        pub cantidad: f32,
+        pub precio_kilo: f32,
+    }
+    #[derive(FromRow)]
+    pub struct RelacionVentaProdDB {
+        pub id: i64,
+        pub venta: i64,
+        pub producto: i64,
+        pub cantidad: u8,
+        pub precio: f32,
+    }
+    #[derive(FromRow)]
+    pub struct RelacionVentaRubDB {
+        pub id: i64,
+        pub venta: i64,
+        pub rubro: i64,
+        pub cantidad: u8,
+        pub precio: f32,
+    }
+    #[derive(FromRow)]
+    pub struct VentaDB {
+        pub id: i64,
+        pub time: NaiveDateTime,
+        pub monto_total: f32,
+        pub monto_pagado: f32,
+        pub cliente: Option<i64>,
+        pub cerrada: bool,
+        pub paga: bool,
+        pub pos: bool,
+    }
+    #[derive(FromRow)]
+    pub struct TotalDB<'a> {
+        pub medio: &'a str,
+        pub monto: f32,
+    }
 }
 
+
 // async fn test(db: &Pool<Sqlite>){
-//     let res: sqlx::Result<Option<Model>> = query_as!(
-//         Model::Venta,
+//     let res: sqlx::Result<Option<Venta>> = query_as!(
+    //Venta,
 //         "select * from ventas").fetch_optional(db).await;
 //     let res= res.unwrap().unwrap();
 // }

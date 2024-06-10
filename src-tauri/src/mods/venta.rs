@@ -1,5 +1,5 @@
 use chrono::{NaiveDateTime, Utc};
-
+use crate::db::map::VentaDB;
 use serde::{Deserialize, Serialize};
 use sqlx::{query, Pool, Sqlite};
 use std::sync::Arc;
@@ -57,8 +57,8 @@ impl<'a> Venta {
         db: &Pool<Sqlite>,
         pos: bool,
     ) -> Res<Venta> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::Venta,
+        let qres: Option<VentaDB> = sqlx::query_as!(
+            VentaDB,
             "select * from ventas where pos = ? and cerrada = ?",
             pos,
             false

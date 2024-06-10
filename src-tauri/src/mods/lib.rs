@@ -7,6 +7,7 @@ use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
 use Valuable as V;
+use crate::db::map::BigIntDB;
 
 use super::{AppError, Pesable, Producto, Proveedor, RelacionProdProv, Res, Rubro, User};
 use crate::db::Model;
@@ -64,10 +65,13 @@ pub fn redondeo(politica: &f32, numero: f32) -> f32 {
 impl Db {
     pub async fn eliminar_usuario(user: User, db: &Pool<Sqlite>) -> Res<()> {
         let id = user.id();
-        let qres: Option<Model> =
-            sqlx::query_as!(Model::BigInt, "select id as int from users where id = ?", id)
-                .fetch_optional(db)
-                .await?;
+        let qres: Option<BigIntDB> = sqlx::query_as!(
+            BigIntDB,
+            "select id as int from users where id = ?",
+            id
+        )
+        .fetch_optional(db)
+        .await?;
         match qres {
             Some(model) => match model {
                 Model::BigInt { int } => {

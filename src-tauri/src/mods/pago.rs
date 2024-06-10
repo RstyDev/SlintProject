@@ -86,9 +86,9 @@ impl Pago {
     }
 }
 
-pub async fn medio_from_db(medio: &str, db: &Pool<Sqlite>) -> Model {
-    let model: sqlx::Result<Option<Model>> = sqlx::query_as!(
-        Model::MedioPago,
+pub async fn medio_from_db(medio: &str, db: &Pool<Sqlite>) -> MedioPago {
+    let model: sqlx::Result<Option<MedioPago>> = sqlx::query_as!(
+        MedioPago,
         "select * from medios_pago where medio = ? ",
         medio
     )

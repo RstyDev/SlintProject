@@ -5,6 +5,7 @@ use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
 
 use crate::db::{Mapper, Model};
+use crate::db::map::VentaDB;
 
 use super::{AppError, Res, User, Venta};
 
@@ -130,8 +131,8 @@ impl Cli {
         user: Option<Arc<User>>,
     ) -> Res<Vec<Venta>> {
         let mut ventas = Vec::new();
-        let qres: Vec<Model> = sqlx::query_as!(
-            Model::Venta,
+        let qres: Vec<VentaDB> = sqlx::query_as!(
+            VentaDB,
             "select * from ventas where cliente = ? and paga = ? ",
             self.id,
             false
@@ -139,19 +140,7 @@ impl Cli {
         .fetch_all(db)
         .await?;
         for model in qres {
-            match model {
-                Model::Venta {
-                    id: _,
-                    time: _,
-                    monto_total: _,
-                    monto_pagado: _,
-                    cliente: _,
-                    cerrada: _,
-                    paga: _,
-                    pos: _,
-                } => ventas.push(Mapper::venta(db, model, &user).await?),
-                _ => return Err(AppError::IncorrectError(String::from("se esperaba venta"))),
-            }
+            ventas.push(Mapper::venta(db, model, &user).await?)
         }
         Ok(ventas)
     }
@@ -162,8 +151,8 @@ impl Cli {
         venta: Venta,
         user: &Option<Arc<User>>,
     ) -> Res<Venta> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::Venta,
+        let qres: Option<VentaDB> = sqlx::query_as!(
+            VentaDB,
             "select * from ventas where id = ? and cliente = ? and paga = ? ",
             *venta.id(),
             id_cliente,
@@ -171,33 +160,21 @@ impl Cli {
         )
         .fetch_optional(db)
         .await?;
-        let model = match qres {
+        let venta = match qres {
             Some(model) => model,
             None => return Err(AppError::IncorrectError(String::from("Id inexistente"))),
         };
-        match model {
-            Model::Venta {
-                id,
-                time: _,
-                monto_total: _,
-                monto_pagado: _,
-                cliente,
-                cerrada: _,
-                paga: _,
-                pos: _,
-            } => {
-                if cliente.unwrap() == id_cliente {
-                    let venta = Mapper::venta(db, model, user).await?;
-                    sqlx::query!("update ventas set paga = ? where id = ? ", id, true)
+
+                if venta.cliente.unwrap() == id_cliente {
+                    let venta = Mapper::venta(db, venta, user).await?;
+                    sqlx::query!("update ventas set paga = ? where id = ? ", venta.id(), true)
                         .execute(db)
                         .await?;
                     Ok(venta)
                 } else {
                     Err(AppError::IncorrectError(String::from("Cliente Incorrecto")))
                 }
-            }
-            _ => Err(AppError::IncorrectError(String::from("se esperaba venta"))),
-        }
+
     }
     pub async fn pagar_deuda_general(
         id: i32,

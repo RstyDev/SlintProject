@@ -1,6 +1,6 @@
 use super::{
     crear_file, get_hash, leer_file, AppError, Caja, Cli, Config, Db, Mapper, Movimiento, Pago,
-    Pesable, Producto, Presentacion, Proveedor, Rango, RelacionProdProv, Res, Rubro, User,
+    Pesable, Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User,
     Valuable, ValuableTrait, Venta,
 };
 use crate::db::{fresh, Model};
@@ -11,6 +11,7 @@ use std::num::ParseIntError;
 use std::{collections::HashSet, env, sync::Arc};
 use tauri::{async_runtime, async_runtime::JoinHandle};
 use Valuable as V;
+use crate::db::map::{BigIntDB, ClienteDB, IntDB};
 
 const CUENTA: &str = "Cuenta Corriente";
 pub struct Sistema {
@@ -135,8 +136,8 @@ impl<'a> Sistema {
     }
     pub fn new(read_db: Arc<Pool<Sqlite>>, write_db: Arc<Pool<Sqlite>>) -> Res<Sistema> {
         async_runtime::block_on(async {
-            let qres: Option<Model> =
-                sqlx::query_as!(Model::Int, "select id as int from cajas limit 1")
+            let qres: Option<IntDB> =
+                sqlx::query_as!(IntDB, "select id as int from cajas limit 1")
                     .fetch_optional(read_db.as_ref())
                     .await?;
             if qres.is_none() {
@@ -238,8 +239,8 @@ impl<'a> Sistema {
             }
             return Ok(());
         });
-        let qres: Option<Model> =
-            sqlx::query_as!(Model::BigInt, "select id as int from users limit 1")
+        let qres: Option<BigIntDB> =
+            sqlx::query_as!(BigIntDB, "select id as int from users limit 1")
                 .fetch_optional(read_db.as_ref())
                 .await?;
         if qres.is_none() {
@@ -295,8 +296,8 @@ impl<'a> Sistema {
         let _: JoinHandle<Result<(), AppError>> = async_runtime::spawn(async move {
             let medios = [CUENTA, "Efectivo", "Crédito", "Débito"];
             for i in 0..medios.len() {
-                let qres: Option<Model> = sqlx::query_as!(
-                    Model::BigInt,
+                let qres: Option<BigIntDB> = sqlx::query_as!(
+                    BigIntDB,
                     "select id as int from medios_pago where medio = ? limit 1",
                     medios[i]
                 )
@@ -312,8 +313,8 @@ impl<'a> Sistema {
             }
             return Ok(());
         });
-        let qres: Option<Model> =
-            sqlx::query_as!(Model::BigInt, "select id as int from users limit 1")
+        let qres: Option<BigIntDB> =
+            sqlx::query_as!(BigIntDB, "select id as int from users limit 1")
                 .fetch_optional(read_db.as_ref())
                 .await?;
         if qres.is_none() {
@@ -332,7 +333,7 @@ impl<'a> Sistema {
     }
 
     pub async fn get_clientes(&self) -> Res<Vec<Cli>> {
-        let qres: Vec<Model> = sqlx::query_as!(Model::Cliente, "select * from clientes ")
+        let qres: Vec<ClienteDB> = sqlx::query_as!(ClienteDB, "select * from clientes ")
             .fetch_all(self.read_db())
             .await?;
         Ok(qres
@@ -358,8 +359,8 @@ impl<'a> Sistema {
             .collect::<Vec<Cli>>())
     }
     pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<Rango> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::User,
+        let qres: Option<User> = sqlx::query_as!(
+            User,
             "select * from users where user_id = ? and pass = ? limit 1",
             id.to_string(),
             pass
@@ -447,7 +448,20 @@ impl<'a> Sistema {
                                         presentacion,
                                         size,
                                         updated_at,
-                                    } => res.push(V::Prod((0, Producto::build(id,Vec::new(),precio_venta,porcentaje,precio_costo,tipo,marca,variedad,Presentacion::build(presentacion,size))))),
+                                    } => res.push(V::Prod((
+                                        0,
+                                        Producto::build(
+                                            id,
+                                            Vec::new(),
+                                            precio_venta,
+                                            porcentaje,
+                                            precio_costo,
+                                            tipo,
+                                            marca,
+                                            variedad,
+                                            Presentacion::build(presentacion, size),
+                                        ),
+                                    ))),
                                     _ => {
                                         return Err(AppError::IncorrectError(String::from(
                                             "se esperaba producto",
@@ -487,13 +501,30 @@ impl<'a> Sistema {
                                         )))
                                     }
                                 }
-                            }else if let Some(rub) = rubro {
-                                qres=sqlx::query_as!(Model::Rubro, "select * from rubros where id = ? ",rub).fetch_one(db).await?;
-                                match qres{
-                                    Model::Rubro { id, descripcion, updated_at }=>{
-                                        res.push(V::Rub((0,Rubro::build(id,codigo,None,Arc::from(descripcion)))));
-                                    },
-                                    _=>return Err(AppError::IncorrectError(String::From("se esperaba rubro")))
+                            } else if let Some(rub) = rubro {
+                                qres = sqlx::query_as!(
+                                    Model::Rubro,
+                                    "select * from rubros where id = ? ",
+                                    rub
+                                )
+                                .fetch_one(db)
+                                .await?;
+                                match qres {
+                                    Model::Rubro {
+                                        id,
+                                        descripcion,
+                                        updated_at,
+                                    } => {
+                                        res.push(V::Rub((
+                                            0,
+                                            Rubro::build(id, codigo, None, Arc::from(descripcion)),
+                                        )));
+                                    }
+                                    _ => {
+                                        return Err(AppError::IncorrectError(String::From(
+                                            "se esperaba rubro",
+                                        )))
+                                    }
                                 }
                             }
                         }
@@ -503,7 +534,52 @@ impl<'a> Sistema {
                     },
                 }
             }
-            Err(e) => {}
+            Err(e) => {
+                let filtros = filtro.split(' ').collect::<Vec<&str>>();
+                let mut query=String::from("select * from productos where (tipo like %?% or marca like %?% or presentacion like %?% or size like %?%)");
+                let row="and (tipo like %?% or marca like %?% or presentacion like %?% or size like %?%)";
+                for _ in 1..filtros.len() {
+                    query.push_str(row);
+                }
+                let mut qres = sqlx::query_as(query.as_ref());
+                for filtro in filtros {
+                    qres = qres.bind(filtro).bind(filtro).bind(filtro).bind(filtro);
+                }
+                let res = qres.fetch_all(db).await?;
+                for row in res {}
+                // tipo TEXT NOT NULL,
+                // marca TEXT NOT NULL,
+                // variedad TEXT NOT NULL,
+                // presentacion TEXT NOT NULL,
+                // size REAL NOT NULL
+
+                let mut res = Vec::new();
+                for i in 0..filtros.len() {
+                    if i == 0 {
+                        res = PesDB::Entity::find()
+                            .filter(PesDB::Column::Descripcion.contains(filtros[i]))
+                            .order_by_asc(PesDB::Column::Id)
+                            .limit(Some(*self.configs().cantidad_productos() as u64))
+                            .all(self.read_db())
+                            .await?;
+                    } else {
+                        res = res
+                            .iter()
+                            .cloned()
+                            .filter(|modelo| {
+                                modelo
+                                    .descripcion
+                                    .to_lowercase()
+                                    .contains(filtros[i].to_lowercase().as_str())
+                            })
+                            .take(*self.configs().cantidad_productos() as usize)
+                            .collect();
+                    }
+                }
+                for model in &res {
+                    prods.push((cant, Mapper::map_model_pes(model)));
+                }
+            }
         }
         res = self
             .prods_filtrado(filtro, db)

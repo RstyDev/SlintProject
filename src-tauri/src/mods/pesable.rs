@@ -1,5 +1,5 @@
 use super::{AppError, Res};
-use crate::db::Model;
+use crate::db::map::BigIntDB;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
@@ -40,7 +40,7 @@ impl Pesable {
         costo_kilo: f32,
         descripcion: &str,
     ) -> Res<Pesable> {
-        let qres:Option<Model>=sqlx::query_as!(Model::BigInt,"select pesables.id as int from codigos inner join pesables on codigos.pesable = pesables.id where codigo = ?",codigo).fetch_optional(db).await?;
+        let qres:Option<BigIntDB>=sqlx::query_as!(BigIntDB,"select pesables.id as int from codigos inner join pesables on codigos.pesable = pesables.id where codigo = ?",codigo).fetch_optional(db).await?;
         match qres {
             Some(model) => {
                 return Err(AppError::ExistingError {
@@ -88,8 +88,8 @@ impl Pesable {
         Arc::clone(&self.descripcion)
     }
     pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::BigInt,
+        let qres: Option<BigIntDB> = sqlx::query_as!(
+            BigIntDB,
             "select id as int from pesables where id = ?",
             self.id
         )
@@ -116,8 +116,8 @@ impl Pesable {
         self.descripcion.to_string()
     }
     pub async fn editar(self, db: &Pool<Sqlite>) -> Res<()> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::BigInt,
+        let qres: Option<BigIntDB> = sqlx::query_as!(
+            BigIntDB,
             "select id as int from pesables where id = ?",
             self.id
         )

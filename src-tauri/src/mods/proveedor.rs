@@ -1,5 +1,5 @@
 use super::{AppError, Res};
-use crate::db::Model;
+use crate::db::Model::BigInt;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
@@ -19,8 +19,8 @@ impl Proveedor {
         contacto: Option<i64>,
         db: &Pool<Sqlite>,
     ) -> Res<Proveedor> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::BigInt,
+        let qres: Option<BigInt> = sqlx::query_as!(
+            BigInt,
             "select id as int from proveedores where nombre = ?",
             nombre
         )
