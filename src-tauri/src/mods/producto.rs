@@ -1,9 +1,9 @@
 use super::{redondeo, AppError, Presentacion, Res, ValuableTrait};
+use crate::db::map::BigIntDB;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
-use crate::db::map::BigIntDB;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
@@ -110,7 +110,7 @@ impl Producto {
                     .execute(db)
                     .await?;
                 Ok(())
-            },
+            }
             None => Err(AppError::NotFound {
                 objeto: String::from("Producto"),
                 instancia: self.id.to_string(),
@@ -138,9 +138,7 @@ impl Producto {
         .await?;
         match qres {
             Some(model) => {
-                if self.precio_de_venta
-                    != self.precio_de_costo * (1.0 + self.porcentaje / 100.0)
-                {
+                if self.precio_de_venta != self.precio_de_costo * (1.0 + self.porcentaje / 100.0) {
                     return Err(AppError::IncorrectError(String::from(
                         "Cálculo de precio incorrecto",
                     )));
@@ -149,7 +147,7 @@ impl Producto {
                     "update productos set precio_venta = ?, porcentaje = ?, precio_costo = ?, tipo = ?, marca = ?, variedad = ?, presentacion = ?, size = ?, updated_at = ? where id = ?")
                     .bind(self.precio_de_venta).bind(self.porcentaje).bind(self.precio_de_costo).bind(self.tipo_producto.as_ref()).bind(self.marca.as_ref()).bind(self.variedad.as_ref()).bind(self.presentacion.get_string()).bind(self.presentacion.get_cantidad()).bind(Utc::now().naive_local()).bind(model.int).execute(db).await?;
                 Ok(())
-            },
+            }
             None => Err(AppError::NotFound {
                 objeto: String::from("Producto"),
                 instancia: self.id.to_string(),

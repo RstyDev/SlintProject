@@ -75,7 +75,7 @@ impl Db {
                     .execute(db)
                     .await?;
                 Ok(())
-            },
+            }
             None => Err(AppError::NotFound {
                 objeto: String::from("Usuario"),
                 instancia: user.id().to_string(),

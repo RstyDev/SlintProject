@@ -1,7 +1,4 @@
-use crate::db::map::{
-    BigIntDB, CajaDB, ClienteDB, ConfigDB, MedioPagoDB, PagoDB, ProductoDB, RelatedPesDB,
-    RelatedProdDB, RelatedRubDB, TotalDB, VentaDB,
-};
+use crate::db::map::{BigIntDB, CajaDB, ClienteDB, ConfigDB, MedioPagoDB, PagoDB, ProductoDB, RelatedPesDB, RelatedProdDB, RelatedRubDB, TotalDB, VentaDB};
 use crate::mods::{
     AppError, Caja, Cli, Cliente, Config, MedioPago, Pesable, Rubro, User, Valuable,
 };
@@ -13,7 +10,7 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct Mapper;
 impl Mapper {
-    pub async fn caja(db: &Pool<Sqlite>, caja: CajaParcialDB) -> Res<Caja> {
+    pub async fn caja(db: &Pool<Sqlite>, caja: CajaDB) -> Res<Caja> {
         let totales_mod: sqlx::Result<Vec<TotalDB>> = query_as!(
             TotalDB,
             "select medio, monto from totales where caja = ? ",
@@ -200,14 +197,13 @@ impl Mapper {
                     .await?;
             let mut pagos = Vec::new();
             for pago in qres {
-
                 let qres: Option<MedioPagoDB> = sqlx::query_as!(
-                            MedioPagoDB,
-                            "select * from medios_pago where id = ? limit 1",
-                            pago.medio_pago
-                        )
-                    .fetch_optional(db)
-                    .await?;
+                    MedioPagoDB,
+                    "select * from medios_pago where id = ? limit 1",
+                    pago.medio_pago
+                )
+                .fetch_optional(db)
+                .await?;
                 let medio = match qres {
                     Some(medio_p) => MedioPago::build(medio_p.medio, medio_p.id),
                     None => {
@@ -361,6 +357,16 @@ pub mod map {
         pub cantidad: f32,
     }
     #[derive(FromRow)]
+    pub struct CodedPesDB<'a>{
+        pub id: i64,
+        pub precio_peso: f32,
+        pub codigo: i64,
+        pub porcentaje: f32,
+        pub costo_kilo: f32,
+        pub descripcion: &'a str,
+        pub updated_at: NaiveDateTime,
+    }
+    #[derive(FromRow)]
     pub struct RubroDB<'a> {
         pub id: i64,
         pub descripcion: &'a str,
@@ -372,6 +378,14 @@ pub mod map {
         pub descripcion: &'a str,
         pub updated_at: NaiveDateTime,
         pub cantidad: u8,
+        pub precio: f32,
+    }
+    #[derive(FromRow)]
+    pub struct CodedRubDB<'a>{
+        pub id: i64,
+        pub descripcion: &'a str,
+        pub updated_at: NaiveDateTime,
+        pub codigo: i64,
         pub precio: f32,
     }
     #[derive(FromRow)]

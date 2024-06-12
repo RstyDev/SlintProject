@@ -117,10 +117,7 @@ impl Cli {
         )
         .fetch_all(db)
         .await;
-        Ok(model?
-            .iter()
-            .map(|e| e.float)
-            .sum::<f32>())
+        Ok(model?.iter().map(|e| e.float).sum::<f32>())
     }
     pub async fn get_deuda_detalle(
         &self,
@@ -195,18 +192,16 @@ impl Cli {
                 break;
             }
 
-
             let models: Vec<PagoDB> = sqlx::query_as!(
-                        PagoDB,
-                        "select * from pagos where venta = ? and medio_pago = ? ",
-                        venta.id,
-                        0
-                    )
-                .fetch_all(db)
-                .await?;
+                PagoDB,
+                "select * from pagos where venta = ? and medio_pago = ? ",
+                venta.id,
+                0
+            )
+            .fetch_all(db)
+            .await?;
             let mut completados: u8 = 0;
             for i in 0..models.len() {
-
                 if monto_a_pagar <= 0.0 {
                     break;
                 }

@@ -3,8 +3,8 @@ use super::{
     Pesable, Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User,
     Valuable, ValuableTrait, Venta,
 };
-use crate::db::map::{BigIntDB, ClienteDB, CodeDB, IntDB, PesableDB, ProductoDB, RubroDB, UserDB};
 use crate::db::fresh;
+use crate::db::map::{BigIntDB, ClienteDB, CodeDB, CodedPesDB, CodedRubDB, IntDB, PesableDB, ProductoDB, RelatedPesDB, RubroDB, UserDB};
 use chrono::Utc;
 use dotenvy::dotenv;
 use sqlx::{Pool, Sqlite, SqlitePool};
@@ -337,14 +337,16 @@ impl<'a> Sistema {
             .await?;
         Ok(qres
             .iter()
-            .map(|cli| Cli::build(
-                *cli.id,
-                Arc::from(cli.nombre),
-                *cli.dni,
-                *cli.activo,
-                *cli.time,
-                cli.limite,
-            ))
+            .map(|cli| {
+                Cli::build(
+                    *cli.id,
+                    Arc::from(cli.nombre),
+                    *cli.dni,
+                    *cli.activo,
+                    *cli.time,
+                    cli.limite,
+                )
+            })
             .collect::<Vec<Cli>>())
     }
     pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<Rango> {
@@ -382,7 +384,7 @@ impl<'a> Sistema {
                     b: Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
                 };
                 Ok(self.user().unwrap().rango().clone())
-            },
+            }
         }
     }
     pub async fn val_filtrado(
@@ -400,15 +402,14 @@ impl<'a> Sistema {
                 match qres {
                     None => return Ok(res),
                     Some(code) => {
-
                         if let Some(prod) = code.producto {
-                            let prod:ProductoDB = sqlx::query_as!(
-                                    ProductoDB,
-                                    "select * from productos where id = ?",
-                                    prod
-                                )
-                                .fetch_one(db)
-                                .await?;
+                            let prod: ProductoDB = sqlx::query_as!(
+                                ProductoDB,
+                                "select * from productos where id = ?",
+                                prod
+                            )
+                            .fetch_one(db)
+                            .await?;
                             res.push(V::Prod((
                                 0,
                                 Producto::build(
@@ -424,13 +425,13 @@ impl<'a> Sistema {
                                 ),
                             )))
                         } else if let Some(pes) = code.pesable {
-                            let pes:PesableDB = sqlx::query_as!(
-                                    PesableDB,
-                                    "select * from pesables where id = ?",
-                                    pes
-                                )
-                                .fetch_one(db)
-                                .await?;
+                            let pes: PesableDB = sqlx::query_as!(
+                                PesableDB,
+                                "select * from pesables where id = ?",
+                                pes
+                            )
+                            .fetch_one(db)
+                            .await?;
                             res.push(V::Pes((
                                 0.0,
                                 Pesable::build(
@@ -443,25 +444,22 @@ impl<'a> Sistema {
                                 ),
                             )))
                         } else if let Some(rub) = code.rubro {
-                            let rub:RubroDB = sqlx::query_as!(
-                                    RubroDB,
-                                    "select * from rubros where id = ? ",
-                                    rub
-                                )
-                                .fetch_one(db)
-                                .await?;
+                            let rub: RubroDB =
+                                sqlx::query_as!(RubroDB, "select * from rubros where id = ? ", rub)
+                                    .fetch_one(db)
+                                    .await?;
                             res.push(V::Rub((
                                 0,
-                                Rubro::build(rub.id, code.codigo, None, Arc::from(rub.descripcion)),
+                                Rubro::build(rub.id, code.codigo, None, rub.descripcion),
                             )));
                         }
-                    },
+                    }
                 }
             }
             Err(e) => {
                 let filtros = filtro.split(' ').collect::<Vec<&str>>();
                 let mut query=String::from("select * from productos where (tipo like %?% or marca like %?% or presentacion like %?% or size like %?%)");
-                let row="and (tipo like %?% or marca like %?% or presentacion like %?% or size like %?%)";
+                let row=" and (tipo like %?% or marca like %?% or presentacion like %?% or size like %?%)";
                 for _ in 1..filtros.len() {
                     query.push_str(row);
                 }
@@ -469,42 +467,50 @@ impl<'a> Sistema {
                 for filtro in filtros {
                     qres = qres.bind(filtro).bind(filtro).bind(filtro).bind(filtro);
                 }
-                let res:Vec<ProductoDB> = qres.fetch_all(db).await?;
-                for prod in res {
-
+                let qres: Vec<ProductoDB> = qres.fetch_all(db).await?;
+                res.append(
+                    &mut qres
+                        .iter()
+                        .map(|prod| {
+                            V::Prod((
+                                0,
+                                Producto::build(
+                                    prod.id,
+                                    vec![],
+                                    prod.precio_venta,
+                                    prod.porcentaje,
+                                    prod.precio_costo,
+                                    prod.tipo,
+                                    prod.marca,
+                                    prod.variedad,
+                                    Presentacion::build(prod.presentacion, prod.size),
+                                ),
+                            ))
+                        })
+                        .collect::<Vec<V>>(),
+                );
+                let mut query=String::from("select id, precio_peso, codigo, porcentaje, costo_kilo, descripcion, updated_at, from pesables inner join codigos on pesables.id = codigos.pesable where descripcion like %?%");
+                let row= " and descripcion like %?%";
+                for _ in 1..filtros.len(){
+                    query.push_str(row);
                 }
-                // tipo TEXT NOT NULL,
-                // marca TEXT NOT NULL,
-                // variedad TEXT NOT NULL,
-                // presentacion TEXT NOT NULL,
-                // size REAL NOT NULL
-
-                let mut res = Vec::new();
-                for i in 0..filtros.len() {
-                    if i == 0 {
-                        res = PesDB::Entity::find()
-                            .filter(PesDB::Column::Descripcion.contains(filtros[i]))
-                            .order_by_asc(PesDB::Column::Id)
-                            .limit(Some(*self.configs().cantidad_productos() as u64))
-                            .all(self.read_db())
-                            .await?;
-                    } else {
-                        res = res
-                            .iter()
-                            .cloned()
-                            .filter(|modelo| {
-                                modelo
-                                    .descripcion
-                                    .to_lowercase()
-                                    .contains(filtros[i].to_lowercase().as_str())
-                            })
-                            .take(*self.configs().cantidad_productos() as usize)
-                            .collect();
-                    }
+                let mut qres= sqlx::query_as(query.as_str());
+                for filtro in filtros{
+                    qres=qres.bind(filtro);
                 }
-                for model in &res {
-                    prods.push((cant, Mapper::map_model_pes(model)));
+                let qres:Vec<CodedPesDB>=qres.fetch_all(db).await?;
+                res.append(&mut qres.iter().map(|pes|V::Pes((0.0,Pesable::build(pes.id,pes.codigo,pes.precio_peso,pes.porcentaje,pes.costo_kilo,pes.descripcion)))).collect::<Vec<V>>());
+                let mut query=String::from("select id, descripcion, updated_at, codigo, precio from rubros inner join codigos on rubros.id = codigos.rubro where descripcion like %?%");
+                let row= " and descripcion like %?%";
+                for _ in 1..filtros.len(){
+                    query.push_str(row);
                 }
+                let mut qres= sqlx::query_as(query.as_str());
+                for filtro in filtros{
+                    qres= qres.bind(filtro);
+                }
+                let qres:Vec<CodedRubDB>=qres.fetch_all(db).await?;
+                res.append(&mut qres.iter().map(|rub|V::Rub((0,Rubro::build(rub.id,rub.codigo,None,rub.descripcion)))).collect::<Vec<V>>());
             }
         }
         res = self
@@ -541,205 +547,7 @@ impl<'a> Sistema {
     pub fn cerrar_sesion(&mut self) {
         self.user = None;
     }
-    pub async fn pes_filtrado(
-        &self,
-        filtro: &str,
-        db: &Pool<Sqlite>,
-    ) -> Result<Vec<(f32, Pesable)>, AppError> {
-        let (cant, filtro) = Sistema::splitx(filtro)?;
-        let mut prods = Vec::new();
-        match filtro.parse::<i64>() {
-            Ok(code) => {
-                let qres: Option<Model> = sqlx::query_as!(
-                    Model::Code,
-                    "select * from codigos where codigo = ? limit 1",
-                    code
-                )
-                .fetch_optional(db)
-                .await?;
-                match qres {
-                    None => {}
-                    Some(model) => match model {
-                        Model::Code {
-                            id,
-                            codigo,
-                            producto,
-                            pesable,
-                            rubro,
-                        } => {}
-                        _ => {
-                            return Err(AppError::IncorrectError(String::from("se esperaba code")))
-                        }
-                    },
-                }
-                if let Some(model) = PesDB::Entity::find()
-                    .filter(PesDB::Column::Codigo.eq(code))
-                    .one(db)
-                    .await?
-                {
-                    prods.push((cant, Mapper::map_model_pes(&model)))
-                }
-            }
-            Err(_) => {
-                let filtros = filtro.split(' ').collect::<Vec<&str>>();
 
-                let mut res = Vec::new();
-                for i in 0..filtros.len() {
-                    if i == 0 {
-                        res = PesDB::Entity::find()
-                            .filter(PesDB::Column::Descripcion.contains(filtros[i]))
-                            .order_by_asc(PesDB::Column::Id)
-                            .limit(Some(*self.configs().cantidad_productos() as u64))
-                            .all(self.read_db())
-                            .await?;
-                    } else {
-                        res = res
-                            .iter()
-                            .cloned()
-                            .filter(|modelo| {
-                                modelo
-                                    .descripcion
-                                    .to_lowercase()
-                                    .contains(filtros[i].to_lowercase().as_str())
-                            })
-                            .take(*self.configs().cantidad_productos() as usize)
-                            .collect();
-                    }
-                }
-                for model in &res {
-                    prods.push((cant, Mapper::map_model_pes(model)));
-                }
-            }
-        }
-        Ok(prods.to_owned())
-    }
-    pub async fn rub_filtrado(
-        &self,
-        filtro: &str,
-        db: &DatabaseConnection,
-    ) -> Result<Vec<(u8, Rubro)>, AppError> {
-        let mut prods = Vec::new();
-        let (cant, filtro) = Sistema::splitx(filtro)?;
-        match filtro.parse::<i32>() {
-            Ok(code) => {
-                if let Some(model) = RubDB::Entity::find()
-                    .filter(RubDB::Column::Codigo.eq(code))
-                    .one(db)
-                    .await?
-                {
-                    prods.push((cant as u8, Mapper::map_model_rub(&model, 0.0)))
-                }
-            }
-            Err(_) => {
-                let filtros = filtro.split(' ').collect::<Vec<&str>>();
-                let mut res = Vec::new();
-                for i in 0..filtros.len() {
-                    if i == 0 {
-                        res = RubDB::Entity::find()
-                            .filter(RubDB::Column::Descripcion.contains(filtros[i]))
-                            .order_by_asc(RubDB::Column::Id)
-                            .limit(Some(*self.configs().cantidad_productos() as u64))
-                            .all(self.read_db())
-                            .await?;
-                    } else {
-                        res = res
-                            .iter()
-                            .cloned()
-                            .filter(|modelo| {
-                                modelo
-                                    .descripcion
-                                    .to_lowercase()
-                                    .contains(filtros[i].to_lowercase().as_str())
-                            })
-                            .take(*self.configs().cantidad_productos() as usize)
-                            .collect();
-                    }
-                }
-                for model in &res {
-                    prods.push((cant as u8, Mapper::map_model_rub(model, 0.0)));
-                }
-            }
-        }
-        Ok(prods)
-    }
-    pub async fn prods_filtrado(
-        &self,
-        filtro: &str,
-        db: &DatabaseConnection,
-    ) -> Result<Vec<(u8, Producto)>, AppError> {
-        let (cant, filtro) = Sistema::splitx(filtro)?;
-        let mut prods = Vec::new();
-        match filtro.parse::<f32>() {
-            Ok(code) => {
-                if let Some(id) = CodeDB::Entity::find()
-                    .filter(CodeDB::Column::Codigo.eq(code))
-                    .one(db)
-                    .await?
-                {
-                    prods.push({
-                        let model = ProdDB::Entity::find_by_id(id.producto)
-                            .one(db)
-                            .await?
-                            .unwrap();
-                        (
-                            cant as u8,
-                            Mapper::map_model_prod(&model, db)
-                                .await?
-                                .redondear(&self.configs().politica()),
-                        )
-                    })
-                }
-            }
-            Err(_) => {
-                let mut res = Vec::new();
-                let filtros = filtro.split(' ').collect::<Vec<&str>>();
-                for i in 0..filtros.len() {
-                    if i == 0 {
-                        res = ProdDB::Entity::find()
-                            .filter(
-                                Condition::any()
-                                    .add(ProdDB::Column::Marca.contains(filtros[i]))
-                                    .add(ProdDB::Column::TipoProducto.contains(filtros[i]))
-                                    .add(ProdDB::Column::Variedad.contains(filtros[i])),
-                            )
-                            .order_by_asc(ProdDB::Column::Id)
-                            .limit(Some(*self.configs().cantidad_productos() as u64))
-                            .all(self.read_db())
-                            .await?;
-                    } else {
-                        res = res
-                            .iter()
-                            .cloned()
-                            .filter(|modelo| {
-                                modelo
-                                    .marca
-                                    .to_lowercase()
-                                    .contains(filtros[i].to_lowercase().as_str())
-                                    || modelo
-                                        .variedad
-                                        .to_lowercase()
-                                        .contains(filtros[i].to_lowercase().as_str())
-                                    || modelo
-                                        .tipo_producto
-                                        .to_lowercase()
-                                        .contains(filtros[i].to_lowercase().as_str())
-                            })
-                            .take(*self.configs().cantidad_productos() as usize)
-                            .collect();
-                    }
-                }
-                for model in &res {
-                    prods.push((
-                        cant as u8,
-                        Mapper::map_model_prod(model, self.read_db())
-                            .await?
-                            .redondear(&self.configs().politica()),
-                    ));
-                }
-            }
-        }
-        Ok(prods)
-    }
     fn splitx(filtro: &str) -> Res<(f32, &str)> {
         let partes = filtro.split('*').collect::<Vec<&str>>();
         match partes.len() {

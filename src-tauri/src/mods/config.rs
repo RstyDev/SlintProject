@@ -1,9 +1,9 @@
 use super::Res;
+use crate::db::map::{ConfigDB, MedioPagoDB};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;
 use std::sync::Arc;
-use crate::db::map::{ConfigDB, MedioPagoDB};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -16,10 +16,9 @@ pub struct Config {
 
 impl Config {
     pub async fn get_or_def(db: &Pool<Sqlite>) -> Res<Config> {
-        let res: Option<ConfigDB> =
-            sqlx::query_as!(ConfigDB, "select * from config limit 1")
-                .fetch_optional(db)
-                .await?;
+        let res: Option<ConfigDB> = sqlx::query_as!(ConfigDB, "select * from config limit 1")
+            .fetch_optional(db)
+            .await?;
         match res {
             Some(conf) => {
                 let medios: sqlx::Result<Vec<MedioPagoDB>> =

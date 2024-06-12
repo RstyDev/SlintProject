@@ -15,12 +15,12 @@ pub struct Rubro {
 }
 
 impl Rubro {
-    pub fn build(id: i64, codigo: i64, monto: Option<f32>, descripcion: Arc<str>) -> Rubro {
+    pub fn build(id: i64, codigo: i64, monto: Option<f32>, descripcion: &str) -> Rubro {
         Rubro {
             id,
             codigo,
             monto,
-            descripcion,
+            descripcion: Arc::from(descripcion),
         }
     }
     pub async fn new_to_db(

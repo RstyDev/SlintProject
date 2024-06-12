@@ -1,10 +1,10 @@
 use super::{AppError, Res};
+use crate::db::map::BigIntDB;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;
 use std::sync::Arc;
-use crate::db::map::BigIntDB;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {

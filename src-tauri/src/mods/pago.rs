@@ -1,9 +1,9 @@
+use crate::db::map::MedioPagoDB;
 use rand::random;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
 use tauri::async_runtime;
-use crate::db::map::MedioPagoDB;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MedioPago {
@@ -67,7 +67,7 @@ impl Pago {
         &self.pagado
     }
     pub fn def(db: &Pool<Sqlite>) -> Self {
-        let medio= async_runtime::block_on(medio_from_db("Efectivo", db));
+        let medio = async_runtime::block_on(medio_from_db("Efectivo", db));
 
         let medio_pago = MedioPago {
             medio: Arc::from(medio.medio),

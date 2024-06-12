@@ -2,9 +2,9 @@ use chrono::{NaiveDateTime, Utc};
 use core::fmt;
 use sqlx::{query_as, Pool, Sqlite};
 
+use crate::db::map::{BigIntDB, CajaParcialDB};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
-use crate::db::map::{BigIntDB, CajaParcialDB};
 
 use crate::db::Mapper;
 
