@@ -1,5 +1,6 @@
 use chrono::Utc;
 
+use crate::db::map::BigIntDB;
 use serde::{de::DeserializeOwned, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::collections::hash_map::DefaultHasher;
@@ -7,10 +8,8 @@ use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
 use Valuable as V;
-use crate::db::map::BigIntDB;
 
 use super::{AppError, Pesable, Producto, Proveedor, RelacionProdProv, Res, Rubro, User};
-use crate::db::Model;
 use crate::mods::valuable::Valuable;
 pub struct Db;
 pub struct Mapper;
@@ -65,23 +64,17 @@ pub fn redondeo(politica: &f32, numero: f32) -> f32 {
 impl Db {
     pub async fn eliminar_usuario(user: User, db: &Pool<Sqlite>) -> Res<()> {
         let id = user.id();
-        let qres: Option<BigIntDB> = sqlx::query_as!(
-            BigIntDB,
-            "select id as int from users where id = ?",
-            id
-        )
-        .fetch_optional(db)
-        .await?;
+        let qres: Option<BigIntDB> =
+            sqlx::query_as!(BigIntDB, "select id as int from users where id = ?", id)
+                .fetch_optional(db)
+                .await?;
         match qres {
-            Some(model) => match model {
-                Model::BigInt { int } => {
-                    sqlx::query("delete from users where id = ?")
-                        .bind(int)
-                        .execute(db)
-                        .await?;
-                    Ok(())
-                }
-                _ => Err(AppError::IncorrectError(String::from("se esperaba Int"))),
+            Some(model) => {
+                sqlx::query("delete from users where id = ?")
+                    .bind(model.int)
+                    .execute(db)
+                    .await?;
+                Ok(())
             },
             None => Err(AppError::NotFound {
                 objeto: String::from("Usuario"),

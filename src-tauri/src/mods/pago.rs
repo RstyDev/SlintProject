@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
 use tauri::async_runtime;
+use crate::db::map::MedioPagoDB;
 
-use crate::db::Model;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MedioPago {
     medio: Arc<str>,
@@ -67,28 +67,25 @@ impl Pago {
         &self.pagado
     }
     pub fn def(db: &Pool<Sqlite>) -> Self {
-        match async_runtime::block_on(medio_from_db("Efectivo", db)) {
-            Model::MedioPago { id, medio } => {
-                let medio_pago = MedioPago {
-                    medio: Arc::from(medio),
-                    id,
-                };
-                let int_id = random();
-                Pago {
-                    medio_pago,
-                    monto: 0.0,
-                    int_id,
-                    pagado: 0.0,
-                }
-            }
-            _ => panic!("Se esperaba MedioPago"),
+        let medio= async_runtime::block_on(medio_from_db("Efectivo", db));
+
+        let medio_pago = MedioPago {
+            medio: Arc::from(medio.medio),
+            id,
+        };
+        let int_id = random();
+        Pago {
+            medio_pago,
+            monto: 0.0,
+            int_id,
+            pagado: 0.0,
         }
     }
 }
 
-pub async fn medio_from_db(medio: &str, db: &Pool<Sqlite>) -> MedioPago {
-    let model: sqlx::Result<Option<MedioPago>> = sqlx::query_as!(
-        MedioPago,
+pub async fn medio_from_db(medio: &str, db: &Pool<Sqlite>) -> MedioPagoDB {
+    let model: sqlx::Result<Option<MedioPagoDB>> = sqlx::query_as!(
+        MedioPagoDB,
         "select * from medios_pago where medio = ? ",
         medio
     )

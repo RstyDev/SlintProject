@@ -1,11 +1,10 @@
 use super::{redondeo, valuable::ValuableTrait, AppError, Res};
-use crate::db::{Model,map::CodeDB};
+use crate::db::map::BigIntDB;
+use crate::db::map::CodeDB;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
-use crate::db::map::BigIntDB;
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
@@ -30,13 +29,10 @@ impl Rubro {
         descripcion: &str,
         db: &Pool<Sqlite>,
     ) -> Res<Rubro> {
-        let qres: Option<CodeDB> = sqlx::query_as!(
-            CodeDB,
-            "select * from codigos where codigo = ?",
-            codigo
-        )
-        .fetch_optional(db)
-        .await?;
+        let qres: Option<CodeDB> =
+            sqlx::query_as!(CodeDB, "select * from codigos where codigo = ?", codigo)
+                .fetch_optional(db)
+                .await?;
         match qres {
             Some(model) => match model {
                 Model::Code {

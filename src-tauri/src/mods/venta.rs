@@ -1,5 +1,5 @@
-use chrono::{NaiveDateTime, Utc};
 use crate::db::map::VentaDB;
+use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{query, Pool, Sqlite};
 use std::sync::Arc;

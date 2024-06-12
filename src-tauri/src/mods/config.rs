@@ -1,9 +1,9 @@
-use super::{AppError, Res};
-use crate::db::Model;
+use super::Res;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;
 use std::sync::Arc;
+use crate::db::map::{ConfigDB, MedioPagoDB};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -16,39 +16,27 @@ pub struct Config {
 
 impl Config {
     pub async fn get_or_def(db: &Pool<Sqlite>) -> Res<Config> {
-        let res: sqlx::Result<Option<Model>> =
-            sqlx::query_as!(Model::Config, "select * from config limit 1")
+        let res: Option<ConfigDB> =
+            sqlx::query_as!(ConfigDB, "select * from config limit 1")
                 .fetch_optional(db)
-                .await;
-        match res? {
+                .await?;
+        match res {
             Some(conf) => {
-                let medios: sqlx::Result<Vec<Model>> =
-                    sqlx::query_as!(Model::MedioPago, "select * from medios_pago ")
+                let medios: sqlx::Result<Vec<MedioPagoDB>> =
+                    sqlx::query_as!(MedioPagoDB, "select * from medios_pago ")
                         .fetch_all(db)
                         .await;
                 let medios = medios?
                     .iter()
-                    .map(|med| match med {
-                        Model::MedioPago { id: _, medio } => Arc::from(medio.as_str()),
-                        _ => panic!("Imposible, se esperaba medio pago"),
-                    })
+                    .map(|med| Arc::from(med.medio))
                     .collect::<Vec<Arc<str>>>();
-                match conf {
-                    Model::Config {
-                        id: _,
-                        politica,
-                        formato,
-                        mayus,
-                        cantidad,
-                    } => Ok(Config::build(
-                        politica,
-                        formato.as_str(),
-                        mayus.as_str(),
-                        cantidad,
-                        medios,
-                    )),
-                    _ => Err(AppError::IncorrectError(String::from("Se esperaba Config"))),
-                }
+                Ok(Config::build(
+                    conf.politica,
+                    conf.formato,
+                    conf.mayus,
+                    conf.cantidad,
+                    medios,
+                ))
             }
             None => {
                 let conf = Config::default();

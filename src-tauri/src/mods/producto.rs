@@ -1,9 +1,9 @@
 use super::{redondeo, AppError, Presentacion, Res, ValuableTrait};
-use crate::db::Model;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
+use crate::db::map::BigIntDB;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
@@ -96,23 +96,20 @@ impl Producto {
     //     }
     // }
     pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::BigInt,
+        let qres: Option<BigIntDB> = sqlx::query_as!(
+            BigIntDB,
             "select id as int from productos where id = ?",
             self.id
         )
         .fetch_optional(db)
         .await?;
         match qres {
-            Some(model) => match model {
-                Model::BigInt { int } => {
-                    sqlx::query("delete from productos where id = ?")
-                        .bind(int)
-                        .execute(db)
-                        .await?;
-                    Ok(())
-                }
-                _ => Err(AppError::IncorrectError(String::from("Se esperaba int"))),
+            Some(model) => {
+                sqlx::query("delete from productos where id = ?")
+                    .bind(model.int)
+                    .execute(db)
+                    .await?;
+                Ok(())
             },
             None => Err(AppError::NotFound {
                 objeto: String::from("Producto"),
@@ -132,29 +129,26 @@ impl Producto {
         )
     }
     pub async fn editar(self, db: &Pool<Sqlite>) -> Res<()> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::BigInt,
+        let qres: Option<BigIntDB> = sqlx::query_as!(
+            BigIntDB,
             "select id as int from productos where id = ?",
             self.id
         )
         .fetch_optional(db)
         .await?;
         match qres {
-            Some(model) => match model {
-                Model::BigInt { int } => {
-                    if self.precio_de_venta
-                        != self.precio_de_costo * (1.0 + self.porcentaje / 100.0)
-                    {
-                        return Err(AppError::IncorrectError(String::from(
-                            "Cálculo de precio incorrecto",
-                        )));
-                    }
-                    sqlx::query(
-                "update productos set precio_venta = ?, porcentaje = ?, precio_costo = ?, tipo = ?, marca = ?, variedad = ?, presentacion = ?, size = ?, updated_at = ? where id = ?")
-                .bind(self.precio_de_venta).bind(self.porcentaje).bind(self.precio_de_costo).bind(self.tipo_producto.as_ref()).bind(self.marca.as_ref()).bind(self.variedad.as_ref()).bind(self.presentacion.get_string()).bind(self.presentacion.get_cantidad()).bind(Utc::now().naive_local()).bind(int).execute(db).await?;
-                    Ok(())
+            Some(model) => {
+                if self.precio_de_venta
+                    != self.precio_de_costo * (1.0 + self.porcentaje / 100.0)
+                {
+                    return Err(AppError::IncorrectError(String::from(
+                        "Cálculo de precio incorrecto",
+                    )));
                 }
-                _ => Err(AppError::IncorrectError(String::from("Se esperaba int"))),
+                sqlx::query(
+                    "update productos set precio_venta = ?, porcentaje = ?, precio_costo = ?, tipo = ?, marca = ?, variedad = ?, presentacion = ?, size = ?, updated_at = ? where id = ?")
+                    .bind(self.precio_de_venta).bind(self.porcentaje).bind(self.precio_de_costo).bind(self.tipo_producto.as_ref()).bind(self.marca.as_ref()).bind(self.variedad.as_ref()).bind(self.presentacion.get_string()).bind(self.presentacion.get_cantidad()).bind(Utc::now().naive_local()).bind(model.int).execute(db).await?;
+                Ok(())
             },
             None => Err(AppError::NotFound {
                 objeto: String::from("Producto"),

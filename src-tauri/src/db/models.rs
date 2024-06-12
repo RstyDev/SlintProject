@@ -1,18 +1,19 @@
+use crate::db::map::{
+    BigIntDB, CajaDB, ClienteDB, ConfigDB, MedioPagoDB, PagoDB, ProductoDB, RelatedPesDB,
+    RelatedProdDB, RelatedRubDB, TotalDB, VentaDB,
+};
 use crate::mods::{
     AppError, Caja, Cli, Cliente, Config, MedioPago, Pesable, Rubro, User, Valuable,
 };
 use crate::mods::{Pago, Presentacion, Producto, Res, Venta};
-use chrono::NaiveDateTime;
 use sqlx::{query_as, FromRow, Pool, Sqlite};
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::db;
-use crate::db::map::{BigIntDB, RelatedPesDB, CajaDB, RelatedProdDB, RelatedRubDB, TotalDB, VentaDB, PagoDB, ClienteDB, ConfigDB, MedioPagoDB, ProductoDB};
 
 #[derive(Clone)]
 pub struct Mapper;
 impl Mapper {
-    pub async fn caja(db: &Pool<Sqlite>, caja: CajaDB) -> Res<Caja> {
+    pub async fn caja(db: &Pool<Sqlite>, caja: CajaParcialDB) -> Res<Caja> {
         let totales_mod: sqlx::Result<Vec<TotalDB>> = query_as!(
             TotalDB,
             "select medio, monto from totales where caja = ? ",
@@ -36,38 +37,31 @@ impl Mapper {
         ))
     }
     pub async fn config(db: &Pool<Sqlite>, config: ConfigDB) -> Res<Config> {
-
-                let medios: sqlx::Result<Vec<MedioPagoDB>> =
-                    sqlx::query_as!(MedioPagoDB, "select * from medios_pago ")
-                        .fetch_all(db)
-                        .await;
-                let medios = medios?
-                    .iter()
-                    .map(|model| Arc::from(model.medio.to_owned()))
-                    .collect::<Vec<Arc<str>>>();
-                Ok(Config::build(
-                    config.politica,
-                    config.formato.as_str(),
-                    config.mayus.as_str(),
-                    config.cantidad,
-                    medios,
-                ))
-
+        let medios: sqlx::Result<Vec<MedioPagoDB>> =
+            sqlx::query_as!(MedioPagoDB, "select * from medios_pago ")
+                .fetch_all(db)
+                .await;
+        let medios = medios?
+            .iter()
+            .map(|model| Arc::from(model.medio.to_owned()))
+            .collect::<Vec<Arc<str>>>();
+        Ok(Config::build(
+            config.politica,
+            config.formato.as_str(),
+            config.mayus.as_str(),
+            config.cantidad,
+            medios,
+        ))
     }
     pub async fn producto(db: &Pool<Sqlite>, prod: ProductoDB) -> Res<Producto> {
-
         let models: sqlx::Result<Vec<BigIntDB>> = sqlx::query_as!(
-                    BigIntDB,
-                    "select codigo as int from codigos where producto = ? limit 5",
-                    prod.id
-                )
-            .fetch_all(db)
-            .await;
-        let codigos = models?
-            .iter()
-            .map(|model| *model.int
-            )
-            .collect::<Vec<i64>>();
+            BigIntDB,
+            "select codigo as int from codigos where producto = ? limit 5",
+            prod.id
+        )
+        .fetch_all(db)
+        .await;
+        let codigos = models?.iter().map(|model| *model.int).collect::<Vec<i64>>();
         let presentacion = match prod.presentacion.as_str() {
             "Gr" => Presentacion::Gr(prod.size),
             "Un" => Presentacion::Un(prod.size as u16),
@@ -91,12 +85,12 @@ impl Mapper {
     }
     pub async fn pago(db: &Pool<Sqlite>, pago: PagoDB) -> Res<Pago> {
         let medio: sqlx::Result<Option<MedioPagoDB>> = sqlx::query_as!(
-                    MedioPagoDB,
-                    "select * from medios_pago where id = ? limit 1",
-                    pago.medio_pago
-                )
-            .fetch_optional(db)
-            .await;
+            MedioPagoDB,
+            "select * from medios_pago where id = ? limit 1",
+            pago.medio_pago
+        )
+        .fetch_optional(db)
+        .await;
         let int_id = pago.id;
         match medio? {
             Some(med) => Ok(Pago::build(
@@ -112,257 +106,148 @@ impl Mapper {
     }
     pub async fn venta(db: &Pool<Sqlite>, venta: VentaDB, user: &Option<Arc<User>>) -> Res<Venta> {
         {
-                let qres:Vec<RelatedProdDB>=sqlx::query_as!(RelatedProdDB,"select productos.id as id,
+            let qres:Vec<RelatedProdDB>=sqlx::query_as!(RelatedProdDB,"select productos.id as id,
                     precio, porcentaje, precio_costo, tipo, marca, variedad, presentacion, size, cantidad
                     from relacion_venta_prod inner join productos on relacion_venta_prod.id = productos.id where venta = ?
                      ",venta.id).fetch_all(db).await?;
-                let mut productos = Vec::new();
-                for model in qres {
-                    match model {
-                        Model::RelatedProd {
-                            id,
-                            precio,
-                            porcentaje,
-                            precio_costo,
-                            tipo,
-                            marca,
-                            variedad,
-                            presentacion,
-                            size,
-                            cantidad,
-                        } => {
-                            let qres: Vec<BigIntDB> = sqlx::query_as!(
-                                BigIntDB,
-                                "select codigo as int from codigos where producto = ? limit 5",
-                                id
-                            )
-                            .fetch_all(db)
-                            .await?;
-                            let codes = qres
-                                .iter()
-                                .map(|c| match c {
-                                    Model::BigInt { int } => *int,
-                                    _ => panic!("Se esperana codigo"),
-                                })
-                                .collect::<Vec<i64>>();
-                            productos.push(Valuable::Prod((
-                                cantidad,
-                                Producto::new(
-                                    id,
-                                    codes,
-                                    precio,
-                                    porcentaje,
-                                    precio_costo,
-                                    tipo.as_str(),
-                                    marca.as_str(),
-                                    variedad.as_str(),
-                                    Presentacion::build(presentacion.as_str(), size),
-                                ),
-                            )))
-                        }
-                        _ => {
-                            return Err(AppError::IncorrectError(String::from(
-                                "Se esperaba related prod",
-                            )))
-                        }
-                    }
-                }
-                let qres:Vec<RelatedPesDB>=sqlx::query_as!(RelatedPesDB,"select pesables.id as id,
+            let mut productos = Vec::new();
+            for rel in qres {
+                let qres: Vec<BigIntDB> = sqlx::query_as!(
+                    BigIntDB,
+                    "select codigo as int from codigos where producto = ? limit 5",
+                    rel.id
+                )
+                .fetch_all(db)
+                .await?;
+                let codes = qres.iter().map(|c| *c.int).collect::<Vec<i64>>();
+                productos.push(Valuable::Prod((
+                    rel.cantidad,
+                    Producto::new(
+                        rel.id,
+                        codes,
+                        rel.precio,
+                        rel.porcentaje,
+                        rel.precio_costo,
+                        rel.tipo,
+                        rel.marca,
+                        rel.variedad,
+                        Presentacion::build(rel.presentacion, rel.size),
+                    ),
+                )))
+            }
+            let qres:Vec<RelatedPesDB>=sqlx::query_as!(RelatedPesDB,"select pesables.id as id,
                     precio_peso, porcentaje, costo_kilo, descripcion, cantidad, updated_at
                     from relacion_venta_pes inner join pesables on relacion_venta_pes.id = pesables.id where venta = ?
                      ",venta.id).fetch_all(db).await?;
-                for model in qres {
-                    match model {
-                        Model::RelatedPes {
-                            id,
-                            precio_peso,
-                            porcentaje,
-                            costo_kilo,
-                            descripcion,
-                            updated_at: _,
-                            cantidad,
-                        } => {
-                            let qres: Option<BigIntDB> = sqlx::query_as!(
-                                BigIntDB,
-                                "select codigo as int from codigos where pesable = ? limit 1",
-                                id
-                            )
-                            .fetch_optional(db)
-                            .await?;
-                            match qres {
-                                Some(model) => match model {
-                                    Model::BigInt { int } => productos.push(Valuable::Pes((
-                                        cantidad,
-                                        Pesable::build(
-                                            id,
-                                            int,
-                                            precio_peso,
-                                            porcentaje,
-                                            costo_kilo,
-                                            descripcion,
-                                        ),
-                                    ))),
-                                    _ => {
-                                        return Err(AppError::IncorrectError(String::from(
-                                            "se esperaba codigo",
-                                        )))
-                                    }
-                                },
-                                None => {
-                                    return Err(AppError::IncorrectError(String::from(
-                                        "No se encontro codigo de pesable",
-                                    )))
-                                }
-                            }
-                        }
-                        _ => {
-                            return Err(AppError::IncorrectError(String::from(
-                                "se esperaba RelatedPes",
-                            )))
-                        }
-                    }
-                }
-                let qres:Vec<RelatedRubDB>=sqlx::query_as!(RelatedRubDB,"select rubros.id as id, descripcion, updated_at, cantidad, precio
-                    from relacion_venta_rub inner join rubros on relacion_venta_rub.id = rubros.id where venta = ?
-                     ",venta.id).fetch_all(db).await?;
-                for model in qres {
-                    match model {
-                        Model::RelatedRub {
-                            id,
-                            descripcion,
-                            updated_at: _,
-                            cantidad,
-                            precio,
-                        } => {
-                            let qres: Option<BigIntDB> = sqlx::query_as!(
-                                BigIntDB,
-                                "select codigo as int from codigos where pesable = ? limit 1",
-                                id
-                            )
-                            .fetch_optional(db)
-                            .await?;
-                            match qres {
-                                Some(model) => match model {
-                                    Model::BigInt { int } => productos.push(Valuable::Rub((
-                                        cantidad,
-                                        Rubro::build(
-                                            id,
-                                            int,
-                                            Some(precio),
-                                            Arc::from(descripcion.as_str()),
-                                        ),
-                                    ))),
-                                    _ => {
-                                        return Err(AppError::IncorrectError(String::from(
-                                            "se esperaba codigo",
-                                        )))
-                                    }
-                                },
-                                None => {
-                                    return Err(AppError::IncorrectError(String::from(
-                                        "No se encontro codigo de pesable",
-                                    )))
-                                }
-                            }
-                        }
-                        _ => {
-                            return Err(AppError::IncorrectError(String::from(
-                                "se esperaba RelatedPes",
-                            )))
-                        }
-                    }
-                }
-                let qres: Vec<PagoDB> =
-                    sqlx::query_as!(PagoDB, "select * from pagos where venta = ? ", venta.id)
-                        .fetch_all(db)
-                        .await?;
-                let mut pagos = Vec::new();
-                for pago in qres {
-                    match pago {
-                        Model::Pago {
-                            id,
-                            medio_pago,
-                            monto,
-                            pagado,
-                            venta: _,
-                        } => {
-                            let qres: Option<MedioPago> = sqlx::query_as!(
-                                MedioPago,
-                                "select * from medios_pago where id = ? limit 1",
-                                medio_pago
-                            )
-                            .fetch_optional(db)
-                            .await?;
-                            let medio = match qres {
-                                Some(model) => match model {
-                                    Model::MedioPago { id, medio } => {
-                                        MedioPago::build(medio.as_str(), id)
-                                    }
-                                    _ => {
-                                        return Err(AppError::IncorrectError(String::from(
-                                            "se esperaba Medio Pago",
-                                        )))
-                                    }
-                                },
-                                None => {
-                                    return Err(AppError::IncorrectError(String::from(
-                                        "no es encontro medio_pago de pago",
-                                    )))
-                                }
-                            };
-                            pagos.push(Pago::build(id, medio, monto, pagado))
-                        }
-                        _ => {
-                            return Err(AppError::IncorrectError(String::from("se esperaba pago")))
-                        }
-                    }
-                }
-                let qres: Option<ClienteDB> = sqlx::query_as!(
-                    ClienteDB,
-                    "select * from clientes where id = ? limit 1",
-                    venta.cliente
+            for rel in qres {
+                let qres: Option<BigIntDB> = sqlx::query_as!(
+                    BigIntDB,
+                    "select codigo as int from codigos where pesable = ? limit 1",
+                    rel.id
                 )
                 .fetch_optional(db)
                 .await?;
-                let cliente = match qres {
-                    Some(model) => match model {
-                        Model::Cliente {
-                            id,
-                            nombre,
-                            dni,
-                            limite,
-                            activo,
-                            time,
-                        } => Cliente::Regular(Cli::build(
-                            id,
-                            Arc::from(nombre.as_str()),
-                            dni,
-                            activo,
-                            time,
-                            limite,
-                        )),
-                        _ => {
-                            return Err(AppError::IncorrectError(String::from(
-                                "Se esperaba cliente",
-                            )))
-                        }
-                    },
-                    None => Cliente::Final,
+                match qres {
+                    Some(model) => productos.push(Valuable::Pes((
+                        rel.cantidad,
+                        Pesable::build(
+                            rel.id,
+                            model.int,
+                            rel.precio_peso,
+                            rel.porcentaje,
+                            rel.costo_kilo,
+                            rel.descripcion,
+                        ),
+                    ))),
+                    None => {
+                        return Err(AppError::IncorrectError(String::from(
+                            "No se encontro codigo de pesable",
+                        )))
+                    }
+                }
+            }
+            let qres:Vec<RelatedRubDB>=sqlx::query_as!(RelatedRubDB,"select rubros.id as id, descripcion, updated_at, cantidad, precio
+                    from relacion_venta_rub inner join rubros on relacion_venta_rub.id = rubros.id where venta = ?
+                     ",venta.id).fetch_all(db).await?;
+            for rel in qres {
+                let qres: Option<BigIntDB> = sqlx::query_as!(
+                    BigIntDB,
+                    "select codigo as int from codigos where pesable = ? limit 1",
+                    rel.id
+                )
+                .fetch_optional(db)
+                .await?;
+                match qres {
+                    Some(model) => productos.push(Valuable::Rub((
+                        rel.cantidad,
+                        Rubro::build(
+                            rel.id,
+                            model.int,
+                            Some(rel.precio),
+                            Arc::from(rel.descripcion),
+                        ),
+                    ))),
+                    None => {
+                        return Err(AppError::IncorrectError(String::from(
+                            "No se encontro codigo de pesable",
+                        )))
+                    }
+                }
+            }
+            let qres: Vec<PagoDB> =
+                sqlx::query_as!(PagoDB, "select * from pagos where venta = ? ", venta.id)
+                    .fetch_all(db)
+                    .await?;
+            let mut pagos = Vec::new();
+            for pago in qres {
+
+                let qres: Option<MedioPagoDB> = sqlx::query_as!(
+                            MedioPagoDB,
+                            "select * from medios_pago where id = ? limit 1",
+                            pago.medio_pago
+                        )
+                    .fetch_optional(db)
+                    .await?;
+                let medio = match qres {
+                    Some(medio_p) => MedioPago::build(medio_p.medio, medio_p.id),
+                    None => {
+                        return Err(AppError::IncorrectError(String::from(
+                            "no es encontro medio_pago de pago",
+                        )))
+                    }
                 };
-                Ok(Venta::build(
-                    venta.id,
-                    venta.monto_total,
-                    productos,
-                    pagos,
-                    venta.monto_pagado,
-                    user.clone(),
-                    cliente,
-                    venta.paga,
-                    venta.cerrada,
-                    venta.time,
-                ))
-
-
+                pagos.push(Pago::build(pago.id, medio, pago.monto, pago.pagado))
+            }
+            let qres: Option<ClienteDB> = sqlx::query_as!(
+                ClienteDB,
+                "select * from clientes where id = ? limit 1",
+                venta.cliente
+            )
+            .fetch_optional(db)
+            .await?;
+            let cliente = match qres {
+                Some(cliente) => Cliente::Regular(Cli::build(
+                    cliente.id,
+                    Arc::from(cliente.nombre),
+                    cliente.dni,
+                    cliente.activo,
+                    cliente.time,
+                    cliente.limite,
+                )),
+                None => Cliente::Final,
+            };
+            Ok(Venta::build(
+                venta.id,
+                venta.monto_total,
+                productos,
+                pagos,
+                venta.monto_pagado,
+                user.clone(),
+                cliente,
+                venta.paga,
+                venta.cerrada,
+                venta.time,
+            ))
         }
     }
 }
@@ -596,10 +481,9 @@ pub mod map {
     }
 }
 
-
 // async fn test(db: &Pool<Sqlite>){
 //     let res: sqlx::Result<Option<Venta>> = query_as!(
-    //Venta,
+//Venta,
 //         "select * from ventas").fetch_optional(db).await;
 //     let res= res.unwrap().unwrap();
 // }

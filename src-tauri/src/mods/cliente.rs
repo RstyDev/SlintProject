@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
 
-use crate::db::{Mapper, Model};
-use crate::db::map::VentaDB;
+use crate::db::map::{ClienteDB, FloatDB, PagoDB, VentaDB};
+use crate::db::Mapper;
 
 use super::{AppError, Res, User, Venta};
 
@@ -38,8 +38,8 @@ impl Cli {
         created: NaiveDateTime,
         limite: Option<f32>,
     ) -> Res<Cli> {
-        let model: Option<Model> = sqlx::query_as!(
-            Model::Cliente,
+        let model: Option<ClienteDB> = sqlx::query_as!(
+            ClienteDB,
             "select * from clientes where dni = ? limit 1",
             dni
         )
@@ -110,8 +110,8 @@ impl Cli {
         self.nombre.as_ref()
     }
     pub async fn get_deuda(&self, db: &Pool<Sqlite>) -> Res<f32> {
-        let model: sqlx::Result<Vec<Model>> = sqlx::query_as!(
-            Model::Float,
+        let model: sqlx::Result<Vec<FloatDB>> = sqlx::query_as!(
+            FloatDB,
             "select monto as float from deudas where id = ? ",
             self.id
         )
@@ -119,11 +119,8 @@ impl Cli {
         .await;
         Ok(model?
             .iter()
-            .map(|e| match e {
-                Model::Float { float } => float,
-                _ => panic!("Se esperaba monto"),
-            })
-            .sum::<f64>() as f32)
+            .map(|e| e.float)
+            .sum::<f32>())
     }
     pub async fn get_deuda_detalle(
         &self,
@@ -165,24 +162,23 @@ impl Cli {
             None => return Err(AppError::IncorrectError(String::from("Id inexistente"))),
         };
 
-                if venta.cliente.unwrap() == id_cliente {
-                    let venta = Mapper::venta(db, venta, user).await?;
-                    sqlx::query!("update ventas set paga = ? where id = ? ", venta.id(), true)
-                        .execute(db)
-                        .await?;
-                    Ok(venta)
-                } else {
-                    Err(AppError::IncorrectError(String::from("Cliente Incorrecto")))
-                }
-
+        if venta.cliente.unwrap() == id_cliente {
+            let venta = Mapper::venta(db, venta, user).await?;
+            sqlx::query!("update ventas set paga = ? where id = ? ", venta.id(), true)
+                .execute(db)
+                .await?;
+            Ok(venta)
+        } else {
+            Err(AppError::IncorrectError(String::from("Cliente Incorrecto")))
+        }
     }
     pub async fn pagar_deuda_general(
         id: i32,
         db: &Pool<Sqlite>,
         mut monto_a_pagar: f32,
     ) -> Res<f32> {
-        let qres: Vec<Model> = sqlx::query_as!(
-            Model::Venta,
+        let qres: Vec<VentaDB> = sqlx::query_as!(
+            VentaDB,
             "select * from ventas where cliente = ? and paga = ? ",
             id,
             false
@@ -192,92 +188,53 @@ impl Cli {
         let resto = monto_a_pagar
             - qres
                 .iter()
-                .map(|model| match model {
-                    Model::Venta {
-                        id,
-                        time,
-                        monto_total,
-                        monto_pagado,
-                        cliente,
-                        cerrada,
-                        paga,
-                        pos,
-                    } => monto_total - monto_pagado,
-                    _ => panic!("se esperaba venta"),
-                })
+                .map(|model| model.monto_total - model.monto_pagado)
                 .sum::<f32>();
-        for model in qres {
+        for venta in qres {
             if monto_a_pagar <= 0.0 {
                 break;
             }
-            match model {
-                Model::Venta {
-                    id,
-                    time,
-                    monto_total,
-                    monto_pagado,
-                    cliente,
-                    cerrada,
-                    paga,
-                    pos,
-                } => {
-                    let id_venta = id;
-                    let models: Vec<Model> = sqlx::query_as!(
-                        Model::Pago,
+
+
+            let models: Vec<PagoDB> = sqlx::query_as!(
+                        PagoDB,
                         "select * from pagos where venta = ? and medio_pago = ? ",
-                        id_venta,
+                        venta.id,
                         0
                     )
-                    .fetch_all(db)
-                    .await?;
-                    let mut completados: u8 = 0;
-                    for i in 0..models.len() {
-                        match models[i] {
-                            Model::Pago {
-                                id,
-                                medio_pago,
-                                monto,
-                                pagado,
-                                venta,
-                            } => {
-                                if monto_a_pagar <= 0.0 {
-                                    break;
-                                }
-                                if pagado < monto {
-                                    if monto_a_pagar >= (monto - pagado) {
-                                        monto_a_pagar -= monto - pagado;
-                                        completados += 1;
-                                        sqlx::query("update pagos set pagado = ? where id =?")
-                                            .bind(monto)
-                                            .bind(id)
-                                            .execute(db)
-                                            .await?;
-                                    } else {
-                                        sqlx::query("update pagos set pagado = ? where id = ?")
-                                            .bind(pagado + monto_a_pagar)
-                                            .bind(id)
-                                            .execute(db)
-                                            .await?;
-                                        monto_a_pagar = 0.0;
-                                    }
-                                }
-                            }
-                            _ => {
-                                return Err(AppError::IncorrectError(String::from(
-                                    "Se esperaba Pago",
-                                )))
-                            }
-                        }
-                    }
-                    if completados == models.len() as u8 {
-                        sqlx::query("update ventas set paga = ? where id = ?")
-                            .bind(true)
-                            .bind(id_venta)
+                .fetch_all(db)
+                .await?;
+            let mut completados: u8 = 0;
+            for i in 0..models.len() {
+
+                if monto_a_pagar <= 0.0 {
+                    break;
+                }
+                if models[i].pagado < models[i].monto {
+                    if monto_a_pagar >= (models[i].monto - models[i].pagado) {
+                        monto_a_pagar -= models[i].monto - models[i].pagado;
+                        completados += 1;
+                        sqlx::query("update pagos set pagado = ? where id =?")
+                            .bind(models[i].monto)
+                            .bind(id)
                             .execute(db)
                             .await?;
+                    } else {
+                        sqlx::query("update pagos set pagado = ? where id = ?")
+                            .bind(models[i].pagado + monto_a_pagar)
+                            .bind(id)
+                            .execute(db)
+                            .await?;
+                        monto_a_pagar = 0.0;
                     }
                 }
-                _ => return Err(AppError::IncorrectError(String::from("Se esperaba venta"))),
+            }
+            if completados == models.len() as u8 {
+                sqlx::query("update ventas set paga = ? where id = ?")
+                    .bind(true)
+                    .bind(venta.id)
+                    .execute(db)
+                    .await?;
             }
         }
         Ok(resto)

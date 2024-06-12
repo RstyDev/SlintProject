@@ -3,7 +3,8 @@ use super::{
     Pesable, Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User,
     Valuable, ValuableTrait, Venta,
 };
-use crate::db::{fresh, Model};
+use crate::db::map::{BigIntDB, ClienteDB, CodeDB, IntDB, PesableDB, ProductoDB, RubroDB, UserDB};
+use crate::db::fresh;
 use chrono::Utc;
 use dotenvy::dotenv;
 use sqlx::{Pool, Sqlite, SqlitePool};
@@ -11,7 +12,6 @@ use std::num::ParseIntError;
 use std::{collections::HashSet, env, sync::Arc};
 use tauri::{async_runtime, async_runtime::JoinHandle};
 use Valuable as V;
-use crate::db::map::{BigIntDB, ClienteDB, IntDB};
 
 const CUENTA: &str = "Cuenta Corriente";
 pub struct Sistema {
@@ -136,10 +136,9 @@ impl<'a> Sistema {
     }
     pub fn new(read_db: Arc<Pool<Sqlite>>, write_db: Arc<Pool<Sqlite>>) -> Res<Sistema> {
         async_runtime::block_on(async {
-            let qres: Option<IntDB> =
-                sqlx::query_as!(IntDB, "select id as int from cajas limit 1")
-                    .fetch_optional(read_db.as_ref())
-                    .await?;
+            let qres: Option<IntDB> = sqlx::query_as!(IntDB, "select id as int from cajas limit 1")
+                .fetch_optional(read_db.as_ref())
+                .await?;
             if qres.is_none() {
                 fresh(write_db.as_ref()).await
             }
@@ -338,29 +337,19 @@ impl<'a> Sistema {
             .await?;
         Ok(qres
             .iter()
-            .map(|model| match model {
-                Model::Cliente {
-                    id,
-                    nombre,
-                    dni,
-                    limite,
-                    activo,
-                    time,
-                } => Cli::build(
-                    *id,
-                    Arc::from(nombre.as_str()),
-                    *dni as i32,
-                    *activo,
-                    *time,
-                    limite.map(|l| l as f32),
-                ),
-                _ => panic!("se esperaba cliente"),
-            })
+            .map(|cli| Cli::build(
+                *cli.id,
+                Arc::from(cli.nombre),
+                *cli.dni,
+                *cli.activo,
+                *cli.time,
+                cli.limite,
+            ))
             .collect::<Vec<Cli>>())
     }
     pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<Rango> {
-        let qres: Option<User> = sqlx::query_as!(
-            User,
+        let qres: Option<UserDB> = sqlx::query_as!(
+            UserDB,
             "select * from users where user_id = ? and pass = ? limit 1",
             id.to_string(),
             pass
@@ -369,8 +358,8 @@ impl<'a> Sistema {
         .await?;
         match qres {
             None => {
-                let qres: Option<Model> = sqlx::query_as!(
-                    Model::BigInt,
+                let qres: Option<BigIntDB> = sqlx::query_as!(
+                    BigIntDB,
                     "select id as int from users where user_id = ?",
                     id
                 )
@@ -381,27 +370,18 @@ impl<'a> Sistema {
                     None => Err(AppError::IncorrectError("Usuario".to_string())),
                 }
             }
-            Some(model) => match model {
-                Model::User {
-                    id,
-                    user_id,
-                    nombre,
+            Some(user) => {
+                self.user = Some(Arc::from(User::new(
+                    Arc::from(user.user_id),
+                    Arc::from(user.nombre),
                     pass,
-                    rango,
-                } => {
-                    self.user = Some(Arc::from(User::new(
-                        Arc::from(user_id),
-                        Arc::from(nombre),
-                        pass,
-                        rango,
-                    )));
-                    self.ventas = Ventas {
-                        a: Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
-                        b: Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
-                    };
-                    Ok(self.user().unwrap().rango().clone())
-                }
-                _ => Err(AppError::IncorrectError(String::from("Se esperaba user"))),
+                    user.rango,
+                )));
+                self.ventas = Ventas {
+                    a: Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
+                    b: Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
+                };
+                Ok(self.user().unwrap().rango().clone())
             },
         }
     }
@@ -413,123 +393,67 @@ impl<'a> Sistema {
         let mut res: Vec<Valuable> = Vec::new();
         match filtro.parse::<i64>() {
             Ok(code) => {
-                let qres: Option<Model> =
-                    sqlx::query_as!(Model::Code, "select * from codigos where codigo = ?", code)
+                let qres: Option<CodeDB> =
+                    sqlx::query_as!(CodeDB, "select * from codigos where codigo = ?", code)
                         .fetch_optional(db)
                         .await?;
                 match qres {
                     None => return Ok(res),
-                    Some(model) => match model {
-                        Model::Code {
-                            id,
-                            codigo,
-                            producto,
-                            pesable,
-                            rubro,
-                        } => {
-                            let qres: Model;
-                            if let Some(prod) = producto {
-                                qres = sqlx::query_as!(
-                                    Model::Producto,
+                    Some(code) => {
+
+                        if let Some(prod) = code.producto {
+                            let prod:ProductoDB = sqlx::query_as!(
+                                    ProductoDB,
                                     "select * from productos where id = ?",
                                     prod
                                 )
                                 .fetch_one(db)
                                 .await?;
-                                match qres {
-                                    Model::Producto {
-                                        id,
-                                        precio_venta,
-                                        porcentaje,
-                                        precio_costo,
-                                        tipo,
-                                        marca,
-                                        variedad,
-                                        presentacion,
-                                        size,
-                                        updated_at,
-                                    } => res.push(V::Prod((
-                                        0,
-                                        Producto::build(
-                                            id,
-                                            Vec::new(),
-                                            precio_venta,
-                                            porcentaje,
-                                            precio_costo,
-                                            tipo,
-                                            marca,
-                                            variedad,
-                                            Presentacion::build(presentacion, size),
-                                        ),
-                                    ))),
-                                    _ => {
-                                        return Err(AppError::IncorrectError(String::from(
-                                            "se esperaba producto",
-                                        )))
-                                    }
-                                }
-                            } else if let Some(pes) = pesable {
-                                qres = sqlx::query_as!(
-                                    Model::Pesable,
+                            res.push(V::Prod((
+                                0,
+                                Producto::build(
+                                    prod.id,
+                                    vec![code.codigo],
+                                    prod.precio_venta,
+                                    prod.porcentaje,
+                                    prod.precio_costo,
+                                    prod.tipo,
+                                    prod.marca,
+                                    prod.variedad,
+                                    Presentacion::build(prod.presentacion, prod.size),
+                                ),
+                            )))
+                        } else if let Some(pes) = code.pesable {
+                            let pes:PesableDB = sqlx::query_as!(
+                                    PesableDB,
                                     "select * from pesables where id = ?",
                                     pes
                                 )
                                 .fetch_one(db)
                                 .await?;
-                                match qres {
-                                    Model::Pesable {
-                                        id,
-                                        precio_peso,
-                                        porcentaje,
-                                        costo_kilo,
-                                        descripcion,
-                                        updated_at,
-                                    } => res.push(V::Pes((
-                                        0.0,
-                                        Pesable::build(
-                                            id,
-                                            codigo,
-                                            precio_peso,
-                                            porcentaje,
-                                            costo_kilo,
-                                            descripcion,
-                                        ),
-                                    ))),
-                                    _ => {
-                                        return Err(AppError::IncorrectError(String::from(
-                                            "se esperaba pesable",
-                                        )))
-                                    }
-                                }
-                            } else if let Some(rub) = rubro {
-                                qres = sqlx::query_as!(
-                                    Model::Rubro,
+                            res.push(V::Pes((
+                                0.0,
+                                Pesable::build(
+                                    pes.id,
+                                    code.codigo,
+                                    pes.precio_peso,
+                                    pes.porcentaje,
+                                    pes.costo_kilo,
+                                    pes.descripcion,
+                                ),
+                            )))
+                        } else if let Some(rub) = code.rubro {
+                            let rub:RubroDB = sqlx::query_as!(
+                                    RubroDB,
                                     "select * from rubros where id = ? ",
                                     rub
                                 )
                                 .fetch_one(db)
                                 .await?;
-                                match qres {
-                                    Model::Rubro {
-                                        id,
-                                        descripcion,
-                                        updated_at,
-                                    } => {
-                                        res.push(V::Rub((
-                                            0,
-                                            Rubro::build(id, codigo, None, Arc::from(descripcion)),
-                                        )));
-                                    }
-                                    _ => {
-                                        return Err(AppError::IncorrectError(String::From(
-                                            "se esperaba rubro",
-                                        )))
-                                    }
-                                }
-                            }
-                        }
-                        _ => {
-                            return Err(AppError::IncorrectError(String::from("se esperaba code")))
+                            res.push(V::Rub((
+                                0,
+                                Rubro::build(rub.id, code.codigo, None, Arc::from(rub.descripcion)),
+                            )));
                         }
                     },
                 }
@@ -545,8 +469,10 @@ impl<'a> Sistema {
                 for filtro in filtros {
                     qres = qres.bind(filtro).bind(filtro).bind(filtro).bind(filtro);
                 }
-                let res = qres.fetch_all(db).await?;
-                for row in res {}
+                let res:Vec<ProductoDB> = qres.fetch_all(db).await?;
+                for prod in res {
+
+                }
                 // tipo TEXT NOT NULL,
                 // marca TEXT NOT NULL,
                 // variedad TEXT NOT NULL,

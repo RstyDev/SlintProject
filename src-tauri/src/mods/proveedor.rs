@@ -1,10 +1,10 @@
 use super::{AppError, Res};
-use crate::db::Model::BigInt;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;
 use std::sync::Arc;
+use crate::db::map::BigIntDB;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
@@ -19,8 +19,8 @@ impl Proveedor {
         contacto: Option<i64>,
         db: &Pool<Sqlite>,
     ) -> Res<Proveedor> {
-        let qres: Option<BigInt> = sqlx::query_as!(
-            BigInt,
+        let qres: Option<BigIntDB> = sqlx::query_as!(
+            BigIntDB,
             "select id as int from proveedores where nombre = ?",
             nombre
         )

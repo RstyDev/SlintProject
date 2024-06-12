@@ -4,8 +4,9 @@ use sqlx::{query_as, Pool, Sqlite};
 
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
+use crate::db::map::{BigIntDB, CajaParcialDB};
 
-use crate::db::{Mapper, Model};
+use crate::db::Mapper;
 
 use super::{AppError, Config, Pago, Res};
 
@@ -59,43 +60,35 @@ impl Caja {
         for medio in config.medios_pago() {
             totales.insert(Arc::clone(medio), 0.0);
         }
-        let caja_mod: sqlx::Result<Option<Model>> = query_as!(
-            Model::CajaParcial,
+        let caja_mod: sqlx::Result<Option<CajaParcialDB>> = query_as!(
+            CajaParcialDB,
             "select id, cierre, ventas_totales, cajero from cajas order by id desc"
         )
         .fetch_optional(db)
         .await;
         caja = match caja_mod? {
-            Some(model_caja) => match &model_caja {
-                Model::CajaParcial {
-                    id,
-                    cierre,
-                    ventas_totales,
-                    cajero,
-                } => match cierre {
-                    Some(_) => match monto_de_inicio {
-                        Some(monto) => {
-                            sqlx::query(
-                                    "insert into cajas (inicio, ventas_totales, monto_inicio, cajero) values (?, ?, ?, ?, ?, ?, ?)")
-                                    .bind(Utc::now().naive_local()).bind(ventas_totales).bind(monto).bind(cajero.clone()).execute(db).await?;
-                            Ok(Caja::build(
-                                id + 1,
-                                Utc::now().naive_local(),
-                                None,
-                                *ventas_totales,
-                                monto,
-                                None,
-                                cajero.as_ref().map(|c| Arc::from(c.as_str())),
-                                totales,
-                            ))
-                        }
-                        None => Err(AppError::InicializationError(
-                            "Se requiere monto de inicio".to_string(),
-                        )),
-                    },
-                    None => Mapper::caja(db, model_caja).await,
+            Some(caja) => match caja.cierre {
+                Some(_) => match monto_de_inicio {
+                    Some(monto) => {
+                        sqlx::query(
+                            "insert into cajas (inicio, ventas_totales, monto_inicio, cajero) values (?, ?, ?, ?, ?, ?, ?)")
+                            .bind(Utc::now().naive_local()).bind(caja.ventas_totales).bind(monto).bind(caja.cajero.clone()).execute(db).await?;
+                        Ok(Caja::build(
+                            caja.id + 1,
+                            Utc::now().naive_local(),
+                            None,
+                            *caja.ventas_totales,
+                            monto,
+                            None,
+                            caja.cajero.map(|c| Arc::from(c.as_str())),
+                            totales,
+                        ))
+                    }
+                    None => Err(AppError::InicializationError(
+                        "Se requiere monto de inicio".to_string(),
+                    )),
                 },
-                _ => Err(AppError::IncorrectError("No posible".to_string())),
+                None => Mapper::caja(db, caja).await,
             },
             None => match monto_de_inicio {
                 Some(monto) => {
@@ -171,8 +164,8 @@ impl Caja {
     pub async fn set_n_save(&mut self, db: &Pool<Sqlite>, monto: f32) -> Res<()> {
         self.monto_cierre = Some(monto);
         self.cierre = Some(Utc::now().naive_local());
-        let res: sqlx::Result<Option<Model>> = sqlx::query_as!(
-            Model::BigInt,
+        let res: sqlx::Result<Option<BigIntDB>> = sqlx::query_as!(
+            BigIntDB,
             "select id as int from cajas where id = ? limit 1",
             self.id
         )
