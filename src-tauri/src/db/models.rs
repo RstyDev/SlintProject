@@ -1,4 +1,7 @@
-use crate::db::map::{BigIntDB, CajaDB, ClienteDB, ConfigDB, MedioPagoDB, PagoDB, ProductoDB, RelatedPesDB, RelatedProdDB, RelatedRubDB, TotalDB, VentaDB};
+use crate::db::map::{
+    BigIntDB, CajaDB, ClienteDB, ConfigDB, MedioPagoDB, PagoDB, ProductoDB, RelatedPesDB,
+    RelatedProdDB, RelatedRubDB, TotalDB, VentaDB,
+};
 use crate::mods::{
     AppError, Caja, Cli, Cliente, Config, MedioPago, Pesable, Rubro, User, Valuable,
 };
@@ -177,12 +180,7 @@ impl Mapper {
                 match qres {
                     Some(model) => productos.push(Valuable::Rub((
                         rel.cantidad,
-                        Rubro::build(
-                            rel.id,
-                            model.int,
-                            Some(rel.precio),
-                            Arc::from(rel.descripcion),
-                        ),
+                        Rubro::build(rel.id, model.int, Some(rel.precio), rel.descripcion),
                     ))),
                     None => {
                         return Err(AppError::IncorrectError(String::from(
@@ -357,7 +355,7 @@ pub mod map {
         pub cantidad: f32,
     }
     #[derive(FromRow)]
-    pub struct CodedPesDB<'a>{
+    pub struct CodedPesDB<'a> {
         pub id: i64,
         pub precio_peso: f32,
         pub codigo: i64,
@@ -381,7 +379,7 @@ pub mod map {
         pub precio: f32,
     }
     #[derive(FromRow)]
-    pub struct CodedRubDB<'a>{
+    pub struct CodedRubDB<'a> {
         pub id: i64,
         pub descripcion: &'a str,
         pub updated_at: NaiveDateTime,

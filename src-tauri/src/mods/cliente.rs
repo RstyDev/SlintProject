@@ -170,7 +170,7 @@ impl Cli {
         }
     }
     pub async fn pagar_deuda_general(
-        id: i32,
+        id: i64,
         db: &Pool<Sqlite>,
         mut monto_a_pagar: f32,
     ) -> Res<f32> {

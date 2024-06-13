@@ -1,15 +1,15 @@
 use super::{
-    crear_file, get_hash, leer_file, AppError, Caja, Cli, Config, Db, Mapper, Movimiento, Pago,
-    Pesable, Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User,
-    Valuable, ValuableTrait, Venta,
+    crear_file, get_hash, leer_file, AppError, Caja, Cli, Config, Db, Movimiento, Pago, Pesable,
+    Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User, Valuable, Venta,
 };
 use crate::db::fresh;
-use crate::db::map::{BigIntDB, ClienteDB, CodeDB, CodedPesDB, CodedRubDB, IntDB, PesableDB, ProductoDB, RelatedPesDB, RubroDB, UserDB};
+use crate::db::map::{
+    BigIntDB, ClienteDB, CodeDB, CodedPesDB, CodedRubDB, IntDB, PesableDB, ProductoDB, ProvDB,
+    RubroDB, StringDB, UserDB,
+};
 use chrono::Utc;
-use dotenvy::dotenv;
-use sqlx::{Pool, Sqlite, SqlitePool};
-use std::num::ParseIntError;
-use std::{collections::HashSet, env, sync::Arc};
+use sqlx::{Pool, Sqlite};
+use std::sync::Arc;
 use tauri::{async_runtime, async_runtime::JoinHandle};
 use Valuable as V;
 
@@ -324,9 +324,9 @@ impl<'a> Sistema {
                 .bind("Admin".as_ref())
                 .execute(write_db)
                 .await?;
-            Db::cargar_todos_los_valuables(valuables, write_db.as_ref());
-            Db::cargar_todos_los_provs(proveedores, write_db.as_ref());
-            Db::cargar_todas_las_relaciones_prod_prov(relaciones, write_db.as_ref());
+            Db::cargar_todos_los_valuables(valuables, write_db.as_ref()).await?;
+            Db::cargar_todos_los_provs(proveedores, write_db.as_ref()).await?;
+            Db::cargar_todas_las_relaciones_prod_prov(relaciones, write_db.as_ref()).await?;
         }
         Ok(())
     }
@@ -490,27 +490,51 @@ impl<'a> Sistema {
                         .collect::<Vec<V>>(),
                 );
                 let mut query=String::from("select id, precio_peso, codigo, porcentaje, costo_kilo, descripcion, updated_at, from pesables inner join codigos on pesables.id = codigos.pesable where descripcion like %?%");
-                let row= " and descripcion like %?%";
-                for _ in 1..filtros.len(){
+                let row = " and descripcion like %?%";
+                for _ in 1..filtros.len() {
                     query.push_str(row);
                 }
-                let mut qres= sqlx::query_as(query.as_str());
-                for filtro in filtros{
-                    qres=qres.bind(filtro);
+                let mut qres = sqlx::query_as(query.as_str());
+                for filtro in filtros {
+                    qres = qres.bind(filtro);
                 }
-                let qres:Vec<CodedPesDB>=qres.fetch_all(db).await?;
-                res.append(&mut qres.iter().map(|pes|V::Pes((0.0,Pesable::build(pes.id,pes.codigo,pes.precio_peso,pes.porcentaje,pes.costo_kilo,pes.descripcion)))).collect::<Vec<V>>());
+                let qres: Vec<CodedPesDB> = qres.fetch_all(db).await?;
+                res.append(
+                    &mut qres
+                        .iter()
+                        .map(|pes| {
+                            V::Pes((
+                                0.0,
+                                Pesable::build(
+                                    pes.id,
+                                    pes.codigo,
+                                    pes.precio_peso,
+                                    pes.porcentaje,
+                                    pes.costo_kilo,
+                                    pes.descripcion,
+                                ),
+                            ))
+                        })
+                        .collect::<Vec<V>>(),
+                );
                 let mut query=String::from("select id, descripcion, updated_at, codigo, precio from rubros inner join codigos on rubros.id = codigos.rubro where descripcion like %?%");
-                let row= " and descripcion like %?%";
-                for _ in 1..filtros.len(){
+                let row = " and descripcion like %?%";
+                for _ in 1..filtros.len() {
                     query.push_str(row);
                 }
-                let mut qres= sqlx::query_as(query.as_str());
-                for filtro in filtros{
-                    qres= qres.bind(filtro);
+                let mut qres = sqlx::query_as(query.as_str());
+                for filtro in filtros {
+                    qres = qres.bind(filtro);
                 }
-                let qres:Vec<CodedRubDB>=qres.fetch_all(db).await?;
-                res.append(&mut qres.iter().map(|rub|V::Rub((0,Rubro::build(rub.id,rub.codigo,None,rub.descripcion)))).collect::<Vec<V>>());
+                let qres: Vec<CodedRubDB> = qres.fetch_all(db).await?;
+                res.append(
+                    &mut qres
+                        .iter()
+                        .map(|rub| {
+                            V::Rub((0, Rubro::build(rub.id, rub.codigo, None, rub.descripcion)))
+                        })
+                        .collect::<Vec<V>>(),
+                );
             }
         }
         res = self
@@ -557,22 +581,18 @@ impl<'a> Sistema {
         }
     }
     pub async fn proveedores(&self) -> Vec<Proveedor> {
-        match ProvDB::Entity::find().all(self.read_db()).await {
-            Ok(a) => {
-                let res = a
-                    .iter()
-                    .map(|x| Mapper::map_model_prov(x))
-                    .collect::<Vec<Proveedor>>();
-                res
-            }
-            Err(e) => panic!("Error {}", e),
-        }
+        let qres: Vec<ProvDB> = sqlx::query_as!(ProvDB, "select * from proveedores")
+            .fetch_all(self.read_db.as_ref())
+            .await?;
+        qres.iter()
+            .map(|prov| Proveedor::build(prov.id, prov.nombre, prov.contacto))
+            .collec::<Vec<Proveedor>>()
     }
     pub fn configs(&self) -> &Config {
         &self.configs
     }
 
-    pub fn eliminar_pago(&mut self, pos: bool, id: u32) -> Res<Vec<Pago>> {
+    pub fn eliminar_pago(&mut self, pos: bool, id: i64) -> Res<Vec<Pago>> {
         let res;
         if pos {
             self.ventas.a.eliminar_pago(id, &self.write_db)?;
@@ -587,20 +607,15 @@ impl<'a> Sistema {
     pub fn set_configs(&mut self, configs: Config) {
         self.configs = configs;
         async_runtime::block_on(async {
-            let mut res = ConfDB::Entity::find()
-                .one(self.read_db())
-                .await
-                .unwrap()
-                .unwrap()
-                .into_active_model();
-            res.cantidad_productos = Set(*self.configs().cantidad_productos());
-            res.formato_producto = Set(self.configs().formato().to_string());
-            res.modo_mayus = Set(self.configs().modo_mayus().to_string());
-            res.politica_redondeo = Set(self.configs().politica());
-            res.update(self.write_db()).await.unwrap();
+            sqlx::query("update config set cantidad = ?, mayus = ?, formato = ?, politica = ?")
+                .bind(configs.cantidad_productos())
+                .bind(configs.modo_mayus())
+                .bind(configs.formato())
+                .bind(configs.politica())
+                .execute(&self.write_db)?;
         });
     }
-    pub fn pagar_deuda_especifica(&self, cliente: i32, venta: Venta) -> Res<Venta> {
+    pub fn pagar_deuda_especifica(&self, cliente: i64, venta: Venta) -> Res<Venta> {
         async_runtime::block_on(Cli::pagar_deuda_especifica(
             cliente,
             &self.write_db,
@@ -608,7 +623,7 @@ impl<'a> Sistema {
             &self.user,
         ))
     }
-    pub fn pagar_deuda_general(&self, cliente: i32, monto: f32) -> Res<f32> {
+    pub fn pagar_deuda_general(&self, cliente: i64, monto: f32) -> Res<f32> {
         async_runtime::block_on(Cli::pagar_deuda_general(cliente, &self.write_db, monto))
     }
     // pub async fn get_cliente(&self, id: i64) -> Res<Cliente> {
@@ -632,132 +647,95 @@ impl<'a> Sistema {
         cantidad: &str,
         presentacion: &str,
     ) -> Res<Producto> {
-        match ProdDB::Entity::find()
-            .filter(
-                Condition::all()
-                    .add(ProdDB::Column::TipoProducto.eq(tipo_producto))
-                    .add(ProdDB::Column::Marca.eq(marca))
-                    .add(ProdDB::Column::Variedad.eq(variedad))
-                    .add(ProdDB::Column::Presentacion.eq(presentacion))
-                    .add(ProdDB::Column::Cantidad.eq(cantidad)),
-            )
-            .one(self.read_db())
-            .await?
-        {
+        let mut codigos = Vec::new();
+        for code in codigos_de_barras {
+            codigos.push(code.parse::<i64>()?);
+        }
+        let mut query = String::from("select id as int from codigos where codigo = ?");
+        let row = " or codigo = ?";
+        for _ in 1..codigos.len() {
+            query.push_str(row);
+        }
+        let mut qres = sqlx::query_as(query.as_str());
+        for code in codigos {
+            qres = qres.bind(code);
+        }
+        let qres: Option<BigIntDB> = qres.fetch_optional(self.read_db.as_ref()).await?;
+        if let Some(res) = qres {
+            return Err(AppError::ExistingError {
+                objeto: "Codigo".to_string(),
+                instancia: res.int.to_string(),
+            });
+        }
+        let qres:Option<BigIntDB>=sqlx::query_as!(BigIntDB,
+            "select id as int from productos where tipo = ? and marca = ? and variedad = ? and presentacion = ? and size = ?",tipo_producto,marca,variedad,presentacion,cantidad)
+            .fetch_optional(self.read_db.as_ref()).await?;
+        match qres {
+            None => {
+                let tipo_producto = tipo_producto.to_lowercase();
+                let marca = marca.to_lowercase();
+                let variedad = variedad.to_lowercase();
+                let precio_de_venta = precio_de_venta.parse::<f32>()?;
+                let porcentaje = porcentaje.parse::<f32>()?;
+                let precio_de_costo = precio_de_costo.parse::<f32>()?;
+                let pres = Presentacion::build(presentacion, cantidad.parse::<f32>()?);
+                let prod_qres =
+                    sqlx::query("insert into productos values (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                        .bind(precio_de_venta)
+                        .bind(porcentaje)
+                        .bind(precio_de_costo)
+                        .bind(tipo_producto)
+                        .bind(marca)
+                        .bind(variedad)
+                        .bind(presentacion)
+                        .bind(cantidad)
+                        .bind(Utc::now().naive_local())
+                        .execute(self.write_db.as_ref())
+                        .await?;
+                let mut query = String::from("insert into codigos values (?, ?)");
+                let row = ", (?, ?)";
+                for _ in 1..codigos_de_barras.len() {
+                    query.push_str(row);
+                }
+                let mut qres = sqlx::query(query.as_ref());
+                for code in codigos {
+                    qres = qres.bind(code);
+                }
+                qres.execute(self.write_db.as_ref()).await?;
+
+                let mut query = String::from("insert into relacion_prod_prov values (?, ?, ?)");
+                let row = ", (?, ?, ?)";
+                for _ in 1..proveedores.len() {
+                    query.push_str(row);
+                }
+                let mut qres = sqlx::query(query.as_ref());
+                for i in 0..proveedores.len() {
+                    qres = qres
+                        .bind(prod_qres.last_insert_rowid())
+                        .bind(proveedores[i].parse::<i64>()?)
+                        .bind(codigos_prov[i].parse::<i64>().ok());
+                }
+                qres.execute(self.write_db().as_ref()).await?;
+                Ok(Producto::build(
+                    prod_qres.last_insert_rowid(),
+                    codigos,
+                    precio_de_venta,
+                    porcentaje,
+                    precio_de_costo,
+                    tipo_producto.as_ref(),
+                    marca.as_ref(),
+                    variedad.as_ref(),
+                    pres,
+                ))
+            }
             Some(_) => {
                 return Err(AppError::ExistingError {
-                    objeto: String::from("Prodcuto"),
+                    objeto: String::from("Producto"),
                     instancia: format!(
                         "{} {} {} {} {}",
                         tipo_producto, marca, variedad, cantidad, presentacion
                     ),
                 })
-            }
-            None => {
-                let tipo_producto = tipo_producto.to_lowercase();
-                let marca = marca.to_lowercase();
-                let variedad = variedad.to_lowercase();
-
-                let precio_de_venta = precio_de_venta.parse::<f32>()?;
-                let porcentaje = porcentaje.parse::<f32>()?;
-                let precio_de_costo = precio_de_costo.parse::<f32>()?;
-                let codigos_de_barras: Vec<i64> = codigos_de_barras
-                    .iter()
-                    .map(|x| x.parse::<i64>().unwrap())
-                    .collect();
-                let presentacion = match presentacion {
-                    "Gr" => Presentacion::Gr(cantidad.parse().unwrap()),
-                    "Un" => Presentacion::Un(cantidad.parse().unwrap()),
-                    "Lt" => Presentacion::Lt(cantidad.parse().unwrap()),
-                    "Ml" => Presentacion::Ml(cantidad.parse().unwrap()),
-                    "CC" => Presentacion::CC(cantidad.parse().unwrap()),
-                    "Kg" => Presentacion::Kg(cantidad.parse().unwrap()),
-                    _ => {
-                        return Err(AppError::IncorrectError(format!(
-                            "No posible {presentacion}"
-                        )))
-                    }
-                };
-                let prod_model = ProdDB::ActiveModel {
-                    precio_de_venta: Set(precio_de_venta),
-                    porcentaje: Set(porcentaje),
-                    precio_de_costo: Set(precio_de_costo),
-                    tipo_producto: Set(tipo_producto.to_string()),
-                    marca: Set(marca.to_owned()),
-                    variedad: Set(variedad.to_owned()),
-                    presentacion: Set(presentacion.get_string()),
-                    updated_at: Set(Utc::now().naive_local()),
-                    cantidad: Set(presentacion.get_cantidad()),
-                    ..Default::default()
-                };
-                let res_prod = ProdDB::Entity::insert(prod_model)
-                    .exec(self.write_db())
-                    .await?;
-                let codigos_model: Vec<CodeDB::ActiveModel> = codigos_de_barras
-                    .iter()
-                    .map(|x| CodeDB::ActiveModel {
-                        codigo: Set(*x),
-                        producto: Set(res_prod.last_insert_id),
-                        ..Default::default()
-                    })
-                    .collect();
-
-                CodeDB::Entity::insert_many(codigos_model)
-                    .exec(self.write_db())
-                    .await?;
-                for i in 0..codigos_prov.len() {
-                    let codigo = if codigos_prov[i].len() == 0 {
-                        None
-                    } else {
-                        Some(codigos_prov[i].parse::<i64>()?)
-                    };
-                    if let Some(prov) = ProvDB::Entity::find()
-                        .filter(Condition::all().add(ProvDB::Column::Nombre.eq(proveedores[i])))
-                        .one(self.write_db())
-                        .await?
-                    {
-                        let relacion_model = ProdProvDB::ActiveModel {
-                            producto: Set(res_prod.last_insert_id),
-                            proveedor: Set(prov.id),
-                            codigo: Set(codigo),
-                            ..Default::default()
-                        };
-                        ProdProvDB::Entity::insert(relacion_model)
-                            .exec(self.write_db())
-                            .await?;
-                    }
-                }
-
-                let producto = Producto::new(
-                    res_prod.last_insert_id,
-                    codigos_de_barras,
-                    precio_de_venta,
-                    porcentaje,
-                    precio_de_costo,
-                    tipo_producto.as_str(),
-                    marca.as_str(),
-                    variedad.as_str(),
-                    presentacion,
-                );
-
-                let result = Ok(producto.clone());
-
-                for i in 0..proveedores.len() {
-                    match codigos_prov[i].parse::<i64>() {
-                        Ok(a) => self.relaciones.push(RelacionProdProv::new(
-                            *producto.id(),
-                            i as i32,
-                            Some(a),
-                        )),
-                        Err(_) => self.relaciones.push(RelacionProdProv::new(
-                            *producto.id(),
-                            i as i32,
-                            None,
-                        )),
-                    };
-                }
-
-                result
             }
         }
     }
@@ -769,18 +747,36 @@ impl<'a> Sistema {
 
     pub async fn agregar_producto_a_venta(&mut self, prod: V, pos: bool) -> Res<()> {
         let existe = match &prod {
-            Valuable::Prod(a) => ProdDB::Entity::find_by_id(*a.1.id())
-                .one(self.read_db())
-                .await?
-                .is_some(),
-            Valuable::Pes(a) => PesDB::Entity::find_by_id(*a.1.id())
-                .one(self.read_db())
-                .await?
-                .is_some(),
-            Valuable::Rub(a) => RubDB::Entity::find_by_id(*a.1.id())
-                .one(self.read_db())
-                .await?
-                .is_some(),
+            Valuable::Prod((_, prod)) => {
+                let qres: Option<BigIntDB> = sqlx::query_as!(
+                    BigIntDB,
+                    "select id as int from productos where id = ? ",
+                    *prod.id()
+                )
+                .fetch_optional(self.read_db())
+                .await?;
+                qres.is_some()
+            }
+            Valuable::Pes((_, pes)) => {
+                let qres: Option<BigIntDB> = sqlx::query_as!(
+                    BigIntDB,
+                    "select id as int from pesables where id = ? ",
+                    *pes.id()
+                )
+                .fetch_optional(self.read_db())
+                .await?;
+                qres.is_some()
+            }
+            Valuable::Rub((_, rub)) => {
+                let qres: Option<BigIntDB> = sqlx::query_as!(
+                    BigIntDB,
+                    "select id as int from rubros where id = ? ",
+                    *rub.id()
+                )
+                .fetch_optional(self.read_db())
+                .await?;
+                qres.is_some()
+            }
         };
         let result;
 
@@ -878,49 +874,44 @@ impl<'a> Sistema {
         }
     }
     pub fn filtrar_marca(&self, filtro: &str) -> Res<Vec<String>> {
-        let mut hash = HashSet::new();
         async_runtime::block_on(async {
-            let qres: Vec<Model> = sqlx::query_as!(
-                Model::String,
-                "select marca as string from productos where marca like ?",
+            let qres: Vec<StringDB> = sqlx::query_as!(
+                StringDB,
+                "select marca as string from productos where marca like ? order by marca asc",
                 filtro
             )
             .fetch_all(self.read_db())
-            .await;
-            ProdDB::Entity::find()
-                .filter(ProdDB::Column::Marca.contains(filtro))
-                .order_by(ProdDB::Column::Marca, sea_orm::Order::Asc)
-                .all(self.read_db())
-                .await?
+            .await?;
+            Ok(qres
                 .iter()
-                .for_each(|x| {
-                    hash.insert(x.marca.clone());
-                });
-            Ok(hash.into_iter().collect::<Vec<String>>())
+                .map(|s| s.string)
+                .dedup()
+                .collect::<Vec<String>>())
         })
     }
     // pub fn get_deuda_cliente(&self, cliente: Cli)->Res<f64>{
 
     // }
     pub fn filtrar_tipo_producto(&self, filtro: &str) -> Res<Vec<String>> {
-        let mut hash = HashSet::new();
         async_runtime::block_on(async {
-            ProdDB::Entity::find()
-                .filter(ProdDB::Column::TipoProducto.contains(filtro))
-                .order_by(ProdDB::Column::TipoProducto, sea_orm::Order::Asc)
-                .all(self.read_db())
-                .await?
+            let qres: Vec<StringDB> = sqlx::query_as!(
+                StringDB,
+                "select marca as string from productos where tipo like ? order by tipo asc",
+                filtro
+            )
+            .fetch_all(self.read_db())
+            .await?;
+            Ok(qres
                 .iter()
-                .for_each(|x| {
-                    hash.insert(x.tipo_producto.clone());
-                });
-            Ok(hash.into_iter().collect::<Vec<String>>())
+                .map(|s| s.string)
+                .dedup()
+                .collect::<Vec<String>>())
         })
     }
-    pub fn write_db(&self) -> &DatabaseConnection {
+    pub fn write_db(&self) -> &Pool<Sqlite> {
         &self.write_db
     }
-    pub fn read_db(&self) -> &DatabaseConnection {
+    pub fn read_db(&self) -> &Pool<Sqlite> {
         &self.read_db
     }
     fn set_venta(&mut self, pos: bool, venta: Venta) {
@@ -1005,7 +996,7 @@ impl<'a> Sistema {
             })
         }
     }
-    pub fn set_cliente(&mut self, id: i32, pos: bool) -> Res<()> {
+    pub fn set_cliente(&mut self, id: i64, pos: bool) -> Res<()> {
         if pos {
             async_runtime::block_on(self.ventas.a.set_cliente(id, &self.read_db))
         } else {

@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
-    id: i32,
+    id: i64,
     nombre: Arc<str>,
     contacto: Option<i64>,
 }
@@ -46,7 +46,7 @@ impl Proveedor {
             }
         }
     }
-    pub fn build(id: i32, nombre: &str, contacto: Option<i64>) -> Self {
+    pub fn build(id: i64, nombre: &str, contacto: Option<i64>) -> Self {
         Proveedor {
             id,
             nombre: Arc::from(nombre),
@@ -56,7 +56,7 @@ impl Proveedor {
     pub fn nombre(&self) -> Arc<str> {
         Arc::clone(&self.nombre)
     }
-    pub fn id(&self) -> &i32 {
+    pub fn id(&self) -> &i64 {
         &self.id
     }
     pub fn contacto(&self) -> &Option<i64> {

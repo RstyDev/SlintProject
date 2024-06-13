@@ -34,20 +34,11 @@ impl Rubro {
                 .fetch_optional(db)
                 .await?;
         match qres {
-            Some(model) => match model {
-                Model::Code {
-                    id: _,
-                    codigo: _,
-                    producto: _,
-                    pesable: _,
-                    rubro,
-                } => match rubro {
-                    Some(_) => Err(AppError::IncorrectError(String::from("rubro existente"))),
-                    None => Err(AppError::IncorrectError(String::from(
-                        "existe el codigo pero no corresponde a un rubro",
-                    ))),
-                },
-                _ => Err(AppError::IncorrectError(String::from("se esperaba codigo"))),
+            Some(model) => match model.rubro {
+                Some(_) => Err(AppError::IncorrectError(String::from("rubro existente"))),
+                None => Err(AppError::IncorrectError(String::from(
+                    "existe el codigo pero no corresponde a un rubro",
+                ))),
             },
             None => {
                 let qres = sqlx::query("insert into rubros values (?, ?)")
@@ -64,7 +55,7 @@ impl Rubro {
                     qres.last_insert_rowid(),
                     codigo,
                     monto,
-                    Arc::from(descripcion),
+                    descripcion,
                 ))
             }
         }

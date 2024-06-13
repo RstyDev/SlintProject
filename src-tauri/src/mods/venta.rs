@@ -1,4 +1,4 @@
-use crate::db::map::VentaDB;
+use crate::db::map::{BigIntDB, ClienteDB, VentaDB};
 use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{query, Pool, Sqlite};
@@ -8,15 +8,9 @@ use tauri::async_runtime;
 use Valuable as V;
 const CUENTA: &str = "Cuenta Corriente";
 
-use crate::{
-    db::{Mapper, Model},
-    mods::pago::medio_from_db,
-};
+use crate::{db::Mapper, mods::pago::medio_from_db};
 
-use super::{
-    redondeo, AppError, Cli, Cliente, Cuenta::Auth, Cuenta::Unauth, MedioPago, Pago, Res, User,
-    Valuable,
-};
+use super::{redondeo, AppError, Cliente, Cuenta::Auth, Cuenta::Unauth, MedioPago, Pago, Res, User, Valuable, Cli};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Venta {
@@ -66,21 +60,9 @@ impl<'a> Venta {
         .fetch_optional(db)
         .await?;
         match qres {
-            Some(model) => match model {
-                Model::Venta {
-                    id: _,
-                    time: _,
-                    monto_total: _,
-                    monto_pagado: _,
-                    cliente: _,
-                    cerrada,
-                    paga: _,
-                    pos: _,
-                } => match cerrada {
-                    true => Venta::new(vendedor, db, pos).await,
-                    false => Mapper::venta(db, model, &vendedor).await,
-                },
-                _ => Err(AppError::IncorrectError(String::from("Se esperaba Venta"))),
+            Some(model) => match model.cerrada {
+                true => Venta::new(vendedor, db, pos).await,
+                false => Mapper::venta(db, model, &vendedor).await,
             },
             None => Venta::new(vendedor, db, pos).await,
         }
@@ -168,13 +150,11 @@ impl<'a> Venta {
                     }
                 },
             },
-            _ => match async_runtime::block_on(medio_from_db(medio_pago, db)) {
-                Model::MedioPago { id, medio } => {
-                    let medio_pago = MedioPago::build(&medio, id);
-                    self.pagos.push(Pago::new(medio_pago, monto, None));
-                }
-                _ => return Err(AppError::IncorrectError(String::from("Se esperaba medio"))),
-            },
+            _ => {
+                let medio_db = async_runtime::block_on(medio_from_db(medio_pago, db));
+                let medio_pago = MedioPago::build(&medio_db.medio, medio_db.id);
+                self.pagos.push(Pago::new(medio_pago, monto, None));
+            }
         }
 
         self.monto_pagado += monto;
@@ -305,36 +285,21 @@ impl<'a> Venta {
             self.cliente = Cliente::Final;
             Ok(())
         } else {
-            let qres: Option<Model> = sqlx::query_as!(
-                Model::Cliente,
-                "select * from clientes where id = ? limit 1",
-                id
-            )
-            .fetch_optional(db)
-            .await?;
+            let qres: Option<ClienteDB> =
+                sqlx::query_as!(ClienteDB, "select * from clientes where id = ? limit 1", id)
+                    .fetch_optional(db)
+                    .await?;
             match qres {
-                Some(model) => match model {
-                    Model::Cliente {
-                        id,
-                        nombre,
-                        dni,
-                        limite,
-                        activo,
-                        time,
-                    } => {
-                        self.cliente = Cliente::Regular(Cli::build(
-                            id,
-                            Arc::from(nombre),
-                            dni,
-                            activo,
-                            time,
-                            limite,
-                        ));
-                        Ok(())
-                    }
-                    _ => Err(AppError::IncorrectError(String::from(
-                        "Se esperaba Cliente",
-                    ))),
+                Some(model) => {
+                    self.cliente = Cliente::Regular(Cli::build(
+                        model.id,
+                        Arc::from(model.nombre),
+                        model.dni,
+                        model.activo,
+                        model.time,
+                        model.limite,
+                    ));
+                    Ok(())
                 },
                 None => Err(AppError::NotFound {
                     objeto: String::from("Cliente"),
@@ -356,8 +321,8 @@ impl<'a> Venta {
         }
     }
     pub async fn guardar(&self, pos: bool, db: &Pool<Sqlite>) -> Res<()> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::BigInt,
+        let qres: Option<BigIntDB> = sqlx::query_as!(
+            BigIntDB,
             "select id as int from ventas where id = ?",
             self.id
         )

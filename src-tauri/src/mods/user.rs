@@ -1,5 +1,4 @@
 use super::{AppError, Res};
-use crate::db::Model;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;
@@ -24,8 +23,8 @@ impl User {
         rango: &str,
         db: &Pool<Sqlite>,
     ) -> Res<User> {
-        let qres: Option<Model> = sqlx::query_as!(
-            Model::BigInt,
+        let qres: Option<BigIntDB> = sqlx::query_as!(
+            BigIntDB,
             "select id as int from users where user_id = ?",
             id.to_string()
         )

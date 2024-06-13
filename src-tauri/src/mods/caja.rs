@@ -2,7 +2,7 @@ use chrono::{NaiveDateTime, Utc};
 use core::fmt;
 use sqlx::{query_as, Pool, Sqlite};
 
-use crate::db::map::{BigIntDB, CajaParcialDB};
+use crate::db::map::{BigIntDB, CajaDB};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 
@@ -60,12 +60,10 @@ impl Caja {
         for medio in config.medios_pago() {
             totales.insert(Arc::clone(medio), 0.0);
         }
-        let caja_mod: sqlx::Result<Option<CajaParcialDB>> = query_as!(
-            CajaParcialDB,
-            "select id, cierre, ventas_totales, cajero from cajas order by id desc"
-        )
-        .fetch_optional(db)
-        .await;
+        let caja_mod: sqlx::Result<Option<CajaDB>> =
+            query_as!(CajaDB, "select * from cajas order by id desc")
+                .fetch_optional(db)
+                .await;
         caja = match caja_mod? {
             Some(caja) => match caja.cierre {
                 Some(_) => match monto_de_inicio {
