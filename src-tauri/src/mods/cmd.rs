@@ -2,6 +2,7 @@ use super::{
     get_hash, Caja, Cli, Config, Pago, Pesable, Rango, Result as Res, Rubro, Sistema, User,
     Valuable as V, Venta,
 };
+use tokio::time::sleep;
 use serde::Serialize;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -779,7 +780,7 @@ pub async fn open_confirm_stash_2(handle: tauri::AppHandle, act: bool) -> Res<()
             .title("Confirmar Stash")
             .build()
             .map_err(|e| e.to_string())?;
-            std::thread::sleep(std::time::Duration::from_millis(500));
+            sleep(std::time::Duration::from_millis(500)).await;
             win.emit(
                 "get-venta",
                 Payload {
@@ -790,7 +791,7 @@ pub async fn open_confirm_stash_2(handle: tauri::AppHandle, act: bool) -> Res<()
             )
             .map_err(|e| e.to_string())?;
             for _ in 0..7 {
-                std::thread::sleep(std::time::Duration::from_millis(175));
+                sleep(std::time::Duration::from_millis(175)).await;
                 win.emit(
                     "get-venta",
                     Payload {
@@ -864,10 +865,10 @@ pub async fn open_select_amount_2(handle: tauri::AppHandle, val: V, pos: bool) -
     match handle.get_window("select-amount") {
         Some(window) => {
             window.show().map_err(|e| e.to_string())?;
-            std::thread::sleep(std::time::Duration::from_millis(400));
+            sleep(std::time::Duration::from_millis(400)).await;
             let mut res = Err(String::from("Error emitiendo mensaje"));
             for _ in 0..8 {
-                std::thread::sleep(std::time::Duration::from_millis(175));
+                sleep(std::time::Duration::from_millis(175)).await;
                 if window
                     .emit(
                         "select-amount",
@@ -899,10 +900,10 @@ pub async fn open_select_amount_2(handle: tauri::AppHandle, val: V, pos: bool) -
             .title("Seleccione Monto")
             .build()
             .map_err(|e| e.to_string())?;
-            std::thread::sleep(std::time::Duration::from_millis(400));
+            sleep(std::time::Duration::from_millis(400)).await;
             let mut res = Err(String::from("Error emitiendo mensaje"));
             for _ in 0..8 {
-                std::thread::sleep(std::time::Duration::from_millis(175));
+                sleep(std::time::Duration::from_millis(175)).await;
                 if window
                     .emit(
                         "select-amount",
@@ -933,7 +934,7 @@ pub async fn open_stash_2<'a>(
             Some(window) => {
                 window.show().map_err(|e| e.to_string())?;
                 for _ in 0..7 {
-                    std::thread::sleep(std::time::Duration::from_millis(250));
+                    sleep(std::time::Duration::from_millis(250)).await;
                     window
                         .emit(
                             "stash",
@@ -962,7 +963,7 @@ pub async fn open_stash_2<'a>(
                 .build()
                 .map_err(|e| e.to_string())?;
                 for _ in 0..7 {
-                    std::thread::sleep(std::time::Duration::from_millis(250));
+                    sleep(std::time::Duration::from_millis(250)).await;
                     win.emit(
                         "stash",
                         Payload {

@@ -19,6 +19,7 @@ chrono = {version= "0.4.38" ,features = ["serde"] }
 thiserror = "1.0.61"
 dotenvy = "0.15.7"
 rand = "0.8.5"
+tokio = "1.38.0"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

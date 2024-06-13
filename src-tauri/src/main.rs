@@ -19,7 +19,7 @@ pub fn db() -> Pool<Sqlite> {
     );
     dotenv().unwrap();
     block_on(SqlitePool::connect("sqlite:///sqlite.db?mode=rwc"))
-        .expect("Error connectando a la DB")
+        .expect("Error conectando a la DB")
 }
 
 // use mods::{
