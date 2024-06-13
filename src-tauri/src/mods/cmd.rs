@@ -71,7 +71,7 @@ pub fn agregar_cliente_2(
     dni: &str,
     limite: Option<&str>,
 ) -> Res<Cli> {
-    let dni = dni.parse::<i32>().map_err(|e| e.to_string())?;
+    let dni = dni.parse::<i64>().map_err(|e| e.to_string())?;
     let limite = match limite {
         Some(l) => Some(l.parse::<f32>().map_err(|e| e.to_string())?),
         None => None,
@@ -154,7 +154,7 @@ pub fn agregar_pesable_2<'a>(
                     return Err(e.into());
                 }
             };
-            let pesable = async_runtime::block_on(Pesable::new_to_db(
+            let pesable = block_on(Pesable::new_to_db(
                 sis.write_db(),
                 codigo,
                 precio_peso,
@@ -215,7 +215,7 @@ pub fn agregar_producto_a_venta_2(
     sis.access();
     match &prod {
         V::Prod(_) => {
-            async_runtime::block_on(sis.agregar_producto_a_venta(prod, pos))?;
+            block_on(sis.agregar_producto_a_venta(prod, pos))?;
             loop {
                 if let Ok(_) = window
                     .menu_handle()
@@ -279,7 +279,7 @@ pub fn agregar_rubro_2(
     match sis.arc_user().rango() {
         Rango::Admin => {
             let codigo = codigo.parse::<i64>().map_err(|e| e.to_string())?;
-            let rubro = async_runtime::block_on(Rubro::new_to_db(
+            let rubro = block_on(Rubro::new_to_db(
                 codigo,
                 None,
                 descripcion,
@@ -298,7 +298,7 @@ pub fn agregar_rub_o_pes_a_venta_2(
     pos: bool,
 ) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
-    async_runtime::block_on(sis.agregar_producto_a_venta(val, pos))?;
+    block_on(sis.agregar_producto_a_venta(val, pos))?;
     loop {
         if window
             .emit(
@@ -409,7 +409,7 @@ pub fn editar_producto_2(sistema: State<Mutex<Sistema>>, prod: V) -> Res<()> {
     Ok(())
 }
 pub fn eliminar_pago_2(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>> {
-    let id = id.parse::<u32>().map_err(|e| e.to_string())?;
+    let id = id.parse::<i64>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.eliminar_pago(pos, id).map_err(|e| e.to_string())
@@ -454,7 +454,7 @@ pub fn get_caja_2(sistema: State<Mutex<Sistema>>) -> Res<Caja> {
 pub fn get_clientes_2(sistema: State<Mutex<Sistema>>) -> Res<Vec<Cli>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(async_runtime::block_on(sis.get_clientes())?)
+    Ok(block_on(sis.get_clientes())?)
 }
 pub fn get_configs_2(sistema: State<Mutex<Sistema>>) -> Res<Config> {
     Ok(sistema.lock().map_err(|e| e.to_string())?.configs().clone())
@@ -507,14 +507,14 @@ pub fn get_medios_pago_2(sistema: State<Mutex<Sistema>>) -> Res<Vec<String>> {
 pub fn get_productos_filtrado_2(sistema: State<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(async_runtime::block_on(
+    Ok(block_on(
         sis.val_filtrado(filtro, sis.read_db()),
     )?)
 }
 pub fn get_proveedores_2(sistema: State<'_, Mutex<Sistema>>) -> Res<Vec<String>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(async_runtime::block_on(sis.proveedores())
+    Ok(block_on(sis.proveedores())
         .iter()
         .map(|x| x.to_string())
         .collect())
@@ -980,14 +980,14 @@ pub async fn open_stash_2<'a>(
 }
 pub fn pagar_deuda_especifica_2(
     sistema: State<Mutex<Sistema>>,
-    cliente: i32,
+    cliente: i64,
     venta: Venta,
 ) -> Res<Venta> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.pagar_deuda_especifica(cliente, venta)?)
 }
-pub fn pagar_deuda_general_2(sistema: State<Mutex<Sistema>>, cliente: i32, monto: f32) -> Res<f32> {
+pub fn pagar_deuda_general_2(sistema: State<Mutex<Sistema>>, cliente: i64, monto: f32) -> Res<f32> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.pagar_deuda_general(cliente, monto)?)
@@ -1003,7 +1003,7 @@ pub fn set_cantidad_producto_venta_2(
     sis.access();
     Ok(sis.set_cantidad_producto_venta(index, cantidad, pos)?)
 }
-pub fn set_cliente_2(sistema: State<Mutex<Sistema>>, id: i32, pos: bool) -> Res<Venta> {
+pub fn set_cliente_2(sistema: State<Mutex<Sistema>>, id: i64, pos: bool) -> Res<Venta> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.set_cliente(id, pos)?;
     Ok(sis.venta(pos))
@@ -1056,7 +1056,7 @@ pub fn try_login_2(
     pass: &str,
 ) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
-    let rango = async_runtime::block_on(sis.try_login(id, get_hash(pass)))?;
+    let rango = block_on(sis.try_login(id, get_hash(pass)))?;
     let menu = window
         .app_handle()
         .get_window("main")

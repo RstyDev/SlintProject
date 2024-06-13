@@ -15,6 +15,8 @@ mod sistema;
 mod user;
 mod valuable;
 mod venta;
+mod cmd;
+
 pub use caja::Caja;
 pub use caja::Movimiento;
 pub use cliente::Cli;
@@ -30,7 +32,6 @@ pub use lib::get_hash;
 pub use lib::leer_file;
 pub use lib::redondeo;
 pub use lib::Db;
-pub use lib::Mapper;
 pub use pago::MedioPago;
 pub use pago::Pago;
 pub use pesable::Pesable;

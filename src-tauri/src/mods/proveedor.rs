@@ -39,7 +39,7 @@ impl Proveedor {
                     .execute(db)
                     .await?;
                 Ok(Proveedor::build(
-                    qres.last_insert_rowid() as i32,
+                    qres.last_insert_rowid(),
                     nombre,
                     contacto,
                 ))

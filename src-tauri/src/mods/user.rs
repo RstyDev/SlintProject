@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;
 use std::sync::Arc;
+use crate::db::map::BigIntDB;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     id: Arc<str>,
