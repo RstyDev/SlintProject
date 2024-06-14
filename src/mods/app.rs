@@ -3,6 +3,7 @@ use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
 use wasm_bindgen::prelude::*;
+use crate::mods::Pago;
 
 #[wasm_bindgen]
 extern "C" {
@@ -39,10 +40,15 @@ pub fn App() -> impl IntoView {
             set_greet_msg.set(new_msg);
         });
     };
-
+    let pagado=true;
+    let monto=3.0;
     view! {
         <main class="container">
+
             <div class="row">
+        <p> "aca va el pago"
+            <Pago pagado=pagado monto=monto medios_pago=vec!["a", "ba"]/>
+            </p>
                 <a href="https://tauri.app" target="_blank">
                     <img src="public/tauri.svg" class="logo tauri" alt="Tauri logo"/>
                 </a>
@@ -72,6 +78,7 @@ pub fn App() -> impl IntoView {
             </form>
 
             <p><b>{ move || greet_msg.get() }</b></p>
+
         </main>
     }
 }

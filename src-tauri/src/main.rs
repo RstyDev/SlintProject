@@ -1,7 +1,7 @@
 //Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod db;
-mod mods;
+// mod mods;
 use db::fresh;
 use dotenvy::dotenv;
 use sqlx::{Pool, Sqlite, SqlitePool};

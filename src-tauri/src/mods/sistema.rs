@@ -4,7 +4,7 @@ use super::{
 };
 use crate::db::fresh;
 use crate::db::map::{
-    BigIntDB, ClienteDB, CodeDB, CodedPesDB, CodedRubDB, IntDB, PesableDB, ProductoDB, ProvDB,
+    BigIntDB, ClienteDB, CodeDB, CodedPesDB, CodedRubDB,  PesableDB, ProductoDB, ProvDB,
     RubroDB, StringDB, UserDB,
 };
 use chrono::Utc;
@@ -136,7 +136,7 @@ impl<'a> Sistema {
     }
     pub fn new(read_db: Arc<Pool<Sqlite>>, write_db: Arc<Pool<Sqlite>>) -> Res<Sistema> {
         async_runtime::block_on(async {
-            let qres: Option<IntDB> = sqlx::query_as!(IntDB, "select id as int from cajas limit 1")
+            let qres: Option<BigIntDB> = sqlx::query_as!(BigIntDB, "select id as int from cajas limit 1")
                 .fetch_optional(read_db.as_ref())
                 .await?;
             if qres.is_none() {
@@ -176,12 +176,12 @@ impl<'a> Sistema {
             stash,
             registro,
         };
-        Sistema::procesar(
+        async_runtime::block_on(Sistema::procesar(
             Arc::clone(&sis.write_db),
             Arc::clone(&sis.read_db),
             sis.proveedores.clone(),
             sis.relaciones.clone(),
-        )?;
+        ))?;
         Ok(sis)
     }
     fn generar_reporte_caja(&self) {
@@ -216,7 +216,7 @@ impl<'a> Sistema {
         Ok(())
     }
     pub fn eliminar_usuario(&self, user: User) -> Res<()> {
-        async_runtime::spawn(Db::eliminar_usuario(user, self.read_db.as_ref()));
+        async_runtime::block_on(Db::eliminar_usuario(user, self.read_db.as_ref()));
         Ok(())
     }
 
@@ -580,13 +580,13 @@ impl<'a> Sistema {
             _ => Err(AppError::ParseError),
         }
     }
-    pub async fn proveedores(&self) -> Vec<Proveedor> {
+    pub async fn proveedores(&self) -> Res<Vec<Proveedor>> {
         let qres: Vec<ProvDB> = sqlx::query_as!(ProvDB, "select * from proveedores")
             .fetch_all(self.read_db.as_ref())
             .await?;
-        qres.iter()
+        Ok(qres.iter()
             .map(|prov| Proveedor::build(prov.id, prov.nombre, prov.contacto))
-            .collec::<Vec<Proveedor>>()
+            .collect::<Vec<Proveedor>>())
     }
     pub fn configs(&self) -> &Config {
         &self.configs
@@ -609,7 +609,7 @@ impl<'a> Sistema {
         async_runtime::block_on(async {
             sqlx::query("update config set cantidad = ?, mayus = ?, formato = ?, politica = ?")
                 .bind(configs.cantidad_productos())
-                .bind(configs.modo_mayus())
+                .bind(configs.modo_mayus().to_string())
                 .bind(configs.formato())
                 .bind(configs.politica())
                 .execute(&self.write_db)?;
@@ -903,8 +903,8 @@ impl<'a> Sistema {
             .await?;
             Ok(qres
                 .iter()
-                .map(|s| s.string)
                 .dedup()
+                .map(|s| s.string)
                 .collect::<Vec<String>>())
         })
     }
@@ -953,10 +953,10 @@ impl<'a> Sistema {
         async_runtime::block_on(cliente.get_deuda_detalle(&self.read_db, self.user()))
     }
     pub fn eliminar_valuable(&self, val: V) {
-        async_runtime::spawn(val.eliminar(self.write_db.as_ref()));
+        async_runtime::block_on(val.eliminar(self.write_db.as_ref()));
     }
     pub fn editar_valuable(&self, val: V) {
-        async_runtime::spawn(val.editar(self.write_db.as_ref()));
+        async_runtime::block_on(val.editar(self.write_db.as_ref()));
     }
     pub fn arc_user(&self) -> Arc<User> {
         Arc::clone(&self.user.as_ref().unwrap())
