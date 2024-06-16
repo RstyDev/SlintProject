@@ -1,7 +1,5 @@
 mod mods;
-use crate::mods::app;
-use crate::mods::App;
-use leptos::*;
+mod pago;
 
 fn main() {
     console_error_panic_hook::set_once();

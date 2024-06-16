@@ -4,13 +4,17 @@ use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
 use crate::mods::pago::Pago;
 use wasm_bindgen::prelude::*;
-
+use crate::mods::StPago;
+type Res<T> = Result<T, String>;
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "tauri"])]
     async fn invoke(cmd: &str, args: JsValue) -> JsValue;
 }
-
+pub async fn eliminar_pago(pos:bool, id:i64)-> Result<Vec<StPago>, String> {
+    let val=
+}
+// fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>>
 #[derive(Serialize, Deserialize)]
 struct GreetArgs<'a> {
     name: &'a str,
