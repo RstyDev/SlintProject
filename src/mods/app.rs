@@ -2,8 +2,8 @@ use leptos::leptos_dom::ev::SubmitEvent;
 use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
+use crate::mods::pago::Pago;
 use wasm_bindgen::prelude::*;
-use crate::mods::Pago;
 
 #[wasm_bindgen]
 extern "C" {
@@ -20,7 +20,7 @@ struct GreetArgs<'a> {
 pub fn App() -> impl IntoView {
     let (name, set_name) = create_signal(String::new());
     let (greet_msg, set_greet_msg) = create_signal(String::new());
-
+    let (monto,set_monto) = create_signal(0.0);
     let update_name = move |ev| {
         let v = event_target_value(&ev);
         set_name.set(v);
@@ -40,14 +40,14 @@ pub fn App() -> impl IntoView {
             set_greet_msg.set(new_msg);
         });
     };
-    let pagado=true;
-    let monto=3.0;
+    let pagado=false;
+
     view! {
         <main class="container">
 
             <div class="row">
         <p> "aca va el pago"
-            <Pago pagado=pagado monto=monto medios_pago=vec!["a", "ba"]/>
+            <Pago pagado=pagado monto=monto.clone() medios_pago=vec!["a", "ba"] set_monto=set_monto.clone()/>
             </p>
                 <a href="https://tauri.app" target="_blank">
                     <img src="public/tauri.svg" class="logo tauri" alt="Tauri logo"/>
