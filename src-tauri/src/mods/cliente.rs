@@ -40,7 +40,7 @@ impl Cli {
     ) -> Res<Cli> {
         let model: Option<ClienteDB> = sqlx::query_as!(
             ClienteDB,
-            "select * from clientes where dni = ? limit 1",
+            r#"select id, nombre, dni as "dni: _", limite as "limite: _", activo, time from clientes where dni = ? limit 1"#,
             dni
         )
         .fetch_optional(db)
@@ -112,7 +112,7 @@ impl Cli {
     pub async fn get_deuda(&self, db: &Pool<Sqlite>) -> Res<f32> {
         let model: sqlx::Result<Vec<FloatDB>> = sqlx::query_as!(
             FloatDB,
-            "select monto as float from deudas where id = ? ",
+            r#"select monto as "float:_" from deudas where id = ? "#,
             self.id
         )
         .fetch_all(db)
@@ -127,7 +127,7 @@ impl Cli {
         let mut ventas = Vec::new();
         let qres: Vec<VentaDB> = sqlx::query_as!(
             VentaDB,
-            "select * from ventas where cliente = ? and paga = ? ",
+            r#"select id, time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where cliente = ? and paga = ? "#,
             self.id,
             false
         )
@@ -147,7 +147,7 @@ impl Cli {
     ) -> Res<Venta> {
         let qres: Option<VentaDB> = sqlx::query_as!(
             VentaDB,
-            "select * from ventas where id = ? and cliente = ? and paga = ? ",
+            r#"select id, time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where id = ? and cliente = ? and paga = ? "#,
             *venta.id(),
             id_cliente,
             false
@@ -161,7 +161,7 @@ impl Cli {
 
         if venta.cliente.unwrap() == id_cliente {
             let venta = Mapper::venta(db, venta, user).await?;
-            sqlx::query!("update ventas set paga = ? where id = ? ", venta.id(), true)
+            sqlx::query!("update ventas set paga = ? where id = ? ", *venta.id(), true)
                 .execute(db)
                 .await?;
             Ok(venta)
@@ -176,7 +176,7 @@ impl Cli {
     ) -> Res<f32> {
         let qres: Vec<VentaDB> = sqlx::query_as!(
             VentaDB,
-            "select * from ventas where cliente = ? and paga = ? ",
+            r#"select id, time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where cliente = ? and paga = ? "#,
             id,
             false
         )
@@ -194,7 +194,7 @@ impl Cli {
 
             let models: Vec<PagoDB> = sqlx::query_as!(
                 PagoDB,
-                "select * from pagos where venta = ? and medio_pago = ? ",
+                r#"select id, medio_pago, monto as "monto:_", pagado as "pagado:_", venta from pagos where venta = ? and medio_pago = ? "#,
                 venta.id,
                 0
             )

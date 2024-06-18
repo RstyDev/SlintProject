@@ -1,6 +1,5 @@
 mod caja;
 mod cliente;
-//pub mod cmd;
 mod config;
 mod error;
 mod lib;
@@ -15,7 +14,7 @@ mod sistema;
 mod user;
 mod valuable;
 mod venta;
-mod cmd;
+pub mod cmd;
 
 pub use caja::Caja;
 pub use caja::Movimiento;

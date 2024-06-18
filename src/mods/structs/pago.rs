@@ -1,26 +1,27 @@
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize,Deserialize)]
 pub struct MedioPago {
-    medio: Arc<str>,
+    medio: String,
     id: i64,
 }
 
 impl MedioPago {
     pub fn build(medio: &str, id: i64) -> MedioPago {
         MedioPago {
-            medio: Arc::from(medio),
+            medio: medio.to_string(),
             id,
         }
     }
     pub fn id(&self) -> &i64 {
         &self.id
     }
-    pub fn desc(&self) -> Arc<str> {
-        Arc::clone(&self.medio)
+    pub fn desc(&self) -> String {
+        self.medio.clone()
     }
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pago {
     int_id: i64,
@@ -40,8 +41,8 @@ impl Pago {
     pub fn medio_pago(&self) -> &MedioPago {
         &self.medio_pago
     }
-    pub fn medio(&self) -> Arc<str> {
-        Arc::clone(&self.medio_pago.medio)
+    pub fn medio(&self) -> String {
+        self.medio_pago.medio.clone()
     }
     pub fn monto(&self) -> f32 {
         self.monto

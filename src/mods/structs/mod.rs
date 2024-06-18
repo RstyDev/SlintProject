@@ -1,2 +1,2 @@
 pub mod pago;
-pub use pago as StPago;
+pub use pago::Pago as StPago;

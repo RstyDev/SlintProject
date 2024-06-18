@@ -61,7 +61,7 @@ impl Caja {
             totales.insert(Arc::clone(medio), 0.0);
         }
         let caja_mod: sqlx::Result<Option<CajaDB>> =
-            query_as!(CajaDB, "select * from cajas order by id desc")
+            query_as!(CajaDB, r#"select id, inicio, cierre, monto_inicio as "monto_inicio: _", monto_cierre as "monto_cierre: _", ventas_totales as "ventas_totales: _", cajero from cajas order by id desc"#)
                 .fetch_optional(db)
                 .await;
         caja = match caja_mod? {
@@ -75,7 +75,7 @@ impl Caja {
                             caja.id + 1,
                             Utc::now().naive_local(),
                             None,
-                            *caja.ventas_totales,
+                            caja.ventas_totales,
                             monto,
                             None,
                             caja.cajero.map(|c| Arc::from(c.as_str())),

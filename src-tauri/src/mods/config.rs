@@ -16,23 +16,23 @@ pub struct Config {
 
 impl Config {
     pub async fn get_or_def(db: &Pool<Sqlite>) -> Res<Config> {
-        let res: Option<ConfigDB> = sqlx::query_as!(ConfigDB, "select * from config limit 1")
+        let res: Option<ConfigDB> = sqlx::query_as!(ConfigDB, r#"select id, politica as "politica:_", formato, mayus, cantidad as "cantidad:_" from config limit 1"#)
             .fetch_optional(db)
             .await?;
         match res {
             Some(conf) => {
                 let medios: sqlx::Result<Vec<MedioPagoDB>> =
-                    sqlx::query_as!(MedioPagoDB, "select * from medios_pago ")
+                    sqlx::query_as!(MedioPagoDB, r#"select * from medios_pago "#)
                         .fetch_all(db)
                         .await;
                 let medios = medios?
                     .iter()
-                    .map(|med| Arc::from(med.medio))
+                    .map(|med| Arc::from(med.medio.to_owned()))
                     .collect::<Vec<Arc<str>>>();
                 Ok(Config::build(
                     conf.politica,
-                    conf.formato,
-                    conf.mayus,
+                    conf.formato.as_str(),
+                    conf.mayus.as_str(),
                     conf.cantidad,
                     medios,
                 ))

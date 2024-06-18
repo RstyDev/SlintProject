@@ -9,6 +9,7 @@ use crate::db::map::{
 };
 use chrono::Utc;
 use sqlx::{Pool, Sqlite};
+use std::collections::HashSet;
 use std::sync::Arc;
 use tauri::{async_runtime, async_runtime::JoinHandle};
 use Valuable as V;
@@ -131,20 +132,18 @@ impl<'a> Sistema {
             stash: Vec::new(),
             registro: Vec::new(),
         };
-        Sistema::procesar_test(Arc::clone(&w2), r2)?;
+        async_runtime::block_on(Sistema::procesar_test(Arc::clone(&w2), r2))?;
         Ok(sis)
     }
     pub fn new(read_db: Arc<Pool<Sqlite>>, write_db: Arc<Pool<Sqlite>>) -> Res<Sistema> {
         async_runtime::block_on(async {
             let qres: Option<BigIntDB> = sqlx::query_as!(BigIntDB, "select id as int from cajas limit 1")
                 .fetch_optional(read_db.as_ref())
-                .await?;
+                .await.unwrap();
             if qres.is_none() {
                 fresh(write_db.as_ref()).await
-            }
-            Ok(())
-        })
-        .unwrap();
+            }            
+        });        
         let path_proveedores = "Proveedores.json";
         let path_relaciones = "Relaciones.json";
         let mut relaciones = Vec::new();
@@ -240,15 +239,15 @@ impl<'a> Sistema {
         });
         let qres: Option<BigIntDB> =
             sqlx::query_as!(BigIntDB, "select id as int from users limit 1")
-                .fetch_optional(read_db.as_ref())
+                .fetch_optional(read_db2.as_ref())
                 .await?;
         if qres.is_none() {
             sqlx::query("insert into users values (?, ?, ?, ?)")
-                .bind("test".as_ref())
+                .bind("test")
                 .bind(get_hash("9876"))
                 .bind(Rango::Admin.to_string())
-                .bind("Admin".as_ref())
-                .execute(write_db)
+                .bind("Admin")
+                .execute(write_db.as_ref())
                 .await?;
         }
         Ok(())
@@ -314,36 +313,36 @@ impl<'a> Sistema {
         });
         let qres: Option<BigIntDB> =
             sqlx::query_as!(BigIntDB, "select id as int from users limit 1")
-                .fetch_optional(read_db.as_ref())
+                .fetch_optional(read_db2.as_ref())
                 .await?;
         if qres.is_none() {
             sqlx::query("insert into users values (?, ?, ?, ?)")
-                .bind("admin".as_ref())
+                .bind("admin")
                 .bind(get_hash("1234"))
                 .bind(Rango::Admin.to_string())
-                .bind("Admin".as_ref())
-                .execute(write_db)
+                .bind("Admin")
+                .execute(write_db2.as_ref())
                 .await?;
-            Db::cargar_todos_los_valuables(valuables, write_db.as_ref()).await?;
-            Db::cargar_todos_los_provs(proveedores, write_db.as_ref()).await?;
-            Db::cargar_todas_las_relaciones_prod_prov(relaciones, write_db.as_ref()).await?;
+            Db::cargar_todos_los_valuables(valuables, write_db2.as_ref()).await?;
+            Db::cargar_todos_los_provs(proveedores, write_db2.as_ref()).await?;
+            Db::cargar_todas_las_relaciones_prod_prov(relaciones, write_db2.as_ref()).await?;
         }
         Ok(())
     }
 
     pub async fn get_clientes(&self) -> Res<Vec<Cli>> {
-        let qres: Vec<ClienteDB> = sqlx::query_as!(ClienteDB, "select * from clientes ")
+        let qres: Vec<ClienteDB> = sqlx::query_as!(ClienteDB, r#"select id, nombre, dni as "dni:_", limite as "limite:_", activo, time from clientes "#)
             .fetch_all(self.read_db())
             .await?;
         Ok(qres
             .iter()
             .map(|cli| {
                 Cli::build(
-                    *cli.id,
-                    Arc::from(cli.nombre),
-                    *cli.dni,
-                    *cli.activo,
-                    *cli.time,
+                    cli.id,
+                    Arc::from(cli.nombre.to_owned()),
+                    cli.dni,
+                    cli.activo,
+                    cli.time,
                     cli.limite,
                 )
             })
@@ -353,7 +352,7 @@ impl<'a> Sistema {
         let qres: Option<UserDB> = sqlx::query_as!(
             UserDB,
             "select * from users where user_id = ? and pass = ? limit 1",
-            id.to_string(),
+            id,
             pass
         )
         .fetch_optional(self.read_db())
@@ -373,11 +372,11 @@ impl<'a> Sistema {
                 }
             }
             Some(user) => {
-                self.user = Some(Arc::from(User::new(
+                self.user = Some(Arc::from(User::build(
                     Arc::from(user.user_id),
                     Arc::from(user.nombre),
                     pass,
-                    user.rango,
+                    user.rango.as_ref(),
                 )));
                 self.ventas = Ventas {
                     a: Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
@@ -405,7 +404,7 @@ impl<'a> Sistema {
                         if let Some(prod) = code.producto {
                             let prod: ProductoDB = sqlx::query_as!(
                                 ProductoDB,
-                                "select * from productos where id = ?",
+                                r#"select id, precio_venta as "precio_venta:_", porcentaje as "porcentaje:_", precio_costo as "precio_costo:_", tipo, marca, variedad, presentacion, size as "size:_", updated_at from productos where id = ?"#,
                                 prod
                             )
                             .fetch_one(db)
@@ -418,16 +417,16 @@ impl<'a> Sistema {
                                     prod.precio_venta,
                                     prod.porcentaje,
                                     prod.precio_costo,
-                                    prod.tipo,
-                                    prod.marca,
-                                    prod.variedad,
-                                    Presentacion::build(prod.presentacion, prod.size),
+                                    prod.tipo.as_str(),
+                                    prod.marca.as_str(),
+                                    prod.variedad.as_str(),
+                                    Presentacion::build(prod.presentacion.as_str(), prod.size),
                                 ),
                             )))
                         } else if let Some(pes) = code.pesable {
                             let pes: PesableDB = sqlx::query_as!(
                                 PesableDB,
-                                "select * from pesables where id = ?",
+                                r#"select id, precio_peso as "precio_peso:_", porcentaje as "porcentaje:_", costo_kilo as "costo_kilo:_", descripcion, updated_at from pesables where id = ?"#,
                                 pes
                             )
                             .fetch_one(db)
@@ -440,7 +439,7 @@ impl<'a> Sistema {
                                     pes.precio_peso,
                                     pes.porcentaje,
                                     pes.costo_kilo,
-                                    pes.descripcion,
+                                    pes.descripcion.as_str(),
                                 ),
                             )))
                         } else if let Some(rub) = code.rubro {
@@ -450,13 +449,13 @@ impl<'a> Sistema {
                                     .await?;
                             res.push(V::Rub((
                                 0,
-                                Rubro::build(rub.id, code.codigo, None, rub.descripcion),
+                                Rubro::build(rub.id, code.codigo, None, rub.descripcion.as_str()),
                             )));
                         }
                     }
                 }
             }
-            Err(e) => {
+            Err(_) => {
                 let filtros = filtro.split(' ').collect::<Vec<&str>>();
                 let mut query=String::from("select * from productos where (tipo like %?% or marca like %?% or presentacion like %?% or size like %?%)");
                 let row=" and (tipo like %?% or marca like %?% or presentacion like %?% or size like %?%)";
@@ -464,7 +463,7 @@ impl<'a> Sistema {
                     query.push_str(row);
                 }
                 let mut qres = sqlx::query_as(query.as_ref());
-                for filtro in filtros {
+                for filtro in &filtros {
                     qres = qres.bind(filtro).bind(filtro).bind(filtro).bind(filtro);
                 }
                 let qres: Vec<ProductoDB> = qres.fetch_all(db).await?;
@@ -480,22 +479,18 @@ impl<'a> Sistema {
                                     prod.precio_venta,
                                     prod.porcentaje,
                                     prod.precio_costo,
-                                    prod.tipo,
-                                    prod.marca,
-                                    prod.variedad,
-                                    Presentacion::build(prod.presentacion, prod.size),
+                                    prod.tipo.as_str(),
+                                    prod.marca.as_str(),
+                                    prod.variedad.as_str(),
+                                    Presentacion::build(prod.presentacion.as_str(), prod.size),
                                 ),
                             ))
                         })
                         .collect::<Vec<V>>(),
                 );
-                let mut query=String::from("select id, precio_peso, codigo, porcentaje, costo_kilo, descripcion, updated_at, from pesables inner join codigos on pesables.id = codigos.pesable where descripcion like %?%");
-                let row = " and descripcion like %?%";
-                for _ in 1..filtros.len() {
-                    query.push_str(row);
-                }
+                let query=String::from("select id, precio_peso, codigo, porcentaje, costo_kilo, descripcion, updated_at, from pesables inner join codigos on pesables.id = codigos.pesable where (descripcion like %?%)");
                 let mut qres = sqlx::query_as(query.as_str());
-                for filtro in filtros {
+                for filtro in &filtros {
                     qres = qres.bind(filtro);
                 }
                 let qres: Vec<CodedPesDB> = qres.fetch_all(db).await?;
@@ -511,7 +506,7 @@ impl<'a> Sistema {
                                     pes.precio_peso,
                                     pes.porcentaje,
                                     pes.costo_kilo,
-                                    pes.descripcion,
+                                    pes.descripcion.as_str(),
                                 ),
                             ))
                         })
@@ -531,37 +526,13 @@ impl<'a> Sistema {
                     &mut qres
                         .iter()
                         .map(|rub| {
-                            V::Rub((0, Rubro::build(rub.id, rub.codigo, None, rub.descripcion)))
+                            V::Rub((0, Rubro::build(rub.id, rub.codigo, None, rub.descripcion.as_str())))
                         })
                         .collect::<Vec<V>>(),
                 );
             }
         }
-        res = self
-            .prods_filtrado(filtro, db)
-            .await?
-            .iter()
-            .cloned()
-            .map(|x| V::Prod(x))
-            .collect();
-        res.append(
-            &mut self
-                .pes_filtrado(filtro, db)
-                .await?
-                .iter()
-                .cloned()
-                .map(|x| V::Pes(x))
-                .collect(),
-        );
-        res.append(
-            &mut self
-                .rub_filtrado(filtro, db)
-                .await?
-                .iter()
-                .cloned()
-                .map(|x| V::Rub(x))
-                .collect(),
-        );
+        
         Ok(res
             .iter()
             .cloned()
@@ -581,11 +552,11 @@ impl<'a> Sistema {
         }
     }
     pub async fn proveedores(&self) -> Res<Vec<Proveedor>> {
-        let qres: Vec<ProvDB> = sqlx::query_as!(ProvDB, "select * from proveedores")
+        let qres: Vec<ProvDB> = sqlx::query_as!(ProvDB, r#"select id, nombre, contacto, updated from proveedores"#)
             .fetch_all(self.read_db.as_ref())
             .await?;
         Ok(qres.iter()
-            .map(|prov| Proveedor::build(prov.id, prov.nombre, prov.contacto))
+            .map(|prov| Proveedor::build(prov.id, prov.nombre.as_str(), prov.contacto))
             .collect::<Vec<Proveedor>>())
     }
     pub fn configs(&self) -> &Config {
@@ -608,11 +579,11 @@ impl<'a> Sistema {
         self.configs = configs;
         async_runtime::block_on(async {
             sqlx::query("update config set cantidad = ?, mayus = ?, formato = ?, politica = ?")
-                .bind(configs.cantidad_productos())
-                .bind(configs.modo_mayus().to_string())
-                .bind(configs.formato())
-                .bind(configs.politica())
-                .execute(&self.write_db)?;
+                .bind(self.configs.cantidad_productos())
+                .bind(self.configs.modo_mayus().to_string())
+                .bind(self.configs.formato().to_string())
+                .bind(self.configs.politica())
+                .execute(self.write_db()).await.unwrap();
         });
     }
     pub fn pagar_deuda_especifica(&self, cliente: i64, venta: Venta) -> Res<Venta> {
@@ -648,7 +619,7 @@ impl<'a> Sistema {
         presentacion: &str,
     ) -> Res<Producto> {
         let mut codigos = Vec::new();
-        for code in codigos_de_barras {
+        for code in &codigos_de_barras {
             codigos.push(code.parse::<i64>()?);
         }
         let mut query = String::from("select id as int from codigos where codigo = ?");
@@ -657,8 +628,8 @@ impl<'a> Sistema {
             query.push_str(row);
         }
         let mut qres = sqlx::query_as(query.as_str());
-        for code in codigos {
-            qres = qres.bind(code);
+        for code in &codigos {
+            qres = qres.bind(*code);
         }
         let qres: Option<BigIntDB> = qres.fetch_optional(self.read_db.as_ref()).await?;
         if let Some(res) = qres {
@@ -684,9 +655,9 @@ impl<'a> Sistema {
                         .bind(precio_de_venta)
                         .bind(porcentaje)
                         .bind(precio_de_costo)
-                        .bind(tipo_producto)
-                        .bind(marca)
-                        .bind(variedad)
+                        .bind(tipo_producto.clone())
+                        .bind(marca.clone())
+                        .bind(variedad.clone())
                         .bind(presentacion)
                         .bind(cantidad)
                         .bind(Utc::now().naive_local())
@@ -698,7 +669,7 @@ impl<'a> Sistema {
                     query.push_str(row);
                 }
                 let mut qres = sqlx::query(query.as_ref());
-                for code in codigos {
+                for code in &codigos {
                     qres = qres.bind(code);
                 }
                 qres.execute(self.write_db.as_ref()).await?;
@@ -715,7 +686,7 @@ impl<'a> Sistema {
                         .bind(proveedores[i].parse::<i64>()?)
                         .bind(codigos_prov[i].parse::<i64>().ok());
                 }
-                qres.execute(self.write_db().as_ref()).await?;
+                qres.execute(self.write_db()).await?;
                 Ok(Producto::build(
                     prod_qres.last_insert_rowid(),
                     codigos,
@@ -884,9 +855,8 @@ impl<'a> Sistema {
             .await?;
             Ok(qres
                 .iter()
-                .map(|s| s.string)
-                .dedup()
-                .collect::<Vec<String>>())
+                .map(|s| s.string.to_owned())
+                .collect::<HashSet<String>>().iter().cloned().collect::<Vec<String>>())
         })
     }
     // pub fn get_deuda_cliente(&self, cliente: Cli)->Res<f64>{
@@ -901,11 +871,11 @@ impl<'a> Sistema {
             )
             .fetch_all(self.read_db())
             .await?;
-            Ok(qres
-                .iter()
-                .dedup()
-                .map(|s| s.string)
-                .collect::<Vec<String>>())
+        
+            Ok(qres.iter().map(|d|d.string.to_owned()).collect::<HashSet<String>>()
+            .iter()
+            .cloned()
+            .collect::<Vec<String>>())
         })
     }
     pub fn write_db(&self) -> &Pool<Sqlite> {

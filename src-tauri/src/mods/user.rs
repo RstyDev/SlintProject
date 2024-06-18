@@ -1,9 +1,9 @@
 use super::{AppError, Res};
+use crate::db::map::BigIntDB;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;
 use std::sync::Arc;
-use crate::db::map::BigIntDB;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
@@ -25,10 +25,11 @@ impl User {
         rango: &str,
         db: &Pool<Sqlite>,
     ) -> Res<User> {
+        let id_2 = id.as_ref();
         let qres: Option<BigIntDB> = sqlx::query_as!(
             BigIntDB,
             "select id as int from users where user_id = ?",
-            id.to_string()
+            id_2
         )
         .fetch_optional(db)
         .await?;

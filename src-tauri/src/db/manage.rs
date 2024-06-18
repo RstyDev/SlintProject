@@ -1,12 +1,31 @@
+use std::env;
+use sqlx::SqlitePool;
 use dotenvy::dotenv;
 
 use sqlx::{Executor, Pool, Sqlite};
+use tauri::async_runtime::block_on;
+pub fn db(write:boolean) -> Pool<Sqlite> {
+    println!("{:#?}", dotenv().unwrap());
+    println!("{:#?}", env::current_dir().unwrap().display());
+    println!(
+        "{:#?}",
+        env::var("WRITE_URL")
+        .expect("DATABASE must be set")
+        .as_str()
+        );
+        dotenv().unwrap();
+        let dir=std::env::var("USE_URL").unwrap();
+        println!("----{}----",dir);
+    block_on(SqlitePool::connect(dir.as_ref()))
+        .expect("Error conectando a la DB")
+}
 
 pub async fn fresh(db: &Pool<Sqlite>) {
     down(db).await;
     sqlx::query(QUERY).execute(db).await.unwrap();
     let crate_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
-    let migrations = std::path::Path::new(&crate_dir).join("./migrations");
+    let migrations = std::path::Path::new(&crate_dir).join("migrations");
+    println!("{:#?}",migrations);
     let migration_results = sqlx::migrate::Migrator::new(migrations)
         .await
         .unwrap()

@@ -2,17 +2,26 @@ use leptos::leptos_dom::ev::SubmitEvent;
 use leptos::*;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
-use crate::mods::pago::Pago;
 use wasm_bindgen::prelude::*;
-use crate::mods::StPago;
+use crate::mods::{Pago, StPago};
 type Res<T> = Result<T, String>;
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "tauri"])]
     async fn invoke(cmd: &str, args: JsValue) -> JsValue;
 }
+#[derive(Serialize, Deserialize)]
+struct PagoArgs{
+    pos:bool,
+    id:i64,
+}
 pub async fn eliminar_pago(pos:bool, id:i64)-> Result<Vec<StPago>, String> {
-    let val=
+    let args=to_value(&PagoArgs{
+        pos,
+        id,
+    }).unwrap();
+    let res= invoke("eliminar_pago",args).await.is_array();
+    Err(String::from("")) //TODO
 }
 // fn eliminar_pago(sistema: State<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>>
 #[derive(Serialize, Deserialize)]

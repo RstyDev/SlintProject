@@ -10,7 +10,10 @@ const CUENTA: &str = "Cuenta Corriente";
 
 use crate::{db::Mapper, mods::pago::medio_from_db};
 
-use super::{redondeo, AppError, Cliente, Cuenta::Auth, Cuenta::Unauth, MedioPago, Pago, Res, User, Valuable, Cli};
+use super::{
+    redondeo, AppError, Cli, Cliente, Cuenta::Auth, Cuenta::Unauth, MedioPago, Pago, Res, User,
+    Valuable,
+};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Venta {
@@ -53,7 +56,7 @@ impl<'a> Venta {
     ) -> Res<Venta> {
         let qres: Option<VentaDB> = sqlx::query_as!(
             VentaDB,
-            "select * from ventas where pos = ? and cerrada = ?",
+            r#"select id, time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where pos = ? and cerrada = ?"#,
             pos,
             false
         )
@@ -286,7 +289,7 @@ impl<'a> Venta {
             Ok(())
         } else {
             let qres: Option<ClienteDB> =
-                sqlx::query_as!(ClienteDB, "select * from clientes where id = ? limit 1", id)
+                sqlx::query_as!(ClienteDB, r#"select id, nombre, dni as "dni:_", limite as "limite:_", activo, time from clientes where id = ? limit 1"#, id)
                     .fetch_optional(db)
                     .await?;
             match qres {
@@ -300,7 +303,7 @@ impl<'a> Venta {
                         model.limite,
                     ));
                     Ok(())
-                },
+                }
                 None => Err(AppError::NotFound {
                     objeto: String::from("Cliente"),
                     instancia: id.to_string(),

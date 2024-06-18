@@ -42,7 +42,7 @@ impl Pesable {
     ) -> Res<Pesable> {
         let qres:Option<BigIntDB>=sqlx::query_as!(BigIntDB,"select pesables.id as int from codigos inner join pesables on codigos.pesable = pesables.id where codigo = ?",codigo).fetch_optional(db).await?;
         match qres {
-            Some(model) => {
+            Some(_) => {
                 return Err(AppError::ExistingError {
                     objeto: "Pesable".to_string(),
                     instancia: codigo.to_string(),
@@ -96,7 +96,7 @@ impl Pesable {
         .fetch_optional(db)
         .await?;
         match qres {
-            Some(model) => {
+            Some(_) => {
                 sqlx::query("delete from pesables where id = ?")
                     .bind(self.id)
                     .execute(db)
@@ -124,7 +124,7 @@ impl Pesable {
         .fetch_optional(db)
         .await?;
         match qres {
-            Some(model) => {
+            Some(_) => {
                 if self.precio_peso == self.costo_kilo * (1.0 + self.porcentaje / 100.0) {
                     sqlx::query(
                         "update pesables set precio_peso = ?, costo_kilo = ?,

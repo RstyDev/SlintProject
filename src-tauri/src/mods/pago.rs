@@ -71,7 +71,7 @@ impl Pago {
 
         let medio_pago = MedioPago {
             medio: Arc::from(medio.medio),
-            id,
+            id: medio.id,
         };
         let int_id = random();
         Pago {

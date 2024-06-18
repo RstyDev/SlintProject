@@ -515,7 +515,7 @@ pub fn get_productos_filtrado_2(sistema: State<Mutex<Sistema>>, filtro: &str) ->
 pub fn get_proveedores_2(sistema: State<'_, Mutex<Sistema>>) -> Res<Vec<String>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(block_on(sis.proveedores())
+    Ok(block_on(sis.proveedores())?
         .iter()
         .map(|x| x.to_string())
         .collect())
