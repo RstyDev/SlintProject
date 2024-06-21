@@ -1,6 +1,8 @@
 import { Button, VerticalBox } from "std-widgets.slint";
 import { Pago } from "pago.slint";
-
+export global Logic{
+    pure callback pagar(int,int);
+}
 export component AppWindow inherits Window {
     in-out property<int> counter: 42;
     callback request-increase-value();
