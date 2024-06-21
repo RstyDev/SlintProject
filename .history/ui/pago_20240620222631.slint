@@ -1,0 +1,26 @@
+import { Button, HorizontalBox, TextEdit, ComboBox } from "std-widgets.slint";
+export struct PagoSt {
+    int_id: int,
+    medio_pago: MedioPagoSt,
+    monto: int,
+    pagado
+}
+int_id: i64,
+    medio_pago: MedioPago,
+    monto: f32,
+    pagado: f32,
+export component Pago {
+    in-out property <PagoSt> pago;
+    HorizontalBox {
+        TextEdit {
+            text: "/{root.pago.monto}";
+        }
+        ComboBox {
+            y: 0px;
+            width: self.preferred-width;
+            height: self.preferred-height;
+            model: ["first", "second", "third"];
+            current-value: "first";
+        }
+    }
+}

@@ -1,0 +1,12 @@
+import { Button, HorizontalBox, TextEdit, ComboBox } from "std-widgets.slint";
+export component Pago {
+    in-out property <int> monto;
+    HorizontalBox {
+        TextEdit {
+            text: "/{root.monto}";
+        }
+        ComboBox {
+            
+        }
+    }
+}
