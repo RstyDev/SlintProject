@@ -1,0 +1,10 @@
+import { VerticalBox } from "std-widgets.slint";
+import { Pago } from "pago.slint";
+export component Pagos inherits Rectangle{
+    in-out property <[{ monto: int, id: int}]> pagos;
+    VerticalBox {
+        for pago in root.pagos: my-pagos := Pago {
+            pago: pago;
+        }
+    }
+}

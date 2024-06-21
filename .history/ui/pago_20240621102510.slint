@@ -1,0 +1,27 @@
+import { Button, HorizontalBox, TextEdit, ComboBox } from "std-widgets.slint";
+export struct MedioPagoSt{
+    id: int,
+    medio: string,
+}
+export struct PagoSt {
+    monto: int
+}
+export component Pago {
+    in-out property <PagoSt> pago;
+    HorizontalBox {
+        TextEdit {
+            text: "\{root.pago.monto}";
+        }
+        ComboBox {
+            padding: ;
+            height: 40px;
+            width: self.preferred-width;
+            model: ["first", "second", "third"];
+            current-value: "first";
+        }
+        Button {
+            text: "Cash";
+            clicked => { self.text = "Clicked"; }
+        }
+    }
+}

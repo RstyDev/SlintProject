@@ -1,0 +1,33 @@
+import { Button, HorizontalBox, TextEdit, ComboBox } from "std-widgets.slint";
+export struct MedioPagoSt{
+    id: int,
+    medio: string,
+}
+export struct PagoSt {
+    int_id: int,
+    monto: int,
+    pagado: int,
+}
+export component Pago inherits Rectangle{
+    in-out property <PagoSt> pago;
+    in-out property <bool> pagado;
+    in-out property <[string]> medios;
+    HorizontalBox {
+        TextEdit {            
+            text: "\{root.pago.monto}";   
+            visible-height: ;
+            enabled: !pagado;
+        }
+        ComboBox {
+            enabled: !pagado;
+            padding: 0px;
+            height: 20px;
+            width: 100px;
+            vertical-stretch: 0;
+            model: medios;
+            current-value: "first";
+        }
+        if pagado: Button {text:"Borrar";clicked => { root.pago = {monto:370} }}
+        if !pagado: Button {text:"Cash";clicked=>{root.pago = {monto: 30}}}
+    }
+}
