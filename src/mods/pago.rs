@@ -1,4 +1,4 @@
-use crate::db::map::MedioPagoDB;
+use crate::{PagoSt,MedioPagoSt,db::map::MedioPagoDB};
 use rand::random;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
@@ -23,6 +23,12 @@ impl MedioPago {
     }
     pub fn desc(&self) -> Arc<str> {
         Arc::clone(&self.medio)
+    }
+    pub fn to_st(self)->MedioPagoSt{
+        let mut st=MedioPagoSt::default();
+        st.medio= self.medio.to_string().into();
+        st.id=self.id as i32;
+        st
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -65,6 +71,14 @@ impl Pago {
     }
     pub fn pagado(&self) -> &f32 {
         &self.pagado
+    }
+    pub fn to_st(self)->PagoSt{
+        let mut st=PagoSt::default();
+        st.int_id = self.int_id as i32;
+        st.monto = self.monto;
+        st.pagado = self.pagado;
+        st.medio_pago = self.medio_pago.to_st();
+        st
     }
     pub fn def(db: &Pool<Sqlite>) -> Self {
         let medio = Runtime::new()

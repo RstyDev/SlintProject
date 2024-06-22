@@ -1,5 +1,4 @@
 use chrono::Utc;
-
 use crate::db::map::BigIntDB;
 use serde::{de::DeserializeOwned, Serialize};
 use sqlx::{Pool, Sqlite};

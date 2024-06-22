@@ -11,7 +11,7 @@ mod relacion_prod_prov;
 mod rubro;
 mod sistema;
 //mod tests;
-//pub mod cmd;
+pub mod cmd;
 mod user;
 mod valuable;
 mod venta;

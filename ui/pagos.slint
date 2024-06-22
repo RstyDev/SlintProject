@@ -1,6 +1,6 @@
 import { VerticalBox } from "std-widgets.slint";
-import { PagoSt , PagoComp } from "pago.slint";
-
+import { PagoSt } from "logic.slint";
+import { PagoComp } from "pago.slint";
 export component Pagos inherits Rectangle {
     in-out property <[PagoSt]> pagos: [{monto: 30.0, pagado: 30.0, int_id: 30},{monto:30.0, pagado: 30.0,int_id:35}];
     in-out property <int> monto:350;
