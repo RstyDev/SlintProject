@@ -1,13 +1,16 @@
 import { VerticalBox } from "std-widgets.slint";
 import { PagoSt } from "logic.slint";
 import { PagoComp } from "pago.slint";
+import { Logic } from "logic.slint";
 export component Pagos inherits Rectangle {
     in-out property <[PagoSt]> pagos: [{monto: 30.0, pagado: 30.0, int_id: 30},{monto:30.0, pagado: 30.0,int_id:35}];
-    in-out property <int> monto:350;
     
+    in-out property <float> monto:350;
+    in-out property <float> pagado:0;
     VerticalBox {
         width: 300px;
         for pay in root.pagos: my-pagos := PagoComp {
+            
             width: 300px;
             pago: pay;
             pagado: true;
@@ -15,10 +18,13 @@ export component Pagos inherits Rectangle {
             
         }
         PagoComp {
+            pagar => {Logic.pagar(1,self.text.to-float());
+            pagos=[{monto:30.0,pagado:30.0,int_id:30},{monto:45.0,pagado:30.0,int_id:20},{monto:10.0,pagado:10.0,int_id:10}];
+            "\{root.monto - root.pagado}"}
             width: 300px;
             pagado: false;
             medios: ["first", "second"];
-            pago: {monto:monto,pagado:0};
+            pago: {monto:monto - pagado,pagado:0};
         }
     }
 }

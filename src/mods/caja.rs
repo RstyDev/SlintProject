@@ -69,7 +69,7 @@ impl Caja {
                 Some(_) => match monto_de_inicio {
                     Some(monto) => {
                         sqlx::query(
-                            "insert into cajas (inicio, ventas_totales, monto_inicio, cajero) values (?, ?, ?, ?, ?, ?, ?)")
+                            "insert into cajas (inicio, ventas_totales, monto_inicio, cajero) values (?, ?, ?, ?)")
                             .bind(Utc::now().naive_local()).bind(caja.ventas_totales).bind(monto).bind(caja.cajero.clone()).execute(db).await?;
                         Ok(Caja::build(
                             caja.id + 1,
@@ -88,26 +88,28 @@ impl Caja {
                 },
                 None => Mapper::caja(db, caja).await,
             },
-            None => match monto_de_inicio {
-                Some(monto) => {
-                    let inicio = Utc::now().naive_local();
-                    sqlx::query("insert into cajas (inicio, ventas_totales, monto_inicio) values (?, ?, ?, ?)")
+            None => {
+                match monto_de_inicio {
+                    Some(monto) => {
+                        let inicio = Utc::now().naive_local();
+                        sqlx::query("insert into cajas (inicio, ventas_totales, monto_inicio) values (?, ?, ?)")
                     .bind(inicio).bind(0.0).bind(monto).execute(db).await?;
-                    Ok(Caja::build(
-                        0,
-                        Utc::now().naive_local(),
-                        None,
-                        0.0,
-                        monto,
-                        None,
-                        None,
-                        HashMap::new(),
-                    ))
+                        Ok(Caja::build(
+                            0,
+                            Utc::now().naive_local(),
+                            None,
+                            0.0,
+                            monto,
+                            None,
+                            None,
+                            HashMap::new(),
+                        ))
+                    }
+                    None => Err(AppError::InicializationError(
+                        "Se requiere monto de inicio".to_string(),
+                    )),
                 }
-                None => Err(AppError::InicializationError(
-                    "Se requiere monto de inicio".to_string(),
-                )),
-            },
+            }
         };
 
         Ok(caja?)

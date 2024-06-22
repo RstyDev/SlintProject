@@ -1,21 +1,28 @@
-import { Button, VerticalBox } from "std-widgets.slint";
+import { Button, VerticalBox, HorizontalBox, GridBox, TabWidget, StandardTableView } from "std-widgets.slint";
 import { Logic } from "logic.slint";
 import { Pagos } from "pagos.slint";
-export { Logic }
+import { PagoComp } from "pago.slint";
+import { Login } from "login.slint";
+export { Logic, PagoComp }
 export component AppWindow inherits Window {
     in-out property<int> counter: 42;
+    in-out property <bool> logged:false;
+    in-out property <string> window;
     callback request-increase-value();
     
-    VerticalBox {
+    if window == "main":
+    main:=VerticalBox {
         Text {
             text: "Counter: \{root.counter}";
         }
         Button {
             text: "Increase value";
             clicked => {
-                root.request-increase-value();
+                root.request-increase-value()
             }
         }
         Pagos {}
     }
+    if window == "login":
+    login:=Login {}
 }

@@ -1,0 +1,15 @@
+import { VerticalBox, LineEdit, Button, TabWidget } from "std-widgets.slint";
+import { Logic } from "logic.slint";
+export component Login{
+    VerticalBox {
+        LineEdit { placeholder-text: "Usuario"; }
+        LineEdit { 
+            placeholder-text: "Constraseña"; 
+            input-type: password;
+        }
+        Button {
+            text: "Ingresar";
+            clicked => {}
+        }
+    }
+}

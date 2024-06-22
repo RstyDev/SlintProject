@@ -1,7 +1,7 @@
 use crate::db::map::{BigIntDB, ClienteDB, VentaDB};
+use crate::VentaSt;
 use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
-use crate::VentaSt;
 use sqlx::{query, Pool, Sqlite};
 use std::sync::Arc;
 use tokio::runtime::{Handle, Runtime};
@@ -112,11 +112,11 @@ impl<'a> Venta {
     pub fn productos(&self) -> Vec<Valuable> {
         self.productos.clone()
     }
-    pub fn cerrada(&self)->bool{
+    pub fn cerrada(&self) -> bool {
         self.cerrada
     }
-    pub fn to_st(self)->VentaSt{
-        let mut st=VentaSt::default();
+    pub fn to_st(self) -> VentaSt {
+        let mut st = VentaSt::default();
         st.cerrada = self.cerrada;
         st.id = self.id as i32;
         st.monto_pagado = self.monto_pagado;
@@ -170,7 +170,7 @@ impl<'a> Venta {
             _ => {
                 let rt = Runtime::new().unwrap();
                 let medio_pago = rt.block_on(async { medio_from_db(medio_pago, db).await });
-                let medio=MedioPago::build(medio_pago.medio.as_str(), medio_pago.id);
+                let medio = MedioPago::build(medio_pago.medio.as_str(), medio_pago.id);
                 self.pagos.push(Pago::new(medio, monto, None));
             }
         }

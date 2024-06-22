@@ -17,8 +17,11 @@ export struct VentaSt{
     cerrada: bool,
     time: string,
 }
+
 export global Logic{
     pure callback pagar(int,int)->int;
     pure callback test(string);
     pure callback get_venta_actual(bool)->VentaSt;
+    pure callback open_login();
+    pure callback try_login()->bool;
 }

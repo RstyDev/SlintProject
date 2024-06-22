@@ -7,10 +7,10 @@ export component PagoComp inherits Rectangle{
     in-out property <PagoSt> pago;
     in-out property <bool> pagado;
     in-out property <[string]> medios;
-
-    function pagar()-> int{
-        Logic.pagar(1,text.text.to-float())
-    }
+    in-out property <string> text;
+    callback call();
+    callback pagar()->string;
+    
     function borrar(){
         Logic.test("Borrado")
     }

@@ -10,10 +10,10 @@ use crate::db::map::{
 
 use chrono::Utc;
 use sqlx::{Pool, Sqlite};
-use tokio::task::JoinHandle;
 use std::collections::HashSet;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
+use tokio::task::JoinHandle;
 use Valuable as V;
 
 const CUENTA: &str = "Cuenta Corriente";
@@ -56,7 +56,8 @@ impl<'a> Sistema {
                 activo,
                 Utc::now().naive_local(),
                 limite,
-            ).await
+            )
+            .await
         })
     }
     pub fn agregar_pago(&mut self, medio_pago: &str, monto: f32, pos: bool) -> Res<f32> {
@@ -205,6 +206,7 @@ impl<'a> Sistema {
             stash,
             registro,
         };
+
         Runtime::new().unwrap().block_on(async {
             Sistema::procesar(
                 Arc::clone(&sis.write_db),
@@ -262,7 +264,7 @@ impl<'a> Sistema {
         use tokio::spawn;
 
         let read_db2 = Arc::clone(&read_db);
-        let _:JoinHandle<Result<(),AppError>> = spawn(async move {
+        let _: JoinHandle<Result<(), AppError>> = spawn(async move {
             let medios = [CUENTA, "Efectivo", "Crédito", "Débito"];
             for i in 0..medios.len() {
                 sqlx::query("insert into medios_pago values (?, ?)")
@@ -327,36 +329,33 @@ impl<'a> Sistema {
         valuables.append(&mut rubros_valuable);
         let write_db2 = Arc::clone(&write_db);
         let read_db2 = Arc::clone(&read_db);
-        let a: tokio::task::JoinHandle<std::result::Result<(), AppError>> = Runtime::new().unwrap().spawn(async move {
-            let medios = [CUENTA, "Efectivo", "Crédito", "Débito"];
-            for i in 0..medios.len() {
-                let qres: Option<BigIntDB> = sqlx::query_as!(
-                    BigIntDB,
-                    "select id as int from medios_pago where medio = ? limit 1",
-                    medios[i]
-                )
-                .fetch_optional(read_db.as_ref())
-                .await?;
-                if qres.is_none() {
-                    sqlx::query("insert into medios_pago values (?, ?)")
-                        .bind(i as i64)
-                        .bind(medios[i])
-                        .execute(write_db.as_ref())
-                        .await?;
-                }
+        let medios = [CUENTA, "Efectivo", "Crédito", "Débito"];
+        for i in 0..medios.len() {
+            let qres: Option<BigIntDB> = sqlx::query_as!(
+                BigIntDB,
+                "select id as int from medios_pago where medio = ? limit 1",
+                medios[i]
+            )
+            .fetch_optional(read_db.as_ref())
+            .await?;
+            if qres.is_none() {
+                sqlx::query("insert into medios_pago values (?, ?)")
+                    .bind(i as i64)
+                    .bind(medios[i])
+                    .execute(write_db.as_ref())
+                    .await?;
             }
-            return Ok(());
-        });
+        }
         let qres: Option<BigIntDB> =
             sqlx::query_as!(BigIntDB, "select id as int from users limit 1")
                 .fetch_optional(read_db2.as_ref())
                 .await?;
         if qres.is_none() {
-            sqlx::query("insert into users values (?, ?, ?, ?)")
+            sqlx::query("insert into users (user_id, nombre, pass, rango) values (?, ?, ?, ?)")
                 .bind("admin")
+                .bind("Admin")
                 .bind(get_hash("1234"))
                 .bind(Rango::Admin.to_string())
-                .bind("Admin")
                 .execute(write_db2.as_ref())
                 .await?;
             Db::cargar_todos_los_valuables(valuables, write_db2.as_ref()).await?;
@@ -364,6 +363,9 @@ impl<'a> Sistema {
             Db::cargar_todas_las_relaciones_prod_prov(relaciones, write_db2.as_ref()).await?;
         }
         Ok(())
+    }
+    pub fn get_logged_state(&self)->bool{
+        self.user.is_some()
     }
 
     pub async fn get_clientes(&self) -> Res<Vec<Cli>> {
@@ -984,12 +986,12 @@ impl<'a> Sistema {
             .block_on(async { cliente.get_deuda_detalle(&self.read_db, self.user()).await })
     }
     pub fn eliminar_valuable(&self, val: V) {
-        let res=Runtime::new()
+        let res = Runtime::new()
             .unwrap()
             .block_on(async { val.eliminar(self.write_db.as_ref()).await });
     }
     pub fn editar_valuable(&self, val: V) {
-        let res=Runtime::new()
+        let res = Runtime::new()
             .unwrap()
             .block_on(async { val.editar(self.write_db.as_ref()).await });
     }

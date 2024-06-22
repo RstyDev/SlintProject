@@ -31,7 +31,7 @@ pub async fn fresh(db: &Pool<Sqlite>) {
     down(db).await;
     sqlx::query(QUERY).execute(db).await.unwrap();
     let crate_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
-    let migrations = std::path::Path::new(&crate_dir).join("migrations");
+    let migrations = std::path::Path::new(&crate_dir).join("src/migrations");
     println!("{:#?}", migrations);
     let migration_results = sqlx::migrate::Migrator::new(migrations)
         .await

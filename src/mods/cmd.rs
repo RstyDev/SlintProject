@@ -1,6 +1,7 @@
+use super::get_hash;
 use super::{
-     Caja, Cli, Config, Pago, Pesable, Rango, Result as Res, Rubro, Sistema, User,
-    Valuable as V, Venta,
+    Caja, Cli, Config, Pago, Pesable, Rango, Result as Res, Rubro, Sistema, User, Valuable as V,
+    Venta,
 };
 use serde::Serialize;
 use std::sync::Arc;
@@ -116,14 +117,17 @@ pub fn agregar_pesable<'a>(
                     return Err(e.into());
                 }
             };
-            let pesable = Runtime::new().unwrap().block_on(async {Pesable::new_to_db(
-                sis.write_db(),
-                codigo,
-                precio_peso,
-                porcentaje,
-                costo_kilo,
-                descripcion,
-            ).await})?;
+            let pesable = Runtime::new().unwrap().block_on(async {
+                Pesable::new_to_db(
+                    sis.write_db(),
+                    codigo,
+                    precio_peso,
+                    porcentaje,
+                    costo_kilo,
+                    descripcion,
+                )
+                .await
+            })?;
             Ok(pesable.descripcion().to_string())
         }
         Rango::Cajero => Err(DENEGADO.to_string()),
@@ -146,29 +150,28 @@ pub fn agregar_producto(
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     match sis.arc_user().rango() {
         Rango::Admin => {
-            let prod = Runtime::new().unwrap().block_on(async {sis.agregar_producto(
-                proveedores,
-                codigos_prov,
-                codigos_de_barras,
-                precio_de_venta,
-                porcentaje,
-                precio_de_costo,
-                tipo_producto,
-                marca,
-                variedad,
-                cantidad,
-                presentacion,
-            ).await})?;
+            let prod = Runtime::new().unwrap().block_on(async {
+                sis.agregar_producto(
+                    proveedores,
+                    codigos_prov,
+                    codigos_de_barras,
+                    precio_de_venta,
+                    porcentaje,
+                    precio_de_costo,
+                    tipo_producto,
+                    marca,
+                    variedad,
+                    cantidad,
+                    presentacion,
+                )
+                .await
+            })?;
             Ok(format!("Agregado {prod:#?}"))
         }
         Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
-pub fn agregar_producto_a_venta(
-    sistema: &Arc<Mutex<Sistema>>,
-    prod: V,
-    pos: bool,
-) -> Res<Venta> {
+pub fn agregar_producto_a_venta(sistema: &Arc<Mutex<Sistema>>, prod: V, pos: bool) -> Res<Venta> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     match &prod {
@@ -226,19 +229,19 @@ pub fn agregar_rubro(
     match sis.arc_user().rango() {
         Rango::Admin => {
             let codigo = codigo.parse::<i64>().map_err(|e| e.to_string())?;
-            let rubro = Runtime::new().unwrap().block_on(async {Rubro::new_to_db(codigo, None, descripcion, sis.write_db()).await})?;
+            let rubro = Runtime::new().unwrap().block_on(async {
+                Rubro::new_to_db(codigo, None, descripcion, sis.write_db()).await
+            })?;
             Ok(rubro.descripcion().to_string())
         }
         Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
-pub fn agregar_rub_o_pes_a_venta(
-    sistema: &Arc<Mutex<Sistema>>,
-    val: V,
-    pos: bool,
-) -> Res<()> {
+pub fn agregar_rub_o_pes_a_venta(sistema: &Arc<Mutex<Sistema>>, val: V, pos: bool) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
-    Runtime::new().unwrap().block_on(async {sis.agregar_producto_a_venta(val, pos).await})?;
+    Runtime::new()
+        .unwrap()
+        .block_on(async { sis.agregar_producto_a_venta(val, pos).await })?;
     Ok(())
 }
 pub fn agregar_usuario(
@@ -296,10 +299,7 @@ pub fn cancelar_venta(sistema: &Arc<Mutex<Sistema>>, pos: bool) -> Res<()> {
     sis.access();
     sis.cancelar_venta(pos).map_err(|e| e.to_string())
 }
-pub fn cerrar_caja(
-    sistema: &Arc<Mutex<Sistema>>,
-    monto_actual: f32,
-) -> Res<()> {
+pub fn cerrar_caja(sistema: &Arc<Mutex<Sistema>>, monto_actual: f32) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.cerrar_caja(monto_actual)?;
@@ -364,7 +364,9 @@ pub fn get_caja(sistema: &Arc<Mutex<Sistema>>) -> Res<Caja> {
 pub fn get_clientes(sistema: &Arc<Mutex<Sistema>>) -> Res<Vec<Cli>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(Runtime::new().unwrap().block_on(async {sis.get_clientes().await})?)
+    Ok(Runtime::new()
+        .unwrap()
+        .block_on(async { sis.get_clientes().await })?)
 }
 pub fn get_configs(sistema: &Arc<Mutex<Sistema>>) -> Res<Config> {
     Ok(sistema.lock().map_err(|e| e.to_string())?.configs().clone())
@@ -417,12 +419,16 @@ pub fn get_medios_pago(sistema: &Arc<Mutex<Sistema>>) -> Res<Vec<String>> {
 pub fn get_productos_filtrado(sistema: &Arc<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(Runtime::new().unwrap().block_on(async {sis.val_filtrado(filtro, sis.read_db()).await})?)
+    Ok(Runtime::new()
+        .unwrap()
+        .block_on(async { sis.val_filtrado(filtro, sis.read_db()).await })?)
 }
 pub fn get_proveedores(sistema: &Arc<Mutex<Sistema>>) -> Res<Vec<String>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
-    Ok(Runtime::new().unwrap().block_on(async {sis.proveedores().await})?
+    Ok(Runtime::new()
+        .unwrap()
+        .block_on(async { sis.proveedores().await })?
         .iter()
         .map(|x| x.to_string())
         .collect())
@@ -448,10 +454,7 @@ pub fn get_user(sistema: &Arc<Mutex<Sistema>>) -> Res<User> {
         .as_ref()
         .clone())
 }
-pub fn get_venta_actual(
-    sistema: &Arc<Mutex<Sistema>>,
-    pos: bool,
-) -> Res<Venta> {
+pub fn get_venta_actual(sistema: &Arc<Mutex<Sistema>>, pos: bool) -> Res<Venta> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let venta = sis.venta(pos);
@@ -892,10 +895,7 @@ pub fn set_cliente(sistema: &Arc<Mutex<Sistema>>, id: i64, pos: bool) -> Res<Ven
     sis.set_cliente(id, pos)?;
     Ok(sis.venta(pos))
 }
-pub fn set_configs(
-    sistema: &Arc<Mutex<Sistema>>,
-    configs: Config,
-) -> Res<()> {
+pub fn set_configs(sistema: &Arc<Mutex<Sistema>>, configs: Config) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     match sis.arc_user().rango() {
         Rango::Admin => {
@@ -906,43 +906,23 @@ pub fn set_configs(
     }
 }
 
-pub fn stash_n_close(
-    sistema: &Arc<Mutex<Sistema>>,
-    pos: bool,
-) -> Res<()> {
+pub fn stash_n_close(sistema: &Arc<Mutex<Sistema>>, pos: bool) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.stash_sale(pos)?;
     println!("{:#?}", sis.stash());
     Ok(())
 }
-// pub fn try_login(
-//     sistema: &Arc<Mutex<Sistema>>,
-//     id: &str,
-//     pass: &str,
-// ) -> Res<()> {
-//     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
-//     let rango = Runtime::new().unwrap().block_on(async {sis.try_login(id, get_hash(pass)).await})?;
-//     match rango {
-//         Rango::Cajero => loop {
-//             if set_menus(menu.clone(), false).is_ok() {
-//                 break;
-//             }
-//         },
-//         Rango::Admin => loop {
-//             if set_menus(menu.clone(), true).is_ok() {
-//                 break;
-//             }
-//         },
-//     }
-    
-//     Ok(())
-// }
-pub fn unstash_sale(
+pub fn try_login(
     sistema: &Arc<Mutex<Sistema>>,
-    pos: bool,
-    index: &str,
+    id: &str,
+    pass: &str,
 ) -> Res<()> {
+    let mut sis = sistema.lock().map_err(|e| e.to_string())?;
+    let rango = Runtime::new().unwrap().block_on(async {sis.try_login(id, get_hash(pass)).await})?;
+    Ok(())
+}
+pub fn unstash_sale(sistema: &Arc<Mutex<Sistema>>, pos: bool, index: &str) -> Res<()> {
     let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
