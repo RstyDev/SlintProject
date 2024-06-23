@@ -1,9 +1,9 @@
 import { Button, HorizontalBox, TextEdit, ComboBox, LineEdit } from "std-widgets.slint";
-import { Logic, PagoSt } from "logic.slint";
+import { Logic, PagoSt } from "../logic.slint";
 
 
 
-export component PagoComp inherits Rectangle{
+export component Pago inherits Rectangle{
     in-out property <PagoSt> pago;
     in-out property <bool> pagado;
     in-out property <[string]> medios;

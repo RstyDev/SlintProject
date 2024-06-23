@@ -1,6 +1,6 @@
 import { VerticalBox, LineEdit, Button, TabWidget } from "std-widgets.slint";
-import { Logic } from "logic.slint";
-export component Login{
+import { Logic } from "../logic.slint";
+export component Login inherits Rectangle{
     in-out property <string> id;
     in-out property <string> pass;
     in-out property <string> message;

@@ -21,7 +21,7 @@ impl ToString for Windows {
     }
 }
 
-fn set_logic(log: Logic, sistema: Arc<Mutex<Sistema>>, ui: Arc<AppWindow>, window: Windows) {
+fn set_logic(log: Logic, sistema: Arc<Mutex<Sistema>>, ui: Arc<App>, window: Windows) {
     log.on_test(|dato| println!("{dato}"));
     match window {
         Windows::Main => {
@@ -45,7 +45,7 @@ fn set_logic(log: Logic, sistema: Arc<Mutex<Sistema>>, ui: Arc<AppWindow>, windo
 }
 
 fn set_window_size_name(
-    ui: Arc<AppWindow>,
+    ui: Arc<App>,
     window: Windows,
     width: f32,
     height: f32,
@@ -63,7 +63,7 @@ fn main() -> Result<(), slint::PlatformError> {
     let sistema = Arc::from(Mutex::from(
         Sistema::new(Arc::from(read_db), Arc::from(write_db)).unwrap(),
     ));
-    let ui = Arc::from(AppWindow::new()?);
+    let ui = Arc::from(App::new()?);
 
     set_window_size_name(ui.clone(), Windows::Login, 300.0, 200.0, sistema.clone());
     ui.set_logged(sistema.lock().unwrap().get_logged_state());

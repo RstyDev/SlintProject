@@ -1,10 +1,9 @@
 import { Button, VerticalBox, HorizontalBox, GridBox, TabWidget, StandardTableView } from "std-widgets.slint";
 import { Logic } from "logic.slint";
-import { Pagos } from "pagos.slint";
-import { PagoComp } from "pago.slint";
-import { Login } from "login.slint";
-export { Logic, PagoComp }
-export component AppWindow inherits Window {
+import { Pagos } from "main/pagos.slint";
+import { Login } from "login/login.slint";
+export { Logic }
+export component App inherits Window {
     in-out property<int> counter: 42;
     in-out property <bool> logged:false;
     in-out property <string> window;
