@@ -10,7 +10,7 @@ export component AppWindow inherits Window {
     in-out property <string> window;
     callback request-increase-value();
     
-    if window == "main":
+    if window == "Main":
     main:=VerticalBox {
         Text {
             text: "Counter: \{root.counter}";
@@ -23,6 +23,6 @@ export component AppWindow inherits Window {
         }
         Pagos {}
     }
-    if window == "login":
+    if window == "Login":
     login:=Login {}
 }

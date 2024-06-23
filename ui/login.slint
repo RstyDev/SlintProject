@@ -1,15 +1,28 @@
 import { VerticalBox, LineEdit, Button, TabWidget } from "std-widgets.slint";
 import { Logic } from "logic.slint";
 export component Login{
+    in-out property <string> id;
+    in-out property <string> pass;
+    in-out property <string> message;
     VerticalBox {
-        LineEdit { placeholder-text: "Usuario"; }
+        LineEdit { 
+            placeholder-text: "Usuario"; 
+            text:id;
+            edited(data) => {id=data}
+        }
         LineEdit { 
             placeholder-text: "Constraseña"; 
             input-type: password;
+            edited(data) => {pass=data}
+            text: pass;
         }
         Button {
             text: "Ingresar";
-            clicked => {}
+            clicked => {root.message=Logic.try_login(root.id,root.pass)}
+        }
+        Text {
+            text: message;
+            color: red;
         }
     }
 }

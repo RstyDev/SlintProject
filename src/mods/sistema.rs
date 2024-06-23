@@ -17,6 +17,7 @@ use tokio::task::JoinHandle;
 use Valuable as V;
 
 const CUENTA: &str = "Cuenta Corriente";
+#[derive(Clone)]
 pub struct Sistema {
     user: Option<Arc<User>>,
     write_db: Arc<Pool<Sqlite>>,
@@ -29,7 +30,7 @@ pub struct Sistema {
     stash: Vec<Venta>,
     registro: Vec<Venta>,
 }
-
+#[derive(Clone)]
 pub struct Ventas {
     pub a: Venta,
     pub b: Venta,
@@ -364,7 +365,7 @@ impl<'a> Sistema {
         }
         Ok(())
     }
-    pub fn get_logged_state(&self)->bool{
+    pub fn get_logged_state(&self) -> bool {
         self.user.is_some()
     }
 
@@ -386,7 +387,7 @@ impl<'a> Sistema {
             })
             .collect::<Vec<Cli>>())
     }
-    pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<Rango> {
+    pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<()> {
         let qres: Option<UserDB> = sqlx::query_as!(
             UserDB,
             "select * from users where user_id = ? and pass = ? limit 1",
@@ -420,7 +421,7 @@ impl<'a> Sistema {
                     a: Venta::get_or_new(Some(self.arc_user()), &self.write_db, true).await?,
                     b: Venta::get_or_new(Some(self.arc_user()), &self.write_db, false).await?,
                 };
-                Ok(self.user().unwrap().rango().clone())
+                Ok(())
             }
         }
     }

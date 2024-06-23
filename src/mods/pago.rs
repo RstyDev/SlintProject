@@ -1,4 +1,4 @@
-use crate::{db::map::MedioPagoDB, MedioPagoSt, PagoSt,SharedString};
+use crate::{db::map::MedioPagoDB, MedioPagoSt, PagoSt, SharedString};
 use rand::random;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};

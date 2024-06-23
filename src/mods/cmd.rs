@@ -64,7 +64,7 @@ impl Payload {
 // }
 
 pub fn agregar_cliente(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     nombre: &str,
     dni: &str,
     limite: Option<&str>,
@@ -81,7 +81,7 @@ pub fn agregar_cliente(
 }
 
 pub fn agregar_pago(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     medio_pago: &str,
     monto: &str,
     pos: bool,
@@ -93,7 +93,7 @@ pub fn agregar_pago(
     Ok(sis.venta(pos).pagos())
 }
 pub fn agregar_pesable<'a>(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     precio_peso: &str,
     codigo: &str,
     costo_kilo: &str,
@@ -134,7 +134,7 @@ pub fn agregar_pesable<'a>(
     }
 }
 pub fn agregar_producto(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     proveedores: Vec<&str>,
     codigos_prov: Vec<&str>,
     codigos_de_barras: Vec<&str>,
@@ -171,7 +171,7 @@ pub fn agregar_producto(
         Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
-pub fn agregar_producto_a_venta(sistema: &Arc<Mutex<Sistema>>, prod: V, pos: bool) -> Res<Venta> {
+pub fn agregar_producto_a_venta(sistema: Arc<Mutex<Sistema>>, prod: V, pos: bool) -> Res<Venta> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     match &prod {
@@ -197,7 +197,7 @@ pub fn agregar_producto_a_venta(sistema: &Arc<Mutex<Sistema>>, prod: V, pos: boo
 }
 
 pub fn agregar_proveedor(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     proveedor: &str,
     contacto: Option<&str>,
 ) -> Res<()> {
@@ -220,11 +220,7 @@ pub fn agregar_proveedor(
         Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
-pub fn agregar_rubro(
-    sistema: &Arc<Mutex<Sistema>>,
-    codigo: &str,
-    descripcion: &str,
-) -> Res<String> {
+pub fn agregar_rubro(sistema: Arc<Mutex<Sistema>>, codigo: &str, descripcion: &str) -> Res<String> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     match sis.arc_user().rango() {
         Rango::Admin => {
@@ -237,7 +233,7 @@ pub fn agregar_rubro(
         Rango::Cajero => Err(DENEGADO.to_string()),
     }
 }
-pub fn agregar_rub_o_pes_a_venta(sistema: &Arc<Mutex<Sistema>>, val: V, pos: bool) -> Res<()> {
+pub fn agregar_rub_o_pes_a_venta(sistema: Arc<Mutex<Sistema>>, val: V, pos: bool) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     Runtime::new()
         .unwrap()
@@ -245,7 +241,7 @@ pub fn agregar_rub_o_pes_a_venta(sistema: &Arc<Mutex<Sistema>>, val: V, pos: boo
     Ok(())
 }
 pub fn agregar_usuario(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     id: &str,
     nombre: &str,
     pass: &str,
@@ -261,7 +257,7 @@ pub fn agregar_usuario(
     }
 }
 // pub async fn cerrar_sesion<'a>(
-//     sistema: &Arc<Mutex<Sistema>>,
+//     sistema: Arc<Mutex<Sistema>>,
 // ) -> Res<()> {
 //     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
 //     match handle.get_window("login") {
@@ -294,12 +290,12 @@ pub fn agregar_usuario(
 //         }
 //     }
 // }
-pub fn cancelar_venta(sistema: &Arc<Mutex<Sistema>>, pos: bool) -> Res<()> {
+pub fn cancelar_venta(sistema: Arc<Mutex<Sistema>>, pos: bool) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.cancelar_venta(pos).map_err(|e| e.to_string())
 }
-pub fn cerrar_caja(sistema: &Arc<Mutex<Sistema>>, monto_actual: f32) -> Res<()> {
+pub fn cerrar_caja(sistema: Arc<Mutex<Sistema>>, monto_actual: f32) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.cerrar_caja(monto_actual)?;
@@ -314,7 +310,7 @@ pub fn cerrar_caja(sistema: &Arc<Mutex<Sistema>>, monto_actual: f32) -> Res<()> 
 //     Ok(())
 // }
 pub fn descontar_producto_de_venta(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     index: usize,
     pos: bool,
 ) -> Res<Venta> {
@@ -323,26 +319,26 @@ pub fn descontar_producto_de_venta(
     let res = sis.descontar_producto_de_venta(index, pos)?;
     Ok(res)
 }
-pub fn editar_producto(sistema: &Arc<Mutex<Sistema>>, prod: V) -> Res<()> {
+pub fn editar_producto(sistema: Arc<Mutex<Sistema>>, prod: V) -> Res<()> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.editar_valuable(prod);
     Ok(())
 }
-pub fn eliminar_pago(sistema: &Arc<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>> {
+pub fn eliminar_pago(sistema: Arc<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>> {
     let id = id.parse::<i64>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.eliminar_pago(pos, id).map_err(|e| e.to_string())
 }
-pub fn eliminar_producto(sistema: &Arc<Mutex<Sistema>>, prod: V) -> Res<()> {
+pub fn eliminar_producto(sistema: Arc<Mutex<Sistema>>, prod: V) -> Res<()> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.eliminar_valuable(prod);
     Ok(())
 }
 pub fn eliminar_producto_de_venta(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     index: usize,
     pos: bool,
 ) -> Res<Venta> {
@@ -351,24 +347,24 @@ pub fn eliminar_producto_de_venta(
     let res = sis.eliminar_producto_de_venta(index, pos)?;
     Ok(res)
 }
-pub fn eliminar_usuario(sistema: &Arc<Mutex<Sistema>>, user: User) -> Res<()> {
+pub fn eliminar_usuario(sistema: Arc<Mutex<Sistema>>, user: User) -> Res<()> {
     let res = sistema.lock().map_err(|e| e.to_string())?;
     res.access();
     Ok(res.eliminar_usuario(user)?)
 }
-pub fn get_caja(sistema: &Arc<Mutex<Sistema>>) -> Res<Caja> {
+pub fn get_caja(sistema: Arc<Mutex<Sistema>>) -> Res<Caja> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.caja().clone())
 }
-pub fn get_clientes(sistema: &Arc<Mutex<Sistema>>) -> Res<Vec<Cli>> {
+pub fn get_clientes(sistema: Arc<Mutex<Sistema>>) -> Res<Vec<Cli>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(Runtime::new()
         .unwrap()
         .block_on(async { sis.get_clientes().await })?)
 }
-pub fn get_configs(sistema: &Arc<Mutex<Sistema>>) -> Res<Config> {
+pub fn get_configs(sistema: Arc<Mutex<Sistema>>) -> Res<Config> {
     Ok(sistema.lock().map_err(|e| e.to_string())?.configs().clone())
 }
 pub fn get_descripciones(prods: Vec<V>, conf: Config) -> Vec<(String, Option<f32>)> {
@@ -380,18 +376,18 @@ pub fn get_descripciones(prods: Vec<V>, conf: Config) -> Vec<(String, Option<f32
 pub fn get_descripcion_valuable(prod: V, conf: Config) -> String {
     prod.descripcion(&conf)
 }
-pub fn get_deuda(sistema: &Arc<Mutex<Sistema>>, cliente: Cli) -> Res<f32> {
+pub fn get_deuda(sistema: Arc<Mutex<Sistema>>, cliente: Cli) -> Res<f32> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.get_deuda(cliente).map_err(|e| e.to_string())
 }
-pub fn get_deuda_detalle(sistema: &Arc<Mutex<Sistema>>, cliente: Cli) -> Res<Vec<Venta>> {
+pub fn get_deuda_detalle(sistema: Arc<Mutex<Sistema>>, cliente: Cli) -> Res<Vec<Venta>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.get_deuda_detalle(cliente).map_err(|e| e.to_string())
 }
 pub fn get_filtrado(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     filtro: &str,
     tipo_filtro: &str,
 ) -> Res<Vec<String>> {
@@ -403,10 +399,10 @@ pub fn get_filtrado(
         _ => Err(format!("Parámetro incorrecto {tipo_filtro}")),
     }
 }
-pub fn get_log_state(sistema: &Arc<Mutex<Sistema>>) -> Res<bool> {
+pub fn get_log_state(sistema: Arc<Mutex<Sistema>>) -> Res<bool> {
     Ok(sistema.lock().map_err(|e| e.to_string())?.user().is_some())
 }
-pub fn get_medios_pago(sistema: &Arc<Mutex<Sistema>>) -> Res<Vec<String>> {
+pub fn get_medios_pago(sistema: Arc<Mutex<Sistema>>) -> Res<Vec<String>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis
@@ -416,14 +412,14 @@ pub fn get_medios_pago(sistema: &Arc<Mutex<Sistema>>) -> Res<Vec<String>> {
         .map(|m| m.to_string())
         .collect())
 }
-pub fn get_productos_filtrado(sistema: &Arc<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>> {
+pub fn get_productos_filtrado(sistema: Arc<Mutex<Sistema>>, filtro: &str) -> Res<Vec<V>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(Runtime::new()
         .unwrap()
         .block_on(async { sis.val_filtrado(filtro, sis.read_db()).await })?)
 }
-pub fn get_proveedores(sistema: &Arc<Mutex<Sistema>>) -> Res<Vec<String>> {
+pub fn get_proveedores(sistema: Arc<Mutex<Sistema>>) -> Res<Vec<String>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(Runtime::new()
@@ -433,7 +429,7 @@ pub fn get_proveedores(sistema: &Arc<Mutex<Sistema>>) -> Res<Vec<String>> {
         .map(|x| x.to_string())
         .collect())
 }
-pub fn get_rango(sistema: &Arc<Mutex<Sistema>>) -> Res<Rango> {
+pub fn get_rango(sistema: Arc<Mutex<Sistema>>) -> Res<Rango> {
     Ok(sistema
         .lock()
         .map_err(|e| e.to_string())?
@@ -441,12 +437,12 @@ pub fn get_rango(sistema: &Arc<Mutex<Sistema>>) -> Res<Rango> {
         .rango()
         .clone())
 }
-pub fn get_stash(sistema: &Arc<Mutex<Sistema>>) -> Res<Vec<Venta>> {
+pub fn get_stash(sistema: Arc<Mutex<Sistema>>) -> Res<Vec<Venta>> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.stash().clone())
 }
-pub fn get_user(sistema: &Arc<Mutex<Sistema>>) -> Res<User> {
+pub fn get_user(sistema: Arc<Mutex<Sistema>>) -> Res<User> {
     Ok(sistema
         .lock()
         .map_err(|e| e.to_string())?
@@ -454,7 +450,7 @@ pub fn get_user(sistema: &Arc<Mutex<Sistema>>) -> Res<User> {
         .as_ref()
         .clone())
 }
-pub fn get_venta_actual(sistema: &Arc<Mutex<Sistema>>, pos: bool) -> Res<Venta> {
+pub fn get_venta_actual(sistema: Arc<Mutex<Sistema>>, pos: bool) -> Res<Venta> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     let venta = sis.venta(pos);
@@ -462,7 +458,7 @@ pub fn get_venta_actual(sistema: &Arc<Mutex<Sistema>>, pos: bool) -> Res<Venta> 
     Ok(venta)
 }
 pub fn hacer_egreso(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     monto: f32,
     descripcion: Option<&str>,
 ) -> Res<()> {
@@ -470,7 +466,7 @@ pub fn hacer_egreso(
     Ok(sis.hacer_egreso(monto, descripcion.map(|d| Arc::from(d)))?)
 }
 pub fn hacer_ingreso(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     monto: f32,
     descripcion: Option<&str>,
 ) -> Res<()> {
@@ -478,7 +474,7 @@ pub fn hacer_ingreso(
     Ok(sis.hacer_ingreso(monto, descripcion.map(|d| Arc::from(d)))?)
 }
 pub fn incrementar_producto_a_venta(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     index: usize,
     pos: bool,
 ) -> Res<Venta> {
@@ -866,7 +862,7 @@ pub fn incrementar_producto_a_venta(
 //     }
 // }
 pub fn pagar_deuda_especifica(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     cliente: i64,
     venta: Venta,
 ) -> Res<Venta> {
@@ -874,13 +870,13 @@ pub fn pagar_deuda_especifica(
     sis.access();
     Ok(sis.pagar_deuda_especifica(cliente, venta)?)
 }
-pub fn pagar_deuda_general(sistema: &Arc<Mutex<Sistema>>, cliente: i64, monto: f32) -> Res<f32> {
+pub fn pagar_deuda_general(sistema: Arc<Mutex<Sistema>>, cliente: i64, monto: f32) -> Res<f32> {
     let sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     Ok(sis.pagar_deuda_general(cliente, monto)?)
 }
 pub fn set_cantidad_producto_venta(
-    sistema: &Arc<Mutex<Sistema>>,
+    sistema: Arc<Mutex<Sistema>>,
     index: usize,
     cantidad: &str,
     pos: bool,
@@ -890,12 +886,12 @@ pub fn set_cantidad_producto_venta(
     sis.access();
     Ok(sis.set_cantidad_producto_venta(index, cantidad, pos)?)
 }
-pub fn set_cliente(sistema: &Arc<Mutex<Sistema>>, id: i64, pos: bool) -> Res<Venta> {
+pub fn set_cliente(sistema: Arc<Mutex<Sistema>>, id: i64, pos: bool) -> Res<Venta> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.set_cliente(id, pos)?;
     Ok(sis.venta(pos))
 }
-pub fn set_configs(sistema: &Arc<Mutex<Sistema>>, configs: Config) -> Res<()> {
+pub fn set_configs(sistema: Arc<Mutex<Sistema>>, configs: Config) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     match sis.arc_user().rango() {
         Rango::Admin => {
@@ -906,23 +902,21 @@ pub fn set_configs(sistema: &Arc<Mutex<Sistema>>, configs: Config) -> Res<()> {
     }
 }
 
-pub fn stash_n_close(sistema: &Arc<Mutex<Sistema>>, pos: bool) -> Res<()> {
+pub fn stash_n_close(sistema: Arc<Mutex<Sistema>>, pos: bool) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.stash_sale(pos)?;
     println!("{:#?}", sis.stash());
     Ok(())
 }
-pub fn try_login(
-    sistema: &Arc<Mutex<Sistema>>,
-    id: &str,
-    pass: &str,
-) -> Res<()> {
+pub fn try_login(sistema: Arc<Mutex<Sistema>>, id: &str, pass: &str) -> Res<()> {
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
-    let rango = Runtime::new().unwrap().block_on(async {sis.try_login(id, get_hash(pass)).await})?;
+    Runtime::new()
+        .unwrap()
+        .block_on(async { sis.try_login(id, get_hash(pass)).await })?;
     Ok(())
 }
-pub fn unstash_sale(sistema: &Arc<Mutex<Sistema>>, pos: bool, index: &str) -> Res<()> {
+pub fn unstash_sale(sistema: Arc<Mutex<Sistema>>, pos: bool, index: &str) -> Res<()> {
     let index = index.parse::<usize>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
