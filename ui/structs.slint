@@ -1,0 +1,23 @@
+export struct MedioPagoSt{
+    id: int,
+    medio: string,
+}
+export struct PagoSt {
+    int_id: int,
+    monto: float,
+    medio_pago: MedioPagoSt,
+    pagado: float,
+}
+export struct ValSt{
+    descripcion: string,
+    precio: float,
+}
+export struct VentaSt{
+    id: int,
+    monto_total: float,
+    pagos: [PagoSt],
+    monto_pagado: float,
+    paga: bool,
+    cerrada: bool,
+    time: string,
+}

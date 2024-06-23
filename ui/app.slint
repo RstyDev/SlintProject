@@ -2,11 +2,12 @@ import { Button, VerticalBox, HorizontalBox, GridBox, TabWidget, StandardTableVi
 import { Logic } from "logic.slint";
 import { Pagos } from "main/pagos.slint";
 import { Login } from "login/login.slint";
+import { TablaProductos } from "main/TablaProductos.slint";
 export { Logic }
 export component App inherits Window {
     in-out property<int> counter: 42;
     in-out property <bool> logged:false;
-    in-out property <string> window;
+    in-out property <string> window:"Main";
     callback request-increase-value();
     
     if window == "Main":
@@ -20,6 +21,7 @@ export component App inherits Window {
                 root.request-increase-value()
             }
         }
+        TablaProductos {vals: [{descripcion:"Producto1",precio:1.2},{descripcion:"Producto2",precio:201}];}
         Pagos {}
     }
     if window == "Login":

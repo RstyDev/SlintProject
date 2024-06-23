@@ -15,7 +15,7 @@ enum Windows {
 impl ToString for Windows {
     fn to_string(&self) -> String {
         match self {
-            Windows::Main => String::from("Windows"),
+            Windows::Main => String::from("Main"),
             Windows::Login => String::from("Login"),
         }
     }
@@ -35,6 +35,7 @@ fn set_logic(log: Logic, sistema: Arc<Mutex<Sistema>>, ui: Arc<App>, window: Win
         Windows::Login => log.on_try_login(move |id, pass| {
             match try_login(sistema.clone(), id.as_str(), pass.as_str()) {
                 Ok(_) => {
+                    println!("{}",Windows::Main.to_string());
                     set_window_size_name(ui.clone(), Windows::Main, 800.0, 600.0, sistema.clone());
                     SharedString::from("Ok")
                 }
@@ -54,6 +55,10 @@ fn set_window_size_name(
     ui.window()
         .set_size(WindowSize::Logical(LogicalSize::new(width, height)));
     ui.set_window(SharedString::from(window.to_string()));
+    match window{
+        Windows::Login=>{ui.window();},
+        Windows::Main=>()
+    }
     set_logic(ui.global::<Logic>(), sistema, ui.clone(), window);
 }
 
