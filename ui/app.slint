@@ -1,13 +1,15 @@
 import { Button, VerticalBox, HorizontalBox, GridBox, TabWidget, StandardTableView } from "std-widgets.slint";
 import { Logic } from "logic.slint";
-import { Pagos } from "main/pagos.slint";
-import { Login } from "login/login.slint";
-import { TablaProductos } from "main/TablaProductos.slint";
+import { Pagos } from "main-pagos.slint";
+import { RegularFND } from "structs.slint";
+import { Login } from "login.slint";
+import { TablaProductos } from "main-tabla-productos.slint";
 export { Logic }
 export component App inherits Window {
     in-out property<int> counter: 42;
     in-out property <bool> logged:false;
     in-out property <string> window:"Main";
+    in-out property <RegularFND> reg;
     callback request-increase-value();
     
     if window == "Main":
@@ -26,4 +28,5 @@ export component App inherits Window {
     }
     if window == "Login":
     login:=Login {}
+
 }

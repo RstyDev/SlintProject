@@ -1,11 +1,11 @@
 use chrono::NaiveDateTime;
 
 use serde::{Deserialize, Serialize};
+use slint::SharedString;
 use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
 
-use crate::db::map::{ClienteDB, FloatDB, PagoDB, VentaDB};
-use crate::db::Mapper;
+use crate::{RegularFND,CuentaFND,db::{Mapper,map::{ClienteDB, FloatDB, PagoDB, VentaDB}}};
 
 use super::{AppError, Res, User, Venta};
 
@@ -14,6 +14,8 @@ pub enum Cliente {
     Final,
     Regular(Cli),
 }
+
+
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Cli {
@@ -247,9 +249,37 @@ impl<'a> Cliente {
             None => Cliente::Final,
         }
     }
+    pub fn to_fnd(self)->RegularFND{
+        let mut reg=RegularFND::default();
+        match self{
+            Cliente::Final => reg.regular = false,
+            Cliente::Regular(cli) => {
+                reg.regular = true;
+                reg.activo = cli.activo;
+                reg.created = SharedString::from(cli.created.to_string());
+                reg.dni = cli.dni;
+
+            },
+        }
+        reg
+    }
 }
+
 impl Default for Cliente {
     fn default() -> Self {
         Cliente::Final
+    }
+}
+impl Cuenta{
+    pub fn to_fnd(self)->CuentaFND{
+        let mut cuenta=CuentaFND::default();
+        cuenta.auth = match self{
+            Cuenta::Auth(a) => {
+                cuenta.cuenta = a;
+                true
+            },
+            Cuenta::Unauth => false,
+        };
+        cuenta
     }
 }

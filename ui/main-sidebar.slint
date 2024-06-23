@@ -1,0 +1,27 @@
+ import { StandardTableView, TabWidget, VerticalBox } from "std-widgets.slint";
+import { TablaProductos } from "main-tabla-productos.slint";
+import { Pagos } from "main-pagos.slint";
+import { Logic } from "logic.slint";
+export component SideBar {
+    TabWidget {
+        width: 300px;
+        resumen:=Tab{
+            title: "Resumen de venta";
+            VerticalBox {
+
+                TablaProductos {}
+                Pagos {
+                    width: 300px;
+                }
+                Text {
+                    horizontal-alignment: TextHorizontalAlignment.right;
+                    text: "Total: \{Logic.venta.monto-total - Logic.venta.monto-pagado}";
+                }
+            }
+        }
+        ventas:=Tab{
+            title: "Ventas";
+            //ventas anteriores
+        }
+    }
+ }

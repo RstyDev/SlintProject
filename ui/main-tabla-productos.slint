@@ -1,8 +1,8 @@
-import {  HorizontalBox, ListView, VerticalBox } from "std-widgets.slint";
-import { ValSt } from "../structs.slint";
+import {  HorizontalBox, ListView, VerticalBox, StandardTableView } from "std-widgets.slint";
+import { ValFND } from "structs.slint";
 
 export component TablaProductos {
-    in-out property <[ValSt]> vals:[{descripcion:"Producto1",precio:1.2},{descripcion:"Producto2",precio:201},{descripcion:"Producto 3",precio:45.2},{descripcion:"Producto 4",precio:45.2},{descripcion:"Producto 5",precio:45.2},{descripcion:"Producto 6",precio:45.2}];
+    in-out property <[ValFND]> vals:[{descripcion:"Producto1",precio:1.2},{descripcion:"Producto2",precio:201},{descripcion:"Producto 3",precio:45.2},{descripcion:"Producto 4",precio:45.2},{descripcion:"Producto 5",precio:45.2},{descripcion:"Producto 6",precio:45.2}];
     VerticalBox {
         HorizontalBox {
             height: 18px;

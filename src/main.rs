@@ -30,7 +30,7 @@ fn set_logic(log: Logic, sistema: Arc<Mutex<Sistema>>, ui: Arc<App>, window: Win
                 a + b
             });
             let sis = sistema.clone();
-            log.on_get_venta_actual(move |pos| get_venta_actual(sis.clone(), pos).unwrap().to_st());
+            log.on_get_venta_actual(move |pos| get_venta_actual(sis.clone(), pos).unwrap().to_fnd());
         }
         Windows::Login => log.on_try_login(move |id, pass| {
             match try_login(sistema.clone(), id.as_str(), pass.as_str()) {

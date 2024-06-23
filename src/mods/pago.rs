@@ -1,4 +1,4 @@
-use crate::{db::map::MedioPagoDB, MedioPagoSt, PagoSt, SharedString};
+use crate::{db::map::MedioPagoDB, MedioPagoFND, PagoFND, SharedString};
 use rand::random;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
@@ -24,8 +24,8 @@ impl MedioPago {
     pub fn desc(&self) -> Arc<str> {
         Arc::clone(&self.medio)
     }
-    pub fn to_st(self) -> MedioPagoSt {
-        let mut st = MedioPagoSt::default();
+    pub fn to_fnd(self) -> MedioPagoFND {
+        let mut st = MedioPagoFND::default();
         st.medio = SharedString::from(self.medio.as_ref());
         st.id = self.id as i32;
         st
@@ -72,12 +72,12 @@ impl Pago {
     pub fn pagado(&self) -> &f32 {
         &self.pagado
     }
-    pub fn to_st(self) -> PagoSt {
-        let mut st = PagoSt::default();
+    pub fn to_fnd(self) -> PagoFND {
+        let mut st = PagoFND::default();
         st.int_id = self.int_id as i32;
         st.monto = self.monto;
         st.pagado = self.pagado;
-        st.medio_pago = self.medio_pago.to_st();
+        st.medio_pago = self.medio_pago.to_fnd();
         st
     }
     pub fn def(db: &Pool<Sqlite>) -> Self {

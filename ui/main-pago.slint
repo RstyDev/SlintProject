@@ -1,11 +1,11 @@
 import { Button, HorizontalBox, TextEdit, ComboBox, LineEdit } from "std-widgets.slint";
-import { Logic } from "../logic.slint";
-import { PagoSt } from "../structs.slint";
+import { Logic } from "logic.slint";
+import { PagoFND } from "structs.slint";
 
 
 
 export component Pago inherits Rectangle{
-    in-out property <PagoSt> pago;
+    in-out property <PagoFND> pago;
     in-out property <bool> pagado;
     in-out property <[string]> medios;
     in-out property <string> text;
@@ -34,7 +34,7 @@ export component Pago inherits Rectangle{
             current-value: "first";
             
         }
-        if pagado: Button {text:"Borrar";clicked => { borrar() }}
-        if !pagado: Button {text:"Cash";clicked=>{ text.text = pagar() }}
+        if pagado: Button {width:60px;text:"Borrar";clicked => { borrar() }}
+        if !pagado: Button {width:50px;text:"Cash";clicked=>{ text.text = pagar() }}
     }
 }

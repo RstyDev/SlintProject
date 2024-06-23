@@ -1,23 +1,39 @@
-export struct MedioPagoSt{
+export struct MedioPagoFND{
     id: int,
     medio: string,
 }
-export struct PagoSt {
+export struct PagoFND {
     int_id: int,
     monto: float,
-    medio_pago: MedioPagoSt,
+    medio_pago: MedioPagoFND,
     pagado: float,
 }
-export struct ValSt{
+export struct ValFND{
     descripcion: string,
     precio: float,
 }
-export struct VentaSt{
+export struct VentaFND{
     id: int,
     monto_total: float,
-    pagos: [PagoSt],
+    pagos: [PagoFND],
     monto_pagado: float,
     paga: bool,
     cerrada: bool,
     time: string,
+}
+export struct CuentaFND{
+    auth:bool,
+    cuenta:float,
+}
+export struct RegularFND{
+    id: int,
+    nombre: string,
+    dni: int,
+    activo: bool,
+    created: string,
+    limite: CuentaFND,
+    regular:bool,
+}
+export struct UserFND{
+    
 }
