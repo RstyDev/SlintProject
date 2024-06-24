@@ -2,11 +2,10 @@ use super::{
     crear_file, get_hash, leer_file, AppError, Caja, Cli, Config, Db, Movimiento, Pago, Pesable,
     Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User, Valuable, Venta,
 };
-use crate::db::fresh;
-use crate::db::map::{
+use crate::{db::{fresh,Mapper,map::{
     BigIntDB, ClienteDB, CodeDB, CodedPesDB, CodedRubDB, PesableDB, ProductoDB, ProvDB, RubroDB,
-    StringDB, UserDB,
-};
+    StringDB, UserDB,RelacionProdProvDB
+}}};
 
 use chrono::Utc;
 use sqlx::{Pool, Sqlite};
@@ -361,7 +360,7 @@ impl<'a> Sistema {
                 .await?;
             Db::cargar_todos_los_valuables(valuables, write_db2.as_ref()).await?;
             Db::cargar_todos_los_provs(proveedores, write_db2.as_ref()).await?;
-            Db::cargar_todas_las_relaciones_prod_prov(relaciones, write_db2.as_ref()).await?;
+            //Db::cargar_todas_las_relaciones_prod_prov(relaciones, write_db2.as_ref()).await?;
         }
         Ok(())
     }
@@ -448,6 +447,12 @@ impl<'a> Sistema {
                             )
                             .fetch_one(db)
                             .await?;
+                        let rels:Vec<RelacionProdProvDB> = sqlx::query_as!(
+                            RelacionProdProvDB,
+                            r#"select * from relacion_prod_prov where producto = ?"#,
+                            prod.id
+                        ).fetch_all(db).await?;
+                        let rels=rels.iter().map(|r|Mapper::rel_prod_prov(r)).collect::<Vec<RelacionProdProv>>();
                             res.push(V::Prod((
                                 0,
                                 Producto::build(
@@ -460,6 +465,7 @@ impl<'a> Sistema {
                                     prod.marca.as_str(),
                                     prod.variedad.as_str(),
                                     Presentacion::build(prod.presentacion.as_str(), prod.size),
+                                    rels
                                 ),
                             )))
                         } else if let Some(pes) = code.pesable {
@@ -506,13 +512,14 @@ impl<'a> Sistema {
                     qres = qres.bind(filtro).bind(filtro).bind(filtro).bind(filtro);
                 }
                 let qres: Vec<ProductoDB> = qres.fetch_all(db).await?;
-                res.append(
-                    &mut qres
-                        .iter()
-                        .map(|prod| {
-                            V::Prod((
-                                0,
-                                Producto::build(
+                for prod in qres{
+                    let rels:Vec<RelacionProdProvDB> = sqlx::query_as!(
+                                RelacionProdProvDB,
+                                r#"select * from relacion_prod_prov where producto = ?"#,
+                                prod.id
+                            ).fetch_all(db).await?;
+                            let rels=rels.iter().map(|r|Mapper::rel_prod_prov(r)).collect::<Vec<RelacionProdProv>>();
+                    res.push(V::Prod((0,Producto::build(
                                     prod.id,
                                     vec![],
                                     prod.precio_venta,
@@ -522,11 +529,10 @@ impl<'a> Sistema {
                                     prod.marca.as_str(),
                                     prod.variedad.as_str(),
                                     Presentacion::build(prod.presentacion.as_str(), prod.size),
-                                ),
-                            ))
-                        })
-                        .collect::<Vec<V>>(),
-                );
+                                    rels
+                                ))));
+                }
+                
                 let query=String::from("select id, precio_peso, codigo, porcentaje, costo_kilo, descripcion, updated_at, from pesables inner join codigos on pesables.id = codigos.pesable where (descripcion like %?%)");
                 let mut qres = sqlx::query_as(query.as_str());
                 for filtro in &filtros {
@@ -653,6 +659,7 @@ impl<'a> Sistema {
     // }
     pub async fn agregar_producto(
         &mut self,
+        //prod: ProductoFND,
         proveedores: Vec<&str>,
         codigos_prov: Vec<&str>,
         codigos_de_barras: Vec<&str>,
@@ -744,6 +751,7 @@ impl<'a> Sistema {
                     marca.as_ref(),
                     variedad.as_ref(),
                     pres,
+                    Vec::new() //TODO!
                 ))
             }
             Some(_) => {

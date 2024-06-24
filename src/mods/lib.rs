@@ -8,7 +8,7 @@ use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
 use Valuable as V;
 
-use super::{AppError, Pesable, Producto, Proveedor, RelacionProdProv, Res, Rubro, User};
+use super::{AppError, Pesable, Producto, Proveedor, Res, Rubro, User};
 use crate::mods::valuable::Valuable;
 pub struct Db;
 pub struct Mapper;
@@ -245,23 +245,23 @@ impl Db {
         Ok(())
     }
 
-    pub async fn cargar_todas_las_relaciones_prod_prov(
-        relaciones: Vec<RelacionProdProv>,
-        db: &Pool<Sqlite>,
-    ) -> Result<(), AppError> {
-        let mut query = String::from("insert into relacion_prod_prov values (?, ?, ?)"); //producto, proveedor, codigo
-        let row = ", (?, ?, ?)";
-        for _ in 0..relaciones.len() {
-            query.push_str(row);
-        }
-        let mut sql = sqlx::query(query.as_str());
-        for rel in relaciones {
-            sql = sql
-                .bind(*rel.id_producto())
-                .bind(*rel.id_proveedor())
-                .bind(rel.codigo_interno());
-        }
-        sql.execute(db).await?;
-        Ok(())
-    }
+    // pub async fn cargar_todas_las_relaciones_prod_prov(
+    //     relaciones: Vec<RelacionProdProv>,
+    //     db: &Pool<Sqlite>,
+    // ) -> Result<(), AppError> {
+    //     let mut query = String::from("insert into relacion_prod_prov values (?, ?, ?)"); //producto, proveedor, codigo
+    //     let row = ", (?, ?, ?)";
+    //     for _ in 0..relaciones.len() {
+    //         query.push_str(row);
+    //     }
+    //     let mut sql = sqlx::query(query.as_str());
+    //     for rel in relaciones {
+    //         sql = sql
+    //             .bind(*rel.id_producto())
+    //             .bind(*rel.id_proveedor())
+    //             .bind(rel.codigo_interno());
+    //     }
+    //     sql.execute(db).await?;
+    //     Ok(())
+    // }
 }

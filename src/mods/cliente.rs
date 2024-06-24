@@ -5,7 +5,7 @@ use slint::SharedString;
 use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
 
-use crate::{RegularFND,CuentaFND,db::{Mapper,map::{ClienteDB, FloatDB, PagoDB, VentaDB}}};
+use crate::{ClienteFND,CuentaFND,db::{Mapper,map::{ClienteDB, FloatDB, PagoDB, VentaDB}}};
 
 use super::{AppError, Res, User, Venta};
 
@@ -249,8 +249,8 @@ impl<'a> Cliente {
             None => Cliente::Final,
         }
     }
-    pub fn to_fnd(self)->RegularFND{
-        let mut reg=RegularFND::default();
+    pub fn to_fnd(self)->ClienteFND{
+        let mut reg=ClienteFND::default();
         match self{
             Cliente::Final => reg.regular = false,
             Cliente::Regular(cli) => {

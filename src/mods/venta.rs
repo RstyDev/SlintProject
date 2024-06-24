@@ -1,12 +1,11 @@
 use crate::db::map::{BigIntDB, ClienteDB, VentaDB};
-use crate::{VentaFND,PagoFND,SharedString};
+use crate::{VentaFND,SharedString};
 use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use slint::{VecModel,ModelRc};
 use sqlx::{query, Pool, Sqlite};
 use std::sync::Arc;
-use tokio::runtime::{Handle, Runtime};
-use tokio::{spawn, task::spawn_blocking};
+use tokio::runtime::Runtime;
 
 use Valuable as V;
 const CUENTA: &str = "Cuenta Corriente";

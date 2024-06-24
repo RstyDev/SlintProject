@@ -1,3 +1,34 @@
+export struct CajaFND{
+    id: int,
+    inicio: string,
+    cierre: string,
+    ventas_totales: float,
+    monto_inicio: float,
+    monto_cierre: float,
+    cajero: string,
+    medios: [string],
+    totales: [float],
+}
+export struct CuentaFND{
+    auth:bool,
+    cuenta:float,
+}
+export struct ClienteFND{
+    id: int,
+    nombre: string,
+    dni: int,
+    activo: bool,
+    created: string,
+    limite: CuentaFND,
+    regular:bool,
+}
+export struct ConfigFND {
+    politica_redondeo: float,
+    formato_producto: string,
+    modo_mayus: string,
+    cantidad_productos: int,
+    medios_pago: [string],
+}
 export struct MedioPagoFND{
     id: int,
     medio: string,
@@ -7,6 +38,11 @@ export struct PagoFND {
     monto: float,
     medio_pago: MedioPagoFND,
     pagado: float,
+}
+export struct ProveedorFND {
+    id: int,
+    nombre: string,
+    contacto: int,
 }
 export struct ValFND{
     id:int,
@@ -24,32 +60,27 @@ export struct VentaFND{
     cerrada: bool,
     time: string,
 }
-export struct CuentaFND{
-    auth:bool,
-    cuenta:float,
+export struct RelProdProvFND{
+    proveedor: int,
+    codigo: int,
 }
-export struct RegularFND{
+
+export struct ProductoFND{
     id: int,
-    nombre: string,
-    dni: int,
-    activo: bool,
-    created: string,
-    limite: CuentaFND,
-    regular:bool,
+    codigos_de_barras: [int],
+    precio_de_venta: float,
+    porcentaje: float,
+    precio_de_costo: float,
+    tipo_producto: string,
+    marca: string,
+    variedad: string,
+    presentacion: string,
+    proveedores: [RelProdProvFND]
 }
+
+
 export struct UserFND{
     id: int,
     nombre:string,
     rango: string,
-}
-export struct CajaFND{
-    id: int,
-    inicio: string,
-    cierre: string,
-    ventas_totales: float,
-    monto_inicio: float,
-    monto_cierre: float,
-    cajero: string,
-    medios: [string],
-    totales: [float],
 }

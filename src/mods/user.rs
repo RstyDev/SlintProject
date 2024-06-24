@@ -1,5 +1,5 @@
 use super::{AppError, Res};
-use crate::{SharedString,db::map::BigIntDB};
+use crate::db::map::BigIntDB;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;

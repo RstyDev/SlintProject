@@ -180,13 +180,13 @@ pub fn agregar_producto_a_venta(sistema: Arc<Mutex<Sistema>>, prod: V, pos: bool
                 .unwrap()
                 .block_on(async { sis.agregar_producto_a_venta(prod, pos).await })?;
         }
-        V::Pes(a) => {
+        V::Pes(_a) => {
             // spawn(open_select_amount(
             //     V::Pes(a.clone()),
             //     pos,
             // ));
         }
-        V::Rub(a) => {
+        V::Rub(_a) => {
             // spawn(open_select_amount(
             //     V::Rub(a.clone()),
             //     pos,

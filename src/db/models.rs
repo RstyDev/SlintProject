@@ -1,9 +1,9 @@
 use crate::db::map::{
     BigIntDB, CajaDB, ClienteDB, ConfigDB, MedioPagoDB, PagoDB, ProductoDB, RelatedPesDB,
-    RelatedProdDB, RelatedRubDB, TotalDB, VentaDB,
+    RelatedProdDB, RelatedRubDB, TotalDB, VentaDB,RelacionProdProvDB
 };
 use crate::mods::{
-    AppError, Caja, Cli, Cliente, Config, MedioPago, Pesable, Rubro, User, Valuable,
+    AppError, Caja, Cli, Cliente, Config, MedioPago, Pesable, Rubro, User, Valuable,RelacionProdProv
 };
 use crate::mods::{Pago, Presentacion, Producto, Res, Venta};
 use sqlx::{query_as, Pool, Sqlite};
@@ -53,6 +53,9 @@ impl Mapper {
             medios,
         ))
     }
+    pub fn rel_prod_prov(rel: &RelacionProdProvDB)->RelacionProdProv{
+        RelacionProdProv::new(rel.proveedor,rel.codigo)
+    }
     pub async fn producto(db: &Pool<Sqlite>, prod: ProductoDB) -> Res<Producto> {
         let models: sqlx::Result<Vec<BigIntDB>> = sqlx::query_as!(
             BigIntDB,
@@ -61,6 +64,8 @@ impl Mapper {
         )
         .fetch_all(db)
         .await;
+        let rels:Vec<RelacionProdProvDB>=sqlx::query_as!(RelacionProdProvDB,"select * from relacion_prod_prov where producto = ?",prod.id).fetch_all(db).await?;
+        let rels=rels.iter().map(|r|Mapper::rel_prod_prov(r)).collect::<Vec<RelacionProdProv>>();
         let codigos = models?.iter().map(|model| model.int).collect::<Vec<i64>>();
         let presentacion = match prod.presentacion.as_str() {
             "Gr" => Presentacion::Gr(prod.size),
@@ -81,6 +86,7 @@ impl Mapper {
             prod.marca.as_str(),
             prod.variedad.as_str(),
             presentacion,
+            rels
         ))
     }
     pub async fn pago(db: &Pool<Sqlite>, pago: PagoDB) -> Res<Pago> {
@@ -119,6 +125,8 @@ impl Mapper {
                 )
                 .fetch_all(db)
                 .await?;
+                let rels:Vec<RelacionProdProvDB>=sqlx::query_as!(RelacionProdProvDB,"select * from relacion_prod_prov where producto = ?",rel.id).fetch_all(db).await?;
+                let rels=rels.iter().map(|r|Mapper::rel_prod_prov(r)).collect::<Vec<RelacionProdProv>>();
                 let codes = qres.iter().map(|c| c.int).collect::<Vec<i64>>();
                 productos.push(Valuable::Prod((
                     rel.cantidad,
@@ -132,6 +140,7 @@ impl Mapper {
                         &rel.marca,
                         &rel.variedad,
                         Presentacion::build(&rel.presentacion, rel.size),
+                        rels
                     ),
                 )))
             }
@@ -458,7 +467,7 @@ pub mod map {
         pub id: i64,
         pub producto: i64,
         pub proveedor: i64,
-        pub codigo: i64,
+        pub codigo: Option<i64>,
     }
     #[derive(FromRow)]
     pub struct RelacionVentaPesDB {

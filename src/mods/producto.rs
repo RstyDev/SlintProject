@@ -16,6 +16,7 @@ pub struct Producto {
     marca: Arc<str>,
     variedad: Arc<str>,
     presentacion: Presentacion,
+    proveedores: Vec<RelacionProdProv>
 }
 
 impl Producto {
@@ -29,6 +30,7 @@ impl Producto {
         marca: &str,
         variedad: &str,
         presentacion: Presentacion,
+        proveedores: Vec<RelacionProdProv>
     ) -> Producto {
         Producto {
             id,
@@ -40,6 +42,7 @@ impl Producto {
             marca: Arc::from(marca),
             variedad: Arc::from(variedad),
             presentacion,
+            proveedores
         }
     }
     pub fn id(&self) -> &i64 {
@@ -69,7 +72,9 @@ impl Producto {
     pub fn presentacion(&self) -> &Presentacion {
         &self.presentacion
     }
-
+    pub fn proveedores(&self)->&Vec<RelacionProdProv>{
+        &self.proveedores
+    }
     // pub fn nombre_completo(&self) -> String {
     //     format!(
     //         "{} {} {} {}",
@@ -181,6 +186,30 @@ impl ValuableTrait for Producto {
             marca: self.marca.clone(),
             variedad: self.variedad.clone(),
             presentacion: self.presentacion.clone(),
+            proveedores: self.proveedores.clone()
         }
+    }
+}
+
+
+#[derive(Clone, Serialize, Deserialize,Debug)]
+pub struct RelacionProdProv {
+    proveedor: i64,
+    codigo_interno: Option<i64>,
+}
+
+impl RelacionProdProv {
+    pub fn new(proveedor: i64, codigo_interno: Option<i64>) -> Self {
+        RelacionProdProv {
+            proveedor,
+            codigo_interno,
+        }
+    }
+    
+    pub fn proveedor(&self) -> &i64 {
+        &self.proveedor
+    }
+    pub fn codigo_interno(&self) -> Option<i64> {
+        self.codigo_interno
     }
 }
