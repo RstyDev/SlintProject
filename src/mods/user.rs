@@ -1,5 +1,5 @@
 use super::{AppError, Res};
-use crate::db::map::BigIntDB;
+use crate::{SharedString,db::map::BigIntDB};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;
@@ -72,6 +72,12 @@ impl User {
     pub fn nombre(&self) -> Arc<str> {
         Arc::clone(&self.nombre)
     }
+    // pub fn to_fnd(self)->UserFND{
+    //     let user=UserFND::default();
+    //     user.id=self.id;
+    //     user.nombre = SharedString::from(self.nombre.to_string());
+    //     user
+    // }
 }
 impl Display for Rango {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

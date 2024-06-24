@@ -129,6 +129,7 @@ impl<'a> Venta {
         }
         st.pagos = ModelRc::new(VecModel::from(pagos));
         st.time = SharedString::from(self.time.to_string());
+        
         //TODO! falta mas
         st
     }

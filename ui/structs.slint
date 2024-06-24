@@ -9,12 +9,15 @@ export struct PagoFND {
     pagado: float,
 }
 export struct ValFND{
+    id:int,
+    codigo:int,
     descripcion: string,
     precio: float,
 }
 export struct VentaFND{
     id: int,
     monto_total: float,
+    productos: [ValFND],
     pagos: [PagoFND],
     monto_pagado: float,
     paga: bool,
@@ -35,5 +38,18 @@ export struct RegularFND{
     regular:bool,
 }
 export struct UserFND{
-    
+    id: int,
+    nombre:string,
+    rango: string,
+}
+export struct CajaFND{
+    id: int,
+    inicio: string,
+    cierre: string,
+    ventas_totales: float,
+    monto_inicio: float,
+    monto_cierre: float,
+    cajero: string,
+    medios: [string],
+    totales: [float],
 }
