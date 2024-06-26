@@ -1,0 +1,58 @@
+import { HorizontalBox, Button } from "std-widgets.slint";
+import { ValFND } from "structs.slint";
+export component Producto{
+    in-out property <ValFND> prod:{descripcion:"Producto"};
+    HorizontalLayout {
+        padding-left: 10px;
+        height: 50px;
+        Text {
+            padding: 10px;
+            text: prod.descripcion;
+            vertical-alignment: center;
+            wrap: word-wrap;
+            height: parent.height;
+        }
+        HorizontalLayout {
+            spacing: 0px;
+            horizontal-stretch: 0;
+            height: parent.height;
+            padding: 0;
+            Button {
+                text: "-";
+                width: 50px;
+                height: parent.height*0.8;
+            }
+            Text {
+                vertical-alignment: center;
+                text: prod.cantidad;
+                horizontal-alignment: center;
+                width: 40px;
+                height: parent.height;
+            }
+            Button{
+                height: parent.height*0.8;
+                text: "+";
+                width: 50px;
+            }
+        }
+        Text {
+            text: prod.precio;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+            width: 50px;
+            height: parent.height;
+        }
+        Text {
+            text: prod.precio*prod.cantidad;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+            width: 50px;
+            height: parent.height;
+        }
+        Button {
+            text: "Borrar";
+            width: 80px;
+            height: parent.height*0.8;      
+        }
+    }
+}

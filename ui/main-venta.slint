@@ -1,0 +1,20 @@
+import { VentaFND } from "structs.slint";
+import { Productos } from "main-productos.slint";
+import { VerticalBox, ListView } from "std-widgets.slint";
+import { Producto } from "main-producto.slint";
+export component CuadroVenta {
+    in-out property <VentaFND> venta;
+    VerticalBox {
+        ListView {
+            for prod in venta.productos: Producto {
+                prod: prod;
+            }
+        }
+        Text {
+            text: "Total: "+venta.monto-total;
+            horizontal-alignment: right;
+            vertical-alignment: center;
+            font-size: 20px;
+        }
+    }
+}

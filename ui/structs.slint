@@ -49,6 +49,7 @@ export struct ValFND{
     codigo:int,
     descripcion: string,
     precio: float,
+    cantidad: float,
 }
 export struct UserFND{
     id: string,
@@ -57,10 +58,10 @@ export struct UserFND{
 }
 export struct VentaFND{
     id: int,
-    monto_total: float,
+    monto-total: float,
     productos: [ValFND],
     pagos: [PagoFND],
-    monto_pagado: float,
+    monto-pagado: float,
     user: UserFND,
     cliente: ClienteFND,
     paga: bool,

@@ -8,8 +8,8 @@ export component Pagos inherits Rectangle {
     
     in-out property <float> monto:350;
     in-out property <float> pagado:0;
-    VerticalBox {
-        width: root.width - 10px;
+    VerticalLayout {
+        width: root.width;
         for pay in root.pagos: my-pagos := Pago {
             
             width: root.width - 15px;

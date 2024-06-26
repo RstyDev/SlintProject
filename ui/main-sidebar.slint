@@ -4,16 +4,20 @@ import { Pagos } from "main-pagos.slint";
 import { Logic } from "logic.slint";
 export component SideBar {
     TabWidget {
+        padding: 0px;
         width: 300px;
         resumen:=Tab{
             title: "Resumen de venta";
-            VerticalBox {
-
-                TablaProductos {}
+            VerticalLayout {
+                width: parent.width;
+                TablaProductos {
+                    width: parent.width;
+                }
                 Pagos {
-                    width: 300px;
+                    width: parent.width;
                 }
                 Text {
+                    width: parent.width;
                     horizontal-alignment: TextHorizontalAlignment.right;
                     text: "Total: \{Logic.venta.monto-total - Logic.venta.monto-pagado}";
                 }
