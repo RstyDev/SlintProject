@@ -1,12 +1,21 @@
 import { LineEdit, HorizontalBox, ComboBox } from "std-widgets.slint";
+import { ClienteFND } from "structs.slint";
 export component Header {
     HorizontalBox{
         width: 98%;
+        height: 150px;
+        in-out property <ClienteFND> clientes;
+        
         search:=LineEdit {
+            height: 30px;
             placeholder-text: "Buscar..";
         }
-        Text {text: "Cliente";}
+        Text {
+            height: 30px;
+            vertical-alignment: center;
+            text: "Cliente";}
         ComboBox {
+            height: 30px;
             
         }
     }

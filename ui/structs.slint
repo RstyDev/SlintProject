@@ -50,12 +50,19 @@ export struct ValFND{
     descripcion: string,
     precio: float,
 }
+export struct UserFND{
+    id: string,
+    nombre:string,
+    rango: string,
+}
 export struct VentaFND{
     id: int,
     monto_total: float,
     productos: [ValFND],
     pagos: [PagoFND],
     monto_pagado: float,
+    user: UserFND,
+    cliente: ClienteFND,
     paga: bool,
     cerrada: bool,
     time: string,
@@ -78,9 +85,18 @@ export struct ProductoFND{
     proveedores: [RelProdProvFND]
 }
 
-
-export struct UserFND{
+export struct RubroFND {
     id: int,
-    nombre:string,
-    rango: string,
+    codigo: int,
+    monto: float,
+    descripcion: string,
+}
+
+export struct PesableFND {
+    id: int,
+    codigo: int,
+    precio_peso: float,
+    porcentaje: float,
+    costo_kilo: float,
+    descripcion: string,
 }

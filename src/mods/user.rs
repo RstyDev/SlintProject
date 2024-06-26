@@ -1,6 +1,7 @@
 use super::{AppError, Res};
-use crate::db::map::BigIntDB;
+use crate::{UserFND,db::map::BigIntDB};
 use serde::{Deserialize, Serialize};
+use slint::SharedString;
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;
 use std::sync::Arc;
@@ -72,12 +73,13 @@ impl User {
     pub fn nombre(&self) -> Arc<str> {
         Arc::clone(&self.nombre)
     }
-    // pub fn to_fnd(self)->UserFND{
-    //     let user=UserFND::default();
-    //     user.id=self.id;
-    //     user.nombre = SharedString::from(self.nombre.to_string());
-    //     user
-    // }
+    pub fn to_fnd(self)->UserFND{
+        let mut user=UserFND::default();
+        user.id=SharedString::from(self.id.to_string());
+        user.nombre = SharedString::from(self.nombre.to_string());
+        user.rango = SharedString::from(self.rango.to_string());
+        user
+    }
 }
 impl Display for Rango {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
