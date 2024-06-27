@@ -2,10 +2,14 @@ use super::{
     crear_file, get_hash, leer_file, AppError, Caja, Cli, Config, Db, Movimiento, Pago, Pesable,
     Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User, Valuable, Venta,
 };
-use crate::{db::{fresh,Mapper,map::{
-    BigIntDB, ClienteDB, CodeDB, CodedPesDB, CodedRubDB, PesableDB, ProductoDB, ProvDB, RubroDB,
-    StringDB, UserDB,RelacionProdProvDB
-}}};
+use crate::db::{
+    fresh,
+    map::{
+        BigIntDB, ClienteDB, CodeDB, CodedPesDB, CodedRubDB, PesableDB, ProductoDB, ProvDB,
+        RelacionProdProvDB, RubroDB, StringDB, UserDB,
+    },
+    Mapper,
+};
 
 use chrono::Utc;
 use sqlx::{Pool, Sqlite};
@@ -447,12 +451,17 @@ impl<'a> Sistema {
                             )
                             .fetch_one(db)
                             .await?;
-                        let rels:Vec<RelacionProdProvDB> = sqlx::query_as!(
-                            RelacionProdProvDB,
-                            r#"select * from relacion_prod_prov where producto = ?"#,
-                            prod.id
-                        ).fetch_all(db).await?;
-                        let rels=rels.iter().map(|r|Mapper::rel_prod_prov(r)).collect::<Vec<RelacionProdProv>>();
+                            let rels: Vec<RelacionProdProvDB> = sqlx::query_as!(
+                                RelacionProdProvDB,
+                                r#"select * from relacion_prod_prov where producto = ?"#,
+                                prod.id
+                            )
+                            .fetch_all(db)
+                            .await?;
+                            let rels = rels
+                                .iter()
+                                .map(|r| Mapper::rel_prod_prov(r))
+                                .collect::<Vec<RelacionProdProv>>();
                             res.push(V::Prod((
                                 0,
                                 Producto::build(
@@ -465,7 +474,7 @@ impl<'a> Sistema {
                                     prod.marca.as_str(),
                                     prod.variedad.as_str(),
                                     Presentacion::build(prod.presentacion.as_str(), prod.size),
-                                    rels
+                                    rels,
                                 ),
                             )))
                         } else if let Some(pes) = code.pesable {
@@ -512,27 +521,35 @@ impl<'a> Sistema {
                     qres = qres.bind(filtro).bind(filtro).bind(filtro).bind(filtro);
                 }
                 let qres: Vec<ProductoDB> = qres.fetch_all(db).await?;
-                for prod in qres{
-                    let rels:Vec<RelacionProdProvDB> = sqlx::query_as!(
-                                RelacionProdProvDB,
-                                r#"select * from relacion_prod_prov where producto = ?"#,
-                                prod.id
-                            ).fetch_all(db).await?;
-                            let rels=rels.iter().map(|r|Mapper::rel_prod_prov(r)).collect::<Vec<RelacionProdProv>>();
-                    res.push(V::Prod((0,Producto::build(
-                                    prod.id,
-                                    vec![],
-                                    prod.precio_venta,
-                                    prod.porcentaje,
-                                    prod.precio_costo,
-                                    prod.tipo.as_str(),
-                                    prod.marca.as_str(),
-                                    prod.variedad.as_str(),
-                                    Presentacion::build(prod.presentacion.as_str(), prod.size),
-                                    rels
-                                ))));
+                for prod in qres {
+                    let rels: Vec<RelacionProdProvDB> = sqlx::query_as!(
+                        RelacionProdProvDB,
+                        r#"select * from relacion_prod_prov where producto = ?"#,
+                        prod.id
+                    )
+                    .fetch_all(db)
+                    .await?;
+                    let rels = rels
+                        .iter()
+                        .map(|r| Mapper::rel_prod_prov(r))
+                        .collect::<Vec<RelacionProdProv>>();
+                    res.push(V::Prod((
+                        0,
+                        Producto::build(
+                            prod.id,
+                            vec![],
+                            prod.precio_venta,
+                            prod.porcentaje,
+                            prod.precio_costo,
+                            prod.tipo.as_str(),
+                            prod.marca.as_str(),
+                            prod.variedad.as_str(),
+                            Presentacion::build(prod.presentacion.as_str(), prod.size),
+                            rels,
+                        ),
+                    )));
                 }
-                
+
                 let query=String::from("select id, precio_peso, codigo, porcentaje, costo_kilo, descripcion, updated_at, from pesables inner join codigos on pesables.id = codigos.pesable where (descripcion like %?%)");
                 let mut qres = sqlx::query_as(query.as_str());
                 for filtro in &filtros {

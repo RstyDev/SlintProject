@@ -30,12 +30,14 @@ fn set_logic(log: Logic, sistema: Arc<Mutex<Sistema>>, ui: Arc<App>, window: Win
                 a + b
             });
             let sis = sistema.clone();
-            log.on_get_venta_actual(move |pos| get_venta_actual(sis.clone(), pos).unwrap().to_fnd());
+            log.on_get_venta_actual(move |pos| {
+                get_venta_actual(sis.clone(), pos).unwrap().to_fnd()
+            });
         }
         Windows::Login => log.on_try_login(move |id, pass| {
             match try_login(sistema.clone(), id.as_str(), pass.as_str()) {
                 Ok(_) => {
-                    println!("{}",Windows::Main.to_string());
+                    println!("{}", Windows::Main.to_string());
                     set_window_size_name(ui.clone(), Windows::Main, 800.0, 600.0, sistema.clone());
                     SharedString::from("Ok")
                 }
@@ -55,9 +57,11 @@ fn set_window_size_name(
     ui.window()
         .set_size(WindowSize::Logical(LogicalSize::new(width, height)));
     ui.set_window(SharedString::from(window.to_string()));
-    match window{
-        Windows::Login=>{ui.window();},
-        Windows::Main=>()
+    match window {
+        Windows::Login => {
+            ui.window();
+        }
+        Windows::Main => (),
     }
     set_logic(ui.global::<Logic>(), sistema, ui.clone(), window);
 }

@@ -1,8 +1,8 @@
 use crate::db::map::{BigIntDB, ClienteDB, VentaDB};
-use crate::{VentaFND,SharedString};
+use crate::{SharedString, VentaFND};
 use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
-use slint::{VecModel,ModelRc};
+use slint::{ModelRc, VecModel};
 use sqlx::{query, Pool, Sqlite};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -122,13 +122,13 @@ impl<'a> Venta {
         st.monto_pagado = self.monto_pagado;
         st.monto_total = self.monto_total;
         st.paga = self.paga;
-        let mut pagos=Vec::new();
-        for pago in self.pagos{
+        let mut pagos = Vec::new();
+        for pago in self.pagos {
             pagos.push(pago.to_fnd())
         }
         st.pagos = ModelRc::new(VecModel::from(pagos));
         st.time = SharedString::from(self.time.to_string());
-        
+
         //TODO! falta mas
         st
     }

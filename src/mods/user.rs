@@ -1,5 +1,5 @@
 use super::{AppError, Res};
-use crate::{UserFND,db::map::BigIntDB};
+use crate::{db::map::BigIntDB, UserFND};
 use serde::{Deserialize, Serialize};
 use slint::SharedString;
 use sqlx::{Pool, Sqlite};
@@ -73,9 +73,9 @@ impl User {
     pub fn nombre(&self) -> Arc<str> {
         Arc::clone(&self.nombre)
     }
-    pub fn to_fnd(self)->UserFND{
-        let mut user=UserFND::default();
-        user.id=SharedString::from(self.id.to_string());
+    pub fn to_fnd(self) -> UserFND {
+        let mut user = UserFND::default();
+        user.id = SharedString::from(self.id.to_string());
         user.nombre = SharedString::from(self.nombre.to_string());
         user.rango = SharedString::from(self.rango.to_string());
         user

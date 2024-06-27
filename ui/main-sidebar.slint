@@ -3,29 +3,33 @@ import { TablaProductos } from "main-tabla-productos.slint";
 import { Pagos } from "main-pagos.slint";
 import { Logic } from "logic.slint";
 export component SideBar {
-    TabWidget {
-        padding: 0px;
-        width: 300px;
-        resumen:=Tab{
-            title: "Resumen de venta";
-            VerticalLayout {
-                width: parent.width;
-                TablaProductos {
+    VerticalLayout{
+        TabWidget {
+            padding: 0px;
+            width: 300px;
+            resumen:=Tab{
+                title: "Resumen de venta";
+                VerticalBox {
                     width: parent.width;
-                }
-                Pagos {
-                    width: parent.width;
-                }
-                Text {
-                    width: parent.width;
-                    horizontal-alignment: TextHorizontalAlignment.right;
-                    text: "Total: \{Logic.venta.monto-total - Logic.venta.monto-pagado}";
+                    TablaProductos {
+                        width: parent.width;
+                    }                
                 }
             }
+            ventas:=Tab{
+                title: "Ventas";
+                //ventas anteriores
+            }
         }
-        ventas:=Tab{
-            title: "Ventas";
-            //ventas anteriores
+        VerticalLayout {
+            Pagos {
+                width: parent.width;
+            }
+            Text {
+                width: parent.width;
+                horizontal-alignment: TextHorizontalAlignment.right;
+                text: "Total: \{Logic.venta.monto-total - Logic.venta.monto-pagado}";
+            }
         }
     }
- }
+}

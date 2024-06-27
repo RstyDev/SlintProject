@@ -1,5 +1,5 @@
 use super::{redondeo, AppError, Presentacion, Res, ValuableTrait};
-use crate::{ValFND,db::map::BigIntDB};
+use crate::{db::map::BigIntDB, ValFND};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use slint::SharedString;
@@ -17,7 +17,7 @@ pub struct Producto {
     marca: Arc<str>,
     variedad: Arc<str>,
     presentacion: Presentacion,
-    proveedores: Vec<RelacionProdProv>
+    proveedores: Vec<RelacionProdProv>,
 }
 
 impl Producto {
@@ -31,7 +31,7 @@ impl Producto {
         marca: &str,
         variedad: &str,
         presentacion: Presentacion,
-        proveedores: Vec<RelacionProdProv>
+        proveedores: Vec<RelacionProdProv>,
     ) -> Producto {
         Producto {
             id,
@@ -43,7 +43,7 @@ impl Producto {
             marca: Arc::from(marca),
             variedad: Arc::from(variedad),
             presentacion,
-            proveedores
+            proveedores,
         }
     }
     pub fn id(&self) -> &i64 {
@@ -73,7 +73,7 @@ impl Producto {
     pub fn presentacion(&self) -> &Presentacion {
         &self.presentacion
     }
-    pub fn proveedores(&self)->&Vec<RelacionProdProv>{
+    pub fn proveedores(&self) -> &Vec<RelacionProdProv> {
         &self.proveedores
     }
     pub fn nombre_completo(&self) -> String {
@@ -125,15 +125,14 @@ impl Producto {
     }
     // pub fn to_fnd(self)->ProductoFND{
     //     let mut prod=ProductoFND::default();
-                    //TODO!
+    //TODO!
     //     prod
     // }
-    pub fn to_val_fnd(self)->ValFND{
-        let mut val=ValFND::default();
+    pub fn to_val_fnd(self) -> ValFND {
+        let mut val = ValFND::default();
         val.id = self.id as i32;
         val.codigo = self.codigos_de_barras[0] as i32;
-        val.descripcion = SharedString::from(self.nombre_completo()
-    );
+        val.descripcion = SharedString::from(self.nombre_completo());
         val
     }
     #[cfg(test)]
@@ -200,13 +199,12 @@ impl ValuableTrait for Producto {
             marca: self.marca.clone(),
             variedad: self.variedad.clone(),
             presentacion: self.presentacion.clone(),
-            proveedores: self.proveedores.clone()
+            proveedores: self.proveedores.clone(),
         }
     }
 }
 
-
-#[derive(Clone, Serialize, Deserialize,Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct RelacionProdProv {
     proveedor: i64,
     codigo_interno: Option<i64>,
@@ -219,7 +217,7 @@ impl RelacionProdProv {
             codigo_interno,
         }
     }
-    
+
     pub fn proveedor(&self) -> &i64 {
         &self.proveedor
     }

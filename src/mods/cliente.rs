@@ -5,7 +5,13 @@ use slint::SharedString;
 use sqlx::{Pool, Sqlite};
 use std::sync::Arc;
 
-use crate::{ClienteFND,CuentaFND,db::{Mapper,map::{ClienteDB, FloatDB, PagoDB, VentaDB}}};
+use crate::{
+    db::{
+        map::{ClienteDB, FloatDB, PagoDB, VentaDB},
+        Mapper,
+    },
+    ClienteFND, CuentaFND,
+};
 
 use super::{AppError, Res, User, Venta};
 
@@ -14,8 +20,6 @@ pub enum Cliente {
     Final,
     Regular(Cli),
 }
-
-
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Cli {
@@ -249,17 +253,16 @@ impl<'a> Cliente {
             None => Cliente::Final,
         }
     }
-    pub fn to_fnd(self)->ClienteFND{
-        let mut reg=ClienteFND::default();
-        match self{
+    pub fn to_fnd(self) -> ClienteFND {
+        let mut reg = ClienteFND::default();
+        match self {
             Cliente::Final => reg.regular = false,
             Cliente::Regular(cli) => {
                 reg.regular = true;
                 reg.activo = cli.activo;
                 reg.created = SharedString::from(cli.created.to_string());
                 reg.dni = cli.dni;
-
-            },
+            }
         }
         reg
     }
@@ -270,14 +273,14 @@ impl Default for Cliente {
         Cliente::Final
     }
 }
-impl Cuenta{
-    pub fn to_fnd(self)->CuentaFND{
-        let mut cuenta=CuentaFND::default();
-        cuenta.auth = match self{
+impl Cuenta {
+    pub fn to_fnd(self) -> CuentaFND {
+        let mut cuenta = CuentaFND::default();
+        cuenta.auth = match self {
             Cuenta::Auth(a) => {
                 cuenta.cuenta = a;
                 true
-            },
+            }
             Cuenta::Unauth => false,
         };
         cuenta

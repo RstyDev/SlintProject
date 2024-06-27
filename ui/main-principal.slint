@@ -5,24 +5,20 @@ import { CuadroVenta } from "main-venta.slint";
 import { SideBar } from "main-sidebar.slint";
 export component Principal {
     in-out property <VentaFND> venta:{monto-pagado:1,monto-total:3517.15,productos:[{descripcion:"algo mas largo que lo que se esperaba",precio:1.30,cantidad:2},{descripcion:"Producto Escrito Correctamente 100 Kg"},{descripcion:"grande"},{descripcion:"da"}]};
-    GridBox {
-        
-        Row{
-            Header {}
-        }
-        Row{
-            HorizontalLayout {
-                spacing: 0;
-                width: 100%;
-                CuadroVenta {
-                    horizontal-stretch: 1;
-                    venta: venta;
-                }
-                SideBar {
-                    
+    VerticalLayout {
+        Header {}
+        HorizontalLayout {
+            spacing: 0;
+            width: 100%;
+            CuadroVenta {
+                horizontal-stretch: 1;
+                venta: venta;
+            }
+            SideBar {
+                width: 450px;
 
-                }
             }
         }
     }
+    
 }
