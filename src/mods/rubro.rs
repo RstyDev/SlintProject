@@ -1,6 +1,5 @@
 use super::{redondeo, valuable::ValuableTrait, AppError, Res};
-use crate::db::map::BigIntDB;
-use crate::db::map::CodeDB;
+use crate::{ValFND,SharedString,db::map::{BigIntDB,CodeDB}};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
@@ -71,6 +70,17 @@ impl Rubro {
     }
     pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
+    }
+    pub fn to_fnd(&self)->ValFND{
+        let mut val=ValFND::default();
+        val.descripcion = SharedString::from(self.descripcion.to_string());
+        val.id = self.id as i32;
+        val.codigo = self.codigo as i32;
+        val.precio = match self.monto{
+            Some(m)=>m,
+            None=>0.0,
+        };
+        val
     }
     #[cfg(test)]
     pub fn desc(&self) -> String {

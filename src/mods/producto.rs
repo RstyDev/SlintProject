@@ -128,7 +128,7 @@ impl Producto {
     //TODO!
     //     prod
     // }
-    pub fn to_val_fnd(self) -> ValFND {
+    pub fn to_val_fnd(&self) -> ValFND {
         let mut val = ValFND::default();
         val.id = self.id as i32;
         val.codigo = self.codigos_de_barras[0] as i32;

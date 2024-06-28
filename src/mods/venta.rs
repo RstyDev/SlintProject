@@ -124,8 +124,13 @@ impl<'a> Venta {
         st.paga = self.paga;
         let mut pagos = Vec::new();
         for pago in self.pagos {
-            pagos.push(pago.to_fnd())
+            pagos.push(pago.to_fnd());
         }
+        let mut prods = Vec::new();
+        for prod in self.productos{
+            prods.push(prod.to_fnd());
+        }
+        st.productos = ModelRc::new(VecModel::from(prods));
         st.pagos = ModelRc::new(VecModel::from(pagos));
         st.time = SharedString::from(self.time.to_string());
 

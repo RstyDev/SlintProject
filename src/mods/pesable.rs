@@ -1,5 +1,5 @@
 use super::{AppError, Res};
-use crate::db::map::BigIntDB;
+use crate::{ValFND,SharedString,db::map::BigIntDB};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
@@ -86,6 +86,14 @@ impl Pesable {
     }
     pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
+    }
+    pub fn to_fnd(&self)->ValFND{
+        let mut val=ValFND::default();
+        val.descripcion = SharedString::from(self.descripcion.to_string());
+        val.id = self.id as i32;
+        val.codigo = self.codigo as i32;
+        val.precio = self.precio_peso;
+        val
     }
     pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
         let qres: Option<BigIntDB> = sqlx::query_as!(
