@@ -228,20 +228,22 @@ impl Db {
         proveedores: Vec<Proveedor>,
         db: &Pool<Sqlite>,
     ) -> Result<(), AppError> {
-        let mut query = String::from("insert into proveedores values (?, ?, ?, ?)"); //id, nombre, contacto, updated
-        let row = ", (?, ?, ?, ?)";
-        for _ in 0..proveedores.len() {
-            query.push_str(row);
+        if proveedores.len() > 0 {
+            let mut query = String::from("insert into proveedores values (?, ?, ?, ?)"); //id, nombre, contacto, updated
+            let row = ", (?, ?, ?, ?)";
+            for _ in 0..proveedores.len() {
+                query.push_str(row);
+            }
+            let mut sql = sqlx::query(query.as_str());
+            for prov in proveedores {
+                sql = sql
+                    .bind(*prov.id())
+                    .bind(prov.nombre().to_string())
+                    .bind(*prov.contacto())
+                    .bind(Utc::now().naive_local());
+            }
+            sql.execute(db).await?;
         }
-        let mut sql = sqlx::query(query.as_str());
-        for prov in proveedores {
-            sql = sql
-                .bind(*prov.id())
-                .bind(prov.nombre().to_string())
-                .bind(*prov.contacto())
-                .bind(Utc::now().naive_local());
-        }
-        sql.execute(db).await?;
         Ok(())
     }
 

@@ -3,18 +3,27 @@ import { ClienteFND } from "structs.slint";
 export component Header {
     HorizontalBox{
         width: 98%;
-        height: 150px;
+        height: 70px;
         in-out property <ClienteFND> clientes;
         
         search:=LineEdit {
             height: 30px;
+            width: 200px;
             placeholder-text: "Buscar..";
         }
         Text {
+            horizontal-alignment: center;
             height: 30px;
             vertical-alignment: center;
-            text: "Cliente";}
+            text: "Cajero: Nombre del Cajero";
+        }
+        Text {
+            horizontal-alignment: right;
+            height: 30px;
+            vertical-alignment: center;
+            text: "Cliente: ";}
         ComboBox {
+            width: 200px;
             height: 30px;
             
         }

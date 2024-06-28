@@ -2,9 +2,9 @@ import {  HorizontalBox, ListView, VerticalBox, StandardTableView } from "std-wi
 import { ValFND } from "structs.slint";
 
 export component TablaProductos {
-    in-out property <[ValFND]> vals:[{descripcion:"Producto1",precio:1.2},{descripcion:"Producto2",precio:201},{descripcion:"Producto 3",precio:45.2},{descripcion:"Producto 4",precio:45.2},{descripcion:"Producto 5",precio:45.2},{descripcion:"Producto 6",precio:45.2}];
-    VerticalBox {
-        HorizontalBox {
+    in-out property <[ValFND]> productos:[{descripcion:"Producto1",precio:1.2},{descripcion:"Producto2",precio:201},{descripcion:"Producto 3",precio:45.2},{descripcion:"Producto 4",precio:45.2},{descripcion:"Producto 5",precio:45.2},{descripcion:"Producto 6",precio:45.2}];
+    VerticalLayout {
+        HorizontalLayout {
             height: 18px;
             Text {
                 height: 9px;
@@ -16,7 +16,7 @@ export component TablaProductos {
             }
         }
         ListView {
-            for val[i] in vals: valuables:=HorizontalBox{
+            for val[i] in productos: valuables:=HorizontalBox{
                 Text {
                     height: 9px;
                     text: val.descripcion;

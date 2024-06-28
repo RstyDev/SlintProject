@@ -5,7 +5,7 @@ import { Pago } from "main-pago.slint";
 
 export component Pagos inherits Rectangle {
     in-out property <[PagoFND]> pagos: [{monto: 30.0, pagado: 30.0, int_id: 30},{monto:30.0, pagado: 30.0,int_id:35}];
-    
+    in property <[string]> medios;
     in-out property <float> monto:350;
     in-out property <float> pagado:0;
     VerticalLayout {
@@ -15,7 +15,7 @@ export component Pagos inherits Rectangle {
             width: root.width - 15px;
             pago: pay;
             pagado: true;
-            medios: ["first", "second", "third"];
+            medios: medios;
             
         }
         Pago {
@@ -24,7 +24,7 @@ export component Pagos inherits Rectangle {
             "\{root.monto - root.pagado}"}
             width: root.width - 15px;
             pagado: false;
-            medios: ["first", "second"];
+            medios: medios;
             pago: {monto:monto - pagado,pagado:0};
         }
     }

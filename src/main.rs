@@ -1,7 +1,13 @@
 use crate::db::db;
 use crate::mods::cmd::*;
+use crate::mods::Res;
 use mods::Sistema;
-use slint::{LogicalSize, SharedString, WindowSize};
+use crate::mods::Valuable;
+use crate::mods::Rubro;
+use mods::Venta;
+use crate::mods::Cliente;
+use chrono::Utc;
+use slint::{LogicalSize, ModelRc, SharedString, VecModel, WindowSize};
 use std::sync::{Arc, Mutex};
 use tokio::runtime::Runtime;
 slint::include_modules!();
@@ -21,10 +27,23 @@ impl ToString for Windows {
     }
 }
 
-fn set_logic(log: Logic, sistema: Arc<Mutex<Sistema>>, ui: Arc<App>, window: Windows) {
+fn set_logic(log: Logic, sistema: Arc<Mutex<Sistema>>, ui: Arc<App>, window: Windows) -> Res<()> {
     log.on_test(|dato| println!("{dato}"));
     match window {
         Windows::Main => {
+            let mut ventas = match sistema.lock() {
+                Ok(sis) => sis.ventas(),
+                Err(_) => match sistema.lock() {
+                    Ok(sis) => sis.ventas(),
+                    Err(e) => panic!("{e}"),
+                }
+            };
+            ventas.a = Venta::build(2, 154815.0, vec![Valuable::Rub((3,Rubro::build(1,154,Some(135.2),"Rubro")))], vec![], 35015.0, None, Cliente::Final, false, false, Utc::now().naive_local());
+            println!("{:#?}",ventas.a);
+            ui.set_ventas(ModelRc::new(VecModel::from(vec![
+                ventas.a.to_fnd(),
+                ventas.b.to_fnd(),
+            ])));
             log.on_pagar(|a, b| {
                 println!("{} {}", a, b); //TODO!
                 a + b
@@ -45,6 +64,7 @@ fn set_logic(log: Logic, sistema: Arc<Mutex<Sistema>>, ui: Arc<App>, window: Win
             }
         }),
     }
+    Ok(())
 }
 
 fn set_window_size_name(

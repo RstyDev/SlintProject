@@ -1,18 +1,24 @@
- import { StandardTableView, TabWidget, VerticalBox } from "std-widgets.slint";
+import { StandardTableView, TabWidget, VerticalBox } from "std-widgets.slint";
 import { TablaProductos } from "main-tabla-productos.slint";
+import { VentaFND } from "structs.slint";
 import { Pagos } from "main-pagos.slint";
 import { Logic } from "logic.slint";
 export component SideBar {
+    in-out property <VentaFND> venta;
+    in property <[string]> medios;
+    
     VerticalLayout{
+        width: 250px;
         TabWidget {
             padding: 0px;
-            width: 300px;
+            width: parent.width;
             resumen:=Tab{
                 title: "Resumen de venta";
                 VerticalBox {
                     width: parent.width;
                     TablaProductos {
                         width: parent.width;
+                        productos: venta.productos;
                     }                
                 }
             }
@@ -23,12 +29,14 @@ export component SideBar {
         }
         VerticalLayout {
             Pagos {
+                pagos: venta.pagos;
                 width: parent.width;
+                medios: medios;
             }
             Text {
                 width: parent.width;
                 horizontal-alignment: TextHorizontalAlignment.right;
-                text: "Total: \{Logic.venta.monto-total - Logic.venta.monto-pagado}";
+                text: "Total: \{venta.monto-total - venta.monto-pagado}";
             }
         }
     }

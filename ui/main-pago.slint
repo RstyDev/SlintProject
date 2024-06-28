@@ -6,19 +6,31 @@ import { PagoFND } from "structs.slint";
 
 export component Pago inherits Rectangle{
     in-out property <PagoFND> pago;
-    in-out property <bool> pagado;
-    in-out property <[string]> medios;
-    in-out property <string> text;
+    in property <bool> pagado;
+    in property <[string]> medios;
+    in property <string> text;
+    property <string> medio_act;
     callback call();
     callback pagar()->string;
-    
+    callback set_medio();
+    init=>{
+        set_medio()
+    }
+    set_medio => {
+        if pagado{
+            medio_act = pago.medio-pago.medio
+        }else{
+            medio_act = medios[0]
+        }
+    }
     function borrar(){
         Logic.test("Borrado")
     }
-
+    
     HorizontalBox {
         text:= LineEdit {            
             text: "\{root.pago.monto}";   
+            width: 150px;
             padding: 0px;
             font-size: 10px;
             height: 37px;
@@ -31,7 +43,7 @@ export component Pago inherits Rectangle{
             height: 37px;
             width: 100px;
             model: medios;
-            current-value: "first";
+            current-value: pago.medio-pago.medio;
             
         }
         if pagado: Button {width:60px;text:"Borrar";clicked => { borrar() }}

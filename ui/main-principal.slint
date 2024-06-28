@@ -1,22 +1,44 @@
 import { VentaFND } from "structs.slint";
-import { GridBox } from "std-widgets.slint";
+import { GridBox, VerticalBox, TabWidget } from "std-widgets.slint";
 import { Header } from "main-header.slint";
 import { CuadroVenta } from "main-venta.slint";
 import { SideBar } from "main-sidebar.slint";
 export component Principal {
-    in-out property <VentaFND> venta:{monto-pagado:1,monto-total:3517.15,productos:[{descripcion:"algo mas largo que lo que se esperaba",precio:1.30,cantidad:2},{descripcion:"Producto Escrito Correctamente 100 Kg"},{descripcion:"grande"},{descripcion:"da"}]};
-    VerticalLayout {
+    in-out property <[VentaFND]> ventas;
+    in property <[string]> medios;
+    VerticalBox {
+        spacing: 0;
         Header {}
-        HorizontalLayout {
-            spacing: 0;
+        TabWidget {
             width: 100%;
-            CuadroVenta {
-                horizontal-stretch: 1;
-                venta: venta;
+            Tab{
+                title: "Venta A";
+                HorizontalLayout {
+                    CuadroVenta {
+                        horizontal-stretch: 1;
+                        venta: ventas[0];
+                    }
+                    SideBar {
+                        medios: medios;
+                        venta: ventas[0];
+                        width: 450px;
+        
+                    }
+                }
             }
-            SideBar {
-                width: 450px;
-
+            Tab{
+                title: "Venta B";
+                HorizontalLayout {
+                    CuadroVenta {
+                        horizontal-stretch: 1;
+                        venta: ventas[1];
+                    }
+                    SideBar {
+                        venta: ventas[1];
+                        width: 450px;
+        
+                    }
+                }
             }
         }
     }

@@ -216,7 +216,6 @@ impl<'a> Sistema {
                 Arc::clone(&sis.write_db),
                 Arc::clone(&sis.read_db),
                 sis.proveedores.clone(),
-                sis.relaciones.clone(),
             )
             .await
         })?;
@@ -298,7 +297,6 @@ impl<'a> Sistema {
         write_db: Arc<Pool<Sqlite>>,
         read_db: Arc<Pool<Sqlite>>,
         proveedores: Vec<Proveedor>,
-        relaciones: Vec<RelacionProdProv>,
     ) -> Res<()> {
         let path_productos = "Productos.json";
         let path_configs = "Configs.json";
@@ -917,6 +915,9 @@ impl<'a> Sistema {
         } else {
             self.ventas.b.clone()
         }
+    }
+    pub fn ventas(&self) -> Ventas {
+        self.ventas.clone()
     }
     pub fn filtrar_marca(&self, filtro: &str) -> Res<Vec<String>> {
         Runtime::new().unwrap().block_on(async {
