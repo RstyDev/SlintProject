@@ -8,10 +8,10 @@ export component SideBar {
     in property <[string]> medios;
     
     VerticalLayout{
-        width: 250px;
+        width: 270px;
         TabWidget {
             padding: 0px;
-            width: parent.width;
+            width: parent.width+40px;
             resumen:=Tab{
                 title: "Resumen de venta";
                 VerticalBox {

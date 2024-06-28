@@ -13,16 +13,7 @@ export component Pago inherits Rectangle{
     callback call();
     callback pagar()->string;
     callback set_medio();
-    init=>{
-        set_medio()
-    }
-    set_medio => {
-        if pagado{
-            medio_act = pago.medio-pago.medio
-        }else{
-            medio_act = medios[0]
-        }
-    }
+    
     function borrar(){
         Logic.test("Borrado")
     }
@@ -37,14 +28,21 @@ export component Pago inherits Rectangle{
             accepted(dato) => {self.text=pagar()}
             enabled: !pagado;
         }
-        box := ComboBox {
+        if pagado:box := ComboBox {
             enabled: !pagado;
             padding: 0px;
             height: 37px;
             width: 100px;
             model: medios;
             current-value: pago.medio-pago.medio;
-            
+        }
+        if !pagado:box2 := ComboBox{
+            enabled: !pagado;
+            padding: 0px;
+            height: 37px;
+            width: 100px;
+            model: medios;
+            current-value: medios[0];
         }
         if pagado: Button {width:60px;text:"Borrar";clicked => { borrar() }}
         if !pagado: Button {width:50px;text:"Cash";clicked=>{ text.text = pagar() }}

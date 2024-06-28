@@ -8,7 +8,9 @@ export component Principal {
     in property <[string]> medios;
     VerticalBox {
         spacing: 0;
-        Header {}
+        Header {
+            clientes: ["Final","Lucas"];
+        }
         TabWidget {
             width: 100%;
             Tab{
@@ -34,6 +36,7 @@ export component Principal {
                         venta: ventas[1];
                     }
                     SideBar {
+                        medios: medios;
                         venta: ventas[1];
                         width: 450px;
         

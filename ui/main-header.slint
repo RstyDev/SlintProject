@@ -1,10 +1,10 @@
 import { LineEdit, HorizontalBox, ComboBox } from "std-widgets.slint";
 import { ClienteFND } from "structs.slint";
 export component Header {
+    in-out property <[string]> clientes;
     HorizontalBox{
         width: 98%;
         height: 70px;
-        in-out property <ClienteFND> clientes;
         
         search:=LineEdit {
             height: 30px;
@@ -25,7 +25,7 @@ export component Header {
         ComboBox {
             width: 200px;
             height: 30px;
-            
+            model: clientes;
         }
     }
 }

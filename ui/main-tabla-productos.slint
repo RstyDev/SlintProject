@@ -6,22 +6,27 @@ export component TablaProductos {
     VerticalLayout {
         HorizontalLayout {
             height: 18px;
+
             Text {
                 height: 9px;
                 text: "Producto";
             }
             Text {
+                horizontal-alignment: right;
                 height: 9px;
                 text: "Precio";
             }
         }
         ListView {
+            width: parent.width;
             for val[i] in productos: valuables:=HorizontalBox{
+                width: parent.width+7px;
                 Text {
                     height: 9px;
                     text: val.descripcion;
                 }
                 Text {
+                    horizontal-alignment: right;
                     height: 9px;
                     text: val.precio;
                 }
