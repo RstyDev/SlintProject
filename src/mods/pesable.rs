@@ -1,5 +1,10 @@
 use super::{AppError, Res};
-use crate::{ValFND,SharedString,db::map::BigIntDB};
+use crate::{
+    db::map::BigIntDB,
+    // PesableFND,
+    SharedString,
+    ValFND,
+};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
@@ -7,7 +12,7 @@ use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pesable {
-    id: i64,
+    id: i32,
     codigo: i64,
     precio_peso: f32,
     porcentaje: f32,
@@ -16,7 +21,7 @@ pub struct Pesable {
 }
 impl Pesable {
     pub fn build(
-        id: i64,
+        id: i32,
         codigo: i64,
         precio_peso: f32,
         porcentaje: f32,
@@ -59,7 +64,7 @@ impl Pesable {
                     .execute(db)
                     .await?;
                 Ok(Pesable {
-                    id: qres.last_insert_rowid(),
+                    id: qres.last_insert_rowid() as i32,
                     codigo,
                     precio_peso,
                     porcentaje,
@@ -69,7 +74,7 @@ impl Pesable {
             }
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn codigo(&self) -> &i64 {
@@ -87,10 +92,18 @@ impl Pesable {
     pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
     }
-    pub fn to_fnd(&self)->ValFND{
-        let mut val=ValFND::default();
+    // pub fn from_fnd(PesableFND)->Pesable{
+
+    // }
+    // pub fn to_fnd(&self) -> PesableFND {
+    //     let mut pes = PesableFND::default();
+    //     //TODO!
+    //     pes
+    // }
+    pub fn to_val_fnd(&self) -> ValFND {
+        let mut val = ValFND::default();
         val.descripcion = SharedString::from(self.descripcion.to_string());
-        val.id = self.id as i32;
+        val.id = self.id;
         val.codigo = self.codigo as i32;
         val.precio = self.precio_peso;
         val

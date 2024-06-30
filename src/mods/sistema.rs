@@ -2,21 +2,21 @@ use super::{
     crear_file, get_hash, leer_file, AppError, Caja, Cli, Config, Db, Movimiento, Pago, Pesable,
     Presentacion, Producto, Proveedor, Rango, RelacionProdProv, Res, Rubro, User, Valuable, Venta,
 };
-use crate::db::{
-    fresh,
-    map::{
-        BigIntDB, ClienteDB, CodeDB, CodedPesDB, CodedRubDB, PesableDB, ProductoDB, ProvDB,
-        RelacionProdProvDB, RubroDB, StringDB, UserDB,
+use crate::{
+    db::{
+        fresh,
+        map::{
+            ClienteDB, CodeDB, CodedPesDB, CodedRubDB, IntDB, PesableDB, ProductoDB, ProvDB,
+            RelacionProdProvDB, RubroDB, StringDB, UserDB,
+        },
+        Mapper,
     },
-    Mapper,
+    ClienteFND, SistemaFND, UserFND, VecModel,
 };
-
 use chrono::Utc;
 use sqlx::{Pool, Sqlite};
-use std::collections::HashSet;
-use std::sync::Arc;
-use tokio::runtime::Runtime;
-use tokio::task::JoinHandle;
+use std::{collections::HashSet, rc::Rc, sync::Arc};
+use tokio::{runtime::Runtime, task::JoinHandle};
 use Valuable as V;
 
 const CUENTA: &str = "Cuenta Corriente";
@@ -47,17 +47,18 @@ impl<'a> Sistema {
     }
     pub fn agregar_cliente(
         &self,
+        cliente: ClienteFND,
         nombre: &str,
-        dni: i64,
+        dni: i32,
         activo: bool,
         limite: Option<f32>,
     ) -> Res<Cli> {
         Runtime::new().unwrap().block_on(async {
             Cli::new_to_db(
                 self.write_db(),
-                nombre,
-                dni,
-                activo,
+                cliente.nombre.as_str(),
+                cliente.dni,
+                true,
                 Utc::now().naive_local(),
                 limite,
             )
@@ -162,8 +163,8 @@ impl<'a> Sistema {
     }
     pub fn new(read_db: Arc<Pool<Sqlite>>, write_db: Arc<Pool<Sqlite>>) -> Res<Sistema> {
         Runtime::new().unwrap().block_on(async {
-            let qres: Option<BigIntDB> =
-                sqlx::query_as!(BigIntDB, "select id as int from cajas limit 1")
+            let qres: Option<IntDB> =
+                sqlx::query_as!(IntDB, r#"select id as "int:_" from cajas limit 1"#)
                     .fetch_optional(read_db.as_ref())
                     .await
                     .unwrap();
@@ -278,8 +279,8 @@ impl<'a> Sistema {
             }
             return Ok(());
         });
-        let qres: Option<BigIntDB> =
-            sqlx::query_as!(BigIntDB, "select id as int from users limit 1")
+        let qres: Option<IntDB> =
+            sqlx::query_as!(IntDB, r#"select id as "int:_" from users limit 1"#)
                 .fetch_optional(read_db2.as_ref())
                 .await?;
         if qres.is_none() {
@@ -333,9 +334,9 @@ impl<'a> Sistema {
         let read_db2 = Arc::clone(&read_db);
         let medios = [CUENTA, "Efectivo", "Crédito", "Débito"];
         for i in 0..medios.len() {
-            let qres: Option<BigIntDB> = sqlx::query_as!(
-                BigIntDB,
-                "select id as int from medios_pago where medio = ? limit 1",
+            let qres: Option<IntDB> = sqlx::query_as!(
+                IntDB,
+                r#"select id as "int:_" from medios_pago where medio = ? limit 1"#,
                 medios[i]
             )
             .fetch_optional(read_db.as_ref())
@@ -348,8 +349,8 @@ impl<'a> Sistema {
                     .await?;
             }
         }
-        let qres: Option<BigIntDB> =
-            sqlx::query_as!(BigIntDB, "select id as int from users limit 1")
+        let qres: Option<IntDB> =
+            sqlx::query_as!(IntDB, r#"select id as "int:_" from users limit 1"#)
                 .fetch_optional(read_db2.as_ref())
                 .await?;
         if qres.is_none() {
@@ -371,7 +372,7 @@ impl<'a> Sistema {
     }
 
     pub async fn get_clientes(&self) -> Res<Vec<Cli>> {
-        let qres: Vec<ClienteDB> = sqlx::query_as!(ClienteDB, r#"select id, nombre, dni as "dni:_", limite as "limite:_", activo, time from clientes "#)
+        let qres: Vec<ClienteDB> = sqlx::query_as!(ClienteDB, r#"select id as "id:_", nombre, dni as "dni:_", limite as "limite:_", activo, time from clientes "#)
             .fetch_all(self.read_db())
             .await?;
         Ok(qres
@@ -391,7 +392,7 @@ impl<'a> Sistema {
     pub async fn try_login(&mut self, id: &str, pass: i64) -> Res<()> {
         let qres: Option<UserDB> = sqlx::query_as!(
             UserDB,
-            "select * from users where user_id = ? and pass = ? limit 1",
+            r#"select user_id as "user_id:_",nombre as "nombre:_",pass as "pass:_",rango as "rango:_",id as "id:_" from users where user_id = ? and pass = ? limit 1"#,
             id,
             pass
         )
@@ -399,9 +400,9 @@ impl<'a> Sistema {
         .await?;
         match qres {
             None => {
-                let qres: Option<BigIntDB> = sqlx::query_as!(
-                    BigIntDB,
-                    "select id as int from users where user_id = ?",
+                let qres: Option<IntDB> = sqlx::query_as!(
+                    IntDB,
+                    r#"select id as "int:_" from users where user_id = ?"#,
                     id
                 )
                 .fetch_optional(self.read_db.as_ref())
@@ -435,7 +436,7 @@ impl<'a> Sistema {
         match filtro.parse::<i64>() {
             Ok(code) => {
                 let qres: Option<CodeDB> =
-                    sqlx::query_as!(CodeDB, "select * from codigos where codigo = ?", code)
+                    sqlx::query_as!(CodeDB, r#"select id as "id:_", codigo as "codigo:_", producto as "producto:_", pesable as "pesable:_", rubro as "rubro:_" from codigos where codigo = ?"#, code)
                         .fetch_optional(db)
                         .await?;
                 match qres {
@@ -444,14 +445,14 @@ impl<'a> Sistema {
                         if let Some(prod) = code.producto {
                             let prod: ProductoDB = sqlx::query_as!(
                                 ProductoDB,
-                                r#"select id, precio_venta as "precio_venta:_", porcentaje as "porcentaje:_", precio_costo as "precio_costo:_", tipo, marca, variedad, presentacion, size as "size:_", updated_at from productos where id = ?"#,
+                                r#"select id as "id:_", precio_venta as "precio_venta:_", porcentaje as "porcentaje:_", precio_costo as "precio_costo:_", tipo, marca, variedad, presentacion, size as "size:_", updated_at from productos where id = ?"#,
                                 prod
                             )
                             .fetch_one(db)
                             .await?;
                             let rels: Vec<RelacionProdProvDB> = sqlx::query_as!(
                                 RelacionProdProvDB,
-                                r#"select * from relacion_prod_prov where producto = ?"#,
+                                r#"select id as "id:_", producto as "producto:_", proveedor as "proveedor:_", codigo as "codigo:_" from relacion_prod_prov where producto = ?"#,
                                 prod.id
                             )
                             .fetch_all(db)
@@ -478,7 +479,7 @@ impl<'a> Sistema {
                         } else if let Some(pes) = code.pesable {
                             let pes: PesableDB = sqlx::query_as!(
                                 PesableDB,
-                                r#"select id, precio_peso as "precio_peso:_", porcentaje as "porcentaje:_", costo_kilo as "costo_kilo:_", descripcion, updated_at from pesables where id = ?"#,
+                                r#"select id as "id:_", precio_peso as "precio_peso:_", porcentaje as "porcentaje:_", costo_kilo as "costo_kilo:_", descripcion, updated_at from pesables where id = ?"#,
                                 pes
                             )
                             .fetch_one(db)
@@ -496,7 +497,7 @@ impl<'a> Sistema {
                             )))
                         } else if let Some(rub) = code.rubro {
                             let rub: RubroDB =
-                                sqlx::query_as!(RubroDB, "select * from rubros where id = ? ", rub)
+                                sqlx::query_as!(RubroDB, r#"select id as "id:_", descripcion as "descripcion:_", updated_at as "updated_at:_" from rubros where id = ? "#, rub)
                                     .fetch_one(db)
                                     .await?;
                             res.push(V::Rub((
@@ -509,7 +510,10 @@ impl<'a> Sistema {
             }
             Err(_) => {
                 let filtros = filtro.split(' ').collect::<Vec<&str>>();
-                let mut query=String::from("select * from productos where (tipo like %?% or marca like %?% or presentacion like %?% or size like %?%)");
+                let mut query = String::from(
+                    r#"select *
+                id as "id:_", precio_venta, porcentaje, precio_costo, tipo, marca, variedad, presentacion, size as "size:_", updated_at from productos where (tipo like %?% or marca like %?% or presentacion like %?% or size like %?%)"#,
+                );
                 let row=" and (tipo like %?% or marca like %?% or presentacion like %?% or size like %?%)";
                 for _ in 1..filtros.len() {
                     query.push_str(row);
@@ -522,7 +526,7 @@ impl<'a> Sistema {
                 for prod in qres {
                     let rels: Vec<RelacionProdProvDB> = sqlx::query_as!(
                         RelacionProdProvDB,
-                        r#"select * from relacion_prod_prov where producto = ?"#,
+                        r#"select id as "id:_", producto as "producto:_",proveedor as "proveedor:_", codigo as "codigo:_" from relacion_prod_prov where producto = ?"#,
                         prod.id
                     )
                     .fetch_all(db)
@@ -617,7 +621,7 @@ impl<'a> Sistema {
     pub async fn proveedores(&self) -> Res<Vec<Proveedor>> {
         let qres: Vec<ProvDB> = sqlx::query_as!(
             ProvDB,
-            r#"select id, nombre, contacto, updated from proveedores"#
+            r#"select id as "id:_", nombre, contacto as "contacto:_", updated from proveedores"#
         )
         .fetch_all(self.read_db.as_ref())
         .await?;
@@ -630,7 +634,7 @@ impl<'a> Sistema {
         &self.configs
     }
 
-    pub fn eliminar_pago(&mut self, pos: bool, id: i64) -> Res<Vec<Pago>> {
+    pub fn eliminar_pago(&mut self, pos: bool, id: i32) -> Res<Vec<Pago>> {
         let res;
         if pos {
             self.ventas.a.eliminar_pago(id, &self.write_db)?;
@@ -691,7 +695,7 @@ impl<'a> Sistema {
         for code in &codigos_de_barras {
             codigos.push(code.parse::<i64>()?);
         }
-        let mut query = String::from("select id as int from codigos where codigo = ?");
+        let mut query = String::from(r#"select id as "int:_" from codigos where codigo = ?"#);
         let row = " or codigo = ?";
         for _ in 1..codigos.len() {
             query.push_str(row);
@@ -700,15 +704,15 @@ impl<'a> Sistema {
         for code in &codigos {
             qres = qres.bind(*code);
         }
-        let qres: Option<BigIntDB> = qres.fetch_optional(self.read_db.as_ref()).await?;
+        let qres: Option<IntDB> = qres.fetch_optional(self.read_db.as_ref()).await?;
         if let Some(res) = qres {
             return Err(AppError::ExistingError {
                 objeto: "Codigo".to_string(),
                 instancia: res.int.to_string(),
             });
         }
-        let qres:Option<BigIntDB>=sqlx::query_as!(BigIntDB,
-            "select id as int from productos where tipo = ? and marca = ? and variedad = ? and presentacion = ? and size = ?",tipo_producto,marca,variedad,presentacion,cantidad)
+        let qres:Option<IntDB>=sqlx::query_as!(IntDB,
+            r#"select id as "int:_" from productos where tipo = ? and marca = ? and variedad = ? and presentacion = ? and size = ?"#,tipo_producto,marca,variedad,presentacion,cantidad)
             .fetch_optional(self.read_db.as_ref()).await?;
         match qres {
             None => {
@@ -752,12 +756,12 @@ impl<'a> Sistema {
                 for i in 0..proveedores.len() {
                     qres = qres
                         .bind(prod_qres.last_insert_rowid())
-                        .bind(proveedores[i].parse::<i64>()?)
-                        .bind(codigos_prov[i].parse::<i64>().ok());
+                        .bind(proveedores[i].parse::<i32>()?)
+                        .bind(codigos_prov[i].parse::<i32>().ok());
                 }
                 qres.execute(self.write_db()).await?;
                 Ok(Producto::build(
-                    prod_qres.last_insert_rowid(),
+                    prod_qres.last_insert_rowid() as i32,
                     codigos,
                     precio_de_venta,
                     porcentaje,
@@ -781,7 +785,7 @@ impl<'a> Sistema {
         }
     }
 
-    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i64>) -> Res<()> {
+    pub fn agregar_proveedor(&mut self, proveedor: &str, contacto: Option<i32>) -> Res<()> {
         Runtime::new()
             .unwrap()
             .block_on(async { Proveedor::new_to_db(proveedor, contacto, self.write_db()).await })?;
@@ -791,9 +795,9 @@ impl<'a> Sistema {
     pub async fn agregar_producto_a_venta(&mut self, prod: V, pos: bool) -> Res<()> {
         let existe = match &prod {
             Valuable::Prod((_, prod)) => {
-                let qres: Option<BigIntDB> = sqlx::query_as!(
-                    BigIntDB,
-                    "select id as int from productos where id = ? ",
+                let qres: Option<IntDB> = sqlx::query_as!(
+                    IntDB,
+                    r#"select id as "int:_" from productos where id = ? "#,
                     *prod.id()
                 )
                 .fetch_optional(self.read_db())
@@ -801,9 +805,9 @@ impl<'a> Sistema {
                 qres.is_some()
             }
             Valuable::Pes((_, pes)) => {
-                let qres: Option<BigIntDB> = sqlx::query_as!(
-                    BigIntDB,
-                    "select id as int from pesables where id = ? ",
+                let qres: Option<IntDB> = sqlx::query_as!(
+                    IntDB,
+                    r#"select id as "int:_" from pesables where id = ? "#,
                     *pes.id()
                 )
                 .fetch_optional(self.read_db())
@@ -811,9 +815,9 @@ impl<'a> Sistema {
                 qres.is_some()
             }
             Valuable::Rub((_, rub)) => {
-                let qres: Option<BigIntDB> = sqlx::query_as!(
-                    BigIntDB,
-                    "select id as int from rubros where id = ? ",
+                let qres: Option<IntDB> = sqlx::query_as!(
+                    IntDB,
+                    r#"select id as "int:_" from rubros where id = ? "#,
                     *rub.id()
                 )
                 .fetch_optional(self.read_db())
@@ -1013,12 +1017,12 @@ impl<'a> Sistema {
             .block_on(async { cliente.get_deuda_detalle(&self.read_db, self.user()).await })
     }
     pub fn eliminar_valuable(&self, val: V) {
-        let res = Runtime::new()
+        let _res = Runtime::new()
             .unwrap()
             .block_on(async { val.eliminar(self.write_db.as_ref()).await });
     }
     pub fn editar_valuable(&self, val: V) {
-        let res = Runtime::new()
+        let _res = Runtime::new()
             .unwrap()
             .block_on(async { val.editar(self.write_db.as_ref()).await });
     }
@@ -1084,7 +1088,37 @@ impl<'a> Sistema {
     pub fn stash(&self) -> &Vec<Venta> {
         &self.stash
     }
-    pub async fn update_total(&mut self, monto: f32, pagos: &Vec<Pago>) -> Result<(), AppError> {
+    pub async fn update_total(&mut self, monto: f32, pagos: &Vec<Pago>) -> Res<()> {
         self.caja.update_total(&self.write_db, monto, pagos).await
+    }
+    pub fn to_fnd(&self) -> SistemaFND {
+        let mut sis = SistemaFND::default();
+        sis.caja = self.caja.to_fnd();
+        sis.configs = self.configs.to_fnd();
+        let mut provs = Vec::new();
+        for prov in &self.proveedores {
+            provs.push(prov.to_fnd());
+        }
+        sis.proveedores = Rc::new(VecModel::from(provs)).into();
+        let mut reg = Vec::new();
+        for venta in &self.registro {
+            reg.push(venta.to_fnd());
+        }
+        sis.registro = Rc::new(VecModel::from(reg)).into();
+        let mut stash = Vec::new();
+        for venta in &self.stash {
+            stash.push(venta.to_fnd());
+        }
+        sis.stash = Rc::new(VecModel::from(stash)).into();
+        sis.user = match &self.user {
+            Some(u) => u.to_fnd(),
+            None => UserFND::default(),
+        };
+        sis.ventas = Rc::new(VecModel::from(vec![
+            self.ventas.a.to_fnd(),
+            self.ventas.b.to_fnd(),
+        ]))
+        .into();
+        sis
     }
 }

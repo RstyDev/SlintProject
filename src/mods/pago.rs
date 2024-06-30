@@ -8,32 +8,32 @@ use tokio::runtime::Runtime;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MedioPago {
     medio: Arc<str>,
-    id: i64,
+    id: i32,
 }
 
 impl MedioPago {
-    pub fn build(medio: &str, id: i64) -> MedioPago {
+    pub fn build(medio: &str, id: i32) -> MedioPago {
         MedioPago {
             medio: Arc::from(medio),
             id,
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn desc(&self) -> Arc<str> {
         Arc::clone(&self.medio)
     }
-    pub fn to_fnd(self) -> MedioPagoFND {
+    pub fn to_fnd(&self) -> MedioPagoFND {
         let mut st = MedioPagoFND::default();
         st.medio = SharedString::from(self.medio.as_ref());
-        st.id = self.id as i32;
+        st.id = self.id;
         st
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pago {
-    int_id: i64,
+    int_id: i32,
     medio_pago: MedioPago,
     monto: f32,
     pagado: f32,
@@ -49,7 +49,7 @@ impl Pago {
             pagado: pagado.unwrap_or(monto),
         }
     }
-    pub fn build(int_id: i64, medio_pago: MedioPago, monto: f32, pagado: f32) -> Pago {
+    pub fn build(int_id: i32, medio_pago: MedioPago, monto: f32, pagado: f32) -> Pago {
         Pago {
             int_id,
             medio_pago,
@@ -66,15 +66,15 @@ impl Pago {
     pub fn monto(&self) -> f32 {
         self.monto
     }
-    pub fn id(&self) -> i64 {
+    pub fn id(&self) -> i32 {
         self.int_id
     }
     pub fn pagado(&self) -> &f32 {
         &self.pagado
     }
-    pub fn to_fnd(self) -> PagoFND {
+    pub fn to_fnd(&self) -> PagoFND {
         let mut st = PagoFND::default();
-        st.int_id = self.int_id as i32;
+        st.int_id = self.int_id;
         st.monto = self.monto;
         st.pagado = self.pagado;
         st.medio_pago = self.medio_pago.to_fnd();
@@ -102,7 +102,7 @@ impl Pago {
 pub async fn medio_from_db(medio: &str, db: &Pool<Sqlite>) -> MedioPagoDB {
     let model: sqlx::Result<Option<MedioPagoDB>> = sqlx::query_as!(
         MedioPagoDB,
-        "select * from medios_pago where medio = ? ",
+        r#"select id as "id:_", medio from medios_pago where medio = ? "#,
         medio
     )
     .fetch_optional(db)

@@ -1,5 +1,5 @@
 use super::{AppError, Res};
-use crate::db::map::BigIntDB;
+use crate::{db::map::BigIntDB, ProveedorFND};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
@@ -8,15 +8,15 @@ use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Proveedor {
-    id: i64,
+    id: i32,
     nombre: Arc<str>,
-    contacto: Option<i64>,
+    contacto: Option<i32>,
 }
 
 impl Proveedor {
     pub async fn new_to_db(
         nombre: &str,
-        contacto: Option<i64>,
+        contacto: Option<i32>,
         db: &Pool<Sqlite>,
     ) -> Res<Proveedor> {
         let qres: Option<BigIntDB> = sqlx::query_as!(
@@ -38,11 +38,15 @@ impl Proveedor {
                     .bind(Utc::now().naive_local())
                     .execute(db)
                     .await?;
-                Ok(Proveedor::build(qres.last_insert_rowid(), nombre, contacto))
+                Ok(Proveedor::build(
+                    qres.last_insert_rowid() as i32,
+                    nombre,
+                    contacto,
+                ))
             }
         }
     }
-    pub fn build(id: i64, nombre: &str, contacto: Option<i64>) -> Self {
+    pub fn build(id: i32, nombre: &str, contacto: Option<i32>) -> Self {
         Proveedor {
             id,
             nombre: Arc::from(nombre),
@@ -52,11 +56,16 @@ impl Proveedor {
     pub fn nombre(&self) -> Arc<str> {
         Arc::clone(&self.nombre)
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
-    pub fn contacto(&self) -> &Option<i64> {
+    pub fn contacto(&self) -> &Option<i32> {
         &self.contacto
+    }
+    pub fn to_fnd(&self) -> ProveedorFND {
+        let mut prov = ProveedorFND::default();
+        prov.contacto = self.contacto.unwrap_or(0);
+        prov
     }
 }
 impl Display for Proveedor {

@@ -1,20 +1,21 @@
+use super::{AppError, Config, Pago, Res};
+use crate::{
+    db::{
+        map::{BigIntDB, CajaDB},
+        Mapper,
+    },
+    CajaFND, SharedString, VecModel,
+};
 use chrono::{NaiveDateTime, Utc};
 use core::fmt;
-use sqlx::{query_as, Pool, Sqlite};
-
-use crate::db::map::{BigIntDB, CajaDB};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
+use slint::Model;
+use sqlx::{query_as, Pool, Sqlite};
+use std::{collections::HashMap, rc::Rc, sync::Arc};
 
-use crate::db::Mapper;
-
-use super::{AppError, Config, Pago, Res};
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct Totales(HashMap<String, f64>);
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Caja {
-    id: i64,
+    id: i32,
     inicio: NaiveDateTime,
     cierre: Option<NaiveDateTime>,
     ventas_totales: f32,
@@ -61,7 +62,7 @@ impl Caja {
             totales.insert(Arc::clone(medio), 0.0);
         }
         let caja_mod: sqlx::Result<Option<CajaDB>> =
-            query_as!(CajaDB, r#"select id, inicio, cierre, monto_inicio as "monto_inicio: _", monto_cierre as "monto_cierre: _", ventas_totales as "ventas_totales: _", cajero from cajas order by id desc"#)
+            query_as!(CajaDB, r#"select id as "id: _", inicio, cierre, monto_inicio as "monto_inicio: _", monto_cierre as "monto_cierre: _", ventas_totales as "ventas_totales: _", cajero from cajas order by id desc"#)
                 .fetch_optional(db)
                 .await;
         caja = match caja_mod? {
@@ -115,7 +116,7 @@ impl Caja {
         Ok(caja?)
     }
     pub fn build(
-        id: i64,
+        id: i32,
         inicio: NaiveDateTime,
         cierre: Option<NaiveDateTime>,
         ventas_totales: f32,
@@ -207,4 +208,74 @@ impl Caja {
             .await?;
         Ok(())
     }
+    pub fn to_fnd(&self) -> CajaFND {
+        let mut caja = CajaFND::default();
+        caja.cajero = SharedString::from(match &self.cajero {
+            None => SharedString::from(String::new()),
+            Some(s) => SharedString::from(s.to_string()),
+        });
+        caja.id = self.id;
+        caja.cierre = SharedString::from(match self.cierre {
+            None => SharedString::from(String::new()),
+            Some(s) => SharedString::from(s.to_string()),
+        });
+        caja.inicio = SharedString::from(self.inicio.to_string());
+        //let mut medios=Vec::new();
+        caja.monto_cierre = self.monto_cierre.unwrap_or(0.0);
+        caja.monto_inicio = self.monto_inicio;
+        let totales = self
+            .totales
+            .iter()
+            .map(|(k, v)| (k.to_string(), *v))
+            .collect::<Vec<(String, f32)>>();
+        caja.totales = Rc::new(VecModel::from(
+            totales.iter().map(|(_, v)| *v).collect::<Vec<f32>>(),
+        ))
+        .into();
+        caja.medios = Rc::new(VecModel::from(
+            totales
+                .iter()
+                .map(|(k, _)| SharedString::from(k))
+                .collect::<Vec<SharedString>>(),
+        ))
+        .into();
+        caja.ventas_totales = self.ventas_totales;
+        caja
+    }
+    pub fn from_fnd(caja: CajaFND) -> Self {
+        let totales = caja
+            .medios
+            .iter()
+            .zip(caja.totales.iter())
+            .map(|(a, b)| (Arc::from(a.as_str()), b))
+            .collect::<HashMap<Arc<str>, f32>>();
+        Caja::build(
+            caja.id,
+            caja.inicio.parse().unwrap(),
+            match caja.cierre.as_str() {
+                "" => None,
+                _ => Some(caja.cierre.parse().unwrap()),
+            },
+            caja.ventas_totales,
+            caja.monto_inicio,
+            match caja.monto_cierre {
+                0.0 => None,
+                _ => Some(caja.monto_cierre),
+            },
+            match caja.cajero.as_str() {
+                "" => None,
+                _ => Some(Arc::from(caja.cajero.as_str())),
+            },
+            totales,
+        )
+    }
+
+    /*id: i32,
+    inicio: NaiveDateTime,
+    cierre: Option<NaiveDateTime>,
+    ventas_totales: f32,
+    monto_inicio: f32,
+    monto_cierre: Option<f32>,
+    cajero: Option<Arc<str>>,
+    totales: HashMap<Arc<str>, f32>, */
 }

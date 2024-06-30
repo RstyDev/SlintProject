@@ -1,5 +1,5 @@
 use crate::db::map::{BigIntDB, ClienteDB, VentaDB};
-use crate::{SharedString, VentaFND};
+use crate::{SharedString, UserFND, VentaFND};
 use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use slint::{ModelRc, VecModel};
@@ -19,7 +19,7 @@ use super::{
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Venta {
-    id: i64,
+    id: i32,
     monto_total: f32,
     productos: Vec<Valuable>,
     pagos: Vec<Pago>,
@@ -36,7 +36,7 @@ impl<'a> Venta {
         let time = Utc::now().naive_local();
         let res= query(
             "insert into ventas (time, monto_total, monto_pagado, cliente, cerrada, paga, pos ) values (?, ?, ?, ?, ?, ?, ?)").bind(time).bind(0.0).bind(0.0).bind(None::<i64>).bind(false).bind(false).bind(pos).execute(db).await?;
-        let id = res.last_insert_rowid();
+        let id = res.last_insert_rowid() as i32;
         let cliente = Cliente::new(None);
         Ok(Venta {
             monto_total: 0.0,
@@ -58,7 +58,7 @@ impl<'a> Venta {
     ) -> Res<Venta> {
         let qres: Option<VentaDB> = sqlx::query_as!(
             VentaDB,
-            r#"select id, time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where pos = ? and cerrada = ?"#,
+            r#"select id as "id:_", time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where pos = ? and cerrada = ?"#,
             pos,
             false
         )
@@ -73,7 +73,7 @@ impl<'a> Venta {
         }
     }
     pub fn build(
-        id: i64,
+        id: i32,
         monto_total: f32,
         productos: Vec<Valuable>,
         pagos: Vec<Pago>,
@@ -97,7 +97,7 @@ impl<'a> Venta {
             time,
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn empty(&mut self) {
@@ -115,26 +115,29 @@ impl<'a> Venta {
     pub fn cerrada(&self) -> bool {
         self.cerrada
     }
-    pub fn to_fnd(self) -> VentaFND {
+    pub fn to_fnd(&self) -> VentaFND {
         let mut st = VentaFND::default();
         st.cerrada = self.cerrada;
-        st.id = self.id as i32;
+        st.id = self.id;
         st.monto_pagado = self.monto_pagado;
         st.monto_total = self.monto_total;
         st.paga = self.paga;
         let mut pagos = Vec::new();
-        for pago in self.pagos {
+        for pago in &self.pagos {
             pagos.push(pago.to_fnd());
         }
         let mut prods = Vec::new();
-        for prod in self.productos{
+        for prod in &self.productos {
             prods.push(prod.to_fnd());
         }
+        st.user = match &self.vendedor {
+            Some(a) => a.to_fnd(),
+            None => UserFND::default(),
+        };
+        st.cliente = self.cliente.to_fnd();
         st.productos = ModelRc::new(VecModel::from(prods));
         st.pagos = ModelRc::new(VecModel::from(pagos));
         st.time = SharedString::from(self.time.to_string());
-
-        //TODO! falta mas
         st
     }
     pub fn pagos(&self) -> Vec<Pago> {
@@ -241,7 +244,7 @@ impl<'a> Venta {
             }
         }
     }
-    pub fn eliminar_pago(&mut self, id: i64, db: &Pool<Sqlite>) -> Res<()> {
+    pub fn eliminar_pago(&mut self, id: i32, db: &Pool<Sqlite>) -> Res<()> {
         let mut pago = Pago::def(db);
         let mut esta = false;
         for i in 0..self.pagos.len() {
@@ -317,7 +320,7 @@ impl<'a> Venta {
             Ok(())
         } else {
             let qres: Option<ClienteDB> =
-                sqlx::query_as!(ClienteDB, r#"select id, nombre, dni as "dni:_", limite as "limite:_", activo, time from clientes where id = ? limit 1"#, id)
+                sqlx::query_as!(ClienteDB, r#"select id as "id:_", nombre, dni as "dni:_", limite as "limite:_", activo, time from clientes where id = ? limit 1"#, id)
                     .fetch_optional(db)
                     .await?;
             match qres {

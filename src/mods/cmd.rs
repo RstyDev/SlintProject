@@ -3,11 +3,11 @@ use super::{
     Caja, Cli, Config, Pago, Pesable, Rango, Result as Res, Rubro, Sistema, User, Valuable as V,
     Venta,
 };
+use crate::ClienteFND;
 use serde::Serialize;
 use std::sync::Arc;
 use std::sync::Mutex;
 use tokio::runtime::Runtime;
-
 const INDEX: &str = "index.html";
 const DENEGADO: &str = "Permiso denegado";
 #[derive(Clone, Serialize)]
@@ -63,22 +63,12 @@ impl Payload {
 //     Ok(menu.get_item("edit settings").set_enabled(state)?)
 // }
 
-pub fn agregar_cliente(
-    sistema: Arc<Mutex<Sistema>>,
-    nombre: &str,
-    dni: &str,
-    limite: Option<&str>,
-) -> Res<Cli> {
-    let dni = dni.parse::<i64>().map_err(|e| e.to_string())?;
-    let limite = match limite {
-        Some(l) => Some(l.parse::<f32>().map_err(|e| e.to_string())?),
-        None => None,
-    };
-    let sis = sistema.lock().map_err(|e| e.to_string())?;
-    sis.access();
-    let cli = sis.agregar_cliente(nombre, dni, true, limite)?;
-    Ok(cli)
-}
+// pub fn agregar_cliente(sistema: Arc<Mutex<Sistema>>, cliente: ClienteFND) -> Res<Cli> {
+//     let sis = sistema.lock().map_err(|e| e.to_string())?;
+//     sis.access();
+//     let cli = sis.agregar_cliente(cliente)?;
+//     Ok(cli)
+// }
 
 pub fn agregar_pago(
     sistema: Arc<Mutex<Sistema>>,
@@ -204,7 +194,7 @@ pub fn agregar_proveedor(
     let contacto = match contacto {
         Some(c) => {
             if c.len() > 0 {
-                Some(c.parse::<i64>().map_err(|e| e.to_string())?)
+                Some(c.parse::<i32>().map_err(|e| e.to_string())?)
             } else {
                 None
             }
@@ -326,7 +316,7 @@ pub fn editar_producto(sistema: Arc<Mutex<Sistema>>, prod: V) -> Res<()> {
     Ok(())
 }
 pub fn eliminar_pago(sistema: Arc<Mutex<Sistema>>, pos: bool, id: &str) -> Res<Vec<Pago>> {
-    let id = id.parse::<i64>().map_err(|e| e.to_string())?;
+    let id = id.parse::<i32>().map_err(|e| e.to_string())?;
     let mut sis = sistema.lock().map_err(|e| e.to_string())?;
     sis.access();
     sis.eliminar_pago(pos, id).map_err(|e| e.to_string())

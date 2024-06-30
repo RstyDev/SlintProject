@@ -1,5 +1,9 @@
 use super::{redondeo, AppError, Presentacion, Res, ValuableTrait};
-use crate::{db::map::BigIntDB, ValFND};
+use crate::{
+    db::map::BigIntDB,
+    // ProductoFND,
+    ValFND,
+};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use slint::SharedString;
@@ -8,7 +12,7 @@ use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Producto {
-    id: i64,
+    id: i32,
     codigos_de_barras: Vec<i64>,
     precio_de_venta: f32,
     porcentaje: f32,
@@ -22,7 +26,7 @@ pub struct Producto {
 
 impl Producto {
     pub fn build(
-        id: i64,
+        id: i32,
         codigos_de_barras: Vec<i64>,
         precio_de_venta: f32,
         porcentaje: f32,
@@ -46,7 +50,7 @@ impl Producto {
             proveedores,
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn codigos_de_barras(&self) -> &Vec<i64> {
@@ -123,14 +127,18 @@ impl Producto {
             }),
         }
     }
+    // pub fn from_fnd(ProductoFND)->Producto{
+
+    // }
     // pub fn to_fnd(self)->ProductoFND{
     //     let mut prod=ProductoFND::default();
-    //TODO!
+    //     prod.codigos_de_barras = Rc::new(VecModel::from(self.codigos_de_barras.iter().map(|c|*c as i32).collect::<Vec<i32>>())).into();
+    //     //TODO
     //     prod
     // }
     pub fn to_val_fnd(&self) -> ValFND {
         let mut val = ValFND::default();
-        val.id = self.id as i32;
+        val.id = self.id;
         val.codigo = self.codigos_de_barras[0] as i32;
         val.descripcion = SharedString::from(self.nombre_completo());
         val
@@ -206,22 +214,22 @@ impl ValuableTrait for Producto {
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct RelacionProdProv {
-    proveedor: i64,
-    codigo_interno: Option<i64>,
+    proveedor: i32,
+    codigo_interno: Option<i32>,
 }
 
 impl RelacionProdProv {
-    pub fn new(proveedor: i64, codigo_interno: Option<i64>) -> Self {
+    pub fn new(proveedor: i32, codigo_interno: Option<i32>) -> Self {
         RelacionProdProv {
             proveedor,
             codigo_interno,
         }
     }
 
-    pub fn proveedor(&self) -> &i64 {
+    pub fn proveedor(&self) -> &i32 {
         &self.proveedor
     }
-    pub fn codigo_interno(&self) -> Option<i64> {
+    pub fn codigo_interno(&self) -> Option<i32> {
         self.codigo_interno
     }
 }

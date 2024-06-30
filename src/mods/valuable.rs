@@ -1,9 +1,9 @@
 use super::{redondeo, Config, Formato, Pesable, Producto, Res, Rubro};
+use crate::ValFND;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::fmt::{self, Display};
 use Valuable as V;
-use crate::ValFND;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Valuable {
     Prod((u8, Producto)),
@@ -19,21 +19,21 @@ impl Valuable {
             V::Rub(a) => a.1.redondear(politica).monto().cloned(),
         }
     }
-    pub fn to_fnd(&self)->ValFND{
-        match self{
-            V::Pes((cant,pes))=>{
-                let mut val=pes.to_fnd();
-                val.cantidad=*cant;
+    pub fn to_fnd(&self) -> ValFND {
+        match self {
+            V::Pes((cant, pes)) => {
+                let mut val = pes.to_val_fnd();
+                val.cantidad = *cant;
                 val
-            },
-            V::Prod((cant,prod))=>{
-                let mut val=prod.to_val_fnd();
-                val.cantidad=*cant as f32;
+            }
+            V::Prod((cant, prod)) => {
+                let mut val = prod.to_val_fnd();
+                val.cantidad = *cant as f32;
                 val
-            },
-            V::Rub((cant,rub))=>{
-                let mut val=rub.to_fnd();
-                val.cantidad=*cant as f32;
+            }
+            V::Rub((cant, rub)) => {
+                let mut val = rub.to_val_fnd();
+                val.cantidad = *cant as f32;
                 val
             }
         }

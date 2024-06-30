@@ -6,8 +6,8 @@ export struct CajaFND{
     monto_inicio: float,
     monto_cierre: float,
     cajero: string,
-    medios: [string],
     totales: [float],
+    medios: [string],
 }
 export struct CuentaFND{
     auth:bool,
@@ -27,7 +27,7 @@ export struct ConfigFND {
     formato_producto: string,
     modo_mayus: string,
     cantidad_productos: int,
-    medios_pago: [string],
+    medios: [string],
 }
 export struct MedioPagoFND{
     id: int,
@@ -100,4 +100,13 @@ export struct PesableFND {
     porcentaje: float,
     costo_kilo: float,
     descripcion: string,
+}
+export struct SistemaFND {
+    user: UserFND,
+    caja: CajaFND,
+    configs: ConfigFND,
+    ventas: [VentaFND],
+    proveedores: [ProveedorFND],
+    stash: [VentaFND],
+    registro: [VentaFND],
 }

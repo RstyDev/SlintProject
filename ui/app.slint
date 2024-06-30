@@ -1,33 +1,33 @@
 import { Button, VerticalBox, HorizontalBox, GridBox, TabWidget, StandardTableView } from "std-widgets.slint";
 import { Logic } from "logic.slint";
 import { Pagos } from "main-pagos.slint";
-import { UserFND,ClienteFND,VentaFND,CajaFND } from "structs.slint";
+import { UserFND,ClienteFND,VentaFND,ConfigFND,SistemaFND } from "structs.slint";
 import { Login } from "login.slint";
 import { TablaProductos } from "main-tabla-productos.slint";
 import { Principal } from "main-principal.slint";
 export { Logic }
 export component App inherits Window {
-    in-out property<int> counter: 42;
+    in-out property <SistemaFND> sistema;
     in-out property <bool> logged:false;
     in-out property <string> window:"Main";
     property <[string]> medios;
     in-out property <ClienteFND> reg;
-    in-out property <CajaFND> caja:{medios:["Efectivo", "Crédito","Débito"]};
+    in-out property <ConfigFND> conf:{medios:["Efectivo", "Crédito","Débito"]};
     in-out property <[VentaFND]> ventas:[
-    {monto-pagado:13,monto-total:3517.15,pagos:[{monto:145.2,medio_pago:{medio:"Efectivo"}}],productos:[
-        {descripcion:"algo mas largo que lo que se esperaba",precio:19.30,cantidad:200},
-        {descripcion:"Producto Escrito Correctamente 100 Kg",precio:1465.2,cantidad:45},
-        {descripcion:"grande",precio:451.2,cantidad:984.1},{descripcion:"otra cosa"}]},
+    {monto-pagado:1,monto-total:2,pagos:[{monto:1,medio_pago:{medio:"Efectivo"}}],productos:[
+        {descripcion:"Maizena",precio:19.30,cantidad:200},
+        {descripcion:"Pan Rallado 100 Kg",precio:1465.2,cantidad:45},
+        {descripcion:"Salchichas",precio:451.2,cantidad:984.1},{descripcion:"Mostaza"}]},
     {monto-pagado:651,monto-total:355081.15,productos:[
-        {descripcion:"Esta es la segunda venta 1 Kg",precio:145.2,cantidad:23},
-        {descripcion:"Segundo Producto Escrito Correctamente 350 Kg"},{descripcion:"mas grande"},{descripcion:"otra cosa mas"}]}];
+        {descripcion:"Yerba 1 Kg",precio:145.2,cantidad:23},
+        {descripcion:"Atun 0.350 Kg"},{descripcion:"Mayonesa"},{descripcion:"Ketchup"}]}];
     callback request-increase-value();
     callback map_medios();
     init=>{
         map_medios()
     }
     map_medios => {
-        medios = caja.medios
+        medios = conf.medios
     }
     if window == "Main":
     main:=VerticalBox {

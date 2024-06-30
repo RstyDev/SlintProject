@@ -11,16 +11,14 @@ export component Pagos inherits Rectangle {
     VerticalLayout {
         width: root.width;
         for pay in root.pagos: my-pagos := Pago {
-            
             width: root.width - 15px;
             pago: pay;
             pagado: true;
             medios: medios;
-            
         }
         Pago {
             pagar => {Logic.pagar(1,self.text.to-float());
-            pagos=[{monto:30.0,pagado:30.0,int_id:30},{monto:45.0,pagado:30.0,int_id:20},{monto:10.0,pagado:10.0,int_id:10}];
+            pagos=pagos;
             "\{root.monto - root.pagado}"}
             width: root.width - 15px;
             pagado: false;

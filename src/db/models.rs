@@ -1,6 +1,6 @@
 use crate::db::map::{
-    BigIntDB, CajaDB, ClienteDB, ConfigDB, MedioPagoDB, PagoDB, ProductoDB, RelacionProdProvDB,
-    RelatedPesDB, RelatedProdDB, RelatedRubDB, TotalDB, VentaDB,
+    BigIntDB, CajaDB, ClienteDB, ConfigDB, IntDB, MedioPagoDB, PagoDB, ProductoDB,
+    RelacionProdProvDB, RelatedPesDB, RelatedProdDB, RelatedRubDB, TotalDB, VentaDB,
 };
 use crate::mods::{
     AppError, Caja, Cli, Cliente, Config, MedioPago, Pesable, RelacionProdProv, Rubro, User,
@@ -38,10 +38,12 @@ impl Mapper {
         ))
     }
     pub async fn config(db: &Pool<Sqlite>, config: ConfigDB) -> Res<Config> {
-        let medios: sqlx::Result<Vec<MedioPagoDB>> =
-            sqlx::query_as!(MedioPagoDB, "select * from medios_pago ")
-                .fetch_all(db)
-                .await;
+        let medios: sqlx::Result<Vec<MedioPagoDB>> = sqlx::query_as!(
+            MedioPagoDB,
+            r#"select id as "id:_", medio from medios_pago "#
+        )
+        .fetch_all(db)
+        .await;
         let medios = medios?
             .iter()
             .map(|model| Arc::from(model.medio.to_owned()))
@@ -60,14 +62,14 @@ impl Mapper {
     pub async fn producto(db: &Pool<Sqlite>, prod: ProductoDB) -> Res<Producto> {
         let models: sqlx::Result<Vec<BigIntDB>> = sqlx::query_as!(
             BigIntDB,
-            "select codigo as int from codigos where producto = ? limit 5",
+            r#"select codigo as int from codigos where producto = ? limit 5"#,
             prod.id
         )
         .fetch_all(db)
         .await;
         let rels: Vec<RelacionProdProvDB> = sqlx::query_as!(
             RelacionProdProvDB,
-            "select * from relacion_prod_prov where producto = ?",
+            r#"select id as "id:_", producto as "producto:_", proveedor as "proveedor:_", codigo as "codigo:_" from relacion_prod_prov where producto = ?"#,
             prod.id
         )
         .fetch_all(db)
@@ -102,7 +104,7 @@ impl Mapper {
     pub async fn pago(db: &Pool<Sqlite>, pago: PagoDB) -> Res<Pago> {
         let medio: Option<MedioPagoDB> = sqlx::query_as!(
             MedioPagoDB,
-            "select * from medios_pago where id = ? limit 1",
+            r#"select id as "id:_", medio from medios_pago where id = ? limit 1"#,
             pago.medio_pago
         )
         .fetch_optional(db)
@@ -122,7 +124,7 @@ impl Mapper {
     }
     pub async fn venta(db: &Pool<Sqlite>, venta: VentaDB, user: &Option<Arc<User>>) -> Res<Venta> {
         {
-            let qres:Vec<RelatedProdDB>=sqlx::query_as!(RelatedProdDB,r#"select productos.id as id,
+            let qres:Vec<RelatedProdDB>=sqlx::query_as!(RelatedProdDB,r#"select productos.id as "id:_",
                     precio as "precio: _",porcentaje as "porcentaje: _", precio_costo as "precio_costo: _", tipo, marca, variedad, presentacion, size as "size: _", cantidad as "cantidad: _"
                     from relacion_venta_prod inner join productos on relacion_venta_prod.id = productos.id where venta = ?
                      "#,venta.id).fetch_all(db).await?;
@@ -130,14 +132,14 @@ impl Mapper {
             for rel in qres {
                 let qres: Vec<BigIntDB> = sqlx::query_as!(
                     BigIntDB,
-                    "select codigo as int from codigos where producto = ? limit 5",
+                    r#"select codigo as int from codigos where producto = ? limit 5"#,
                     rel.id
                 )
                 .fetch_all(db)
                 .await?;
                 let rels: Vec<RelacionProdProvDB> = sqlx::query_as!(
                     RelacionProdProvDB,
-                    "select * from relacion_prod_prov where producto = ?",
+                    r#"select id as "id:_", producto as "producto:_", proveedor as "proveedor:_", codigo as "codigo:_" from relacion_prod_prov where producto = ?"#,
                     rel.id
                 )
                 .fetch_all(db)
@@ -163,14 +165,14 @@ impl Mapper {
                     ),
                 )))
             }
-            let qres:Vec<RelatedPesDB>=sqlx::query_as!(RelatedPesDB,r#"select pesables.id as id,
+            let qres:Vec<RelatedPesDB>=sqlx::query_as!(RelatedPesDB,r#"select pesables.id as "id:_",
                     precio_peso as "precio_peso: _", porcentaje as "porcentaje: _", costo_kilo as "costo_kilo: _", descripcion, cantidad as "cantidad: _", updated_at
                     from relacion_venta_pes inner join pesables on relacion_venta_pes.id = pesables.id where venta = ?
                      "#,venta.id).fetch_all(db).await?;
             for rel in qres {
                 let qres: Option<BigIntDB> = sqlx::query_as!(
                     BigIntDB,
-                    "select codigo as int from codigos where pesable = ? limit 1",
+                    r#"select codigo as int from codigos where pesable = ? limit 1"#,
                     rel.id
                 )
                 .fetch_optional(db)
@@ -194,13 +196,13 @@ impl Mapper {
                     }
                 }
             }
-            let qres:Vec<RelatedRubDB>=sqlx::query_as!(RelatedRubDB,r#"select rubros.id as id, descripcion, updated_at, cantidad as "cantidad: _", precio as "precio: _"
+            let qres:Vec<RelatedRubDB>=sqlx::query_as!(RelatedRubDB,r#"select rubros.id as "id:_", descripcion, updated_at, cantidad as "cantidad: _", precio as "precio: _"
                     from relacion_venta_rub inner join rubros on relacion_venta_rub.id = rubros.id where venta = ?
                      "#,venta.id).fetch_all(db).await?;
             for rel in qres {
                 let qres: Option<BigIntDB> = sqlx::query_as!(
                     BigIntDB,
-                    "select codigo as int from codigos where pesable = ? limit 1",
+                    r#"select codigo as int from codigos where pesable = ? limit 1"#,
                     rel.id
                 )
                 .fetch_optional(db)
@@ -224,8 +226,8 @@ impl Mapper {
             }
             let qres: Vec<PagoDB> = sqlx::query_as!(
                 PagoDB,
-                r#"select id, medio_pago, monto as "monto: _", pagado as "pagado: f32",
-    venta from pagos where venta = ? "#,
+                r#"select id as "id:_", medio_pago as "medio_pago:_", monto as "monto: _", pagado as "pagado: f32",
+    venta as "venta:_" from pagos where venta = ? "#,
                 venta.id
             )
             .fetch_all(db)
@@ -234,7 +236,7 @@ impl Mapper {
             for pago in qres {
                 let qres: Option<MedioPagoDB> = sqlx::query_as!(
                     MedioPagoDB,
-                    "select * from medios_pago where id = ? limit 1",
+                    r#"select id as "id:_", medio from medios_pago where id = ? limit 1"#,
                     pago.medio_pago
                 )
                 .fetch_optional(db)
@@ -251,7 +253,7 @@ impl Mapper {
             }
             let qres: Option<ClienteDB> = sqlx::query_as!(
                 ClienteDB,
-                r#"select id, nombre, dni as "dni: _", limite as "limite: _", activo, time from clientes where id = ? limit 1"#,
+                r#"select id as "id:_", nombre, dni as "dni: _", limite as "limite: _", activo, time from clientes where id = ? limit 1"#,
                 venta.cliente
             )
             .fetch_optional(db)
@@ -318,12 +320,12 @@ pub mod map {
 
     #[derive(FromRow)]
     pub struct MedioPagoDB {
-        pub id: i64,
+        pub id: i32,
         pub medio: String,
     }
     #[derive(FromRow)]
     pub struct CajaParcialDB {
-        pub id: i64,
+        pub id: i32,
         pub cierre: Option<NaiveDateTime>,
         pub ventas_totales: f32,
         pub cajero: Option<String>,
@@ -331,7 +333,7 @@ pub mod map {
 
     #[derive(FromRow)]
     pub struct CajaDB {
-        pub id: i64,
+        pub id: i32,
         pub inicio: NaiveDateTime,
         pub cierre: Option<NaiveDateTime>,
         pub monto_inicio: f32,
@@ -342,7 +344,7 @@ pub mod map {
 
     #[derive(FromRow)]
     pub struct ClienteDB {
-        pub id: i64,
+        pub id: i32,
         pub nombre: String,
         pub dni: i32,
         pub limite: Option<f32>,
@@ -351,7 +353,7 @@ pub mod map {
     }
     #[derive(FromRow)]
     pub struct ConfigDB {
-        pub id: i64,
+        pub id: i32,
         pub politica: f32,
         pub formato: String,
         pub mayus: String,
@@ -359,22 +361,22 @@ pub mod map {
     }
     #[derive(FromRow)]
     pub struct ProvDB {
-        pub id: i64,
+        pub id: i32,
         pub nombre: String,
-        pub contacto: Option<i64>,
+        pub contacto: Option<i32>,
         pub updated: NaiveDateTime,
     }
     #[derive(FromRow)]
     pub struct CodeDB {
-        pub id: i64,
+        pub id: i32,
         pub codigo: i64,
-        pub producto: Option<i64>,
-        pub pesable: Option<i64>,
-        pub rubro: Option<i64>,
+        pub producto: Option<i32>,
+        pub pesable: Option<i32>,
+        pub rubro: Option<i32>,
     }
     #[derive(FromRow)]
     pub struct PesableDB {
-        pub id: i64,
+        pub id: i32,
         pub precio_peso: f32,
         pub porcentaje: f32,
         pub costo_kilo: f32,
@@ -383,7 +385,7 @@ pub mod map {
     }
     #[derive(FromRow)]
     pub struct RelatedPesDB {
-        pub id: i64,
+        pub id: i32,
         pub precio_peso: f32,
         pub porcentaje: f32,
         pub costo_kilo: f32,
@@ -393,7 +395,7 @@ pub mod map {
     }
     #[derive(FromRow)]
     pub struct CodedPesDB {
-        pub id: i64,
+        pub id: i32,
         pub precio_peso: f32,
         pub codigo: i64,
         pub porcentaje: f32,
@@ -403,13 +405,13 @@ pub mod map {
     }
     #[derive(FromRow)]
     pub struct RubroDB {
-        pub id: i64,
+        pub id: i32,
         pub descripcion: String,
         pub updated_at: NaiveDateTime,
     }
     #[derive(FromRow)]
     pub struct RelatedRubDB {
-        pub id: i64,
+        pub id: i32,
         pub descripcion: String,
         pub updated_at: NaiveDateTime,
         pub cantidad: u8,
@@ -417,7 +419,7 @@ pub mod map {
     }
     #[derive(FromRow)]
     pub struct CodedRubDB {
-        pub id: i64,
+        pub id: i32,
         pub descripcion: String,
         pub updated_at: NaiveDateTime,
         pub codigo: i64,
@@ -425,7 +427,7 @@ pub mod map {
     }
     #[derive(FromRow)]
     pub struct ProductoDB {
-        pub id: i64,
+        pub id: i32,
         pub precio_venta: f32,
         pub porcentaje: f32,
         pub precio_costo: f32,
@@ -438,7 +440,7 @@ pub mod map {
     }
     #[derive(FromRow)]
     pub struct RelatedProdDB {
-        pub id: i64,
+        pub id: i32,
         pub precio: f32,
         pub porcentaje: f32,
         pub precio_costo: f32,
@@ -451,7 +453,7 @@ pub mod map {
     }
     #[derive(FromRow)]
     pub struct UserDB {
-        pub id: i64,
+        pub id: i32,
         pub user_id: String,
         pub nombre: String,
         pub pass: i64,
@@ -459,15 +461,15 @@ pub mod map {
     }
     #[derive(FromRow)]
     pub struct DeudaDB {
-        pub id: i64,
-        pub cliente: i64,
-        pub pago: i64,
+        pub id: i32,
+        pub cliente: i32,
+        pub pago: i32,
         pub monto: f32,
     }
     #[derive(FromRow)]
     pub struct MovimientoDB {
-        pub id: i64,
-        pub caja: i64,
+        pub id: i32,
+        pub caja: i32,
         pub tipo: bool,
         pub monto: f32,
         pub descripcion: Option<String>,
@@ -475,46 +477,46 @@ pub mod map {
     }
     #[derive(FromRow)]
     pub struct PagoDB {
-        pub id: i64,
-        pub medio_pago: i64,
+        pub id: i32,
+        pub medio_pago: i32,
         pub monto: f32,
         pub pagado: f32,
-        pub venta: i64,
+        pub venta: i32,
     }
     #[derive(FromRow)]
     pub struct RelacionProdProvDB {
-        pub id: i64,
-        pub producto: i64,
-        pub proveedor: i64,
-        pub codigo: Option<i64>,
+        pub id: i32,
+        pub producto: i32,
+        pub proveedor: i32,
+        pub codigo: Option<i32>,
     }
     #[derive(FromRow)]
     pub struct RelacionVentaPesDB {
-        pub id: i64,
-        pub venta: i64,
-        pub pesable: i64,
+        pub id: i32,
+        pub venta: i32,
+        pub pesable: i32,
         pub cantidad: f32,
         pub precio_kilo: f32,
     }
     #[derive(FromRow)]
     pub struct RelacionVentaProdDB {
-        pub id: i64,
-        pub venta: i64,
-        pub producto: i64,
+        pub id: i32,
+        pub venta: i32,
+        pub producto: i32,
         pub cantidad: u8,
         pub precio: f32,
     }
     #[derive(FromRow)]
     pub struct RelacionVentaRubDB {
-        pub id: i64,
-        pub venta: i64,
-        pub rubro: i64,
+        pub id: i32,
+        pub venta: i32,
+        pub rubro: i32,
         pub cantidad: u8,
         pub precio: f32,
     }
     #[derive(FromRow)]
     pub struct VentaDB {
-        pub id: i64,
+        pub id: i32,
         pub time: NaiveDateTime,
         pub monto_total: f32,
         pub monto_pagado: f32,

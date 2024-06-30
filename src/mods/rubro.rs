@@ -1,5 +1,10 @@
 use super::{redondeo, valuable::ValuableTrait, AppError, Res};
-use crate::{ValFND,SharedString,db::map::{BigIntDB,CodeDB}};
+use crate::{
+    db::map::{BigIntDB, CodeDB},
+    SharedString,
+    ValFND,
+    // RubroFND,
+};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
@@ -7,14 +12,14 @@ use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rubro {
-    id: i64,
+    id: i32,
     codigo: i64,
     monto: Option<f32>,
     descripcion: Arc<str>,
 }
 
 impl Rubro {
-    pub fn build(id: i64, codigo: i64, monto: Option<f32>, descripcion: &str) -> Rubro {
+    pub fn build(id: i32, codigo: i64, monto: Option<f32>, descripcion: &str) -> Rubro {
         Rubro {
             id,
             codigo,
@@ -29,7 +34,7 @@ impl Rubro {
         db: &Pool<Sqlite>,
     ) -> Res<Rubro> {
         let qres: Option<CodeDB> =
-            sqlx::query_as!(CodeDB, "select * from codigos where codigo = ?", codigo)
+            sqlx::query_as!(CodeDB, r#"select id as "id:_", codigo as "codigo:_", producto as "producto:_", pesable as "pesable:_", rubro as "rubro:_" from codigos where codigo = ?"#, codigo)
                 .fetch_optional(db)
                 .await?;
         match qres {
@@ -51,7 +56,7 @@ impl Rubro {
                     .execute(db)
                     .await?;
                 Ok(Rubro::build(
-                    qres.last_insert_rowid(),
+                    qres.last_insert_rowid() as i32,
                     codigo,
                     monto,
                     descripcion,
@@ -59,7 +64,7 @@ impl Rubro {
             }
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     pub fn monto(&self) -> Option<&f32> {
@@ -71,15 +76,20 @@ impl Rubro {
     pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
     }
-    pub fn to_fnd(&self)->ValFND{
-        let mut val=ValFND::default();
+    ///pub fn from_fnd(RubroFND)->Rubro{
+    ///
+    /// }
+    // pub fn to_fnd(&self)->RubroFND{
+    //     let mut rub = RubroFND::default();
+    //TODO!
+    //     rub
+    // }
+    pub fn to_val_fnd(&self) -> ValFND {
+        let mut val = ValFND::default();
         val.descripcion = SharedString::from(self.descripcion.to_string());
-        val.id = self.id as i32;
+        val.id = self.id;
         val.codigo = self.codigo as i32;
-        val.precio = match self.monto{
-            Some(m)=>m,
-            None=>0.0,
-        };
+        val.precio = self.monto.unwrap_or(0.0);
         val
     }
     #[cfg(test)]

@@ -1,10 +1,5 @@
 use chrono::NaiveDateTime;
 
-use serde::{Deserialize, Serialize};
-use slint::SharedString;
-use sqlx::{Pool, Sqlite};
-use std::sync::Arc;
-
 use crate::{
     db::{
         map::{ClienteDB, FloatDB, PagoDB, VentaDB},
@@ -12,6 +7,11 @@ use crate::{
     },
     ClienteFND, CuentaFND,
 };
+use chrono::Utc;
+use serde::{Deserialize, Serialize};
+use slint::SharedString;
+use sqlx::{Pool, Sqlite};
+use std::sync::Arc;
 
 use super::{AppError, Res, User, Venta};
 
@@ -23,7 +23,7 @@ pub enum Cliente {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Cli {
-    id: i64,
+    id: i32,
     nombre: Arc<str>,
     dni: i32,
     activo: bool,
@@ -39,14 +39,14 @@ impl Cli {
     pub async fn new_to_db(
         db: &Pool<Sqlite>,
         nombre: &str,
-        dni: i64,
+        dni: i32,
         activo: bool,
         created: NaiveDateTime,
         limite: Option<f32>,
     ) -> Res<Cli> {
         let model: Option<ClienteDB> = sqlx::query_as!(
             ClienteDB,
-            r#"select id, nombre, dni as "dni: _", limite as "limite: _", activo, time from clientes where dni = ? limit 1"#,
+            r#"select id as "id:_", nombre, dni as "dni: _", limite as "limite: _", activo, time from clientes where dni = ? limit 1"#,
             dni
         )
         .fetch_optional(db)
@@ -68,9 +68,9 @@ impl Cli {
                     .execute(db)
                     .await?;
                 Ok(Cli {
-                    id: qres.last_insert_rowid(),
+                    id: qres.last_insert_rowid() as i32,
                     nombre: Arc::from(nombre),
-                    dni: dni as i32,
+                    dni,
                     limite: match limite {
                         Some(limit) => Cuenta::Auth(limit),
                         None => Cuenta::Unauth,
@@ -82,7 +82,7 @@ impl Cli {
         }
     }
     pub fn build(
-        id: i64,
+        id: i32,
         nombre: Arc<str>,
         dni: i32,
         activo: bool,
@@ -101,7 +101,7 @@ impl Cli {
             created,
         }
     }
-    pub fn id(&self) -> &i64 {
+    pub fn id(&self) -> &i32 {
         &self.id
     }
     #[cfg(test)]
@@ -133,7 +133,7 @@ impl Cli {
         let mut ventas = Vec::new();
         let qres: Vec<VentaDB> = sqlx::query_as!(
             VentaDB,
-            r#"select id, time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where cliente = ? and paga = ? "#,
+            r#"select id as "id:_", time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where cliente = ? and paga = ? "#,
             self.id,
             false
         )
@@ -153,7 +153,7 @@ impl Cli {
     ) -> Res<Venta> {
         let qres: Option<VentaDB> = sqlx::query_as!(
             VentaDB,
-            r#"select id, time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where id = ? and cliente = ? and paga = ? "#,
+            r#"select id as "id:_", time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where id = ? and cliente = ? and paga = ? "#,
             *venta.id(),
             id_cliente,
             false
@@ -186,7 +186,7 @@ impl Cli {
     ) -> Res<f32> {
         let qres: Vec<VentaDB> = sqlx::query_as!(
             VentaDB,
-            r#"select id, time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where cliente = ? and paga = ? "#,
+            r#"select id as "id:_", time, monto_total as "monto_total:_", monto_pagado as "monto_pagado:_", cliente, cerrada, paga, pos from ventas where cliente = ? and paga = ? "#,
             id,
             false
         )
@@ -204,7 +204,7 @@ impl Cli {
 
             let models: Vec<PagoDB> = sqlx::query_as!(
                 PagoDB,
-                r#"select id, medio_pago, monto as "monto:_", pagado as "pagado:_", venta from pagos where venta = ? and medio_pago = ? "#,
+                r#"select id as "id:_", medio_pago as "medio_pago:_", monto as "monto:_", pagado as "pagado:_", venta as "venta:_" from pagos where venta = ? and medio_pago = ? "#,
                 venta.id,
                 0
             )
@@ -253,7 +253,7 @@ impl<'a> Cliente {
             None => Cliente::Final,
         }
     }
-    pub fn to_fnd(self) -> ClienteFND {
+    pub fn to_fnd(&self) -> ClienteFND {
         let mut reg = ClienteFND::default();
         match self {
             Cliente::Final => reg.regular = false,
@@ -261,10 +261,45 @@ impl<'a> Cliente {
                 reg.regular = true;
                 reg.activo = cli.activo;
                 reg.created = SharedString::from(cli.created.to_string());
-                reg.dni = cli.dni;
+                reg.dni = cli.dni; //TODO
             }
         }
         reg
+    }
+    pub fn from_fnd(cliente: ClienteFND) -> Self {
+        match cliente.regular {
+            false => Cliente::Final,
+            true => Cliente::Regular(Cli::build(
+                cliente.id,
+                Arc::from(cliente.nombre.as_str()),
+                cliente.dni,
+                cliente.activo,
+                cliente.created.as_str().parse().unwrap(),
+                match cliente.limite.auth {
+                    true => Some(cliente.limite.cuenta),
+                    false => None,
+                },
+            )),
+        }
+    }
+    pub async fn from_fnd_new(cliente: ClienteFND, db: &Pool<Sqlite>) -> Res<Cliente> {
+        Ok(match cliente.regular {
+            false => Cliente::Final,
+            true => Cliente::Regular(
+                Cli::new_to_db(
+                    db,
+                    cliente.nombre.as_str(),
+                    cliente.dni,
+                    cliente.activo,
+                    Utc::now().naive_local(),
+                    match cliente.limite.auth {
+                        true => Some(cliente.limite.cuenta),
+                        false => None,
+                    },
+                )
+                .await?,
+            ),
+        })
     }
 }
 
@@ -274,11 +309,11 @@ impl Default for Cliente {
     }
 }
 impl Cuenta {
-    pub fn to_fnd(self) -> CuentaFND {
+    pub fn to_fnd(&self) -> CuentaFND {
         let mut cuenta = CuentaFND::default();
         cuenta.auth = match self {
             Cuenta::Auth(a) => {
-                cuenta.cuenta = a;
+                cuenta.cuenta = *a;
                 true
             }
             Cuenta::Unauth => false,

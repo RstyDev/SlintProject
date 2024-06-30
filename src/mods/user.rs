@@ -73,7 +73,7 @@ impl User {
     pub fn nombre(&self) -> Arc<str> {
         Arc::clone(&self.nombre)
     }
-    pub fn to_fnd(self) -> UserFND {
+    pub fn to_fnd(&self) -> UserFND {
         let mut user = UserFND::default();
         user.id = SharedString::from(self.id.to_string());
         user.nombre = SharedString::from(self.nombre.to_string());

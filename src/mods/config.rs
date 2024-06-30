@@ -1,5 +1,8 @@
 use super::Res;
-use crate::db::map::{ConfigDB, MedioPagoDB};
+use crate::{
+    db::map::{ConfigDB, MedioPagoDB},
+    ConfigFND, SharedString,
+};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;
@@ -16,15 +19,17 @@ pub struct Config {
 
 impl Config {
     pub async fn get_or_def(db: &Pool<Sqlite>) -> Res<Config> {
-        let res: Option<ConfigDB> = sqlx::query_as!(ConfigDB, r#"select id, politica as "politica:_", formato, mayus, cantidad as "cantidad:_" from config limit 1"#)
+        let res: Option<ConfigDB> = sqlx::query_as!(ConfigDB, r#"select id as "id:_", politica as "politica:_", formato, mayus, cantidad as "cantidad:_" from config limit 1"#)
             .fetch_optional(db)
             .await?;
         match res {
             Some(conf) => {
-                let medios: sqlx::Result<Vec<MedioPagoDB>> =
-                    sqlx::query_as!(MedioPagoDB, r#"select * from medios_pago "#)
-                        .fetch_all(db)
-                        .await;
+                let medios: sqlx::Result<Vec<MedioPagoDB>> = sqlx::query_as!(
+                    MedioPagoDB,
+                    r#"select id as "id:_", medio from medios_pago "#
+                )
+                .fetch_all(db)
+                .await;
                 let medios = medios?
                     .iter()
                     .map(|med| Arc::from(med.medio.to_owned()))
@@ -91,6 +96,14 @@ impl Config {
     }
     pub fn modo_mayus(&self) -> Mayusculas {
         self.modo_mayus.clone()
+    }
+    pub fn to_fnd(&self) -> ConfigFND {
+        let mut conf = ConfigFND::default();
+        conf.cantidad_productos = self.cantidad_productos as i32;
+        conf.formato_producto = SharedString::from(self.formato_producto.to_string());
+        conf.modo_mayus = SharedString::from(self.modo_mayus.to_string());
+        conf.politica_redondeo = self.politica_redondeo;
+        conf
     }
 }
 impl Default for Config {
