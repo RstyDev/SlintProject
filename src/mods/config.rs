@@ -4,6 +4,7 @@ use crate::{
     ConfigFND, SharedString,
 };
 use serde::{Deserialize, Serialize};
+use slint::Model;
 use sqlx::{Pool, Sqlite};
 use std::fmt::Display;
 use std::sync::Arc;
@@ -104,6 +105,18 @@ impl Config {
         conf.modo_mayus = SharedString::from(self.modo_mayus.to_string());
         conf.politica_redondeo = self.politica_redondeo;
         conf
+    }
+    pub fn from_fnd(conf: ConfigFND) -> Self {
+        Config::build(
+            conf.politica_redondeo,
+            conf.formato_producto.as_str(),
+            conf.modo_mayus.as_str(),
+            conf.cantidad_productos as u8,
+            conf.medios
+                .iter()
+                .map(|med| Arc::from(med.as_str()))
+                .collect::<Vec<Arc<str>>>(),
+        )
     }
 }
 impl Default for Config {

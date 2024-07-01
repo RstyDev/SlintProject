@@ -30,6 +30,9 @@ impl MedioPago {
         st.id = self.id;
         st
     }
+    pub fn from_fnd(medio: MedioPagoFND) -> Self {
+        MedioPago::build(medio.medio.as_str(), medio.id)
+    }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pago {
@@ -79,6 +82,14 @@ impl Pago {
         st.pagado = self.pagado;
         st.medio_pago = self.medio_pago.to_fnd();
         st
+    }
+    pub fn from_fnd(pago: PagoFND) -> Self {
+        Pago::build(
+            pago.int_id,
+            MedioPago::from_fnd(pago.medio_pago),
+            pago.monto,
+            pago.pagado,
+        )
     }
     pub fn def(db: &Pool<Sqlite>) -> Self {
         let medio = Runtime::new()

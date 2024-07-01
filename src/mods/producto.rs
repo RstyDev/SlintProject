@@ -1,13 +1,10 @@
 use super::{redondeo, AppError, Presentacion, Res, ValuableTrait};
-use crate::{
-    db::map::BigIntDB,
-    // ProductoFND,
-    ValFND,
-};
+use crate::{db::map::BigIntDB, ProductoFND, ValFND};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use slint::SharedString;
+use slint::{SharedString, VecModel};
 use sqlx::{Pool, Sqlite};
+use std::rc::Rc;
 use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -127,19 +124,34 @@ impl Producto {
             }),
         }
     }
-    // pub fn from_fnd(ProductoFND)->Producto{
+    pub fn to_fnd(self) -> ProductoFND {
+        let mut prod = ProductoFND::default();
+        prod.codigos_de_barras = Rc::new(VecModel::from(
+            self.codigos_de_barras
+                .iter()
+                .map(|c| *c as i32)
+                .collect::<Vec<i32>>(),
+        ))
+        .into();
+        prod.porcentaje = self.porcentaje;
+        prod.id = self.id;
+        prod.tipo_producto = SharedString::from(self.tipo_producto.to_string());
+        prod.marca = SharedString::from(self.marca.to_string());
+        prod.precio_de_venta = self.precio_de_venta;
+        prod.precio_de_costo = self.precio_de_costo;
+        prod.presentacion = SharedString::from(self.presentacion.get_string());
+        prod.variedad = SharedString::from(self.variedad.to_string());
 
-    // }
-    // pub fn to_fnd(self)->ProductoFND{
-    //     let mut prod=ProductoFND::default();
-    //     prod.codigos_de_barras = Rc::new(VecModel::from(self.codigos_de_barras.iter().map(|c|*c as i32).collect::<Vec<i32>>())).into();
-    //     //TODO
-    //     prod
+        //TODO! falta cantidad
+        prod
+    }
+    // pub fn from_fnd(prod:ProductoFND)->Producto{
+    //     Producto::build(prod.id,prod.codigos_de_barras.iter().map(|cod|cod as i64).collec::<Vec<i64>>(),prod.precio_de_venta,prod.porcentaje,prod.precio_de_costo,prod.tipo_producto.as_str(),prod.marca.as_str(),prod.variedad.as_str(),Presentacion::CC(1))
     // }
     pub fn to_val_fnd(&self) -> ValFND {
         let mut val = ValFND::default();
         val.id = self.id;
-        val.codigo = self.codigos_de_barras[0] as i32;
+        val.codigo = SharedString::from(self.codigos_de_barras[0].to_string());
         val.descripcion = SharedString::from(self.nombre_completo());
         val
     }

@@ -2,7 +2,7 @@ use crate::db::map::{BigIntDB, ClienteDB, VentaDB};
 use crate::{SharedString, UserFND, VentaFND};
 use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
-use slint::{ModelRc, VecModel};
+use slint::{Model, ModelRc, VecModel};
 use sqlx::{query, Pool, Sqlite};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -139,6 +139,27 @@ impl<'a> Venta {
         st.pagos = ModelRc::new(VecModel::from(pagos));
         st.time = SharedString::from(self.time.to_string());
         st
+    }
+    pub fn from_fnd(venta: VentaFND) -> Venta {
+        Venta::build(
+            venta.id,
+            venta.monto_total,
+            vec![],
+            venta
+                .pagos
+                .iter()
+                .map(|pago| Pago::from_fnd(pago))
+                .collect::<Vec<Pago>>(),
+            venta.monto_pagado,
+            match venta.user.nombre.as_str() {
+                "" => None,
+                _ => Some(Arc::from(User::from_fnd(venta.user))),
+            },
+            Cliente::from_fnd(venta.cliente),
+            venta.paga,
+            venta.cerrada,
+            venta.time.to_string().parse().unwrap(),
+        )
     }
     pub fn pagos(&self) -> Vec<Pago> {
         self.pagos.clone()

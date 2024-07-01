@@ -1,10 +1,5 @@
 use super::{AppError, Res};
-use crate::{
-    db::map::BigIntDB,
-    // PesableFND,
-    SharedString,
-    ValFND,
-};
+use crate::{db::map::BigIntDB, PesableFND, SharedString, ValFND};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
@@ -92,21 +87,33 @@ impl Pesable {
     pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
     }
-    // pub fn from_fnd(PesableFND)->Pesable{
-
-    // }
-    // pub fn to_fnd(&self) -> PesableFND {
-    //     let mut pes = PesableFND::default();
-    //     //TODO!
-    //     pes
-    // }
     pub fn to_val_fnd(&self) -> ValFND {
         let mut val = ValFND::default();
         val.descripcion = SharedString::from(self.descripcion.to_string());
         val.id = self.id;
-        val.codigo = self.codigo as i32;
+        val.codigo = SharedString::from(self.codigo.to_string());
         val.precio = self.precio_peso;
         val
+    }
+    pub fn to_fnd(&self) -> PesableFND {
+        let mut pes = PesableFND::default();
+        pes.id = self.id;
+        pes.descripcion = SharedString::from(self.descripcion.to_string());
+        pes.costo_kilo = self.costo_kilo;
+        pes.porcentaje = self.porcentaje;
+        pes.codigo = SharedString::from(self.codigo.to_string());
+        pes.precio_peso = self.precio_peso;
+        pes
+    }
+    pub fn from_fnd(pesable: PesableFND) -> Pesable {
+        Pesable::build(
+            pesable.id,
+            pesable.codigo as i64,
+            pesable.precio_peso,
+            pesable.porcentaje,
+            pesable.costo_kilo,
+            pesable.descripcion.as_str(),
+        )
     }
     pub async fn eliminar(self, db: &Pool<Sqlite>) -> Res<()> {
         let qres: Option<BigIntDB> = sqlx::query_as!(

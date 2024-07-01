@@ -1,13 +1,12 @@
 mod db;
 mod mods;
-
-use std::fmt::{Display, Formatter};
 use crate::{
     db::db,
     mods::{cmd::*, Cliente, Pesable, Res, Rubro, Sistema, Valuable, Venta},
 };
 use chrono::Utc;
 use slint::{LogicalSize, ModelRc, SharedString, VecModel, WindowSize};
+use std::fmt::{Display, Formatter};
 use std::sync::{Arc, Mutex};
 use tokio::runtime::Runtime;
 slint::include_modules!();
@@ -16,12 +15,16 @@ enum Windows {
     Main,
     Login,
 }
-impl Display for Windows{
+impl Display for Windows {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}", match self{
-            Windows::Login=>"Login",
-            Windows::Main=>"Main",
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                Windows::Login => "Login",
+                Windows::Main => "Main",
+            }
+        )
     }
 }
 
@@ -32,7 +35,7 @@ fn set_logic(log: Logic, sistema: Arc<Mutex<Sistema>>, ui: Arc<App>, window: Win
                 Ok(sis) => sis.ventas(),
                 Err(_) => match sistema.lock() {
                     Ok(sis) => sis.ventas(),
-                    Err(e) => panic!("{}",e),
+                    Err(e) => panic!("{}", e),
                 },
             };
             ventas.a = Venta::build(

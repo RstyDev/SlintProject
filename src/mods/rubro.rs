@@ -1,9 +1,7 @@
 use super::{redondeo, valuable::ValuableTrait, AppError, Res};
 use crate::{
     db::map::{BigIntDB, CodeDB},
-    SharedString,
-    ValFND,
-    // RubroFND,
+    RubroFND, SharedString, ValFND,
 };
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -76,14 +74,25 @@ impl Rubro {
     pub fn descripcion(&self) -> Arc<str> {
         Arc::clone(&self.descripcion)
     }
-    ///pub fn from_fnd(RubroFND)->Rubro{
-    ///
-    /// }
-    // pub fn to_fnd(&self)->RubroFND{
-    //     let mut rub = RubroFND::default();
-    //TODO!
-    //     rub
-    // }
+    pub fn from_fnd(rub: RubroFND) -> Rubro {
+        Rubro::build(
+            rub.id,
+            rub.codigo as i64,
+            match rub.monto {
+                0.0 => None,
+                m => Some(m),
+            },
+            rub.descripcion.as_str(),
+        )
+    }
+    pub fn to_fnd(&self) -> RubroFND {
+        let mut rub = RubroFND::default();
+        rub.id = self.id;
+        rub.codigo = self.codigo as i32;
+        rub.monto = self.monto.unwrap_or(0.0);
+        rub.descripcion = SharedString::from(self.descripcion.to_string());
+        rub
+    }
     pub fn to_val_fnd(&self) -> ValFND {
         let mut val = ValFND::default();
         val.descripcion = SharedString::from(self.descripcion.to_string());

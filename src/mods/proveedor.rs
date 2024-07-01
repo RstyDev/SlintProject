@@ -67,6 +67,16 @@ impl Proveedor {
         prov.contacto = self.contacto.unwrap_or(0);
         prov
     }
+    pub fn from_fnd(prov: ProveedorFND) -> Self {
+        Proveedor::build(
+            prov.id,
+            prov.nombre.as_str(),
+            match prov.contacto {
+                0 => None,
+                c => Some(c),
+            },
+        )
+    }
 }
 impl Display for Proveedor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

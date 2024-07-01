@@ -1,11 +1,11 @@
 import { Button, VerticalBox, HorizontalBox, GridBox, TabWidget, StandardTableView } from "std-widgets.slint";
 import { Logic } from "logic.slint";
 import { Pagos } from "main-pagos.slint";
-import { UserFND,ClienteFND,VentaFND,ConfigFND,SistemaFND } from "structs.slint";
+import { UserFND,ClienteFND,VentaFND,ConfigFND,SistemaFND,ProductoFND,RubroFND,PesableFND } from "structs.slint";
 import { Login } from "login.slint";
 import { TablaProductos } from "main-tabla-productos.slint";
 import { Principal } from "main-principal.slint";
-export { Logic }
+export { Logic, UserFND,ClienteFND,VentaFND,ConfigFND,SistemaFND,ProductoFND,RubroFND,PesableFND }
 export component App inherits Window {
     in-out property <SistemaFND> sistema;
     in-out property <bool> logged:false;

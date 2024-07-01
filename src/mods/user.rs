@@ -80,6 +80,14 @@ impl User {
         user.rango = SharedString::from(self.rango.to_string());
         user
     }
+    pub fn from_fnd(user: UserFND) -> Self {
+        User::build(
+            Arc::from(user.id.as_str()),
+            Arc::from(user.nombre.as_str()),
+            0,
+            user.rango.as_str(),
+        ) //TODO! falta pass
+    }
 }
 impl Display for Rango {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

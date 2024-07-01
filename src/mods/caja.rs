@@ -269,13 +269,4 @@ impl Caja {
             totales,
         )
     }
-
-    /*id: i32,
-    inicio: NaiveDateTime,
-    cierre: Option<NaiveDateTime>,
-    ventas_totales: f32,
-    monto_inicio: f32,
-    monto_cierre: Option<f32>,
-    cajero: Option<Arc<str>>,
-    totales: HashMap<Arc<str>, f32>, */
 }

@@ -9,6 +9,8 @@ export struct CajaFND{
     totales: [float],
     medios: [string],
 }
+
+
 export struct CuentaFND{
     auth:bool,
     cuenta:float,
@@ -46,13 +48,14 @@ export struct ProveedorFND {
 }
 export struct ValFND{
     id:int,
-    codigo:int,
+    codigo:string,
     descripcion: string,
     precio: float,
     cantidad: float,
 }
 export struct UserFND{
     id: string,
+    pass: string,
     nombre:string,
     rango: string,
 }
@@ -75,7 +78,7 @@ export struct RelProdProvFND{
 
 export struct ProductoFND{
     id: int,
-    codigos_de_barras: [int],
+    codigos_de_barras: [string],
     precio_de_venta: float,
     porcentaje: float,
     precio_de_costo: float,
@@ -83,19 +86,20 @@ export struct ProductoFND{
     marca: string,
     variedad: string,
     presentacion: string,
+    cantidad: float,
     proveedores: [RelProdProvFND]
 }
 
 export struct RubroFND {
     id: int,
-    codigo: int,
+    codigo: string,
     monto: float,
     descripcion: string,
 }
 
 export struct PesableFND {
     id: int,
-    codigo: int,
+    codigo: string,
     precio_peso: float,
     porcentaje: float,
     costo_kilo: float,

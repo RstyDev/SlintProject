@@ -1,15 +1,16 @@
 use crate::db::map::BigIntDB;
 use chrono::Utc;
+use crate::I64;
+use super::{AppError, Pesable, Producto, Proveedor, Res, Rubro, User};
+use crate::mods::valuable::Valuable;
 use serde::{de::DeserializeOwned, Serialize};
 use sqlx::{Pool, Sqlite};
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
+use slint::SharedString;
 use Valuable as V;
-
-use super::{AppError, Pesable, Producto, Proveedor, Res, Rubro, User};
-use crate::mods::valuable::Valuable;
 pub struct Db;
 pub struct Mapper;
 pub fn get_hash(pass: &str) -> i64 {
@@ -17,6 +18,8 @@ pub fn get_hash(pass: &str) -> i64 {
     pass.hash(&mut h);
     h.finish() as i64
 }
+
+
 pub fn crear_file<'a>(path: &str, escritura: &impl Serialize) -> std::io::Result<()> {
     let mut f = File::create(path)?;
     println!("Path que se actualiza: {}", path);
